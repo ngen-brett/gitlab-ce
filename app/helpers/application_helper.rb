@@ -214,12 +214,19 @@ module ApplicationHelper
     class_names = []
     class_names << 'issue-boards-page' if current_controller?(:boards)
     class_names << 'with-performance-bar' if performance_bar_enabled?
-
+    class_names << system_message_class
     class_names
   end
 
-  # EE feature: System header and footer, unavailable in CE
   def system_message_class
+    class_names = []
+
+    return class_names unless appearance
+
+    class_names << 'with-system-header' if appearance.show_header?
+    class_names << 'with-system-footer' if appearance.show_footer?
+
+    class_names
   end
 
   # Returns active css class when condition returns true
@@ -292,4 +299,11 @@ module ApplicationHelper
       snippets: snippets_project_autocomplete_sources_path(object)
     }
   end
+
+  private
+
+  def appearance
+    ::Appearance.current
+  end
+
 end
