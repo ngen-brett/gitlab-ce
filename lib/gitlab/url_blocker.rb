@@ -16,6 +16,8 @@ module Gitlab
 
         # Allow imports from the GitLab instance itself but only from the configured ports
         return true if internal?(uri)
+        # Allow any whitelisted URI
+        return true if whitelisted?(uri)
 
         port = uri.port || uri.default_port
         validate_protocol!(uri.scheme, protocols)
@@ -109,6 +111,10 @@ module Gitlab
       def internal_shell?(uri)
         uri.hostname == config.gitlab_shell.ssh_host &&
           (uri.port.blank? || uri.port == config.gitlab_shell.ssh_port)
+      end
+
+      def whitelisted?(uri)
+        config.gitlab.outbound_requests_whitelist.include?(uri)
       end
 
       def config

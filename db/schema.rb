@@ -171,6 +171,7 @@ ActiveRecord::Schema.define(version: 20180826111825) do
     t.boolean "instance_statistics_visibility_private", default: false, null: false
     t.boolean "web_ide_clientside_preview_enabled", default: false, null: false
     t.boolean "user_show_add_ssh_key_message", default: true, null: false
+    t.text "outbound_requests_whitelist"
   end
 
   create_table "audit_events", force: :cascade do |t|

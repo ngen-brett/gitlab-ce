@@ -8,4 +8,9 @@
         = f.label :allow_local_requests_from_hooks_and_services, class: 'form-check-label' do
           Allow requests to the local network from hooks and services
 
+    .form-group
+      = f.label :web_hook_uri_whitelist, class: 'label-bold' do
+        URI of trusted services for web hook integrations
+      = f.text_field :web_hook_uri_whitelist, placeholder: "example.com,192.168.1.1", class: 'form-control'
+
   = f.submit 'Save changes', class: "btn btn-success"

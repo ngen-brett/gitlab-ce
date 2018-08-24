@@ -332,6 +332,28 @@ describe ApplicationSetting do
     end
   end
 
+  context 'restricted outbound requests domain' do
+    it 'sets outbound requests domain' do
+      setting.outbound_requests_whitelist = 'example.com'
+      expect(setting.outbound_requests_whitelist).to eq(['example.com'])
+    end
+
+    it 'sets multiple outbound requests domain with spaces' do
+      setting.outbound_requests_whitelist_raw = 'example.com *.example.com'
+      expect(setting.outbound_requests_whitelist).to eq(['example.com', '*.example.com'])
+    end
+
+    it 'sets multiple outbound requests domains with newlines and a space' do
+      setting.outbound_requests_whitelist_raw = "example.com\n *.example.com"
+      expect(setting.outbound_requests_whitelist).to eq(['example.com', '*.example.com'])
+    end
+
+    it 'sets multiple outbound requests domains with commas' do
+      setting.outbound_requests_whitelist_raw = "example.com, *.example.com"
+      expect(setting.outbound_requests_whitelist).to eq(['example.com', '*.example.com'])
+    end
+  end
+
   context 'restricted signup domains' do
     it 'sets single domain' do
       setting.domain_whitelist_raw = 'example.com'

@@ -23,6 +23,7 @@ class ApplicationSetting < ActiveRecord::Base
   serialize :restricted_visibility_levels # rubocop:disable Cop/ActiveRecordSerialize
   serialize :import_sources # rubocop:disable Cop/ActiveRecordSerialize
   serialize :disabled_oauth_sign_in_sources, Array # rubocop:disable Cop/ActiveRecordSerialize
+  serialize :outbound_requests_whitelist, Array # rubocop:disable Cop/ActiveRecordSerialize
   serialize :domain_whitelist, Array # rubocop:disable Cop/ActiveRecordSerialize
   serialize :domain_blacklist, Array # rubocop:disable Cop/ActiveRecordSerialize
   serialize :repository_storages # rubocop:disable Cop/ActiveRecordSerialize
@@ -33,7 +34,7 @@ class ApplicationSetting < ActiveRecord::Base
   cache_markdown_field :shared_runners_text, pipeline: :plain_markdown
   cache_markdown_field :after_sign_up_text
 
-  attr_accessor :domain_whitelist_raw, :domain_blacklist_raw
+  attr_accessor :outbound_requests_whitelist_raw, :domain_whitelist_raw, :domain_blacklist_raw
 
   default_value_for :id, 1
 
@@ -126,6 +127,10 @@ class ApplicationSetting < ActiveRecord::Base
 
   validates :enabled_git_access_protocol,
             inclusion: { in: %w(ssh http), allow_blank: true, allow_nil: true }
+
+  validates :outbound_requests_whitelist,
+            presence: { message: 'Outbound requests whitelist cannot be activated if local requests from hooks and services is enabled.' },
+            if: :allow_local_requests_from_hooks_and_services_enabled?
 
   validates :domain_blacklist,
             presence: { message: 'Domain blacklist cannot be empty if Blacklist is enabled.' },
@@ -240,6 +245,7 @@ class ApplicationSetting < ActiveRecord::Base
       default_projects_limit: Settings.gitlab['default_projects_limit'],
       default_snippet_visibility: Settings.gitlab.default_projects_features['visibility_level'],
       disabled_oauth_sign_in_sources: [],
+      outbound_requests_whitelist: Settings.gitlab['outbound_requests_whitelist'],
       domain_whitelist: Settings.gitlab['domain_whitelist'],
       dsa_key_restriction: 0,
       ecdsa_key_restriction: 0,
@@ -327,17 +333,32 @@ class ApplicationSetting < ActiveRecord::Base
     ::Gitlab::Database.cached_column_exists?(:application_settings, :sidekiq_throttling_enabled)
   end
 
+  def allow_local_requests_from_hooks_and_services_column_exist?
+    ::Gitlab::Database.cached_column_exists?(:application_settings, :allow_local_requests_from_hooks_and_services)
+  end
+
   def disabled_oauth_sign_in_sources=(sources)
     sources = (sources || []).map(&:to_s) & Devise.omniauth_providers.map(&:to_s)
     super(sources)
   end
 
+  def outbound_requests_whitelist_raw
+    self.outbound_requests_whitelist = string_to_array(values)
+  end
+
   def domain_whitelist_raw
-    self.domain_whitelist&.join("\n")
+    self.domain_whitelist= string_to_array(values)
   end
 
   def domain_blacklist_raw
-    self.domain_blacklist&.join("\n")
+    self.domain_blacklist = string_to_array(values)
+  end
+
+  def outbound_requests_whitelist_raw=(values)
+    self.outbound_requests_whitelist = []
+    self.outbound_requests_whitelist = values.split(DOMAIN_LIST_SEPARATOR)
+    self.outbound_requests_whitelist.reject! { |d| d.empty? }
+    self.outbound_requests_whitelist
   end
 
   def domain_whitelist_raw=(values)
@@ -401,6 +422,12 @@ class ApplicationSetting < ActiveRecord::Base
     ensure_health_check_access_token!
   end
 
+  def allow_local_requests_from_hooks_and_services_enabled?
+    return false unless allow_local_requests_from_hooks_and_services_column_exist?
+
+    allow_local_requests_from_hooks_and_services
+  end
+
   def sidekiq_throttling_enabled?
     return false unless sidekiq_throttling_column_exists?
 
@@ -446,6 +473,10 @@ class ApplicationSetting < ActiveRecord::Base
   end
 
   private
+
+  def array_to_string(array)
+    array&.join("\n")
+  end
 
   def ensure_uuid!
     return if uuid?
