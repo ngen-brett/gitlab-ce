@@ -27,11 +27,39 @@ module Gitlab
     end
   end
 
+  def self.version_info
+    Gitlab::VersionInfo.parse(Gitlab::VERSION)
+  end
+
   COM_URL = 'https://gitlab.com'.freeze
   APP_DIRS_PATTERN = %r{^/?(app|config|ee|lib|spec|\(\w*\))}
   SUBDOMAIN_REGEX = %r{\Ahttps://[a-z0-9]+\.gitlab\.com\z}
   VERSION = File.read(root.join("VERSION")).strip.freeze
   INSTALLATION_TYPE = File.read(root.join("INSTALLATION_TYPE")).strip.freeze
+
+  def self.pre_release?
+    VERSION.include?('pre')
+  end
+
+  def self.final_release?
+    !VERSION.include?('RC') && !pre_release?
+  end
+
+  def self.minor_release
+    version_info.major.to_s + '.' + version_info.minor.to_s
+  end
+
+  def self.previous_release
+    if version_info.minor.to_i > 0
+      version_info.major.to_s + '.' + (version_info.minor.to_i - 1).to_s
+    else
+      (version_info.major.to_i - 1).to_s
+    end
+  end
+
+  def self.new_major_release?
+    version_info.minor.to_i == 0
+  end
 
   def self.com?
     # Check `gl_subdomain?` as well to keep parity with gitlab.com
@@ -48,13 +76,5 @@ module Gitlab
 
   def self.dev_env_or_com?
     Rails.env.development? || org? || com?
-  end
-
-  def self.pre_release?
-    VERSION.include?('pre')
-  end
-
-  def self.version_info
-    Gitlab::VersionInfo.parse(Gitlab::VERSION)
   end
 end

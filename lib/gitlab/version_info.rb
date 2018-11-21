@@ -9,6 +9,8 @@ module Gitlab
     def self.parse(str)
       if str && m = str.match(/(\d+)\.(\d+)\.(\d+)/)
         VersionInfo.new(m[1].to_i, m[2].to_i, m[3].to_i)
+      elsif str && m = str.match(/(\d+)\.(\d+)\-RC(\d+)/)
+        VersionInfo.new(m[1].to_i, m[2].to_i, 0)
       else
         VersionInfo.new
       end
