@@ -56,7 +56,8 @@ export const rstrip = val => {
   return val;
 };
 
-export const updateTooltipTitle = ($tooltipEl, newTitle) => $tooltipEl.attr('title', newTitle).tooltip('_fixTitle');
+export const updateTooltipTitle = ($tooltipEl, newTitle) =>
+  $tooltipEl.attr('title', newTitle).tooltip('_fixTitle');
 
 export const disableButtonIfEmptyField = (fieldSelector, buttonSelector, eventName = 'input') => {
   const field = $(fieldSelector);
@@ -86,6 +87,8 @@ export const handleLocationHash = () => {
   const fixedTabs = document.querySelector('.js-tabs-affix');
   const fixedDiffStats = document.querySelector('.js-diff-files-changed');
   const fixedNav = document.querySelector('.navbar-gitlab');
+  const performanceBar = document.querySelector('#js-peek');
+  const topPadding = 8;
 
   let adjustment = 0;
   if (fixedNav) adjustment -= fixedNav.offsetHeight;
@@ -100,6 +103,14 @@ export const handleLocationHash = () => {
 
   if (fixedDiffStats) {
     adjustment -= fixedDiffStats.offsetHeight;
+  }
+
+  if (performanceBar) {
+    adjustment -= performanceBar.offsetHeight;
+  }
+
+  if (isInMRPage()) {
+    adjustment -= topPadding;
   }
 
   window.scrollBy(0, adjustment);
@@ -131,16 +142,42 @@ export const parseUrlPathname = url => {
   return parsedUrl.pathname.charAt(0) === '/' ? parsedUrl.pathname : `/${parsedUrl.pathname}`;
 };
 
-// We can trust that each param has one & since values containing & will be encoded
-// Remove the first character of search as it is always ?
-export const getUrlParamsArray = () =>
-  window.location.search
-    .slice(1)
-    .split('&')
+const splitPath = (path = '') => path.replace(/^\?/, '').split('&');
+
+export const urlParamsToArray = (path = '') =>
+  splitPath(path)
+    .filter(param => param.length > 0)
     .map(param => {
       const split = param.split('=');
       return [decodeURI(split[0]), split[1]].join('=');
     });
+
+export const getUrlParamsArray = () => urlParamsToArray(window.location.search);
+
+export const urlParamsToObject = (path = '') =>
+  splitPath(path).reduce((dataParam, filterParam) => {
+    if (filterParam === '') {
+      return dataParam;
+    }
+
+    const data = dataParam;
+    let [key, value] = filterParam.split('=');
+    const isArray = key.includes('[]');
+    key = key.replace('[]', '');
+    value = decodeURIComponent(value.replace(/\+/g, ' '));
+
+    if (isArray) {
+      if (!data[key]) {
+        data[key] = [];
+      }
+
+      data[key].push(value);
+    } else {
+      data[key] = value;
+    }
+
+    return data;
+  }, {});
 
 export const isMetaKey = e => e.metaKey || e.ctrlKey || e.altKey || e.shiftKey;
 
@@ -189,7 +226,17 @@ export const getParameterByName = (name, urlToParse) => {
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
 
-const handleSelectedRange = (range) => {
+const handleSelectedRange = (range, restrictToNode) => {
+  // Make sure this range is within the restricting container
+  if (restrictToNode && !range.intersectsNode(restrictToNode)) return null;
+
+  // If only a part of the range is within the wanted container, we need to restrict the range to it
+  if (restrictToNode && !restrictToNode.contains(range.commonAncestorContainer)) {
+    if (!restrictToNode.contains(range.startContainer)) range.setStart(restrictToNode, 0);
+    if (!restrictToNode.contains(range.endContainer))
+      range.setEnd(restrictToNode, restrictToNode.childNodes.length);
+  }
+
   const container = range.commonAncestorContainer;
   // add context to fragment if needed
   if (container.tagName === 'OL') {
@@ -200,14 +247,22 @@ const handleSelectedRange = (range) => {
   return range.cloneContents();
 };
 
-export const getSelectedFragment = () => {
+export const getSelectedFragment = restrictToNode => {
   const selection = window.getSelection();
   if (selection.rangeCount === 0) return null;
+  // Most usages of the selection only want text from a part of the page (e.g. discussion)
+  if (restrictToNode && !selection.containsNode(restrictToNode, true)) return null;
+
   const documentFragment = document.createDocumentFragment();
+  documentFragment.originalNodes = [];
 
   for (let i = 0; i < selection.rangeCount; i += 1) {
     const range = selection.getRangeAt(i);
-    documentFragment.appendChild(handleSelectedRange(range));
+    const handledRange = handleSelectedRange(range, restrictToNode);
+    if (handledRange) {
+      documentFragment.appendChild(handledRange);
+      documentFragment.originalNodes.push(range.commonAncestorContainer);
+    }
   }
   if (documentFragment.textContent.length === 0) return null;
 
@@ -349,8 +404,11 @@ export const objectToQueryString = (params = {}) =>
     .map(param => `${param}=${params[param]}`)
     .join('&');
 
-export const buildUrlWithCurrentLocation = param =>
-  (param ? `${window.location.pathname}${param}` : window.location.pathname);
+export const buildUrlWithCurrentLocation = param => {
+  if (param) return `${window.location.pathname}${param}`;
+
+  return window.location.pathname;
+};
 
 /**
  * Based on the current location and the string parameters provided
@@ -426,7 +484,7 @@ export const backOff = (fn, timeout = 60000) => {
 export const createOverlayIcon = (iconPath, overlayPath) => {
   const faviconImage = document.createElement('img');
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     faviconImage.onload = () => {
       const size = 32;
 
@@ -437,13 +495,29 @@ export const createOverlayIcon = (iconPath, overlayPath) => {
       const context = canvas.getContext('2d');
       context.clearRect(0, 0, size, size);
       context.drawImage(
-        faviconImage, 0, 0, faviconImage.width, faviconImage.height, 0, 0, size, size,
+        faviconImage,
+        0,
+        0,
+        faviconImage.width,
+        faviconImage.height,
+        0,
+        0,
+        size,
+        size,
       );
 
       const overlayImage = document.createElement('img');
       overlayImage.onload = () => {
         context.drawImage(
-          overlayImage, 0, 0, overlayImage.width, overlayImage.height, 0, 0, size, size,
+          overlayImage,
+          0,
+          0,
+          overlayImage.width,
+          overlayImage.height,
+          0,
+          0,
+          size,
+          size,
         );
 
         const faviconWithOverlayUrl = canvas.toDataURL();
@@ -456,17 +530,21 @@ export const createOverlayIcon = (iconPath, overlayPath) => {
   });
 };
 
-export const setFaviconOverlay = (overlayPath) => {
+export const setFaviconOverlay = overlayPath => {
   const faviconEl = document.getElementById('favicon');
 
-  if (!faviconEl) { return null; }
+  if (!faviconEl) {
+    return null;
+  }
 
   const iconPath = faviconEl.getAttribute('data-original-href');
 
-  return createOverlayIcon(iconPath, overlayPath).then(faviconWithOverlayUrl => faviconEl.setAttribute('href', faviconWithOverlayUrl));
+  return createOverlayIcon(iconPath, overlayPath).then(faviconWithOverlayUrl =>
+    faviconEl.setAttribute('href', faviconWithOverlayUrl),
+  );
 };
 
-export const setFavicon = (faviconPath) => {
+export const setFavicon = faviconPath => {
   const faviconEl = document.getElementById('favicon');
   if (faviconEl && faviconPath) {
     faviconEl.setAttribute('href', faviconPath);
@@ -491,7 +569,10 @@ export const setCiStatusFavicon = pageUrl =>
       }
       return resetFavicon();
     })
-    .catch(resetFavicon);
+    .catch(error => {
+      resetFavicon();
+      throw error;
+    });
 
 export const spriteIcon = (icon, className = '') => {
   const classAttribute = className.length > 0 ? `class="${className}"` : '';
@@ -559,6 +640,17 @@ export const roundOffFloat = (number, precision = 0) => {
   // eslint-disable-next-line no-restricted-properties
   const multiplier = Math.pow(10, precision);
   return Math.round(number * multiplier) / multiplier;
+};
+
+/**
+ * Represents navigation type constants of the Performance Navigation API.
+ * Detailed explanation see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceNavigation.
+ */
+export const NavigationType = {
+  TYPE_NAVIGATE: 0,
+  TYPE_RELOAD: 1,
+  TYPE_BACK_FORWARD: 2,
+  TYPE_RESERVED: 255,
 };
 
 window.gl = window.gl || {};

@@ -33,7 +33,7 @@ provides solutions for all the stages of the DevOps lifecycle:
 [plan](#plan), [create](#create), [verify](#verify), [package](#package),
 [release](#release), [configure](#configure), [monitor](#monitor).
 
-![DevOps Lifecycle](img/devops_lifecycle.png)
+<img class="image-noshadow" src="img/devops_lifecycle.png" alt="DevOps Lifecycle">
 
 ### Plan
 
@@ -165,6 +165,7 @@ configuration. Then customize everything from buildpacks to CI/CD.
 - [Deployment of Helm, Ingress, and Prometheus on Kubernetes](user/project/clusters/index.md#installing-applications)
 - [Protected variables](ci/variables/README.md#protected-variables)
 - [Easy creation of Kubernetes clusters on GKE](user/project/clusters/index.md#adding-and-creating-a-new-gke-cluster-via-gitlab)
+- [Executable Runbooks](user/project/clusters/runbooks/index.md)
 
 ### Monitor
 
@@ -175,7 +176,7 @@ instant how code changes impact your production environment.
 
 - [GitLab Prometheus](administration/monitoring/prometheus/index.md): Configure the bundled Prometheus to collect various metrics from your GitLab instance.
 - [Prometheus project integration](user/project/integrations/prometheus.md): Configure the Prometheus integration per project and monitor your CI/CD environments.
-- [Prometheus metrics](user/project/integrations/prometheus_library/metrics.md): Let Prometheus collect metrics from various services, like Kubernetes, NGINX, NGINX ingress controller, HAProxy, and Amazon Cloud Watch.
+- [Prometheus metrics](user/project/integrations/prometheus_library/index.md): Let Prometheus collect metrics from various services, like Kubernetes, NGINX, NGINX ingress controller, HAProxy, and Amazon Cloud Watch.
 - [GitLab Performance Monitoring](administration/monitoring/performance/index.md): Use InfluxDB and Grafana to monitor the performance of your GitLab instance (will be eventually replaced by Prometheus).
 - [Health check](user/admin_area/monitoring/health_check.md): GitLab provides liveness and readiness probes to indicate service health and reachability to required services.
 - [GitLab Cycle Analytics](user/project/cycle_analytics.md): Cycle Analytics measures the time it takes to go from an
@@ -191,7 +192,7 @@ instant how code changes impact your production environment.
 ### User account
 
 - [User account](user/profile/index.md): Manage your account
-  - [Authentication](topics/authentication/index.md): Account security with two-factor authentication, setup your ssh keys and deploy keys for secure access to your projects.
+  - [Authentication](topics/authentication/index.md): Account security with two-factor authentication, set up your ssh keys and deploy keys for secure access to your projects.
   - [Profile settings](user/profile/index.md#profile-settings): Manage your profile settings, two factor authentication and more.
 - [User permissions](user/permissions.md): Learn what each role in a project (external/guest/reporter/developer/maintainer/owner) can do.
 

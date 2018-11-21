@@ -2,13 +2,13 @@
 /**
  * Render environments table.
  */
-import loadingIcon from '~/vue_shared/components/loading_icon.vue';
+import { GlLoadingIcon } from '@gitlab/ui';
 import environmentItem from './environment_item.vue';
 
 export default {
   components: {
     environmentItem,
-    loadingIcon,
+    GlLoadingIcon,
   },
 
   props: {
@@ -41,82 +41,52 @@ export default {
 };
 </script>
 <template>
-  <div
-    class="ci-table"
-    role="grid"
-  >
-    <div
-      class="gl-responsive-table-row table-row-header"
-      role="row"
-    >
-      <div
-        class="table-section section-15 environments-name"
-        role="columnheader"
-      >
-        {{ s__("Environments|Environment") }}
+  <div class="ci-table" role="grid">
+    <div class="gl-responsive-table-row table-row-header" role="row">
+      <div class="table-section section-15 environments-name" role="columnheader">
+        {{ s__('Environments|Environment') }}
       </div>
-      <div
-        class="table-section section-10 environments-deploy"
-        role="columnheader"
-      >
-        {{ s__("Environments|Deployment") }}
+      <div class="table-section section-10 environments-deploy" role="columnheader">
+        {{ s__('Environments|Deployment') }}
       </div>
-      <div
-        class="table-section section-15 environments-build"
-        role="columnheader"
-      >
-        {{ s__("Environments|Job") }}
+      <div class="table-section section-15 environments-build" role="columnheader">
+        {{ s__('Environments|Job') }}
       </div>
-      <div
-        class="table-section section-20 environments-commit"
-        role="columnheader"
-      >
-        {{ s__("Environments|Commit") }}
+      <div class="table-section section-20 environments-commit" role="columnheader">
+        {{ s__('Environments|Commit') }}
       </div>
-      <div
-        class="table-section section-10 environments-date"
-        role="columnheader"
-      >
-        {{ s__("Environments|Updated") }}
+      <div class="table-section section-10 environments-date" role="columnheader">
+        {{ s__('Environments|Updated') }}
       </div>
     </div>
-    <template
-      v-for="(model, i) in environments"
-      :model="model">
+    <template v-for="(model, i) in environments" :model="model">
       <div
         is="environment-item"
+        :key="`environment-item-${i}`"
         :model="model"
         :can-create-deployment="canCreateDeployment"
         :can-read-environment="canReadEnvironment"
-        :key="`environment-item-${i}`"
       />
 
-      <template
-        v-if="shouldRenderFolderContent(model)"
-      >
-        <div
-          v-if="model.isLoadingFolderContent"
-          :key="`loading-item-${i}`">
-          <loading-icon size="2" />
+      <template v-if="shouldRenderFolderContent(model)">
+        <div v-if="model.isLoadingFolderContent" :key="`loading-item-${i}`">
+          <gl-loading-icon :size="2" />
         </div>
 
         <template v-else>
           <div
             is="environment-item"
             v-for="(children, index) in model.children"
+            :key="`env-item-${i}-${index}`"
             :model="children"
             :can-create-deployment="canCreateDeployment"
             :can-read-environment="canReadEnvironment"
-            :key="`env-item-${i}-${index}`"
           />
 
           <div :key="`sub-div-${i}`">
             <div class="text-center prepend-top-10">
-              <a
-                :href="folderUrl(model)"
-                class="btn btn-default"
-              >
-                {{ s__("Environments|Show all") }}
+              <a :href="folderUrl(model)" class="btn btn-default">
+                {{ s__('Environments|Show all') }}
               </a>
             </div>
           </div>

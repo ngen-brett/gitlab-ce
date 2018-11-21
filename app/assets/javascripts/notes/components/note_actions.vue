@@ -1,22 +1,17 @@
 <script>
 import { mapGetters } from 'vuex';
-import emojiSmiling from 'icons/_emoji_slightly_smiling_face.svg';
-import emojiSmile from 'icons/_emoji_smile.svg';
-import emojiSmiley from 'icons/_emoji_smiley.svg';
-import editSvg from 'icons/_icon_pencil.svg';
-import resolveDiscussionSvg from 'icons/_icon_resolve_discussion.svg';
-import resolvedDiscussionSvg from 'icons/_icon_status_success_solid.svg';
-import ellipsisSvg from 'icons/_ellipsis_v.svg';
-import loadingIcon from '~/vue_shared/components/loading_icon.vue';
+import Icon from '~/vue_shared/components/icon.vue';
 import tooltip from '~/vue_shared/directives/tooltip';
+import { GlLoadingIcon } from '@gitlab/ui';
 
 export default {
   name: 'NoteActions',
+  components: {
+    Icon,
+    GlLoadingIcon,
+  },
   directives: {
     tooltip,
-  },
-  components: {
-    loadingIcon,
   },
   props: {
     authorId: {
@@ -24,12 +19,13 @@ export default {
       required: true,
     },
     noteId: {
-      type: Number,
+      type: [String, Number],
       required: true,
     },
     noteUrl: {
       type: String,
-      required: true,
+      required: false,
+      default: '',
     },
     accessLevel: {
       type: String,
@@ -38,7 +34,8 @@ export default {
     },
     reportAbusePath: {
       type: String,
-      required: true,
+      required: false,
+      default: null,
     },
     canEdit: {
       type: Boolean,
@@ -87,6 +84,9 @@ export default {
     shouldShowActionsDropdown() {
       return this.currentUserId && (this.canEdit || this.canReportAsAbuse);
     },
+    showDeleteAction() {
+      return this.canDelete && !this.canReportAsAbuse && !this.noteUrl;
+    },
     isAuthoredByCurrentUser() {
       return this.authorId === this.currentUserId;
     },
@@ -102,15 +102,6 @@ export default {
 
       return title;
     },
-  },
-  created() {
-    this.emojiSmiling = emojiSmiling;
-    this.emojiSmile = emojiSmile;
-    this.emojiSmiley = emojiSmiley;
-    this.editSvg = editSvg;
-    this.ellipsisSvg = ellipsisSvg;
-    this.resolveDiscussionSvg = resolveDiscussionSvg;
-    this.resolvedDiscussionSvg = resolvedDiscussionSvg;
   },
   methods: {
     onEdit() {
@@ -128,14 +119,8 @@ export default {
 
 <template>
   <div class="note-actions">
-    <span
-      v-if="accessLevel"
-      class="note-role user-access-role">
-      {{ accessLevel }}
-    </span>
-    <div
-      v-if="canResolve"
-      class="note-actions-item">
+    <span v-if="accessLevel" class="note-role user-access-role"> {{ accessLevel }} </span>
+    <div v-if="canResolve" class="note-actions-item">
       <button
         v-tooltip
         :class="{ 'is-disabled': !resolvable, 'is-active': isResolved }"
@@ -143,24 +128,15 @@ export default {
         :aria-label="resolveButtonTitle"
         type="button"
         class="line-resolve-btn note-action-button"
-        @click="onResolve">
+        @click="onResolve"
+      >
         <template v-if="!isResolving">
-          <div
-            v-if="isResolved"
-            v-html="resolvedDiscussionSvg"></div>
-          <div
-            v-else
-            v-html="resolveDiscussionSvg"></div>
+          <icon name="check-circle" />
         </template>
-        <loading-icon
-          v-else
-          :inline="true"
-        />
+        <gl-loading-icon v-else inline />
       </button>
     </div>
-    <div
-      v-if="canAwardEmoji"
-      class="note-actions-item">
+    <div v-if="canAwardEmoji" class="note-actions-item">
       <a
         v-tooltip
         :class="{ 'js-user-authored': isAuthoredByCurrentUser }"
@@ -171,24 +147,16 @@ export default {
         href="#"
         title="Add reaction"
       >
-        <loading-icon :inline="true" />
-        <span
-          class="link-highlight award-control-icon-neutral"
-          v-html="emojiSmiling">
-        </span>
-        <span
-          class="link-highlight award-control-icon-positive"
-          v-html="emojiSmiley">
-        </span>
-        <span
-          class="link-highlight award-control-icon-super-positive"
-          v-html="emojiSmile">
-        </span>
+        <gl-loading-icon inline />
+        <icon
+          css-classes="link-highlight award-control-icon-neutral"
+          name="emoji_slightly_smiling_face"
+        />
+        <icon css-classes="link-highlight award-control-icon-positive" name="emoji_smiley" />
+        <icon css-classes="link-highlight award-control-icon-super-positive" name="emoji_smiley" />
       </a>
     </div>
-    <div
-      v-if="canEdit"
-      class="note-actions-item">
+    <div v-if="canEdit" class="note-actions-item">
       <button
         v-tooltip
         type="button"
@@ -196,16 +164,25 @@ export default {
         class="note-action-button js-note-edit btn btn-transparent"
         data-container="body"
         data-placement="bottom"
-        @click="onEdit">
-        <span
-          class="link-highlight"
-          v-html="editSvg">
-        </span>
+        @click="onEdit"
+      >
+        <icon name="pencil" css-classes="link-highlight" />
       </button>
     </div>
-    <div
-      v-if="shouldShowActionsDropdown"
-      class="dropdown more-actions note-actions-item">
+    <div v-if="showDeleteAction" class="note-actions-item">
+      <button
+        v-tooltip
+        type="button"
+        title="Delete comment"
+        class="note-action-button js-note-delete btn btn-transparent"
+        data-container="body"
+        data-placement="bottom"
+        @click="onDelete"
+      >
+        <icon name="remove" class="link-highlight" />
+      </button>
+    </div>
+    <div v-else-if="shouldShowActionsDropdown" class="dropdown more-actions note-actions-item">
       <button
         v-tooltip
         type="button"
@@ -213,35 +190,30 @@ export default {
         class="note-action-button more-actions-toggle btn btn-transparent"
         data-toggle="dropdown"
         data-container="body"
-        data-placement="bottom">
-        <span
-          class="icon"
-          v-html="ellipsisSvg">
-        </span>
+        data-placement="bottom"
+      >
+        <icon css-classes="icon" name="ellipsis_v" />
       </button>
       <ul class="dropdown-menu more-actions-dropdown dropdown-open-left">
         <li v-if="canReportAsAbuse">
-          <a :href="reportAbusePath">
-            Report as abuse
-          </a>
+          <a :href="reportAbusePath"> {{ __('Report abuse to GitLab') }} </a>
         </li>
-        <li>
+        <li v-if="noteUrl">
           <button
             :data-clipboard-text="noteUrl"
             type="button"
-            css-class="btn-default btn-transparent"
+            class="btn-default btn-transparent js-btn-copy-note-link"
           >
-            Copy link
+            {{ __('Copy link') }}
           </button>
         </li>
         <li v-if="canEdit">
           <button
             class="btn btn-transparent js-note-delete js-note-delete"
             type="button"
-            @click.prevent="onDelete">
-            <span class="text-danger">
-              Delete comment
-            </span>
+            @click.prevent="onDelete"
+          >
+            <span class="text-danger"> {{ __('Delete comment') }} </span>
           </button>
         </li>
       </ul>

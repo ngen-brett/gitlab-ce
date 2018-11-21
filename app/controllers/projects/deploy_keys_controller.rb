@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Projects::DeployKeysController < Projects::ApplicationController
   include RepositorySettingsRedirect
   respond_to :html
@@ -44,7 +46,9 @@ class Projects::DeployKeysController < Projects::ApplicationController
   end
 
   def enable
-    Projects::EnableDeployKeyService.new(@project, current_user, params).execute
+    key = Projects::EnableDeployKeyService.new(@project, current_user, params).execute
+
+    return render_404 unless key
 
     respond_to do |format|
       format.html { redirect_to_repository_settings(@project, anchor: 'js-deploy-keys-settings') }
@@ -53,10 +57,9 @@ class Projects::DeployKeysController < Projects::ApplicationController
   end
 
   def disable
-    deploy_key_project = @project.deploy_keys_projects.find_by(deploy_key_id: params[:id])
-    return render_404 unless deploy_key_project
+    deploy_key_project = Projects::DisableDeployKeyService.new(@project, current_user, params).execute
 
-    deploy_key_project.destroy!
+    return render_404 unless deploy_key_project
 
     respond_to do |format|
       format.html { redirect_to_repository_settings(@project, anchor: 'js-deploy-keys-settings') }

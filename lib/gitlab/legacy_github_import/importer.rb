@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module LegacyGithubImport
     class Importer
@@ -113,6 +115,7 @@ module Gitlab
         end
       end
 
+      # rubocop: disable CodeReuse/ActiveRecord
       def import_issues
         fetch_resources(:issues, repo, state: :all, sort: :created, direction: :asc, per_page: 100) do |issues|
           issues.each do |raw|
@@ -133,6 +136,7 @@ module Gitlab
           end
         end
       end
+      # rubocop: enable CodeReuse/ActiveRecord
 
       def import_pull_requests
         fetch_resources(:pull_requests, repo, state: :all, sort: :created, direction: :asc, per_page: 100) do |pull_requests|
@@ -193,6 +197,7 @@ module Gitlab
         issuable.update_attribute(:label_ids, label_ids)
       end
 
+      # rubocop: disable CodeReuse/ActiveRecord
       def import_comments(issuable_type)
         resource_type = "#{issuable_type}_comments".to_sym
 
@@ -213,7 +218,9 @@ module Gitlab
           create_comments(comments)
         end
       end
+      # rubocop: enable CodeReuse/ActiveRecord
 
+      # rubocop: disable CodeReuse/ActiveRecord
       def create_comments(comments)
         ActiveRecord::Base.no_touching do
           comments.each do |raw|
@@ -238,6 +245,7 @@ module Gitlab
           end
         end
       end
+      # rubocop: enable CodeReuse/ActiveRecord
 
       def discard_inserted_comments(comments, last_note)
         last_note_attrs = nil

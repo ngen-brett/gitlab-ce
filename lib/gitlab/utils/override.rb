@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Utils
     module Override
@@ -89,15 +91,19 @@ module Gitlab
       def included(base = nil)
         super
 
-        queue_verification(base)
+        queue_verification(base) if base
       end
 
-      alias_method :prepended, :included
-
-      def extended(mod)
+      def prepended(base = nil)
         super
 
-        queue_verification(mod.singleton_class)
+        queue_verification(base) if base
+      end
+
+      def extended(mod = nil)
+        super
+
+        queue_verification(mod.singleton_class) if mod
       end
 
       def queue_verification(base)

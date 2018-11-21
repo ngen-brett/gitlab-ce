@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module HashedStorage
     # Hashed Storage Migrator
@@ -22,6 +24,7 @@ module Gitlab
       #
       # @param [Object] start first project id for the range
       # @param [Object] finish last project id for the range
+      # rubocop: disable CodeReuse/ActiveRecord
       def bulk_migrate(start, finish)
         projects = build_relation(start, finish)
 
@@ -29,6 +32,7 @@ module Gitlab
           migrate(project)
         end
       end
+      # rubocop: enable CodeReuse/ActiveRecord
 
       # Flag a project to be migrated
       #
@@ -43,6 +47,7 @@ module Gitlab
 
       private
 
+      # rubocop: disable CodeReuse/ActiveRecord
       def build_relation(start, finish)
         relation = Project
         table = Project.arel_table
@@ -52,6 +57,7 @@ module Gitlab
 
         relation
       end
+      # rubocop: enable CodeReuse/ActiveRecord
     end
   end
 end

@@ -17,11 +17,15 @@ describe GroupPolicy do
 
   let(:reporter_permissions) { [:admin_label] }
 
-  let(:developer_permissions) { [:admin_milestones] }
+  let(:developer_permissions) { [:admin_milestone] }
 
   let(:maintainer_permissions) do
     [
-      :create_projects
+      :create_projects,
+      :read_cluster,
+      :create_cluster,
+      :update_cluster,
+      :admin_cluster
     ]
   end
 
@@ -31,6 +35,7 @@ describe GroupPolicy do
       :admin_namespace,
       :admin_group_member,
       :change_visibility_level,
+      :set_note_created_at,
       (Gitlab::Database.postgresql? ? :create_subgroup : nil)
     ].compact
   end

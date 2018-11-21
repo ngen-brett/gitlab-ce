@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 def rails5?
-  %w[1 true].include?(ENV["RAILS5"])
+  !%w[0 false].include?(ENV["RAILS5"])
 end
 
 require "pathname"
@@ -16,7 +16,7 @@ if rails5?
 end
 
 Dir.chdir APP_ROOT do
-  # This script is a starting point to setup your application.
+  # This script is a starting point to set up your application.
   # Add necessary setup steps to this file:
 
   puts "== Installing dependencies =="

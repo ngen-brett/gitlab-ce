@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Diff
     class File
@@ -20,11 +22,13 @@ module Gitlab
         DiffViewer::Image
       ].sort_by { |v| v.binary? ? 0 : 1 }.freeze
 
-      def initialize(diff, repository:, diff_refs: nil, fallback_diff_refs: nil)
+      def initialize(diff, repository:, diff_refs: nil, fallback_diff_refs: nil, stats: nil)
         @diff = diff
+        @stats = stats
         @repository = repository
         @diff_refs = diff_refs
         @fallback_diff_refs = fallback_diff_refs
+        @unfolded = false
 
         # Ensure items are collected in the the batch
         new_blob_lazy
@@ -134,6 +138,24 @@ module Gitlab
           Gitlab::Diff::Parser.new.parse(raw_diff.each_line, diff_file: self).to_a
       end
 
+      # Changes diff_lines according to the given position. That is,
+      # it checks whether the position requires blob lines into the diff
+      # in order to be presented.
+      def unfold_diff_lines(position)
+        return unless position
+
+        unfolder = Gitlab::Diff::LinesUnfolder.new(self, position)
+
+        if unfolder.unfold_required?
+          @diff_lines = unfolder.unfolded_diff_lines
+          @unfolded = true
+        end
+      end
+
+      def unfolded?
+        @unfolded
+      end
+
       def highlighted_diff_lines
         @highlighted_diff_lines ||=
           Gitlab::Diff::Highlight.new(self, repository: self.repository).highlight
@@ -165,11 +187,11 @@ module Gitlab
       end
 
       def added_lines
-        diff_lines.count(&:added?)
+        @stats&.additions || diff_lines.count(&:added?)
       end
 
       def removed_lines
-        diff_lines.count(&:removed?)
+        @stats&.deletions || diff_lines.count(&:removed?)
       end
 
       def file_identifier
@@ -211,13 +233,17 @@ module Gitlab
         old_blob && new_blob && old_blob.binary? != new_blob.binary?
       end
 
+      # rubocop: disable CodeReuse/ActiveRecord
       def size
         valid_blobs.map(&:size).sum
       end
+      # rubocop: enable CodeReuse/ActiveRecord
 
+      # rubocop: disable CodeReuse/ActiveRecord
       def raw_size
         valid_blobs.map(&:raw_size).sum
       end
+      # rubocop: enable CodeReuse/ActiveRecord
 
       def raw_binary?
         try_blobs(:raw_binary?)

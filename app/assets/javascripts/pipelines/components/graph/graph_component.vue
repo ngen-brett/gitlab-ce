@@ -1,12 +1,12 @@
 <script>
 import _ from 'underscore';
-import LoadingIcon from '~/vue_shared/components/loading_icon.vue';
+import { GlLoadingIcon } from '@gitlab/ui';
 import StageColumnComponent from './stage_column_component.vue';
 
 export default {
   components: {
     StageColumnComponent,
-    LoadingIcon,
+    GlLoadingIcon,
   },
   props: {
     isLoading: {
@@ -58,21 +58,14 @@ export default {
 <template>
   <div class="build-content middle-block js-pipeline-graph">
     <div class="pipeline-visualization pipeline-graph pipeline-tab-content">
-      <div class="text-center">
-        <loading-icon
-          v-if="isLoading"
-          size="3"
-        />
-      </div>
+      <div class="text-center"><gl-loading-icon v-if="isLoading" :size="3" /></div>
 
-      <ul
-        v-if="!isLoading"
-        class="stage-column-list">
+      <ul v-if="!isLoading" class="stage-column-list">
         <stage-column-component
           v-for="(stage, index) in graph"
-          :title="capitalizeStageName(stage.name)"
-          :jobs="stage.groups"
           :key="stage.name"
+          :title="capitalizeStageName(stage.name)"
+          :groups="stage.groups"
           :stage-connector-class="stageConnectorClass(index, stage)"
           :is-first-column="isFirstColumn(index)"
           @refreshPipelineGraph="refreshPipelineGraph"

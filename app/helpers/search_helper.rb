@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module SearchHelper
   def search_autocomplete_opts(term)
     return unless current_user
@@ -99,6 +101,7 @@ module SearchHelper
   end
 
   # Autocomplete results for the current user's groups
+  # rubocop: disable CodeReuse/ActiveRecord
   def groups_autocomplete(term, limit = 5)
     current_user.authorized_groups.order_id_desc.search(term).limit(limit).map do |group|
       {
@@ -110,8 +113,10 @@ module SearchHelper
       }
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   # Autocomplete results for the current user's projects
+  # rubocop: disable CodeReuse/ActiveRecord
   def projects_autocomplete(term, limit = 5)
     current_user.authorized_projects.order_id_desc.search_by_title(term)
       .sorted_by_stars.non_archived.limit(limit).map do |p|
@@ -125,6 +130,7 @@ module SearchHelper
       }
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def search_result_sanitize(str)
     Sanitize.clean(str)
@@ -157,13 +163,24 @@ module SearchHelper
     if @project.present?
       opts[:data]['project-id'] = @project.id
       opts[:data]['base-endpoint'] = project_path(@project)
-    else
-      # Group context
+    elsif @group.present?
       opts[:data]['group-id'] = @group.id
       opts[:data]['base-endpoint'] = group_canonical_path(@group)
+    else
+      opts[:data]['base-endpoint'] = root_dashboard_path
     end
 
     opts
+  end
+
+  def search_history_storage_prefix
+    if @project.present?
+      @project.full_path
+    elsif @group.present?
+      @group.full_path
+    else
+      'dashboard'
+    end
   end
 
   # Sanitize a HTML field for search display. Most tags are stripped out and the

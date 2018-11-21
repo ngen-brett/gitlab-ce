@@ -1,4 +1,6 @@
-# Searches and reads files present on each Gitlab project repository
+# frozen_string_literal: true
+
+# Searches and reads files present on each GitLab project repository
 module Gitlab
   module Template
     module Finders
@@ -33,7 +35,7 @@ module Gitlab
         def list_files_for(dir)
           return [] unless @commit
 
-          dir << '/' unless dir.end_with?('/')
+          dir = "#{dir}/" unless dir.end_with?('/')
 
           entries = @repository.tree(:head, dir).entries
 

@@ -1,8 +1,11 @@
 require 'rails_helper'
 
 describe Clusters::Applications::Prometheus do
+  include KubernetesHelpers
+
   include_examples 'cluster application core specs', :clusters_applications_prometheus
-  include_examples 'cluster application status specs', :cluster_application_prometheus
+  include_examples 'cluster application status specs', :clusters_applications_prometheus
+  include_examples 'cluster application helm specs', :clusters_applications_knative
 
   describe '.installed' do
     subject { described_class.installed }
@@ -32,7 +35,7 @@ describe Clusters::Applications::Prometheus do
 
   describe 'transition to installed' do
     let(:project) { create(:project) }
-    let(:cluster) { create(:cluster, projects: [project]) }
+    let(:cluster) { create(:cluster, :with_installed_helm, projects: [project]) }
     let(:prometheus_service) { double('prometheus_service') }
 
     subject { create(:clusters_applications_prometheus, :installing, cluster: cluster) }
@@ -107,26 +110,20 @@ describe Clusters::Applications::Prometheus do
     end
 
     context 'cluster has kubeclient' do
-      let(:kubernetes_url) { 'http://example.com' }
-      let(:k8s_discover_response) do
-        {
-          resources: [
-            {
-              name: 'service',
-              kind: 'Service'
-            }
-          ]
-        }
-      end
+      let(:cluster) { create(:cluster, :project, :provided_by_gcp) }
+      let(:kubernetes_url) { subject.cluster.platform_kubernetes.api_url }
+      let(:kube_client) { subject.cluster.kubeclient.core_client }
 
-      let(:kube_client) { Kubeclient::Client.new(kubernetes_url) }
-
-      let(:cluster) { create(:cluster) }
       subject { create(:clusters_applications_prometheus, cluster: cluster) }
 
       before do
-        allow(kube_client.rest_client).to receive(:get).and_return(k8s_discover_response.to_json)
-        allow(subject.cluster).to receive(:kubeclient).and_return(kube_client)
+        subject.cluster.platform_kubernetes.namespace = 'a-namespace'
+        stub_kubeclient_discover(cluster.platform_kubernetes.api_url)
+
+        create(:cluster_kubernetes_namespace,
+               cluster: cluster,
+               cluster_project: cluster.cluster_project,
+               project: cluster.cluster_project.project)
       end
 
       it 'creates proxy prometheus rest client' do
@@ -134,7 +131,7 @@ describe Clusters::Applications::Prometheus do
       end
 
       it 'creates proper url' do
-        expect(subject.prometheus_client.url).to eq('http://example.com/api/v1/namespaces/gitlab-managed-apps/service/prometheus-prometheus-server:80/proxy')
+        expect(subject.prometheus_client.url).to eq("#{kubernetes_url}/api/v1/namespaces/gitlab-managed-apps/services/prometheus-prometheus-server:80/proxy")
       end
 
       it 'copies options and headers from kube client to proxy client' do
@@ -164,7 +161,16 @@ describe Clusters::Applications::Prometheus do
       expect(subject.name).to eq('prometheus')
       expect(subject.chart).to eq('stable/prometheus')
       expect(subject.version).to eq('6.7.3')
+      expect(subject).not_to be_rbac
       expect(subject.files).to eq(prometheus.files)
+    end
+
+    context 'on a rbac enabled cluster' do
+      before do
+        prometheus.cluster.platform_kubernetes.rbac!
+      end
+
+      it { is_expected.to be_rbac }
     end
 
     context 'application failed to install previously' do
@@ -181,29 +187,6 @@ describe Clusters::Applications::Prometheus do
     let(:values) { subject[:'values.yaml'] }
 
     subject { application.files }
-
-    it 'should include cert files' do
-      expect(subject[:'ca.pem']).to be_present
-      expect(subject[:'ca.pem']).to eq(application.cluster.application_helm.ca_cert)
-
-      expect(subject[:'cert.pem']).to be_present
-      expect(subject[:'key.pem']).to be_present
-
-      cert = OpenSSL::X509::Certificate.new(subject[:'cert.pem'])
-      expect(cert.not_after).to be < 60.minutes.from_now
-    end
-
-    context 'when the helm application does not have a ca_cert' do
-      before do
-        application.cluster.application_helm.ca_cert = nil
-      end
-
-      it 'should not include cert files' do
-        expect(subject[:'ca.pem']).not_to be_present
-        expect(subject[:'cert.pem']).not_to be_present
-        expect(subject[:'key.pem']).not_to be_present
-      end
-    end
 
     it 'should include prometheus valid values' do
       expect(values).to include('alertmanager')

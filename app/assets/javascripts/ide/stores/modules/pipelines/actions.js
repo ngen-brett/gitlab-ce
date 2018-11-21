@@ -28,7 +28,7 @@ export const receiveLatestPipelineError = ({ commit, dispatch }, err) => {
     dispatch(
       'setErrorMessage',
       {
-        text: __('An error occured whilst fetching the latest pipline.'),
+        text: __('An error occured whilst fetching the latest pipeline.'),
         action: () =>
           dispatch('forcePipelineRequest').then(() =>
             dispatch('setErrorMessage', null, { root: true }),
@@ -113,7 +113,7 @@ export const toggleStageCollapsed = ({ commit }, stageId) =>
 
 export const setDetailJob = ({ commit, dispatch }, job) => {
   commit(types.SET_DETAIL_JOB, job);
-  dispatch('setRightPane', job ? rightSidebarViews.jobsDetail : rightSidebarViews.pipelines, {
+  dispatch('rightPane/open', job ? rightSidebarViews.jobsDetail : rightSidebarViews.pipelines, {
     root: true,
   });
 };

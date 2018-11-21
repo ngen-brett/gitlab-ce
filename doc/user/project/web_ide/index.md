@@ -22,6 +22,27 @@ searching. The file finder is launched using the keyboard shortcut `Command-p`,
 `Control-p`, or `t` (when editor is not in focus). Type the filename or
 file path fragments to start seeing results.
 
+## Syntax highligting
+
+As expected from an IDE, syntax highlighting for many languages within 
+the Web IDE will make your direct editing even easier.
+
+The Web IDE currently provides:
+
+- Basic syntax colorization for a variety of programming, scripting and markup 
+languages such as XML, PHP, C#, C++, Markdown, Java, VB, Batch, Python, Ruby 
+and Objective-C.  
+- IntelliSense and validation support (displaying errors and warnings, providing 
+smart completions, formatting, and outlining) for some languages. For example: 
+TypeScript, JavaScript, CSS, LESS, SCSS, JSON and HTML. 
+
+Because the Web IDE is based on the [Monaco Editor](https://microsoft.github.io/monaco-editor/), 
+you can find a more complete list of supported languages in the 
+[Monaco languages](https://github.com/Microsoft/monaco-languages) repository.  
+
+NOTE: **Note:**
+Single file editing is based on the [Ace Editor](https://ace.c9.io).
+
 ## Stage and commit changes
 
 After making your changes, click the Commit button in the bottom left to
@@ -78,12 +99,13 @@ switching to a different branch.
 
 The Web IDE can be used to preview JavaScript projects right in the browser.
 This feature uses CodeSandbox to compile and bundle the JavaScript used to
-preview the web application. On public projects, an `Open in CodeSandbox`
-button is visible which will transfer the contents of the project into a
-CodeSandbox project to share with others.
-**Note** this button is not visible on private or internal projects.
+preview the web application.
 
 ![Web IDE Client Side Evaluation](img/clientside_evaluation.png)
+
+Additionally, for public projects an `Open in CodeSandbox` button is available
+to transfer the contents of the project into a public CodeSandbox project to
+quickly share your project with others.
 
 ### Enabling Client Side Evaluation
 

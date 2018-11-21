@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module API
   class Groups < Grape::API
     include PaginationParams
@@ -38,6 +40,7 @@ module API
         use :pagination
       end
 
+      # rubocop: disable CodeReuse/ActiveRecord
       def find_groups(params, parent_id = nil)
         find_params = params.slice(:all_available, :custom_attributes, :owned, :min_access_level)
         find_params[:parent] = find_group!(parent_id) if parent_id
@@ -53,10 +56,21 @@ module API
 
         groups
       end
+      # rubocop: enable CodeReuse/ActiveRecord
 
       def find_group_projects(params)
         group = find_group!(params[:id])
-        projects = GroupProjectsFinder.new(group: group, current_user: current_user, params: project_finder_params).execute
+        options = {
+          only_owned: !params[:with_shared],
+          include_subgroups: params[:include_subgroups]
+        }
+
+        projects = GroupProjectsFinder.new(
+          group: group,
+          current_user: current_user,
+          params: project_finder_params,
+          options: options
+        ).execute
         projects = projects.with_issues_available_for_user(current_user) if params[:with_issues_enabled]
         projects = projects.with_merge_requests_enabled if params[:with_merge_requests_enabled]
         projects = reorder_projects(projects)
@@ -197,6 +211,8 @@ module API
         optional :starred, type: Boolean, default: false, desc: 'Limit by starred status'
         optional :with_issues_enabled, type: Boolean, default: false, desc: 'Limit by enabled issues feature'
         optional :with_merge_requests_enabled, type: Boolean, default: false, desc: 'Limit by enabled merge requests feature'
+        optional :with_shared, type: Boolean, default: true, desc: 'Include projects shared to this group'
+        optional :include_subgroups, type: Boolean, default: false, desc: 'Includes projects in subgroups of this group'
 
         use :pagination
         use :with_custom_attributes

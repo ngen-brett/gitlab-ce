@@ -36,7 +36,6 @@
     text-align: left;
     padding: 10px $gl-padding;
     word-wrap: break-word;
-    border-radius: $border-radius-default $border-radius-default 0 0;
 
     &.file-title-clear {
       padding-left: 0;
@@ -184,7 +183,7 @@
 
         &.line-numbers {
           float: none;
-          border-left: 1px solid $blame-line-numbers-border;
+          border-left: 1px solid $gl-gray-100;
 
           i {
             float: none;
@@ -312,11 +311,11 @@ span.idiff {
     text-decoration: none;
 
     .new-file {
-      color: $notify-new-file;
+      color: $green-600;
     }
 
     .deleted-file {
-      color: $notify-deleted-file;
+      color: $red-700;
     }
   }
 }
@@ -416,7 +415,6 @@ span.idiff {
 }
 
 .preview-container {
-  height: 100%;
   overflow: auto;
 
   .file-container {

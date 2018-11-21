@@ -7,7 +7,7 @@ projects.
 GitLab offers a [continuous integration][ci] service. If you
 [add a `.gitlab-ci.yml` file][yaml] to the root directory of your repository,
 and configure your GitLab project to use a [Runner], then each commit or
-push, triggers your CI [pipeline].
+push triggers your CI [pipeline].
 
 The `.gitlab-ci.yml` file tells the GitLab runner what to do. By default it runs
 a pipeline with three [stages]: `build`, `test`, and `deploy`. You don't need to
@@ -168,7 +168,7 @@ can be found at <https://docs.gitlab.com/runner/>.
 In order to have a functional Runner you need to follow two steps:
 
 1. [Install it][runner-install]
-2. [Configure it](../runners/README.md#registering-a-specific-runner)
+1. [Configure it](../runners/README.md#registering-a-specific-runner)
 
 Follow the links above to set up your own Runner or use a Shared Runner as
 described in the next section.

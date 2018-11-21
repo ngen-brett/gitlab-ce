@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module ImportExport
     module AfterExportStrategies
@@ -23,7 +25,7 @@ module Gitlab
         def strategy_execute
           handle_response_error(send_file)
 
-          project.remove_exported_project_file
+          project.remove_exports
         end
 
         def handle_response_error(response)
@@ -40,15 +42,11 @@ module Gitlab
         def send_file
           Gitlab::HTTP.public_send(http_method.downcase, url, send_file_options) # rubocop:disable GitlabSecurity/PublicSend
         ensure
-          export_file.close if export_file && !object_storage?
+          export_file.close if export_file
         end
 
         def export_file
-          if object_storage?
-            project.import_export_upload.export_file.file.open
-          else
-            File.open(project.export_project_path)
-          end
+          project.export_file.open
         end
 
         def send_file_options
@@ -63,11 +61,7 @@ module Gitlab
         end
 
         def export_size
-          if object_storage?
-            project.import_export_upload.export_file.file.size
-          else
-            File.size(project.export_project_path)
-          end
+          project.export_file.file.size
         end
       end
     end

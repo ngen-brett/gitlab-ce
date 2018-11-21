@@ -46,13 +46,14 @@ export default {
         'is-requesting being-posted': this.isRequesting,
         'disabled-content': this.isDeleting,
         target: this.isTarget,
+        'is-editable': this.note.current_user.can_edit,
       };
     },
     canResolve() {
       return this.note.resolvable && !!this.getUserData.id;
     },
     canReportAsAbuse() {
-      return this.note.report_abuse_path && this.author.id !== this.getUserData.id;
+      return !!this.note.report_abuse_path && this.author.id !== this.getUserData.id;
     },
     noteAnchorId() {
       return `note_${this.note.id}`;
@@ -81,11 +82,16 @@ export default {
     ...mapActions(['deleteNote', 'updateNote', 'toggleResolveNote', 'scrollToNoteIfNeeded']),
     editHandler() {
       this.isEditing = true;
+      this.$emit('handleEdit');
     },
     deleteHandler() {
+      const typeOfComment = this.note.isDraft ? 'pending comment' : 'comment';
       // eslint-disable-next-line no-alert
-      if (window.confirm('Are you sure you want to delete this comment?')) {
+      if (window.confirm(`Are you sure you want to delete this ${typeOfComment}?`)) {
         this.isDeleting = true;
+        this.$emit('handleDeleteNote', this.note);
+
+        if (this.note.isDraft) return;
 
         this.deleteNote(this.note)
           .then(() => {
@@ -97,7 +103,20 @@ export default {
           });
       }
     },
+    updateSuccess() {
+      this.isEditing = false;
+      this.isRequesting = false;
+      this.oldContent = null;
+      $(this.$refs.noteBody.$el).renderGFM();
+      this.$refs.noteBody.resetAutoSave();
+      this.$emit('updateSuccess');
+    },
     formUpdateHandler(noteText, parentElement, callback) {
+      this.$emit('handleUpdateNote', {
+        note: this.note,
+        noteText,
+        callback: () => this.updateSuccess(),
+      });
       const data = {
         endpoint: this.note.path,
         note: {
@@ -112,11 +131,7 @@ export default {
 
       this.updateNote(data)
         .then(() => {
-          this.isEditing = false;
-          this.isRequesting = false;
-          this.oldContent = null;
-          $(this.$refs.noteBody.$el).renderGFM();
-          this.$refs.noteBody.resetAutoSave();
+          this.updateSuccess();
           callback();
         })
         .catch(() => {
@@ -141,6 +156,7 @@ export default {
         this.oldContent = null;
       }
       this.isEditing = false;
+      this.$emit('cancelForm');
     },
     recoverNoteContent(noteText) {
       // we need to do this to prevent noteForm inconsistent content warning
@@ -158,7 +174,7 @@ export default {
     :class="classNameBindings"
     :data-award-url="note.toggle_award_path"
     :data-note-id="note.id"
-    class="note timeline-entry"
+    class="note timeline-entry note-wrapper"
   >
     <div class="timeline-entry-inner">
       <div class="timeline-icon">
@@ -167,7 +183,9 @@ export default {
           :img-src="author.avatar_url"
           :img-alt="author.name"
           :img-size="40"
-        />
+        >
+          <slot slot="avatar-badge" name="avatar-badge"> </slot>
+        </user-avatar-link>
       </div>
       <div class="timeline-content">
         <div class="note-header">
@@ -175,6 +193,7 @@ export default {
             :author="author"
             :created-at="note.created_at"
             :note-id="note.id"
+            action-text="commented"
           />
           <note-actions
             :author-id="author.id"

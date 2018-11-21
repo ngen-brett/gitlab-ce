@@ -8,7 +8,7 @@ module Gitlab
   # This method is used for smooth upgrading from the current Rails 4.x to Rails 5.0.
   # https://gitlab.com/gitlab-org/gitlab-ce/issues/14286
   def self.rails5?
-    ENV["RAILS5"].in?(%w[1 true])
+    !%w[0 false].include?(ENV["RAILS5"])
   end
 
   class Application < Rails::Application
@@ -19,6 +19,7 @@ module Gitlab
     require_dependency Rails.root.join('lib/gitlab/request_context')
     require_dependency Rails.root.join('lib/gitlab/current_settings')
     require_dependency Rails.root.join('lib/gitlab/middleware/read_only')
+    require_dependency Rails.root.join('lib/gitlab/middleware/basic_health_check')
 
     # This needs to be loaded before DB connection is made
     # to make sure that all connections have NO_ZERO_DATE
@@ -84,6 +85,7 @@ module Gitlab
     # - Any parameter ending with `token`
     # - Any parameter containing `password`
     # - Any parameter containing `secret`
+    # - Any parameter ending with `key`
     # - Two-factor tokens (:otp_attempt)
     # - Repo/Project Import URLs (:import_url)
     # - Build traces (:trace)
@@ -91,15 +93,13 @@ module Gitlab
     # - GitLab Pages SSL cert/key info (:certificate, :encrypted_key)
     # - Webhook URLs (:hook)
     # - Sentry DSN (:sentry_dsn)
-    # - Deploy keys (:key)
     # - File content from Web Editor (:content)
-    config.filter_parameters += [/token$/, /password/, /secret/]
+    config.filter_parameters += [/token$/, /password/, /secret/, /key$/]
     config.filter_parameters += %i(
       certificate
       encrypted_key
       hook
       import_url
-      key
       otp_attempt
       sentry_dsn
       trace
@@ -134,6 +134,7 @@ module Gitlab
     config.assets.precompile << "notify.css"
     config.assets.precompile << "mailers/*.css"
     config.assets.precompile << "page_bundles/ide.css"
+    config.assets.precompile << "page_bundles/xterm.css"
     config.assets.precompile << "performance_bar.css"
     config.assets.precompile << "lib/ace.js"
     config.assets.precompile << "test.css"
@@ -143,7 +144,7 @@ module Gitlab
     config.assets.precompile << "errors.css"
 
     # Import gitlab-svgs directly from vendored directory
-    config.assets.paths << "#{config.root}/node_modules/@gitlab-org/gitlab-svgs/dist"
+    config.assets.paths << "#{config.root}/node_modules/@gitlab/svgs/dist"
     config.assets.precompile << "icons.svg"
     config.assets.precompile << "icons.json"
     config.assets.precompile << "illustrations/*.svg"
@@ -157,9 +158,12 @@ module Gitlab
 
     config.action_view.sanitized_allowed_protocols = %w(smb)
 
+    # Nokogiri is significantly faster and uses less memory than REXML
+    ActiveSupport::XmlMini.backend = 'Nokogiri'
+
     # This middleware needs to precede ActiveRecord::QueryCache and other middlewares that
     # connect to the database.
-    config.middleware.insert_after "Rails::Rack::Logger", "Gitlab::Middleware::BasicHealthCheck"
+    config.middleware.insert_after Rails::Rack::Logger, ::Gitlab::Middleware::BasicHealthCheck
 
     config.middleware.insert_after Warden::Manager, Rack::Attack
 
@@ -196,7 +200,7 @@ module Gitlab
 
     config.cache_store = :redis_store, caching_config_hash
 
-    config.active_record.raise_in_transactional_callbacks = true
+    config.active_record.raise_in_transactional_callbacks = true unless rails5?
 
     config.active_job.queue_adapter = :sidekiq
 
@@ -204,7 +208,7 @@ module Gitlab
     ENV['GITLAB_PATH_OUTSIDE_HOOK'] = ENV['PATH']
     ENV['GIT_TERMINAL_PROMPT'] = '0'
 
-    # Gitlab Read-only middleware support
+    # GitLab Read-only middleware support
     config.middleware.insert_after ActionDispatch::Flash, ::Gitlab::Middleware::ReadOnly
 
     config.generators do |g|

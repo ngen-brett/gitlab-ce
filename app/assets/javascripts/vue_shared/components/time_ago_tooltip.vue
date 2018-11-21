@@ -11,9 +11,7 @@ export default {
   directives: {
     tooltip,
   },
-  mixins: [
-    timeagoMixin,
-  ],
+  mixins: [timeagoMixin],
   props: {
     time: {
       type: String,
@@ -41,6 +39,7 @@ export default {
     :title="tooltipTitle(time)"
     :data-placement="tooltipPlacement"
     data-container="body"
-    v-text="timeFormated(time)">
+    v-text="timeFormated(time)"
+  >
   </time>
 </template>

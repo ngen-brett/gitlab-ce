@@ -59,7 +59,11 @@ describe Gitlab::ImportExport::ProjectTreeRestorer do
       end
 
       it 'creates a valid pipeline note' do
-        expect(Ci::Pipeline.first.notes).not_to be_empty
+        expect(Ci::Pipeline.find_by_sha('sha-notes').notes).not_to be_empty
+      end
+
+      it 'pipeline has the correct user ID' do
+        expect(Ci::Pipeline.find_by_sha('sha-notes').user_id).to eq(@user.id)
       end
 
       it 'restores pipelines with missing ref' do
@@ -87,6 +91,14 @@ describe Gitlab::ImportExport::ProjectTreeRestorer do
 
       it 'contains the create access levels on a protected tag' do
         expect(ProtectedTag.first.create_access_levels).not_to be_empty
+      end
+
+      it 'restores issue resource label events' do
+        expect(Issue.find_by(title: 'Voluptatem').resource_label_events).not_to be_empty
+      end
+
+      it 'restores merge requests resource label events' do
+        expect(MergeRequest.find_by(title: 'MR1').resource_label_events).not_to be_empty
       end
 
       context 'event at forth level of the tree' do
@@ -285,7 +297,8 @@ describe Gitlab::ImportExport::ProjectTreeRestorer do
                       issues: 1,
                       labels: 1,
                       milestones: 1,
-                      first_issue_labels: 1
+                      first_issue_labels: 1,
+                      services: 1
 
       context 'project.json file access check' do
         it 'does not read a symlink' do
@@ -309,7 +322,7 @@ describe Gitlab::ImportExport::ProjectTreeRestorer do
       end
     end
 
-    context 'when the project has overriden params in import data' do
+    context 'when the project has overridden params in import data' do
       it 'overwrites the params stored in the JSON' do
         project.create_import_data(data: { override_params: { description: "Overridden" } })
 
@@ -323,7 +336,7 @@ describe Gitlab::ImportExport::ProjectTreeRestorer do
 
         restored_project_json
 
-        expect(project.lfs_enabled).to be_nil
+        expect(project.lfs_enabled).to be_falsey
       end
     end
 
@@ -368,6 +381,12 @@ describe Gitlab::ImportExport::ProjectTreeRestorer do
 
       before do
         project_tree_restorer.instance_variable_set(:@path, "spec/lib/gitlab/import_export/project.light.json")
+      end
+
+      it 'does not import any templated services' do
+        restored_project_json
+
+        expect(project.services.where(template: true).count).to eq(0)
       end
 
       it 'imports labels' do

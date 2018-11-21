@@ -80,7 +80,7 @@ describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitlab_redi
       end
 
       it 'imports the pull request with the pull request author as the merge request author' do
-        expect(Gitlab::GithubImport)
+        expect(importer)
           .to receive(:insert_and_return_id)
           .with(
             {
@@ -114,7 +114,7 @@ describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitlab_redi
 
       it 'triggers internal_id functionality to track greatest iids' do
         mr = build_stubbed(:merge_request, source_project: project, target_project: project)
-        allow(Gitlab::GithubImport).to receive(:insert_and_return_id).and_return(mr.id)
+        allow(importer).to receive(:insert_and_return_id).and_return(mr.id)
         allow(project.merge_requests).to receive(:find).with(mr.id).and_return(mr)
 
         expect(mr).to receive(:ensure_target_project_iid!)
@@ -135,7 +135,7 @@ describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitlab_redi
           .with(pull_request)
           .and_return(user.id)
 
-        expect(Gitlab::GithubImport)
+        expect(importer)
           .to receive(:insert_and_return_id)
           .with(
             {
@@ -181,7 +181,7 @@ describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitlab_redi
           .to receive(:source_branch)
           .and_return('master')
 
-        expect(Gitlab::GithubImport)
+        expect(importer)
           .to receive(:insert_and_return_id)
           .with(
             {
@@ -219,7 +219,7 @@ describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitlab_redi
           .with(pull_request)
           .and_return(user.id)
 
-        expect(Gitlab::GithubImport)
+        expect(importer)
           .to receive(:insert_and_return_id)
           .and_raise(ActiveRecord::InvalidForeignKey, 'invalid foreign key')
 
@@ -240,7 +240,12 @@ describe Gitlab::GithubImport::Importer::PullRequestImporter, :clean_gitlab_redi
           .and_return(user.id)
       end
 
-      it 'returns the existing merge request' do
+      # TODO: remove rails5-only after removing rails4 tests
+      # rails 4 can not handle multiple indexes on the same column set if
+      # index was added by 't.index' - t.index is used by default in schema.rb in
+      # rails 5. Let's run this test only in rails 5 env:
+      # see https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/21492#note_113602758
+      it 'returns the existing merge request', :rails5 do
         mr1, exists1 = importer.create_merge_request
         mr2, exists2 = importer.create_merge_request
 

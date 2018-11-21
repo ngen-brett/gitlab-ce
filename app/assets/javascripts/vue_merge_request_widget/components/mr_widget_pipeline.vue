@@ -1,8 +1,10 @@
 <script>
 /* eslint-disable vue/require-default-prop */
+import { sprintf, __ } from '~/locale';
 import PipelineStage from '~/pipelines/components/stage.vue';
 import CiIcon from '~/vue_shared/components/ci_icon.vue';
 import Icon from '~/vue_shared/components/icon.vue';
+import TooltipOnTruncate from '~/vue_shared/components/tooltip_on_truncate.vue';
 
 export default {
   name: 'MRWidgetPipeline',
@@ -10,6 +12,7 @@ export default {
     PipelineStage,
     CiIcon,
     Icon,
+    TooltipOnTruncate,
   },
   props: {
     pipeline: {
@@ -29,6 +32,14 @@ export default {
     sourceBranchLink: {
       type: String,
       required: false,
+    },
+    sourceBranch: {
+      type: String,
+      required: false,
+    },
+    troubleshootingDocsPath: {
+      type: String,
+      required: true,
     },
   },
   computed: {
@@ -51,51 +62,46 @@ export default {
     hasCommitInfo() {
       return this.pipeline.commit && Object.keys(this.pipeline.commit).length > 0;
     },
+    errorText() {
+      return sprintf(
+        __(
+          'Could not retrieve the pipeline status. For troubleshooting steps, read the %{linkStart}documentation.%{linkEnd}',
+        ),
+        {
+          linkStart: `<a href="${this.troubleshootingDocsPath}">`,
+          linkEnd: '</a>',
+        },
+        false,
+      );
+    },
   },
 };
 </script>
 
 <template>
-  <div
-    v-if="hasPipeline || hasCIError"
-    class="mr-widget-heading append-bottom-default"
-  >
+  <div v-if="hasPipeline || hasCIError" class="mr-widget-heading append-bottom-default">
     <div class="ci-widget media">
       <template v-if="hasCIError">
         <div
           class="add-border ci-status-icon ci-status-icon-failed ci-error
           js-ci-error append-right-default"
         >
-          <icon
-            :size="32"
-            name="status_failed_borderless"
-          />
+          <icon :size="32" name="status_failed_borderless" />
         </div>
-        <div class="media-body">
-          Could not connect to the CI server. Please check your settings and try again
-        </div>
+        <div class="media-body" v-html="errorText"></div>
       </template>
       <template v-else-if="hasPipeline">
-        <a
-          :href="status.details_path"
-          class="align-self-start append-right-default"
-        >
-          <ci-icon
-            :status="status"
-            :size="32"
-            :borderless="true"
-            class="add-border"
-          />
+        <a :href="status.details_path" class="align-self-start append-right-default">
+          <ci-icon :status="status" :size="32" :borderless="true" class="add-border" />
         </a>
         <div class="ci-widget-container d-flex">
           <div class="ci-widget-content">
             <div class="media-body">
               <div class="font-weight-bold">
                 Pipeline
-                <a
-                  :href="pipeline.path"
-                  class="pipeline-id font-weight-normal pipeline-number"
-                >#{{ pipeline.id }}</a>
+                <a :href="pipeline.path" class="pipeline-id font-weight-normal pipeline-number"
+                  >#{{ pipeline.id }}</a
+                >
 
                 {{ pipeline.details.status.label }}
 
@@ -105,29 +111,23 @@ export default {
                     :href="pipeline.commit.commit_path"
                     class="commit-sha js-commit-link font-weight-normal"
                   >
-                    {{ pipeline.commit.short_id }}</a>
-                  on
-                  <span
-                    class="label-branch"
-                    v-html="sourceBranchLink"
+                    {{ pipeline.commit.short_id }}</a
                   >
-                  </span>
+                  on
+                  <tooltip-on-truncate
+                    :title="sourceBranch"
+                    truncate-target="child"
+                    class="label-branch label-truncate"
+                    v-html="sourceBranchLink"
+                  />
                 </template>
               </div>
-              <div
-                v-if="pipeline.coverage"
-                class="coverage"
-              >
-                Coverage {{ pipeline.coverage }}%
-              </div>
+              <div v-if="pipeline.coverage" class="coverage">Coverage {{ pipeline.coverage }}%</div>
             </div>
           </div>
           <div>
             <span class="mr-widget-pipeline-graph">
-              <span
-                v-if="hasStages"
-                class="stage-cell"
-              >
+              <span v-if="hasStages" class="stage-cell">
                 <div
                   v-for="(stage, i) in pipeline.details.stages"
                   :key="i"

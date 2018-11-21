@@ -1,30 +1,25 @@
 <script>
-  import tooltip from '../../vue_shared/directives/tooltip';
+import tooltip from '../../vue_shared/directives/tooltip';
 
-  export default {
-    directives: {
-      tooltip,
+export default {
+  directives: {
+    tooltip,
+  },
+  props: {
+    count: {
+      type: Number,
+      required: true,
     },
-    props: {
-      count: {
-        type: Number,
-        required: true,
-      },
-    },
-  };
+  },
+};
 </script>
 <template>
-  <span
-    v-if="count === 50"
-    class="events-info float-right"
-  >
+  <span v-if="count === 50" class="events-info float-right">
     <i
       v-tooltip
-      :title="n__(
-        'Limited to showing %d event at most',
-        'Limited to showing %d events at most',
-        50
-      )"
+      :title="
+        n__('Limited to showing %d event at most', 'Limited to showing %d events at most', 50)
+      "
       class="fa fa-warning"
       aria-hidden="true"
       data-placement="top"

@@ -114,19 +114,21 @@ When a request is made we often want to show a loading state to the user.
 
 Instead of creating an action to toggle the loading state and dispatch it in the component,
 create:
+
 1. An action `requestSomething`, to toggle the loading state
 1. An action `receiveSomethingSuccess`, to handle the success callback
 1. An action `receiveSomethingError`, to handle the error callback
 1. An action `fetchSomething` to make the request.
     1. In case your application does more than a `GET` request you can use these as examples:
-        1. `PUT`: `createSomething`
-        2. `POST`: `updateSomething`
-        3. `DELETE`: `deleteSomething`
+        - `PUT`: `createSomething`
+        - `POST`: `updateSomething`
+        - `DELETE`: `deleteSomething`
 
 The component MUST only dispatch the `fetchNamespace` action. Actions namespaced with `request` or `receive` should not be called from the component
 The `fetch` action will be responsible to dispatch `requestNamespace`, `receiveNamespaceSuccess` and `receiveNamespaceError`
 
 By following this pattern we guarantee:
+
 1. All applications follow the same pattern, making it easier for anyone to maintain the code
 1. All data in the application follows the same lifecycle pattern
 1. Actions are contained and human friendly
@@ -290,23 +292,24 @@ export default {
 ```
 
 ### Vuex Gotchas
+
 1. Do not call a mutation directly. Always use an action to commit a mutation. Doing so will keep consistency throughout the application. From Vuex docs:
 
-  >  why don't we just call store.commit('action') directly? Well, remember that mutations must be synchronous? Actions aren't. We can perform asynchronous operations inside an action.
+    >  why don't we just call store.commit('action') directly? Well, remember that mutations must be synchronous? Actions aren't. We can perform asynchronous operations inside an action.
 
-  ```javascript
-    // component.vue
+    ```javascript
+      // component.vue
 
-    // bad
-    created() {
-      this.$store.commit('mutation');
-    }
+      // bad
+      created() {
+        this.$store.commit('mutation');
+      }
 
-    // good
-    created() {
-      this.$store.dispatch('action');
-    }
-  ```
+      // good
+      created() {
+        this.$store.dispatch('action');
+      }
+    ```
 1. Use mutation types instead of hardcoding strings. It will be less error prone.
 1. The State will be accessible in all components descending from the use where the store is instantiated.
 
@@ -342,7 +345,7 @@ describe('component', () => {
       name: 'Foo',
       age: '30',
     };
-    
+
     store = createStore();
 
     // populate the store

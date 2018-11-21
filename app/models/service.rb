@@ -5,6 +5,7 @@
 class Service < ActiveRecord::Base
   include Sortable
   include Importable
+  include ProjectServicesLoggable
 
   serialize :properties, JSON # rubocop:disable Cop/ActiveRecordSerialize
 
@@ -252,6 +253,7 @@ class Service < ActiveRecord::Base
       bugzilla
       campfire
       custom_issue_tracker
+      discord
       drone_ci
       emails_on_push
       external_wiki

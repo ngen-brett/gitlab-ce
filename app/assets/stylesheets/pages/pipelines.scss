@@ -19,7 +19,7 @@
   background-color: $white-light;
 
   &:hover {
-    background-color: $stage-hover-bg;
+    background-color: $gray-darker;
     border: 1px solid $dropdown-toggle-active-border-color;
     color: $gl-text-color;
   }
@@ -139,10 +139,6 @@
   .avatar {
     margin-left: 0;
     float: none;
-  }
-
-  .api {
-    @extend .monospace;
   }
 
   .branch-commit {
@@ -595,7 +591,7 @@
 
     a.build-content:hover,
     button.build-content:hover {
-      background-color: $stage-hover-bg;
+      background-color: $gray-darker;
       border: 1px solid $dropdown-toggle-active-border-color;
     }
 
@@ -668,7 +664,7 @@
       display: block;
 
       &:hover {
-        background-color: $stage-hover-bg;
+        background-color: $gray-darker;
         border: 1px solid $dropdown-toggle-active-border-color;
 
         svg {
@@ -760,6 +756,7 @@
   }
 
   &.ci-status-icon-canceled,
+  &.ci-status-icon-scheduled,
   &.ci-status-icon-disabled,
   &.ci-status-icon-not-found,
   &.ci-status-icon-manual {
@@ -835,7 +832,7 @@ button.mini-pipeline-graph-dropdown-toggle {
       display: block;
 
       &:hover {
-        background-color: $stage-hover-bg;
+        background-color: $gray-darker;
         border: 1px solid $dropdown-toggle-active-border-color;
 
         svg {
@@ -934,7 +931,7 @@ button.mini-pipeline-graph-dropdown-toggle {
       &:focus {
         outline: none;
         text-decoration: none;
-        background-color: $stage-hover-bg;
+        background-color: $gray-darker;
       }
     }
   }
