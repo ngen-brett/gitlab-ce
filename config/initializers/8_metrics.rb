@@ -199,5 +199,5 @@ if Gitlab::Tracing.enabled?
   Gitlab::Tracing::Redis.instrument_client
 
   # Instrument Rails
-  GitLab::Tracing::Rails.instrument
+  Gitlab::Tracing::Rails.instrument
 end

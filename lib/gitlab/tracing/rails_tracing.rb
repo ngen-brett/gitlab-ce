@@ -43,7 +43,7 @@ module Gitlab
 
       private
 
-      def trace_rails_instrumentation(operation_name:, start_time:, end_time:, tags:, exception:)
+      def self.trace_rails_instrumentation(operation_name:, start_time:, end_time:, tags:, exception:)
         span = OpenTracing.start_span(operation_name,
           start_time: start_time,
           tags: tags)
