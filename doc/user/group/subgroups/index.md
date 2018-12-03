@@ -164,9 +164,9 @@ and you can choose the group of people to be notified.
 
 Here's a list of what you can't do with subgroups:
 
-- [GitLab Pages](../../project/pages/index.md) are not currently working for
-  projects hosted under a subgroup. That means that only projects hosted under
-  the first parent group will work.
+- [GitLab Pages](../../project/pages/index.md) are working for projects hosted under
+  a subgroup, but not for the subgroup itself. That means that only the first parent group
+  can have a [the special group pages project](../../project/pages/introduction.html#user-or-group-pages).
 - Group level labels don't work in subgroups / sub projects
 - It is not possible to share a project with a group that's an ancestor of
   the group the project is in. That means you can only share as you walk down
