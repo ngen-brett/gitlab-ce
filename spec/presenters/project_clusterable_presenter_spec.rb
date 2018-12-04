@@ -6,8 +6,30 @@ describe ProjectClusterablePresenter do
   include Gitlab::Routing.url_helpers
 
   let(:presenter) { described_class.new(project) }
-  let(:project) { create(:project) }
-  let(:cluster) { create(:cluster, :provided_by_gcp, projects: [project]) }
+  let(:cluster) { create(:cluster, :provided_by_gcp, :project) }
+  let(:project) { cluster.project }
+
+  describe '#can_add_cluster?' do
+    let(:user) { create(:user) }
+
+    subject { presenter.can_add_cluster? }
+
+    before do
+      project.add_maintainer(user)
+
+      allow(presenter).to receive(:current_user).and_return(user)
+    end
+
+    context 'when project has clusters' do
+      it { is_expected.to be_falsy }
+    end
+
+    context 'when project does not have clusters' do
+      let(:project) { create(:project, :repository) }
+
+      it { is_expected.to be_truthy }
+    end
+  end
 
   describe '#can_create_cluster?' do
     let(:user) { create(:user) }

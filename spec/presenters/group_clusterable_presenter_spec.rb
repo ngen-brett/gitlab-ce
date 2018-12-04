@@ -18,7 +18,7 @@ describe GroupClusterablePresenter do
       allow(presenter).to receive(:current_user).and_return(user)
     end
 
-    context 'when user can create' do
+    context 'when user has permission to create' do
       before do
         group.add_maintainer(user)
       end
@@ -26,8 +26,30 @@ describe GroupClusterablePresenter do
       it { is_expected.to be_truthy }
     end
 
-    context 'when user cannot create' do
+    context 'when user does not have permission to create' do
       it { is_expected.to be_falsey }
+    end
+  end
+
+  describe '#can_add_cluster?' do
+    let(:user) { create(:user) }
+
+    subject { presenter.can_add_cluster? }
+
+    before do
+      group.add_maintainer(user)
+
+      allow(presenter).to receive(:current_user).and_return(user)
+    end
+
+    context 'when group has clusters' do
+      it { is_expected.to be_falsy }
+    end
+
+    context 'when group does not have clusters' do
+      let(:group) { create(:group) }
+
+      it { is_expected.to be_truthy }
     end
   end
 

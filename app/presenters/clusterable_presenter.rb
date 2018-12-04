@@ -12,6 +12,10 @@ class ClusterablePresenter < Gitlab::View::Presenter::Delegated
       .fabricate!
   end
 
+  def can_add_cluster?
+    can_create_cluster? && empty_clusters?
+  end
+
   def can_create_cluster?
     can?(current_user, :create_cluster, clusterable)
   end
@@ -54,5 +58,11 @@ class ClusterablePresenter < Gitlab::View::Presenter::Delegated
 
   def learn_more_link
     raise NotImplementedError
+  end
+
+  private
+
+  def empty_clusters?
+    clusterable.clusters.empty?
   end
 end
