@@ -3,6 +3,7 @@
 import IssuableIndex from '~/issuable_index';
 import ShortcutsNavigation from '~/behaviors/shortcuts/shortcuts_navigation';
 import UsersSelect from '~/users_select';
+import initImportCSVModal from './import_csv_modal';
 import initFilteredSearch from '~/pages/search/init_filtered_search';
 import IssuableFilteredSearchTokenKeys from '~/filtered_search/issuable_filtered_search_token_keys';
 import { FILTERED_SEARCH } from '~/pages/constants';
@@ -17,4 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   new ShortcutsNavigation();
   new UsersSelect();
+
+  initImportCSVModal();
 });
