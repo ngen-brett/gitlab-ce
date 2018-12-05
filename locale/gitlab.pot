@@ -303,6 +303,9 @@ msgstr ""
 msgid "Abuse reports"
 msgstr ""
 
+msgid "Accept invitation"
+msgstr ""
+
 msgid "Accept terms"
 msgstr ""
 
@@ -1568,13 +1571,13 @@ msgstr ""
 msgid "ClusterIntegration|Knative"
 msgstr ""
 
-msgid "ClusterIntegration|Knative (pronounced kay-nay-tiv) extends Kubernetes to provide a set of middleware components that are essential to build modern, source-centric, and container-based applications that can run anywhere: on premises, in the cloud, or even in a third-party data center."
-msgstr ""
-
 msgid "ClusterIntegration|Knative Domain Name:"
 msgstr ""
 
 msgid "ClusterIntegration|Knative IP Address:"
+msgstr ""
+
+msgid "ClusterIntegration|Knative extends Kubernetes to provide a set of middleware components that are essential to build modern, source-centric, and container-based applications that can run anywhere: on premises, in the cloud, or even in a third-party data center."
 msgstr ""
 
 msgid "ClusterIntegration|Kubernetes cluster"
@@ -2260,6 +2263,9 @@ msgid "Dec"
 msgstr ""
 
 msgid "December"
+msgstr ""
+
+msgid "Decline"
 msgstr ""
 
 msgid "Decline and sign out"
@@ -3373,6 +3379,9 @@ msgstr ""
 msgid "Housekeeping successfully started"
 msgstr ""
 
+msgid "However, you are already a member of this %{member_source}. Sign in using a different account to accept the invitation."
+msgstr ""
+
 msgid "I accept the %{terms_link}"
 msgstr ""
 
@@ -3427,6 +3436,9 @@ msgstr ""
 msgid "Identities"
 msgstr ""
 
+msgid "If any job surpasses this timeout threshold, it will be marked as failed. Human readable time input language is accepted like \"1 hour\". Values without specification represent seconds."
+msgstr ""
+
 msgid "If disabled, the access level will depend on the user's permissions in the project."
 msgstr ""
 
@@ -3446,6 +3458,9 @@ msgid "ImageDiffViewer|Onion skin"
 msgstr ""
 
 msgid "ImageDiffViewer|Swipe"
+msgstr ""
+
+msgid "Impersonation has been disabled"
 msgstr ""
 
 msgid "Import"
@@ -3569,6 +3584,9 @@ msgid "Interval Pattern"
 msgstr ""
 
 msgid "Introducing Cycle Analytics"
+msgstr ""
+
+msgid "Invitation"
 msgstr ""
 
 msgid "Invite"
@@ -4013,6 +4031,18 @@ msgstr ""
 msgid "MergeRequests|View replaced file @ %{commitId}"
 msgstr ""
 
+msgid "MergeRequests|started a discussion"
+msgstr ""
+
+msgid "MergeRequests|started a discussion on %{linkStart}an old version of the diff%{linkEnd}"
+msgstr ""
+
+msgid "MergeRequests|started a discussion on %{linkStart}the diff%{linkEnd}"
+msgstr ""
+
+msgid "MergeRequests|started a discussion on commit %{linkStart}%{commitId}%{linkEnd}"
+msgstr ""
+
 msgid "MergeRequest| %{paragraphStart}changed the description %{descriptionChangedTimes} times %{timeDifferenceMinutes}%{paragraphEnd}"
 msgstr ""
 
@@ -4050,6 +4080,9 @@ msgid "Metrics|Environment"
 msgstr ""
 
 msgid "Metrics|Learn about environments"
+msgstr ""
+
+msgid "Metrics|No data to display"
 msgstr ""
 
 msgid "Metrics|No deployed environments"
@@ -4267,9 +4300,6 @@ msgstr ""
 msgid "No"
 msgstr ""
 
-msgid "No Label"
-msgstr ""
-
 msgid "No assignee"
 msgstr ""
 
@@ -4361,6 +4391,9 @@ msgid "Not now"
 msgstr ""
 
 msgid "Note that the master branch is automatically protected. %{link_to_protected_branches}"
+msgstr ""
+
+msgid "Note that this invitation was sent to %{mail_to_invite_email}, but you are signed in as %{link_to_current_user} with email %{mail_to_current_user}."
 msgstr ""
 
 msgid "Note: As an administrator you may like to configure %{github_integration_link}, which will allow login via GitHub and allow importing repositories without generating a Personal Access Token."
@@ -4582,9 +4615,6 @@ msgid "Pending"
 msgstr ""
 
 msgid "People without permission will never get a notification and won't be able to comment."
-msgstr ""
-
-msgid "Per job. If a job passes this threshold, it will be marked as failed"
 msgstr ""
 
 msgid "Perform advanced options such as changing path, transferring, or removing the group."
@@ -6602,7 +6632,7 @@ msgstr ""
 msgid "This source diff could not be displayed because it is too large."
 msgstr ""
 
-msgid "This timeout will take precedence when lower than Project-defined timeout"
+msgid "This timeout will take precedence when lower than project-defined timeout and accepts a human readable time input language like \"1 hour\". Values without specification represent seconds."
 msgstr ""
 
 msgid "This user has no identities"
@@ -7633,6 +7663,9 @@ msgstr ""
 msgid "from"
 msgstr ""
 
+msgid "group"
+msgstr ""
+
 msgid "here"
 msgstr ""
 
@@ -7877,6 +7910,9 @@ msgid "password"
 msgstr ""
 
 msgid "personal access token"
+msgstr ""
+
+msgid "project"
 msgstr ""
 
 msgid "remaining"

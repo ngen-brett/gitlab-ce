@@ -78,5 +78,10 @@ eslint-report.html
 /plugins/*
 /.gitlab_pages_secret
 package-lock.json
+<<<<<<< HEAD
 /junit_rspec.xml
 /junit_karma.xml
+=======
+/junit_*.xml
+/coverage-frontend/
+>>>>>>> master
