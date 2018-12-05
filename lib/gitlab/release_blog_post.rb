@@ -5,18 +5,16 @@ module Gitlab
   class ReleaseBlogPost
     include Singleton
 
-    attr_reader :url
-
     RELEASE_RSS_URL = 'https://about.gitlab.com/releases.xml'
 
-    def initialize
-      installed_version = Gitlab.final_release? ? Gitlab.minor_release : Gitlab.previous_release
-      @url = fetch_blog_post_url(installed_version)
+    def blog_post_url
+      @url || @url = fetch_blog_post_url
     end
 
     private
 
-    def fetch_blog_post_url(installed_version)
+    def fetch_blog_post_url
+      installed_version = Gitlab.final_release? ? Gitlab.minor_release : Gitlab.previous_release
       response = Gitlab::HTTP.get(RELEASE_RSS_URL, verify: false)
 
       if response.code == 200

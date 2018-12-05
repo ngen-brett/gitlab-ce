@@ -2,6 +2,6 @@
 
 module ReleaseBlogPostHelper
   def blog_post_url
-    Gitlab::ReleaseBlogPost.instance.url
+    Gitlab::ReleaseBlogPost.instance.blog_post_url
   end
 end
