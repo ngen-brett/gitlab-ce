@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 module QA
-  context :manage, :smoke do
+  context 'Manage', :smoke do
     describe 'Project creation' do
       it 'user creates a new project' do
         Runtime::Browser.visit(:gitlab, Page::Main::Login)
         Page::Main::Login.act { sign_in_using_credentials }
 
-        created_project = Factory::Resource::Project.fabricate_via_browser_ui! do |project|
+        created_project = Resource::Project.fabricate_via_browser_ui! do |project|
           project.name = 'awesome-project'
           project.description = 'create awesome project test'
         end

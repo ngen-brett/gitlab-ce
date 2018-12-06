@@ -145,7 +145,9 @@ module API
       expose :import_status
 
       # TODO: Use `expose_nil` once we upgrade the grape-entity gem
-      expose :import_error, if: lambda { |status, _ops| status.import_error }
+      expose :import_error, if: lambda { |project, _ops| project.import_state&.last_error } do |project|
+        project.import_state.last_error
+      end
     end
 
     class BasicProjectDetails < ProjectIdentity
@@ -160,13 +162,27 @@ module API
         # (fixed in https://github.com/rails/rails/pull/25976).
         project.tags.map(&:name).sort
       end
+
       expose :ssh_url_to_repo, :http_url_to_repo, :web_url, :readme_url
+
+      expose :license_url, if: :license do |project|
+        license = project.repository.license_blob
+
+        if license
+          Gitlab::Routing.url_helpers.project_blob_url(project, File.join(project.default_branch, license.path))
+        end
+      end
+
+      expose :license, with: 'API::Entities::LicenseBasic', if: :license do |project|
+        project.repository.license
+      end
+
       expose :avatar_url do |project, options|
         project.avatar_url(only_path: false)
       end
+
       expose :star_count, :forks_count
       expose :last_activity_at
-
       expose :namespace, using: 'API::Entities::NamespaceBasic'
       expose :custom_attributes, using: 'API::Entities::CustomAttribute', if: :with_custom_attributes
 
@@ -234,7 +250,10 @@ module API
       expose :creator_id
       expose :forked_from_project, using: Entities::BasicProjectDetails, if: lambda { |project, options| project.forked? }
       expose :import_status
-      expose :import_error, if: lambda { |_project, options| options[:user_can_admin_project] }
+
+      expose :import_error, if: lambda { |_project, options| options[:user_can_admin_project] } do |project|
+        project.import_state&.last_error
+      end
 
       expose :open_issues_count, if: lambda { |project, options| project.feature_available?(:issues, options[:current_user]) }
       expose :runners_token, if: lambda { |_project, options| options[:user_can_admin_project] }
@@ -593,6 +612,22 @@ module API
     end
 
     class MergeRequestBasic < ProjectEntity
+      expose :merged_by, using: Entities::UserBasic do |merge_request, _options|
+        merge_request.metrics&.merged_by
+      end
+
+      expose :merged_at do |merge_request, _options|
+        merge_request.metrics&.merged_at
+      end
+
+      expose :closed_by, using: Entities::UserBasic do |merge_request, _options|
+        merge_request.metrics&.latest_closed_by
+      end
+
+      expose :closed_at do |merge_request, _options|
+        merge_request.metrics&.latest_closed_at
+      end
+
       expose :title_html, if: -> (_, options) { options[:render_html] } do |entity|
         MarkupHelper.markdown_field(entity, :title)
       end
@@ -662,22 +697,6 @@ module API
         merge_request.merge_request_diff.real_size
       end
 
-      expose :merged_by, using: Entities::UserBasic do |merge_request, _options|
-        merge_request.metrics&.merged_by
-      end
-
-      expose :merged_at do |merge_request, _options|
-        merge_request.metrics&.merged_at
-      end
-
-      expose :closed_by, using: Entities::UserBasic do |merge_request, _options|
-        merge_request.metrics&.latest_closed_by
-      end
-
-      expose :closed_at do |merge_request, _options|
-        merge_request.metrics&.latest_closed_at
-      end
-
       expose :latest_build_started_at, if: -> (_, options) { build_available?(options) } do |merge_request, _options|
         merge_request.metrics&.latest_build_started_at
       end
@@ -695,6 +714,10 @@ module API
       end
 
       expose :diff_refs, using: Entities::DiffRefs
+
+      # Allow the status of a rebase to be determined
+      expose :merge_error
+      expose :rebase_in_progress?, as: :rebase_in_progress, if: -> (_, options) { options[:include_rebase_in_progress] }
 
       expose :diverged_commits_count, as: :diverged_commits_count, if: -> (_, options) { options[:include_diverged_commits_count] }
 
@@ -1128,7 +1151,8 @@ module API
     end
 
     class JobArtifactFile < Grape::Entity
-      expose :filename, :size
+      expose :filename
+      expose :cached_size, as: :size
     end
 
     class JobArtifact < Grape::Entity
@@ -1208,11 +1232,14 @@ module API
       expose :deployable,  using: Entities::Job
     end
 
-    class License < Grape::Entity
+    class LicenseBasic < Grape::Entity
       expose :key, :name, :nickname
-      expose :popular?, as: :popular
       expose :url, as: :html_url
       expose(:source_url) { |license| license.meta['source'] }
+    end
+
+    class License < LicenseBasic
+      expose :popular?, as: :popular
       expose(:description) { |license| license.meta['description'] }
       expose(:conditions) { |license| license.meta['conditions'] }
       expose(:permissions) { |license| license.meta['permissions'] }
@@ -1246,7 +1273,11 @@ module API
       expose :token
     end
 
-    class ImpersonationToken < PersonalAccessTokenWithToken
+    class ImpersonationToken < PersonalAccessToken
+      expose :impersonation
+    end
+
+    class ImpersonationTokenWithToken < PersonalAccessTokenWithToken
       expose :impersonation
     end
 
@@ -1412,7 +1443,9 @@ module API
     end
 
     class Application < Grape::Entity
+      expose :id
       expose :uid, as: :application_id
+      expose :name, as: :application_name
       expose :redirect_uri, as: :callback_url
     end
 

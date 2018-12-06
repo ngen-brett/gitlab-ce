@@ -58,14 +58,24 @@ export const alternativeTokenKeys = [
 
 export const conditions = [
   {
-    url: 'assignee_id=0',
+    url: 'assignee_id=None',
     tokenKey: 'assignee',
     value: 'none',
   },
   {
-    url: 'milestone_title=No+Milestone',
+    url: 'assignee_id=Any',
+    tokenKey: 'assignee',
+    value: 'any',
+  },
+  {
+    url: 'milestone_title=None',
     tokenKey: 'milestone',
     value: 'none',
+  },
+  {
+    url: 'milestone_title=Any',
+    tokenKey: 'milestone',
+    value: 'any',
   },
   {
     url: 'milestone_title=%23upcoming',
@@ -78,9 +88,24 @@ export const conditions = [
     value: 'started',
   },
   {
-    url: 'label_name[]=No+Label',
+    url: 'label_name[]=None',
     tokenKey: 'label',
     value: 'none',
+  },
+  {
+    url: 'label_name[]=Any',
+    tokenKey: 'any',
+    value: 'any',
+  },
+  {
+    url: 'my_reaction_emoji=None',
+    tokenKey: 'my-reaction',
+    value: 'none',
+  },
+  {
+    url: 'my_reaction_emoji=Any',
+    tokenKey: 'my-reaction',
+    value: 'any',
   },
 ];
 

@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 module QA
-  context :manage do
+  context 'Manage' do
     describe 'Project activity' do
       it 'user creates an event in the activity page upon Git push' do
         Runtime::Browser.visit(:gitlab, Page::Main::Login)
         Page::Main::Login.act { sign_in_using_credentials }
 
-        Factory::Repository::ProjectPush.fabricate! do |push|
+        Resource::Repository::ProjectPush.fabricate! do |push|
           push.file_name = 'README.md'
           push.file_content = '# This is a test project'
           push.commit_message = 'Add README.md'

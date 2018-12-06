@@ -277,7 +277,7 @@ describe 'Project' do
       end
     end
 
-    context 'for subgroups', :js do
+    context 'for subgroups', :js, :nested_groups do
       let(:group) { create(:group) }
       let(:subgroup) { create(:group, parent: group) }
       let(:project) { create(:project, :repository, group: subgroup) }
@@ -319,6 +319,22 @@ describe 'Project' do
 
     it 'loads activity', :js do
       expect(page).to have_selector('.event-item')
+    end
+  end
+
+  context 'content is not cached after signing out', :js do
+    let(:user) { create(:user, project_view: 'activity') }
+    let(:project) { create(:project, :repository) }
+
+    it 'does not load activity', :js do
+      project.add_maintainer(user)
+      sign_in(user)
+      visit project_path(project)
+      sign_out(user)
+
+      page.evaluate_script('window.history.back()')
+
+      expect(page).not_to have_selector('.event-item')
     end
   end
 

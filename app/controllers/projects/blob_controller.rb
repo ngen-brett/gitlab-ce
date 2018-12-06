@@ -9,7 +9,6 @@ class Projects::BlobController < Projects::ApplicationController
   include ActionView::Helpers::SanitizeHelper
   prepend_before_action :authenticate_user!, only: [:edit]
 
-  before_action :set_request_format, only: [:edit, :show, :update]
   before_action :require_non_empty_project, except: [:new, :create]
   before_action :authorize_download_code!
 
@@ -92,7 +91,7 @@ class Projects::BlobController < Projects::ApplicationController
     apply_diff_view_cookie!
 
     @blob.load_all_data!
-    @lines = Gitlab::Highlight.highlight(@blob.path, @blob.data, repository: @repository).lines
+    @lines = @blob.present.highlight.lines
 
     @form = UnfoldForm.new(params)
 
@@ -122,7 +121,7 @@ class Projects::BlobController < Projects::ApplicationController
     @lines.map! do |line|
       # These are marked as context lines but are loaded from blobs.
       # We also have context lines loaded from diffs in other places.
-      diff_line = Gitlab::Diff::Line.new(line, 'context', nil, nil, nil)
+      diff_line = Gitlab::Diff::Line.new(line, nil, nil, nil, nil)
       diff_line.rich_text = line
       diff_line
     end
@@ -233,25 +232,13 @@ class Projects::BlobController < Projects::ApplicationController
 
   def validate_diff_params
     if [:since, :to, :offset].any? { |key| params[key].blank? }
-      render nothing: true
+      head :ok
     end
   end
 
   def set_last_commit_sha
     @last_commit_sha = Gitlab::Git::Commit
       .last_for_path(@repository, @ref, @path).sha
-  end
-
-  # In Rails 4.2 if params[:format] is empty, Rails set it to :html
-  # But since Rails 5.0 the framework now looks for an extension.
-  # E.g. for `blob/master/CHANGELOG.md` in Rails 4 the format would be `:html`, but in Rails 5 on it'd be `:md`
-  # This before_action explicitly sets the `:html` format for all requests unless `:format` is set by a client e.g. by JS for XHR requests.
-  def set_request_format
-    request.format = :html if set_request_format?
-  end
-
-  def set_request_format?
-    params[:id].present? && params[:format].blank? && request.format != "json"
   end
 
   def show_html

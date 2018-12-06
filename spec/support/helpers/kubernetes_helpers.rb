@@ -17,6 +17,7 @@ module KubernetesHelpers
     WebMock.stub_request(:get, api_url + '/api/v1').to_return(kube_response(kube_v1_discovery_body))
     WebMock.stub_request(:get, api_url + '/apis/extensions/v1beta1').to_return(kube_response(kube_v1beta1_discovery_body))
     WebMock.stub_request(:get, api_url + '/apis/rbac.authorization.k8s.io/v1').to_return(kube_response(kube_v1_rbac_authorization_discovery_body))
+    WebMock.stub_request(:get, api_url + '/apis/serving.knative.dev/v1alpha1').to_return(kube_response(kube_v1alpha1_serving_knative_discovery_body))
   end
 
   def stub_kubeclient_pods(response = nil)
@@ -33,16 +34,33 @@ module KubernetesHelpers
     WebMock.stub_request(:get, deployments_url).to_return(response || kube_deployments_response)
   end
 
-  def stub_kubeclient_get_secret(api_url, namespace: 'default', **options)
-    options[:metadata_name] ||= "default-token-1"
+  def stub_kubeclient_knative_services(**options)
+    options[:name] ||= "kubetest"
+    options[:namespace] ||= "default"
+    options[:domain] ||= "example.com"
 
-    WebMock.stub_request(:get, api_url + "/api/v1/namespaces/#{namespace}/secrets/#{options[:metadata_name]}")
+    stub_kubeclient_discover(service.api_url)
+    knative_url = service.api_url + "/apis/serving.knative.dev/v1alpha1/services"
+
+    WebMock.stub_request(:get, knative_url).to_return(kube_response(kube_knative_services_body(options)))
+  end
+
+  def stub_kubeclient_get_secret(api_url, **options)
+    options[:metadata_name] ||= "default-token-1"
+    options[:namespace] ||= "default"
+
+    WebMock.stub_request(:get, api_url + "/api/v1/namespaces/#{options[:namespace]}/secrets/#{options[:metadata_name]}")
       .to_return(kube_response(kube_v1_secret_body(options)))
   end
 
-  def stub_kubeclient_get_secret_error(api_url, name, namespace: 'default')
+  def stub_kubeclient_get_secret_error(api_url, name, namespace: 'default', status: 404)
     WebMock.stub_request(:get, api_url + "/api/v1/namespaces/#{namespace}/secrets/#{name}")
-      .to_return(status: [404, "Internal Server Error"])
+      .to_return(status: [status, "Internal Server Error"])
+  end
+
+  def stub_kubeclient_get_service_account_error(api_url, name, namespace: 'default', status: 404)
+    WebMock.stub_request(:get, api_url + "/api/v1/namespaces/#{namespace}/serviceaccounts/#{name}")
+      .to_return(status: [status, "Internal Server Error"])
   end
 
   def stub_kubeclient_create_service_account(api_url, namespace: 'default')
@@ -60,8 +78,38 @@ module KubernetesHelpers
       .to_return(kube_response({}))
   end
 
+  def stub_kubeclient_put_secret(api_url, name, namespace: 'default')
+    WebMock.stub_request(:put, api_url + "/api/v1/namespaces/#{namespace}/secrets/#{name}")
+      .to_return(kube_response({}))
+  end
+
+  def stub_kubeclient_get_cluster_role_binding_error(api_url, name, status: 404)
+    WebMock.stub_request(:get, api_url + "/apis/rbac.authorization.k8s.io/v1/clusterrolebindings/#{name}")
+      .to_return(status: [status, "Internal Server Error"])
+  end
+
   def stub_kubeclient_create_cluster_role_binding(api_url)
     WebMock.stub_request(:post, api_url + '/apis/rbac.authorization.k8s.io/v1/clusterrolebindings')
+      .to_return(kube_response({}))
+  end
+
+  def stub_kubeclient_get_role_binding_error(api_url, name, namespace: 'default', status: 404)
+    WebMock.stub_request(:get, api_url + "/apis/rbac.authorization.k8s.io/v1/namespaces/#{namespace}/rolebindings/#{name}")
+      .to_return(status: [status, "Internal Server Error"])
+  end
+
+  def stub_kubeclient_create_role_binding(api_url, namespace: 'default')
+    WebMock.stub_request(:post, api_url + "/apis/rbac.authorization.k8s.io/v1/namespaces/#{namespace}/rolebindings")
+      .to_return(kube_response({}))
+  end
+
+  def stub_kubeclient_create_namespace(api_url)
+    WebMock.stub_request(:post, api_url + "/api/v1/namespaces")
+      .to_return(kube_response({}))
+  end
+
+  def stub_kubeclient_get_namespace(api_url, namespace: 'default')
+    WebMock.stub_request(:get, api_url + "/api/v1/namespaces/#{namespace}")
       .to_return(kube_response({}))
   end
 
@@ -87,7 +135,8 @@ module KubernetesHelpers
         { "name" => "deployments", "namespaced" => true, "kind" => "Deployment" },
         { "name" => "secrets", "namespaced" => true, "kind" => "Secret" },
         { "name" => "serviceaccounts", "namespaced" => true, "kind" => "ServiceAccount" },
-        { "name" => "services", "namespaced" => true, "kind" => "Service" }
+        { "name" => "services", "namespaced" => true, "kind" => "Service" },
+        { "name" => "namespaces", "namespaced" => true, "kind" => "Namespace" }
       ]
     }
   end
@@ -117,6 +166,18 @@ module KubernetesHelpers
     }
   end
 
+  def kube_v1alpha1_serving_knative_discovery_body
+    {
+      "kind" => "APIResourceList",
+      "resources" => [
+        { "name" => "revisions", "namespaced" => true, "kind" => "Revision" },
+        { "name" => "services", "namespaced" => true, "kind" => "Service" },
+        { "name" => "configurations", "namespaced" => true, "kind" => "Configuration" },
+        { "name" => "routes", "namespaced" => true, "kind" => "Route" }
+      ]
+    }
+  end
+
   def kube_pods_body
     {
       "kind" => "PodList",
@@ -128,6 +189,13 @@ module KubernetesHelpers
     {
       "kind" => "DeploymentList",
       "items" => [kube_deployment]
+    }
+  end
+
+  def kube_knative_services_body(**options)
+    {
+      "kind" => "List",
+      "items" => [kube_service(options)]
     }
   end
 
@@ -170,6 +238,54 @@ module KubernetesHelpers
         "replicas" => 3,
         "updatedReplicas" => 3,
         "availableReplicas" => 3
+      }
+    }
+  end
+
+  def kube_service(name: "kubetest", namespace: "default", domain: "example.com")
+    {
+      "metadata" => {
+          "creationTimestamp" => "2018-11-21T06:16:33Z",
+          "name" => name,
+          "namespace" => namespace,
+          "selfLink" => "/apis/serving.knative.dev/v1alpha1/namespaces/#{namespace}/services/#{name}"
+      },
+      "spec" => {
+        "generation" => 2
+      },
+      "status" => {
+        "domain" => "#{name}.#{namespace}.#{domain}",
+        "domainInternal" => "#{name}.#{namespace}.svc.cluster.local",
+        "latestCreatedRevisionName" => "#{name}-00002",
+        "latestReadyRevisionName" => "#{name}-00002",
+        "observedGeneration" => 2
+      }
+    }
+  end
+
+  def kube_service_full(name: "kubetest", namespace: "kube-ns", domain: "example.com")
+    {
+      "metadata" => {
+        "creationTimestamp" => "2018-11-21T06:16:33Z",
+        "name" => name,
+        "namespace" => namespace,
+        "selfLink" => "/apis/serving.knative.dev/v1alpha1/namespaces/#{namespace}/services/#{name}",
+        "annotation" => {
+          "description" => "This is a test description"
+        }
+      },
+      "spec" => {
+        "generation" => 2,
+        "build" => {
+          "template" => "go-1.10.3"
+        }
+      },
+      "status" => {
+        "domain" => "#{name}.#{namespace}.#{domain}",
+        "domainInternal" => "#{name}.#{namespace}.svc.cluster.local",
+        "latestCreatedRevisionName" => "#{name}-00002",
+        "latestReadyRevisionName" => "#{name}-00002",
+        "observedGeneration" => 2
       }
     }
   end

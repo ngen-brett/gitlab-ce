@@ -6,6 +6,7 @@ describe('pipeline graph job item', () => {
   const JobComponent = Vue.extend(JobItem);
   let component;
 
+  const delayedJobFixture = getJSONFixture('jobs/delayed.json');
   const mockJob = {
     id: 4256,
     name: 'test',
@@ -138,33 +139,17 @@ describe('pipeline graph job item', () => {
     });
   });
 
-  describe('tooltip placement', () => {
-    const tooltipBoundary = 'a[data-boundary="viewport"]';
-
-    it('does not set tooltip boundary by default', () => {
+  describe('for delayed job', () => {
+    it('displays remaining time in tooltip', () => {
       component = mountComponent(JobComponent, {
-        job: mockJob,
+        job: delayedJobFixture,
       });
 
-      expect(component.$el.querySelector(tooltipBoundary)).toBeNull();
-    });
-
-    it('sets tooltip boundary to viewport for small dropdowns', () => {
-      component = mountComponent(JobComponent, {
-        job: mockJob,
-        dropdownLength: 1,
-      });
-
-      expect(component.$el.querySelector(tooltipBoundary)).not.toBeNull();
-    });
-
-    it('does not set tooltip boundary for large lists', () => {
-      component = mountComponent(JobComponent, {
-        job: mockJob,
-        dropdownLength: 7,
-      });
-
-      expect(component.$el.querySelector(tooltipBoundary)).toBeNull();
+      expect(
+        component.$el
+          .querySelector('.js-pipeline-graph-job-link')
+          .getAttribute('data-original-title'),
+      ).toEqual(`delayed job - delayed manual action (${component.remainingTime})`);
     });
   });
 });

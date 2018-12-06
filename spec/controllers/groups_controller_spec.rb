@@ -529,7 +529,7 @@ describe GroupsController do
       sign_in(user)
     end
 
-    context 'when transfering to a subgroup goes right' do
+    context 'when transferring to a subgroup goes right' do
       let(:new_parent_group) { create(:group, :public) }
       let!(:group_member) { create(:group_member, :owner, group: group, user: user) }
       let!(:new_parent_group_member) { create(:group_member, :owner, group: new_parent_group, user: user) }
@@ -603,6 +603,26 @@ describe GroupsController do
 
       it 'should be denied' do
         expect(response).to have_gitlab_http_status(404)
+      end
+    end
+  end
+
+  context 'token authentication' do
+    it_behaves_like 'authenticates sessionless user', :show, :atom, public: true do
+      before do
+        default_params.merge!(id: group)
+      end
+    end
+
+    it_behaves_like 'authenticates sessionless user', :issues, :atom, public: true do
+      before do
+        default_params.merge!(id: group, author_id: user.id)
+      end
+    end
+
+    it_behaves_like 'authenticates sessionless user', :issues_calendar, :ics, public: true do
+      before do
+        default_params.merge!(id: group)
       end
     end
   end

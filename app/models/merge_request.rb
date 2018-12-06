@@ -63,6 +63,7 @@ class MergeRequest < ActiveRecord::Base
     dependent: :delete_all # rubocop:disable Cop/ActiveRecordDependent
 
   has_many :cached_closes_issues, through: :merge_requests_closing_issues, source: :issue
+  has_many :merge_request_pipelines, foreign_key: 'merge_request_id', class_name: 'Ci::Pipeline'
 
   belongs_to :assignee, class_name: "User"
 
@@ -202,6 +203,12 @@ class MergeRequest < ActiveRecord::Base
   # For more information check: https://gitlab.com/gitlab-org/gitlab-ce/issues/40004
   def actual_head_pipeline
     head_pipeline&.sha == diff_head_sha ? head_pipeline : nil
+  end
+
+  def merge_pipeline
+    return unless merged?
+
+    target_project.pipeline_for(target_branch, merge_commit_sha)
   end
 
   # Pattern used to extract `!123` merge request references from text
@@ -347,6 +354,15 @@ class MergeRequest < ActiveRecord::Base
     end
   end
 
+  # Returns true if there are commits that match at least one commit SHA.
+  def includes_any_commits?(shas)
+    if persisted?
+      merge_request_diff.commits_by_shas(shas).exists?
+    else
+      (commit_shas & shas).present?
+    end
+  end
+
   # Calls `MergeWorker` to proceed with the merge process and
   # updates `merge_jid` with the MergeWorker#jid.
   # This helps tracking enqueued and ongoing merge jobs.
@@ -392,6 +408,18 @@ class MergeRequest < ActiveRecord::Base
     # Calling `merge_request_diff.diffs.real_size` will also perform
     # highlighting, which we don't need here.
     merge_request_diff&.real_size || diffs.real_size
+  end
+
+  def modified_paths(past_merge_request_diff: nil)
+    diffs = if past_merge_request_diff
+              past_merge_request_diff
+            elsif compare
+              compare
+            else
+              self.merge_request_diff
+            end
+
+    diffs.modified_paths
   end
 
   def diff_base_commit
@@ -939,7 +967,6 @@ class MergeRequest < ActiveRecord::Base
 
   def mergeable_ci_state?
     return true unless project.only_allow_merge_if_pipeline_succeeds?
-    return true unless head_pipeline
 
     actual_head_pipeline&.success? || actual_head_pipeline&.skipped?
   end
@@ -1026,16 +1053,57 @@ class MergeRequest < ActiveRecord::Base
     diverged_commits_count > 0
   end
 
-  def all_pipelines
+  def all_pipelines(shas: all_commit_shas)
     return Ci::Pipeline.none unless source_project
 
-    @all_pipelines ||= source_project.pipelines
-      .where(sha: all_commit_shas, ref: source_branch)
-      .order(id: :desc)
+    @all_pipelines ||= source_project.ci_pipelines
+      .where(sha: shas, ref: source_branch)
+      .where(merge_request: [nil, self])
+      .sort_by_merge_request_pipelines
+  end
+
+  def merge_request_pipeline_exists?
+    merge_request_pipelines.exists?(sha: diff_head_sha)
   end
 
   def has_test_reports?
     actual_head_pipeline&.has_test_reports?
+  end
+
+  def predefined_variables
+    Gitlab::Ci::Variables::Collection.new.tap do |variables|
+      variables.append(key: 'CI_MERGE_REQUEST_ID', value: id.to_s)
+      variables.append(key: 'CI_MERGE_REQUEST_IID', value: iid.to_s)
+
+      variables.append(key: 'CI_MERGE_REQUEST_REF_PATH',
+                       value: ref_path.to_s)
+
+      variables.append(key: 'CI_MERGE_REQUEST_PROJECT_ID',
+                       value: project.id.to_s)
+
+      variables.append(key: 'CI_MERGE_REQUEST_PROJECT_PATH',
+                       value: project.full_path)
+
+      variables.append(key: 'CI_MERGE_REQUEST_PROJECT_URL',
+                       value: project.web_url)
+
+      variables.append(key: 'CI_MERGE_REQUEST_TARGET_BRANCH_NAME',
+                       value: target_branch.to_s)
+
+      if source_project
+        variables.append(key: 'CI_MERGE_REQUEST_SOURCE_PROJECT_ID',
+                         value: source_project.id.to_s)
+
+        variables.append(key: 'CI_MERGE_REQUEST_SOURCE_PROJECT_PATH',
+                         value: source_project.full_path)
+
+        variables.append(key: 'CI_MERGE_REQUEST_SOURCE_PROJECT_URL',
+                         value: source_project.web_url)
+
+        variables.append(key: 'CI_MERGE_REQUEST_SOURCE_BRANCH_NAME',
+                         value: source_branch.to_s)
+      end
+    end
   end
 
   # rubocop: disable CodeReuse/ServiceClass
@@ -1188,7 +1256,7 @@ class MergeRequest < ActiveRecord::Base
   end
 
   def base_pipeline
-    @base_pipeline ||= project.pipelines
+    @base_pipeline ||= project.ci_pipelines
       .order(id: :desc)
       .find_by(sha: diff_base_sha)
   end

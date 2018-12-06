@@ -151,9 +151,8 @@ describe 'Jobs', :clean_gitlab_redis_shared_state do
       end
 
       it 'renders escaped tooltip name' do
-        page.within('aside.right-sidebar') do
-          expect(find('.active.build-job a')['data-original-title']).to eq('&lt;img src=x onerror=alert(document.domain)&gt; - passed')
-        end
+        page.find('.active.build-job a').hover
+        expect(page).to have_content('<img src=x onerror=alert(document.domain)> - passed')
       end
     end
 
@@ -195,6 +194,24 @@ describe 'Jobs', :clean_gitlab_redis_shared_state do
           page.within('.header-action-buttons') do
             expect(find('.js-new-issue')['href']).to include(href)
           end
+        end
+      end
+    end
+
+    context 'when job is running', :js do
+      let(:job) { create(:ci_build, :running, pipeline: pipeline) }
+      let(:job_url) { project_job_path(project, job) }
+
+      before do
+        visit job_url
+        wait_for_requests
+      end
+
+      context 'job is cancelable' do
+        it 'shows cancel button' do
+          click_link 'Cancel'
+
+          expect(page.current_path).to eq(job_url)
         end
       end
     end
@@ -373,16 +390,14 @@ describe 'Jobs', :clean_gitlab_redis_shared_state do
     context 'when job starts environment', :js do
       let(:environment) { create(:environment, name: 'production', project: project) }
 
-      context 'job is successful and has deployment' do
-        let(:build) { create(:ci_build, :success, :trace_live, environment: environment.name, pipeline: pipeline) }
-        let!(:deployment) { create(:deployment, environment: environment, project: environment.project, deployable: build) }
+      before do
+        visit project_job_path(project, build)
+        wait_for_requests
+      end
 
-        before do
-          visit project_job_path(project, build)
-          wait_for_requests
-          # scroll to the top of the page first
-          execute_script "window.scrollTo(0,0)"
-        end
+      context 'job is successful and has deployment' do
+        let(:build) { create(:ci_build, :success, :trace_live, environment: environment.name, pipeline: pipeline, deployment: deployment) }
+        let(:deployment) { create(:deployment, :success, environment: environment, project: environment.project) }
 
         it 'shows a link for the job' do
           expect(page).to have_link environment.name
@@ -398,25 +413,15 @@ describe 'Jobs', :clean_gitlab_redis_shared_state do
         let(:build) { create(:ci_build, :failed, :trace_artifact, environment: environment.name, pipeline: pipeline) }
 
         it 'shows a link for the job' do
-          visit project_job_path(project, build)
-          wait_for_requests
-          # scroll to the top of the page first
-          execute_script "window.scrollTo(0,0)"
-
           expect(page).to have_link environment.name
           expect(find('.js-environment-link')['href']).to match("environments/#{environment.id}")
         end
       end
 
       context 'deployment still not finished' do
-        let(:build) { create(:ci_build, :success, environment: environment.name, pipeline: pipeline) }
+        let(:build) { create(:ci_build, :running, environment: environment.name, pipeline: pipeline) }
 
         it 'shows a link to latest deployment' do
-          visit project_job_path(project, build)
-          wait_for_all_requests
-          # scroll to the top of the page first
-          execute_script "window.scrollTo(0,0)"
-
           expect(page).to have_link environment.name
           expect(page).to have_content 'This job is creating a deployment'
           expect(find('.js-environment-link')['href']).to match("environments/#{environment.id}")
@@ -451,18 +456,18 @@ describe 'Jobs', :clean_gitlab_redis_shared_state do
 
     describe 'environment info in job view', :js do
       before do
+        allow_any_instance_of(Ci::Build).to receive(:create_deployment)
+
         visit project_job_path(project, job)
         wait_for_requests
-        # scroll to the top of the page first
-        execute_script "window.scrollTo(0,0)"
       end
 
       context 'job with outdated deployment' do
         let(:job) { create(:ci_build, :success, :trace_artifact, environment: 'staging', pipeline: pipeline) }
         let(:second_build) { create(:ci_build, :success, :trace_artifact, environment: 'staging', pipeline: pipeline) }
         let(:environment) { create(:environment, name: 'staging', project: project) }
-        let!(:first_deployment) { create(:deployment, environment: environment, deployable: job) }
-        let!(:second_deployment) { create(:deployment, environment: environment, deployable: second_build) }
+        let!(:first_deployment) { create(:deployment, :success, environment: environment, deployable: job) }
+        let!(:second_deployment) { create(:deployment, :success, environment: environment, deployable: second_build) }
 
         it 'shows deployment message' do
           expected_text = 'This job is an out-of-date deployment ' \
@@ -484,8 +489,7 @@ describe 'Jobs', :clean_gitlab_redis_shared_state do
         it 'shows deployment message' do
           expected_text = 'The deployment of this job to staging did not succeed.'
 
-          expect(page).to have_css(
-            '.environment-information', text: expected_text)
+          expect(page).to have_css('.environment-information', text: expected_text)
         end
       end
 
@@ -498,21 +502,18 @@ describe 'Jobs', :clean_gitlab_redis_shared_state do
           it 'shows deployment message' do
             expected_text = 'This job is creating a deployment to staging'
 
-            expect(page).to have_css(
-              '.environment-information', text: expected_text)
+            expect(page).to have_css('.environment-information', text: expected_text)
             expect(find('.js-environment-link')['href']).to match("environments/#{environment.id}")
           end
 
           context 'when it has deployment' do
-            let!(:deployment) { create(:deployment, environment: environment) }
+            let!(:deployment) { create(:deployment, :success, environment: environment) }
 
             it 'shows that deployment will be overwritten' do
               expected_text = 'This job is creating a deployment to staging'
 
-              expect(page).to have_css(
-                '.environment-information', text: expected_text)
-              expect(page).to have_css(
-                '.environment-information', text: 'latest deployment')
+              expect(page).to have_css('.environment-information', text: expected_text)
+              expect(page).to have_css('.environment-information', text: 'latest deployment')
               expect(find('.js-environment-link')['href']).to match("environments/#{environment.id}")
             end
           end
@@ -594,8 +595,8 @@ describe 'Jobs', :clean_gitlab_redis_shared_state do
       end
 
       it 'shows delayed job', :js do
-        expect(page).to have_content('This is a delayed to run in')
-        expect(page).to have_content("This job will automatically run after it's timer finishes.")
+        expect(page).to have_content('This is a delayed job to run in')
+        expect(page).to have_content("This job will automatically run after its timer finishes.")
         expect(page).to have_link('Unschedule job')
       end
 
@@ -718,7 +719,7 @@ describe 'Jobs', :clean_gitlab_redis_shared_state do
     context 'on mobile', :js do
       let(:job) { create(:ci_build, pipeline: pipeline) }
 
-      it 'renders collpased sidebar' do
+      it 'renders collapsed sidebar' do
         page.current_window.resize_to(600, 800)
 
         visit project_job_path(project, job)
@@ -737,7 +738,63 @@ describe 'Jobs', :clean_gitlab_redis_shared_state do
         wait_for_requests
 
         expect(page).to have_css('.js-job-sidebar.right-sidebar-expanded')
-        expect(page).not_to have_css('.js-job-sidebar.right-sidebar-collpased')
+        expect(page).not_to have_css('.js-job-sidebar.right-sidebar-collapsed')
+      end
+    end
+
+    context 'stuck', :js do
+      before do
+        visit project_job_path(project, job)
+        wait_for_requests
+      end
+
+      context 'without active runners available' do
+        let(:runner) { create(:ci_runner, :instance, active: false) }
+        let(:job) { create(:ci_build, :pending, pipeline: pipeline, runner: runner) }
+
+        it 'renders message about job being stuck because no runners are active' do
+          expect(page).to have_css('.js-stuck-no-active-runner')
+          expect(page).to have_content("This job is stuck because you don't have any active runners that can run this job.")
+        end
+      end
+
+      context 'when available runners can not run specified tag' do
+        let(:runner) { create(:ci_runner, :instance, active: false) }
+        let(:job) { create(:ci_build, :pending, pipeline: pipeline, runner: runner, tag_list: %w(docker linux)) }
+
+        it 'renders message about job being stuck because of no runners with the specified tags' do
+          expect(page).to have_css('.js-stuck-with-tags')
+          expect(page).to have_content("This job is stuck because you don't have any active runners online with any of these tags assigned to them:")
+        end
+      end
+
+      context 'when runners are offline and build has tags' do
+        let(:runner) { create(:ci_runner, :instance, active: true) }
+        let(:job) { create(:ci_build, :pending, pipeline: pipeline, runner: runner, tag_list: %w(docker linux)) }
+
+        it 'renders message about job being stuck because of no runners with the specified tags' do
+          expect(page).to have_css('.js-stuck-with-tags')
+          expect(page).to have_content("This job is stuck because you don't have any active runners online with any of these tags assigned to them:")
+        end
+      end
+
+      context 'without any runners available' do
+        let(:job) { create(:ci_build, :pending, pipeline: pipeline) }
+
+        it 'renders message about job being stuck because not runners are available' do
+          expect(page).to have_css('.js-stuck-no-active-runner')
+          expect(page).to have_content("This job is stuck because you don't have any active runners that can run this job.")
+        end
+      end
+
+      context 'without available runners online' do
+        let(:runner) { create(:ci_runner, :instance, active: true) }
+        let(:job) { create(:ci_build, :pending, pipeline: pipeline, runner: runner) }
+
+        it 'renders message about job being stuck because runners are offline' do
+          expect(page).to have_css('.js-stuck-no-runners')
+          expect(page).to have_content("This job is stuck because the project doesn't have any runners online assigned to it.")
+        end
       end
     end
   end

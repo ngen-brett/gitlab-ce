@@ -303,7 +303,7 @@ A [tool](https://docs.gitlab.com/ee/integration/external-issue-tracker.html) use
 
 ### Jenkins
 
-An Open Source CI tool written using the Java programming language. [Jenkins](https://jenkins-ci.org/) does the same job as GitLab CI, Bamboo, and Travis CI. It is extremely popular. Related [documentation](https://docs.gitlab.com/ee/integration/jenkins.html). 
+An Open Source CI tool written using the Java programming language. [Jenkins](https://jenkins.io/) does the same job as GitLab CI, Bamboo, and Travis CI. It is extremely popular. Related [documentation](https://docs.gitlab.com/ee/integration/jenkins.html). 
 
 ### Jira
 
@@ -689,7 +689,7 @@ A [model](http://www.umsl.edu/~hugheyd/is6840/waterfall.html) of building softwa
 
 ### Webhooks
 
-A way for for an app to [provide](https://docs.gitlab.com/ce/user/project/integrations/webhooks.html) other applications with real-time information (e.g., send a message to a slack channel when a commit is pushed.) Read about setting up [custom git hooks](https://gitlab.com/help/administration/custom_hooks.md) for when webhooks are insufficient.
+A way for an app to [provide](https://docs.gitlab.com/ce/user/project/integrations/webhooks.html) other applications with real-time information (e.g., send a message to a slack channel when a commit is pushed.) Read about setting up [custom git hooks](https://gitlab.com/help/administration/custom_hooks.md) for when webhooks are insufficient.
 
 ### Wiki
 

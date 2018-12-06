@@ -1,11 +1,14 @@
-module Gitlab # rubocop:disable Naming/FileName
+# rubocop:disable Naming/FileName
+# frozen_string_literal: true
+
+module Gitlab
   module Ci
     module Pipeline
       module Chain
         Command = Struct.new(
           :source, :project, :current_user,
           :origin_ref, :checkout_sha, :after_sha, :before_sha,
-          :trigger_request, :schedule,
+          :trigger_request, :schedule, :merge_request,
           :ignore_skip_ci, :save_incompleted,
           :seeds_block, :variables_attributes
         ) do

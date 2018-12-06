@@ -144,11 +144,13 @@
 .provider-btn-group {
   display: inline-block;
   margin-right: 10px;
+  margin-bottom: 10px;
   border: 1px solid $border-color;
   border-radius: 3px;
 
   &:last-child {
     margin-right: 0;
+    margin-bottom: 0;
   }
 }
 
@@ -240,6 +242,12 @@
     left: 0;
   }
 
+  .activities-block {
+    .event-item {
+      padding-left: 40px;
+    }
+  }
+
   @include media-breakpoint-down(xs) {
     .cover-block {
       padding-top: 20px;
@@ -265,6 +273,12 @@
     .user-profile-nav {
       a {
         margin-right: 0;
+      }
+    }
+
+    .activities-block {
+      .event-item {
+        padding-left: 0;
       }
     }
   }

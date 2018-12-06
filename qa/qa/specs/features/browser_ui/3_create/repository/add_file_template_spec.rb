@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module QA
-  context :create do
+  context 'Create' do
     describe 'File templates' do
       include Runtime::Fixtures
 
@@ -13,7 +13,7 @@ module QA
       before(:all) do
         login
 
-        @project = Factory::Resource::Project.fabricate! do |project|
+        @project = Resource::Project.fabricate! do |project|
           project.name = 'file-template-project'
           project.description = 'Add file templates via the Files view'
         end

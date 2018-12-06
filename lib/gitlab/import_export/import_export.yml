@@ -51,7 +51,7 @@ project_tree:
     - resource_label_events:
       - label:
           :priorities
-  - pipelines:
+  - ci_pipelines:
     - notes:
       - :author
       - events:
@@ -92,18 +92,18 @@ excluded_attributes:
     - :path
     - :namespace_id
     - :creator_id
+    - :pool_repository_id
     - :import_url
     - :import_status
     - :avatar
     - :import_type
     - :import_source
-    - :import_error
     - :mirror
     - :runners_token
+    - :runners_token_encrypted
     - :repository_storage
     - :repository_read_only
     - :lfs_enabled
-    - :import_jid
     - :created_at
     - :updated_at
     - :id
@@ -115,6 +115,12 @@ excluded_attributes:
     - :remote_mirror_available_overridden
     - :description_html
     - :repository_languages
+  namespaces:
+    - :runners_token
+    - :runners_token_encrypted
+  project_import_state:
+    - :last_error
+    - :jid
   prometheus_metrics:
     - :common
     - :identifier
@@ -136,6 +142,7 @@ excluded_attributes:
   statuses:
     - :trace
     - :token
+    - :token_encrypted
     - :when
     - :artifacts_file
     - :artifacts_metadata
@@ -153,6 +160,11 @@ excluded_attributes:
     - :encrypted_token_iv
     - :encrypted_url
     - :encrypted_url_iv
+  runners:
+    - :token
+    - :token_encrypted
+  services:
+    - :template
 
 methods:
   labels:

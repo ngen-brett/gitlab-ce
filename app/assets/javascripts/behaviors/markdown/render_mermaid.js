@@ -17,7 +17,7 @@ import flash from '~/flash';
 export default function renderMermaid($els) {
   if (!$els.length) return;
 
-  import(/* webpackChunkName: 'mermaid' */ 'blackst0ne-mermaid')
+  import(/* webpackChunkName: 'mermaid' */ 'mermaid')
     .then(mermaid => {
       mermaid.initialize({
         // mermaid core options
@@ -26,6 +26,9 @@ export default function renderMermaid($els) {
         },
         // mermaidAPI options
         theme: 'neutral',
+        flowchart: {
+          htmlLabels: false,
+        },
       });
 
       $els.each((i, el) => {

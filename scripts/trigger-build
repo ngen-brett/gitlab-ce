@@ -32,32 +32,32 @@ module Trigger
 
     private
 
-    # Must be overriden
+    # Must be overridden
     def downstream_project_path
       raise NotImplementedError
     end
 
-    # Must be overriden
+    # Must be overridden
     def ref
       raise NotImplementedError
     end
 
-    # Must be overriden
+    # Must be overridden
     def trigger_token
       raise NotImplementedError
     end
 
-    # Must be overriden
+    # Must be overridden
     def access_token
       raise NotImplementedError
     end
 
-    # Can be overriden
+    # Can be overridden
     def extra_variables
       {}
     end
 
-    # Can be overriden
+    # Can be overridden
     def version_param_value(version_file)
       File.read(version_file).strip
     end
@@ -68,12 +68,19 @@ module Trigger
 
     def base_variables
       {
+        'GITLAB_REF_SLUG' => ref_slug,
         'TRIGGERED_USER' => ENV['TRIGGERED_USER'] || ENV['GITLAB_USER_NAME'],
         'TRIGGER_SOURCE' => ENV['CI_JOB_URL'],
         'TOP_UPSTREAM_SOURCE_PROJECT' => ENV['CI_PROJECT_PATH'],
         'TOP_UPSTREAM_SOURCE_JOB' => ENV['CI_JOB_URL'],
         'TOP_UPSTREAM_SOURCE_SHA' => ENV['CI_COMMIT_SHA']
       }
+    end
+
+    def ref_slug
+      return 'master' if ENV['CI_COMMIT_REF_SLUG'] =~ %r{(\Aqa[/-]|-qa\z)}
+
+      ENV['CI_COMMIT_REF_SLUG']
     end
 
     # Read version files from all components
@@ -107,7 +114,8 @@ module Trigger
       {
         'GITLAB_VERSION' => ENV['CI_COMMIT_SHA'],
         'ALTERNATIVE_SOURCES' => 'true',
-        'ee' => Trigger.ee? ? 'true' : 'false'
+        'ee' => Trigger.ee? ? 'true' : 'false',
+        'QA_BRANCH' => ENV['QA_BRANCH'] || 'master'
       }
     end
   end

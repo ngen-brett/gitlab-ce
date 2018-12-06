@@ -72,7 +72,7 @@ This [documentation](doc/development/contributing/index.md#security-vulnerabilit
 
 ## Code of Conduct
 
-This [documentation](doc/development/contributing/index.md#code-of-conduct) has been moved.
+This [documentation](https://about.gitlab.com/contributing/code-of-conduct/) has been moved.
 
 ## Closing policy for issues and merge requests
 
@@ -181,4 +181,4 @@ This [documentation](doc/development/contributing/merge_request_workflow.md) has
 
 ## Style guides
 
-This [documentation](doc/development/contributing/design.md) has been moved.
+This [documentation](doc/development/contributing/style_guides.md) has been moved.
