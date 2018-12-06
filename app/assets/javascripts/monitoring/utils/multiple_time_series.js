@@ -139,7 +139,6 @@ function queryTimeSeries(query, graphDrawData, lineStyle) {
         metricTag,
       });
     }
-
   });
 
   return timeSeriesParsed;
