@@ -13,7 +13,7 @@ module Gitlab
         ::PrometheusMetric.common.group_by(&:group_title).map do |name, metrics|
           MetricGroup.new(name: name, priority: metrics&.first&.priority || 0, metrics: metrics.map(&:to_query_metric))
         end
-        .sort{ |a, b| a.priority - b.priority }
+        .sort_by(&:priority).reverse
       end
 
       # EE only

@@ -24,7 +24,7 @@ describe Gitlab::Prometheus::MetricGroup do
 
     it 'orders by priority' do
       priorities = subject.map(&:priority)
-      expect(priorities).to match_array([10, 5])
+      expect(priorities).to eq([10, 5])
     end
   end
 
