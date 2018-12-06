@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181129104944) do
+ActiveRecord::Schema.define(version: 20181205160503) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1718,6 +1718,7 @@ ActiveRecord::Schema.define(version: 20181129104944) do
     t.datetime_with_timezone "updated_at", null: false
     t.boolean "common", default: false, null: false
     t.string "identifier"
+    t.integer "priority"
     t.index ["common"], name: "index_prometheus_metrics_on_common", using: :btree
     t.index ["group"], name: "index_prometheus_metrics_on_group", using: :btree
     t.index ["identifier"], name: "index_prometheus_metrics_on_identifier", unique: true, using: :btree
