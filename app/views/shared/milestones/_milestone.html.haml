@@ -24,6 +24,9 @@
               - link_to milestone_path(milestone.milestone) do
                 %span.label-badge.label-badge-blue.d-inline-block.append-bottom-5
                   = dashboard ? milestone.project.full_name : milestone.project.name
+          - if milestone.project
+            .label-badge.label-badge-gray.d-inline-block
+              = milestone.project.full_name
 
     .col-sm-4.milestone-progress
       = milestone_progress_bar(milestone)
@@ -57,5 +60,5 @@
             - else
               = link_to 'Close Milestone', group_milestone_route(milestone, {state_event: :close }), method: :put, class: "btn btn-sm btn-grouped btn-close"
         - if dashboard
-          .status-box.status-box-milestone
+          .label-badge.label-badge-gray
             = milestone_type
