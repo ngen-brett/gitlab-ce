@@ -3,7 +3,7 @@
   - if current_user_menu?(:help)
     %li
       = link_to _("Help"), help_path
-  -if show_blog_link
+  - if show_blog_link
     %li
       = link_to _("What's new?"), blog_post_url
   - if current_user_menu?(:help) || current_user_menu?(:settings) || current_user_menu?(:profile)

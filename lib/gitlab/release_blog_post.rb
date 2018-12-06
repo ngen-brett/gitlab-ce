@@ -8,7 +8,7 @@ module Gitlab
     RELEASE_RSS_URL = 'https://about.gitlab.com/releases.xml'
 
     def blog_post_url
-      @url || @url = fetch_blog_post_url
+      @url ||= fetch_blog_post_url
     end
 
     private
