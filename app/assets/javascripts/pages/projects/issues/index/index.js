@@ -19,5 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   new ShortcutsNavigation();
   new UsersSelect();
 
-  initImportCSVModal();
+  if (gon.features.issuesImportCsv) {
+    initImportCSVModal();
+  }
 });

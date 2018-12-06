@@ -38,7 +38,7 @@ class Projects::IssuesController < Projects::ApplicationController
   before_action :authorize_create_merge_request_from!, only: [:create_merge_request]
 
   before_action :set_suggested_issues_feature_flags, only: [:new]
-  before_action :set_import_csv_feature_flag, only: [:show]
+  before_action :set_import_csv_feature_flag, only: [:index]
 
   respond_to :html
 
@@ -156,11 +156,11 @@ class Projects::IssuesController < Projects::ApplicationController
   def can_create_branch
     can_create = current_user &&
       can?(current_user, :push_code, @project) &&
-      issue.can_be_worked_on?
+      @issue.can_be_worked_on?
 
     respond_to do |format|
       format.json do
-        render json: { can_create_branch: can_create, suggested_branch_name: issue.suggested_branch_name }
+        render json: { can_create_branch: can_create, suggested_branch_name: @issue.suggested_branch_name }
       end
     end
   end
@@ -177,10 +177,19 @@ class Projects::IssuesController < Projects::ApplicationController
   end
 
   def import_csv
-    redirect_to(
-      project_issues_path(project),
-      notice: _("Your issues are being imported. Once finished, you'll get a confirmation email.")
-    )
+    return render_404 unless Feature.enabled?(:issues_import_csv) && can?(current_user, :import_issues, project)
+
+    service = UploadService.new(project, params[:file])
+
+    if service.execute
+      ImportIssuesCsvWorker.perform_async(current_user.id, project.id, service.uploader.upload.id)
+
+      flash[:notice] = _("Your issues are being imported. Once finished, you'll get a confirmation email.")
+    else
+      flash[:alert] = _("File upload error.")
+    end
+
+    redirect_to project_issues_path(project)
   end
 
   protected
