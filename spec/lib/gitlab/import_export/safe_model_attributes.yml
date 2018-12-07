@@ -571,6 +571,7 @@ PrometheusMetric:
 - group
 - common
 - identifier
+- priority
 Badge:
 - id
 - link_url

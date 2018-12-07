@@ -30,7 +30,7 @@ class AddPriorityToPrometheusMetrics < ActiveRecord::Migration[5.0]
   def change
     add_column :prometheus_metrics, :priority, :integer
 
-    PrometheusMetric.where(common: true).where(group: [-1,-2,-3,-4]).update_all(priority: 10)
+    PrometheusMetric.where(common: true).where(group: [-1, -2, -3, -4]).update_all(priority: 10)
     PrometheusMetric.where(common: true).where(group: [-5]).update_all(priority: 5)
   end
 end
