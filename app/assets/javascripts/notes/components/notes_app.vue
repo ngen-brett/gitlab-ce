@@ -207,7 +207,6 @@ export default {
           :key="discussion.id"
           :discussion="discussion"
           :render-diff-file="true"
-          :help-page-path="helpPagePath"
         />
       </template>
     </ul>

@@ -54,21 +54,6 @@ export default {
       required: false,
       default: false,
     },
-    line: {
-      type: Object,
-      required: false,
-      default: null,
-    },
-    note: {
-      type: Object,
-      required: false,
-      default: null,
-    },
-    helpPagePath: {
-      type: String,
-      required: false,
-      default: '',
-    },
   },
   data() {
     return {

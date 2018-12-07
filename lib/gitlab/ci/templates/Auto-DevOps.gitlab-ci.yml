@@ -164,8 +164,7 @@ sast:
     - setup_docker
     - sast
   artifacts:
-    reports:
-      sast: gl-sast-report.json
+    paths: [gl-sast-report.json]
   only:
     refs:
       - branches

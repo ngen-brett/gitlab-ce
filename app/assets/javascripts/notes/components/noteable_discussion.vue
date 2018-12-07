@@ -363,8 +363,6 @@ Please check your network connection and try again.`;
                   <component
                     :is="componentName(initialDiscussion)"
                     :note="componentData(initialDiscussion)"
-                    :line="line"
-                    :help-page-path="helpPagePath"
                     @handleDeleteNote="deleteNoteHandler"
                   >
                     <slot slot="avatar-badge" name="avatar-badge"></slot>
@@ -393,8 +391,6 @@ Please check your network connection and try again.`;
                     v-for="(note, index) in discussion.notes"
                     :key="note.id"
                     :note="componentData(note)"
-                    :help-page-path="helpPagePath"
-                    :line="diffLine"
                     @handleDeleteNote="deleteNoteHandler"
                   >
                     <slot v-if="index === 0" slot="avatar-badge" name="avatar-badge"></slot>
@@ -402,7 +398,7 @@ Please check your network connection and try again.`;
                 </template>
               </ul>
               <div
-                v-if="!isRepliesCollapsed || !hasReplies"
+                v-if="!isRepliesCollapsed"
                 :class="{ 'is-replying': isReplying }"
                 class="discussion-reply-holder"
               >
@@ -459,7 +455,6 @@ Please check your network connection and try again.`;
                   ref="noteForm"
                   :discussion="discussion"
                   :is-editing="false"
-                  :line="diffLine"
                   save-button-title="Comment"
                   @handleFormUpdate="saveReply"
                   @cancelForm="cancelReplyForm"

@@ -1,4 +1,4 @@
-# Interactive Web Terminals **[CORE ONLY]**
+# Getting started with interactive web terminals **[CORE ONLY]**
 
 > [Introduced](https://gitlab.com/gitlab-org/gitlab-ce/issues/50144) in GitLab 11.3.
 

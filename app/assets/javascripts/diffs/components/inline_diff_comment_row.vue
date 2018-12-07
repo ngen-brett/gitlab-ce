@@ -16,11 +16,6 @@ export default {
       type: String,
       required: true,
     },
-    helpPagePath: {
-      type: String,
-      required: false,
-      default: '',
-    },
   },
   computed: {
     className() {

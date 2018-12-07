@@ -137,9 +137,16 @@ export default {
         const file = { ...diffFile };
 
         if (file.highlighted_diff_lines) {
-          file.highlighted_diff_lines = file.highlighted_diff_lines.map(line =>
-            mapDiscussions(line),
-          );
+          file.highlighted_diff_lines = file.highlighted_diff_lines.map(line => {
+            if (!line.discussions.some(({ id }) => discussion.id === id) && lineCheck(line)) {
+              return {
+                ...line,
+                discussions: line.discussions.concat(discussion),
+              };
+            }
+
+            return line;
+          });
         }
 
         if (file.parallel_diff_lines) {
@@ -149,8 +156,20 @@ export default {
 
             if (left || right) {
               return {
-                left: line.left ? mapDiscussions(line.left) : null,
-                right: line.right ? mapDiscussions(line.right, () => !left) : null,
+                left: {
+                  ...line.left,
+                  discussions:
+                    left && !line.left.discussions.some(({ id }) => id === discussion.id)
+                      ? line.left.discussions.concat(discussion)
+                      : (line.left && line.left.discussions) || [],
+                },
+                right: {
+                  ...line.right,
+                  discussions:
+                    right && !left && !line.right.discussions.some(({ id }) => id === discussion.id)
+                      ? line.right.discussions.concat(discussion)
+                      : (line.right && line.right.discussions) || [],
+                },
               };
             }
 

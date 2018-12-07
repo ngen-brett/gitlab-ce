@@ -259,8 +259,7 @@ describe Gitlab::Ci::Config::Entry::Job do
                    stage: 'test',
                    ignore: false,
                    after_script: %w[cleanup],
-                   only: { refs: %w[branches tags] },
-                   except: {})
+                   only: { refs: %w[branches tags] })
         end
       end
     end

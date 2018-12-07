@@ -52,7 +52,6 @@ export default {
           :key="`icr-${index}`"
           :diff-file-hash="diffFile.file_hash"
           :line="line"
-          :help-page-path="helpPagePath"
         />
       </template>
     </tbody>
