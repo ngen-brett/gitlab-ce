@@ -24,6 +24,10 @@ constraints(::Constraints::ProjectUrlConstrainer.new) do
           module: :projects,
           as: :project) do
 
+      namespace :settings do
+        resource :operations, only: [:show]
+      end
+
       resources :autocomplete_sources, only: [] do
         collection do
           get 'members'
