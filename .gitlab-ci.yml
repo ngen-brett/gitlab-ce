@@ -634,8 +634,7 @@ gitlab:setup-mysql:
   <<: *use-mysql
 
 # Frontend-related jobs
-gitlab:assets:compile:
-  <<: *dedicated-no-docs-and-no-qa-pull-cache-job
+.gitlab-assets-compile-base: &gitlab-assets-compile-base
   image: dev.gitlab.org:5005/gitlab/gitlab-build-images:ruby-2.5.3-git-2.18-chrome-69.0-node-8.x-yarn-1.12-graphicsmagick-1.3.29-docker-18.06.1
   dependencies: []
   services:
@@ -671,6 +670,20 @@ gitlab:assets:compile:
   tags:
     - gitlab-org-delivery
     - high-cpu
+
+gitlab:assets:compile:
+  <<: *dedicated-no-docs-and-no-qa-pull-cache-job
+  <<: *gitlab-assets-compile-base
+
+# A manual job to be used to compile assets when they're changed for QA tests
+# (e.g., when new selectors are added to .vue files) before running package-and-qa
+qa:gitlab:assets:compile:
+  <<: *dedicated-no-docs-pull-cache-job
+  <<: *gitlab-assets-compile-base
+  when: manual
+  only:
+    - /(^qa[\/-]assets[\/-].*|.*-assets-qa$)/@gitlab-org/gitlab-ce
+    - /(^qa[\/-]assets[\/-].*|.*-assets-qa$)/@gitlab-org/gitlab-ee
 
 karma:
   <<: *dedicated-no-docs-pull-cache-job

@@ -28,6 +28,10 @@ Whenever `qa:selectors` job fails in your merge request, you are supposed to
 fix [page objects](qa/page/README.md). You should also trigger end-to-end tests
 using `package-and-qa` manual action, to test if everything works fine.
 
+If you have changed any assets, e.g., CSS selectors in `.vue` files, make sure
+your branch name starts with `qa-assets` or ends with `assets-qa`, and run
+`qa:gitlab:assets:compile` and let it complete before running `package-and-qa`.
+
 ## How can I use it?
 
 You can use GitLab QA to exercise tests on any live instance! For example, the
@@ -86,7 +90,7 @@ The environment variable `QA_COOKIES` can be set to send additional cookies
 on every request. This is necessary on gitlab.com to direct traffic to the
 canary fleet. To do this set `QA_COOKIES="gitlab_canary=true"`.
 
-To set multiple cookies, separate them with the `;` character, for example: `QA_COOKIES="cookie1=value;cookie2=value2"` 
+To set multiple cookies, separate them with the `;` character, for example: `QA_COOKIES="cookie1=value;cookie2=value2"`
 
 
 ### Building a Docker image to test
