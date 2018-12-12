@@ -4964,6 +4964,9 @@ msgstr ""
 msgid "Profiles| You are going to change the username %{currentUsernameBold} to %{newUsernameBold}. Profile and projects will be redirected to the %{newUsername} namespace but this redirect will expire once the %{currentUsername} namespace is registered by another user or group. Please update your Git repository remotes as soon as possible."
 msgstr ""
 
+msgid "Profiles|@username"
+msgstr ""
+
 msgid "Profiles|Account scheduled for removal."
 msgstr ""
 
@@ -4986,6 +4989,9 @@ msgid "Profiles|Choose file..."
 msgstr ""
 
 msgid "Profiles|Choose to show contributions of private projects on your public profile without any project, repository or organization information."
+msgstr ""
+
+msgid "Profiles|City, country"
 msgstr ""
 
 msgid "Profiles|Clear status"
@@ -5105,10 +5111,10 @@ msgstr ""
 msgid "Profiles|Username successfully changed"
 msgstr ""
 
-msgid "Profiles|Website"
+msgid "Profiles|What's your status?"
 msgstr ""
 
-msgid "Profiles|What's your status?"
+msgid "Profiles|Who you represent or work for"
 msgstr ""
 
 msgid "Profiles|You can change your avatar here"
@@ -5129,6 +5135,9 @@ msgstr ""
 msgid "Profiles|You must transfer ownership or delete these groups before you can delete your account."
 msgstr ""
 
+msgid "Profiles|Your LinkedIn profile name from linkedin.com/in/profilename"
+msgstr ""
+
 msgid "Profiles|Your account is currently an owner in these groups:"
 msgstr ""
 
@@ -5145,6 +5154,12 @@ msgid "Profiles|Your status"
 msgstr ""
 
 msgid "Profiles|e.g. My MacBook key"
+msgstr ""
+
+msgid "Profiles|username"
+msgstr ""
+
+msgid "Profiles|website.com"
 msgstr ""
 
 msgid "Profiles|your account"
