@@ -14,6 +14,7 @@ class Notify < BaseMailer
   include Emails::Members
   include Emails::AutoDevops
 
+  helper MilestonesHelper
   helper MergeRequestsHelper
   helper DiffHelper
   helper BlobHelper
