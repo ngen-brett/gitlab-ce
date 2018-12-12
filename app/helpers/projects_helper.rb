@@ -310,6 +310,9 @@ module ProjectsHelper
       nav_tabs << :operations
     end
 
+    # TODO: feature check
+    nav_tabs << :error_tracking
+
     if project.external_issue_tracker
       nav_tabs << :external_issue_tracker
     end
