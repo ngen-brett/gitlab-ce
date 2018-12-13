@@ -6,21 +6,26 @@ import createFlash from '~/flash';
 import { __ } from '~/locale';
 import TemplateSelectorMediator from '../blob/file_template_mediator';
 import getModeByFileExtension from '~/lib/utils/ace_utils';
+import { addEditorMarkdownListeners } from '~/lib/utils/text_markdown';
 
 export default class EditBlob {
-  constructor(assetsPath, aceMode, currentAction, projectId) {
-    this.configureAceEditor(aceMode, assetsPath);
+  constructor(assetsPath, filePath, currentAction, projectId, isMarkdown) {
+    this.configureAceEditor(filePath, assetsPath, isMarkdown);
     this.initModePanesAndLinks();
     this.initSoftWrap();
     this.initFileSelectors(currentAction, projectId);
   }
 
-  configureAceEditor(filePath, assetsPath) {
+  configureAceEditor(filePath, assetsPath, isMarkdown) {
     ace.config.set('modePath', `${assetsPath}/ace`);
     ace.config.loadModule('ace/ext/searchbox');
     ace.config.loadModule('ace/ext/modelist');
 
     this.editor = ace.edit('editor');
+
+    if (isMarkdown) {
+      addEditorMarkdownListeners(this.editor);
+    }
 
     // This prevents warnings re: automatic scrolling being logged
     this.editor.$blockScrolling = Infinity;
