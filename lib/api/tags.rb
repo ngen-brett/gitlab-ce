@@ -42,13 +42,14 @@ module API
       end
 
       desc 'Create a new repository tag' do
+        detail 'This optional release_description parameter was deprecated in GitLab 11.7.'
         success Entities::Tag
       end
       params do
         requires :tag_name,            type: String, desc: 'The name of the tag'
         requires :ref,                 type: String, desc: 'The commit sha or branch name'
         optional :message,             type: String, desc: 'Specifying a message creates an annotated tag'
-        optional :release_description, type: String, desc: 'Specifying release notes stored in the GitLab database'
+        optional :release_description, type: String, desc: 'Specifying release notes stored in the GitLab database (deprecated in GitLab 11.7)'
       end
       post ':id/repository/tags' do
         authorize_push_project
@@ -88,7 +89,8 @@ module API
       end
 
       desc 'Add a release note to a tag' do
-        success Entities::Release
+        detail 'This feature was deprecated in GitLab 11.7.'
+        success Entities::TagRelease
       end
       params do
         requires :tag_name,    type: String, desc: 'The name of the tag'
@@ -101,14 +103,15 @@ module API
           .execute(params[:tag_name], params[:description])
 
         if result[:status] == :success
-          present result[:release], with: Entities::Release
+          present result[:release], with: Entities::TagRelease
         else
           render_api_error!(result[:message], result[:http_status])
         end
       end
 
       desc "Update a tag's release note" do
-        success Entities::Release
+        detail 'This feature was deprecated in GitLab 11.7.'
+        success Entities::TagRelease
       end
       params do
         requires :tag_name,    type: String, desc: 'The name of the tag'
@@ -121,7 +124,7 @@ module API
           .execute(params[:tag_name], params[:description])
 
         if result[:status] == :success
-          present result[:release], with: Entities::Release
+          present result[:release], with: Entities::TagRelease
         else
           render_api_error!(result[:message], result[:http_status])
         end

@@ -2,11 +2,22 @@
 
 class CreateReleaseService < BaseService
   # rubocop: disable CodeReuse/ActiveRecord
-  def execute(tag_name, release_description)
+  def execute(tag_name, release_description, name = nil, ref = nil)
     repository = project.repository
     existing_tag = repository.find_tag(tag_name)
 
-    # Only create a release if the tag exists
+    # we create a tag if ref was provided,
+    # we make sure not to pass release_description or it will loop
+    if existing_tag.blank? && ref.present?
+      result = Tags::CreateService.new(project, current_user)
+                 .execute(tag_name, ref, "")
+
+      if result[:status] == :success
+        project.repository.expire_tags_cache
+        existing_tag = result[:tag]
+      end
+    end
+
     if existing_tag
       release = project.releases.find_by(tag: tag_name)
 
@@ -15,7 +26,7 @@ class CreateReleaseService < BaseService
       else
         release = project.releases.create!(
           tag: tag_name,
-          name: tag_name,
+          name: name || tag_name,
           sha: existing_tag.dereferenced_target.sha,
           author: current_user,
           description: release_description
