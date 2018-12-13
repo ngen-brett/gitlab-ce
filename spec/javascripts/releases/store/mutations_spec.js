@@ -1,6 +1,7 @@
 import state from '~/releases/store/state';
 import mutations from '~/releases/store/mutations';
 import * as types from '~/releases/store/mutation_types';
+import { releases } from '../mock_data';
 
 describe('Releases Store Mutations', () => {
   let stateCopy;
@@ -26,22 +27,20 @@ describe('Releases Store Mutations', () => {
   });
 
   describe('RECEIVE_RELEASES_SUCCESS', () => {
-    it('sets is loading to false', () => {
-      mutations[types.RECEIVE_RELEASES_SUCCESS](stateCopy, { id: 1312321 });
+    beforeAll(() => {
+      mutations[types.RECEIVE_RELEASES_SUCCESS](stateCopy, releases);
+    })
 
+    it('sets is loading to false', () => {
       expect(stateCopy.isLoading).toEqual(false);
     });
 
     it('sets hasError to false', () => {
-      mutations[types.RECEIVE_RELEASES_SUCCESS](stateCopy, { id: 1312321 });
-
       expect(stateCopy.hasError).toEqual(false);
     });
 
     it('sets data', () => {
-      mutations[types.RECEIVE_RELEASES_SUCCESS](stateCopy, { id: 1312321 });
-
-      expect(stateCopy.data).toEqual({ id: 1312321 });
+      expect(stateCopy.data).toEqual(releases);
     });
   });
 
@@ -50,8 +49,7 @@ describe('Releases Store Mutations', () => {
       mutations[types.RECEIVE_RELEASES_ERROR](stateCopy);
 
       expect(stateCopy.isLoading).toEqual(false);
-      expect(stateCopy.data).toEqual({});
+      expect(stateCopy.data).toEqual([]);
     });
   });
 });
-  

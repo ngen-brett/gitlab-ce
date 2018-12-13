@@ -10,6 +10,7 @@ import {
 import state from '~/releases/store/state';
 import * as types from '~/releases/store/mutation_types';
 import testAction from 'spec/helpers/vuex_action_helper';
+import { releases } from '../mock_data';
 
 describe('Releases State actions', () => {
   let mockedState;
@@ -51,7 +52,7 @@ describe('Releases State actions', () => {
 
     describe('success', () => {
       it('dispatches requestReleases and receiveReleasesSuccess ', done => {
-        mock.onGet('endpoint.json').replyOnce(200, { id: 121212 });
+        mock.onGet('endpoint.json').replyOnce(200, releases);
 
         testAction(
           fetchReleases,
@@ -63,7 +64,7 @@ describe('Releases State actions', () => {
               type: 'requestReleases',
             },
             {
-              payload: { id: 121212 },
+              payload: releases,
               type: 'receiveReleasesSuccess',
             },
           ],
@@ -101,9 +102,9 @@ describe('Releases State actions', () => {
     it('should commit RECEIVE_RELEASES_SUCCESS mutation', done => {
       testAction(
         receiveReleasesSuccess,
-        { id: 121232132 },
+        releases,
         mockedState,
-        [{ type: types.RECEIVE_RELEASES_SUCCESS, payload: { id: 121232132 } }],
+        [{ type: types.RECEIVE_RELEASES_SUCCESS, payload: releases }],
         [],
         done,
       );
@@ -116,4 +117,3 @@ describe('Releases State actions', () => {
     });
   });
 });
-  

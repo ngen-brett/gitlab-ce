@@ -1,6 +1,6 @@
 <script>
 import { mapState, mapActions } from 'vuex';
-import { GlLoadingIcon } from '@gitlab-org/gitlab-ui';
+import { GlLoadingIcon } from '@gitlab/ui';
 
 export default {
   name: 'ReleasesApp',
@@ -16,7 +16,7 @@ export default {
   computed: {
     ...mapState([
       'isLoading',
-      'data',
+      'releases',
       'hasError',
     ]),
   },

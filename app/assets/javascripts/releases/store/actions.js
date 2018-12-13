@@ -13,7 +13,7 @@ export const setEndpoint = ({ commit }, endpoint) => commit(types.SET_ENDPOINT, 
 /**
 * Commits a mutation to update the state while the main endpoint is being requested.
 */
-export const requestReleases = ({ commit }) => commit(types.RELEASES);
+export const requestReleases = ({ commit }) => commit(types.REQUEST_RELEASES);
 
 /**
 * Fetches the main endpoint.

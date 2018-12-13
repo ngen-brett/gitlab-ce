@@ -5,6 +5,7 @@ import app from '~/releases/components/app.vue';
 import createStore from '~/releases/store';
 import { mountComponentWithStore } from 'spec/helpers/vue_mount_component_helper';
 import { resetStore } from '../store/helpers';
+import { releases } from '../mock_data';
 
 describe('Releases App ', () => {
   const Component = Vue.extend(app);
@@ -29,7 +30,7 @@ describe('Releases App ', () => {
 
   describe('while loading', () => {
     beforeEach(() => {
-      mock.onGet(props.endpoint).reply(200, {}, {});
+      mock.onGet(props.endpoint).reply(200, [], {});
       vm = mountComponentWithStore(Component, { props, store });
     });
 
@@ -46,14 +47,14 @@ describe('Releases App ', () => {
 
   describe('with successful request', () => {
     beforeEach(() => {
-      mock.onGet(props.endpoint).reply(200, {}, {});
+      mock.onGet(props.endpoint).reply(200, releases);
       vm = mountComponentWithStore(Component, { props, store });
     });
 
     it('renders success state', done => {
       setTimeout(() => {
         expect(vm.$el.querySelector('.js-loading')).toBeNull();
-        expect(vm.$el.querySelector('.js-error-state')).toBeNull();
+        expect(vm.$el.querySelector('.js-empty-state')).toBeNull();
         expect(vm.$el.querySelector('.js-success-state')).not.toBeNull();
 
         done();
@@ -61,16 +62,16 @@ describe('Releases App ', () => {
     });
   });
 
-  describe('with error request', () => {
+  describe('with empty request', () => {
     beforeEach(() => {
-      mock.onGet(props.endpoint).reply(500, {}, {});
+      mock.onGet(props.endpoint).reply(200, []);
       vm = mountComponentWithStore(Component, { props, store });
     });
 
     it('renders error state', done => {
       setTimeout(() => {
         expect(vm.$el.querySelector('.js-loading')).toBeNull();
-        expect(vm.$el.querySelector('.js-error-state')).not.toBeNull();
+        expect(vm.$el.querySelector('.js-empty-state')).not.toBeNull();
         expect(vm.$el.querySelector('.js-success-state')).toBeNull();
 
         done();
