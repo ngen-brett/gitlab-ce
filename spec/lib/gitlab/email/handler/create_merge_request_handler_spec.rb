@@ -15,16 +15,42 @@ describe Gitlab::Email::Handler::CreateMergeRequestHandler do
     TestEnv.clean_test_path
   end
 
-  let(:email_raw) { fixture_file('emails/valid_new_merge_request.eml') }
   let(:namespace) { create(:namespace, path: 'gitlabhq') }
 
   let!(:project)  { create(:project, :public, :repository, namespace: namespace, path: 'gitlabhq') }
+  let(:email_raw) { fixture_file('emails/valid_new_merge_request.eml').gsub('project_id', project.project_id.to_s) }
   let!(:user) do
     create(
       :user,
       email: 'jake@adventuretime.ooo',
       incoming_email_token: 'auth_token'
     )
+  end
+
+  context "when email key" do
+    let(:mail) { Mail::Message.new(email_raw) }
+
+    it "matches the new format" do
+      handler = described_class.new(mail, "h5bp-html5-boilerplate-#{project.project_id}-#{user.incoming_email_token}-merge-request")
+
+      expect(handler.instance_variable_get(:@project_id).to_i).to eq project.project_id
+      expect(handler.instance_variable_get(:@incoming_email_token)).to eq user.incoming_email_token
+      expect(handler.can_handle?).to be_truthy
+    end
+
+    it "matches the legacy format" do
+      handler = described_class.new(mail, "h5bp/html5-boilerplate+merge-request+#{user.incoming_email_token}")
+
+      expect(handler.instance_variable_get(:@project_path)).to eq 'h5bp/html5-boilerplate'
+      expect(handler.instance_variable_get(:@incoming_email_token)).to eq user.incoming_email_token
+      expect(handler.can_handle?).to be_truthy
+    end
+
+    it "doesn't match either format" do
+      handler = described_class.new(mail, "h5bp-html5-boilerplate+merge-request")
+
+      expect(handler.can_handle?).to be_falsey
+    end
   end
 
   context "as a non-developer" do
