@@ -55,27 +55,27 @@ A job is defined by a list of parameters that define the job behavior.
 
 | Keyword       | Required | Description |
 |---------------|----------|-------------|
-| script        | yes      | Defines a shell script which is executed by Runner |
-| extends       | no       | Defines a configuration entry that this job is going to inherit from |
-| image         | no       | Use docker image, covered in [Using Docker Images](../docker/using_docker_images.md#define-image-and-services-from-gitlab-ciyml) |
-| services      | no       | Use docker services, covered in [Using Docker Images](../docker/using_docker_images.md#define-image-and-services-from-gitlab-ciyml) |
-| stage         | no       | Defines a job stage (default: `test`) |
-| type          | no       | Alias for `stage` |
-| variables     | no       | Define job variables on a job level |
-| only          | no       | Defines a list of git refs for which job is created |
-| except        | no       | Defines a list of git refs for which job is not created |
-| tags          | no       | Defines a list of tags which are used to select Runner |
-| allow_failure | no       | Allow job to fail. Failed job doesn't contribute to commit status |
-| when          | no       | Define when to run job. Can be `on_success`, `on_failure`, `always` or `manual` |
-| dependencies  | no       | Define other jobs that a job depends on so that you can pass artifacts between them|
-| artifacts     | no       | Define list of [job artifacts](#artifacts) |
-| cache         | no       | Define list of files that should be cached between subsequent runs |
-| before_script | no       | Override a set of commands that are executed before job |
-| after_script  | no       | Override a set of commands that are executed after job |
-| environment   | no       | Defines a name of environment to which deployment is done by this job |
-| coverage      | no       | Define code coverage settings for a given job |
-| retry         | no       | Define when and how many times a job can be auto-retried in case of a failure |
-| parallel      | no       | Defines how many instances of a job should be run in parallel |
+| [script](#script)                                | yes      | Defines a shell script which is executed by Runner |
+| [extends](#extends)                              | no       | Defines a configuration entry that this job is going to inherit from |
+| [image](#image-and-services)                     | no       | Use docker image, covered in [Using Docker Images](../docker/using_docker_images.md#define-image-and-services-from-gitlab-ciyml) |
+| [services](#image-and-services)                  | no       | Use docker services, covered in [Using Docker Images](../docker/using_docker_images.md#define-image-and-services-from-gitlab-ciyml) |
+| [stage](#stage)                                  | no       | Defines a job stage (default: `test`) |
+| type                                             | no       | Alias for `stage` |
+| [variables](#variables)                          | no       | Define job variables on a job level |
+| [only](#only-and-except-simplified)              | no       | Defines a list of git refs for which job is created |
+| [except](#only-and-except-simplified)            | no       | Defines a list of git refs for which job is not created |
+| [tags](#tags)                                    | no       | Defines a list of tags which are used to select Runner |
+| [allow_failure](#allow_failure)                  | no       | Allow job to fail. Failed job doesn't contribute to commit status |
+| [when](#when)                                    | no       | Define when to run job. Can be `on_success`, `on_failure`, `always` or `manual` |
+| [dependencies](#dependencies)                    | no       | Define other jobs that a job depends on so that you can pass artifacts between them|
+| [artifacts](#artifacts)                          | no       | Define list of [job artifacts](#artifacts) |
+| [cache](#cache)                                  | no       | Define list of files that should be cached between subsequent runs |
+| [before_script](#before_script-and-after_script) | no       | Override a set of commands that are executed before job |
+| [after_script](#before_script-and-after_script)  | no       | Override a set of commands that are executed after job |
+| [environment](#environment)                      | no       | Defines a name of environment to which deployment is done by this job |
+| [coverage](#coverage)                            | no       | Define code coverage settings for a given job |
+| [retry](#retry)                                  | no       | Define when and how many times a job can be auto-retried in case of a failure |
+| [parallel](#parallel)                            | no       | Defines how many instances of a job should be run in parallel |
 
 ### `extends`
 
@@ -342,15 +342,16 @@ In addition, `only` and `except` allow the use of special keywords:
 
 | **Value** |  **Description**  |
 | --------- |  ---------------- |
-| `branches`  | When a branch is pushed.  |
-| `tags`      | When a tag is pushed.  |
-| `api`       | When pipeline has been triggered by a second pipelines API (not triggers API).  |
-| `external`  | When using CI services other than GitLab. |
-| `pipelines` | For multi-project triggers, created using the API with `CI_JOB_TOKEN`. |
-| `pushes`    | Pipeline is triggered by a `git push` by the user. |
-| `schedules` | For [scheduled pipelines][schedules]. |
-| `triggers`  | For pipelines created using a trigger token. |
-| `web`       | For pipelines created using **Run pipeline** button in GitLab UI (under your project's **Pipelines**). |
+| `branches`       | When a git reference of a pipeline is a branch.  |
+| `tags`           | When a git reference of a pipeline is a tag.  |
+| `api`            | When pipeline has been triggered by a second pipelines API (not triggers API).  |
+| `external`       | When using CI services other than GitLab. |
+| `pipelines`      | For multi-project triggers, created using the API with `CI_JOB_TOKEN`. |
+| `pushes`         | Pipeline is triggered by a `git push` by the user. |
+| `schedules`      | For [scheduled pipelines][schedules]. |
+| `triggers`       | For pipelines created using a trigger token. |
+| `web`            | For pipelines created using **Run pipeline** button in GitLab UI (under your project's **Pipelines**). |
+| `merge_requests` | When a merge request is created or updated (See [pipelines for merge requests](../merge_request_pipelines/index.md)). |
 
 In the example below, `job` will run only for refs that start with `issue-`,
 whereas all branches will be skipped:
@@ -391,6 +392,24 @@ job:
 The above example will run `job` for all branches on `gitlab-org/gitlab-ce`,
 except master.
 
+If a job does not have neither `only` nor `except` rule,
+`only: ['branches', 'tags']` is set by default.
+
+For example,
+
+```yaml
+job:
+  script: echo 'test'
+```
+
+is translated to
+
+```yaml
+job:
+  script: echo 'test'
+  only: ['branches', 'tags']
+```
+
 ## `only` and `except` (complex)
 
 > `refs` and `kubernetes` policies introduced in GitLab 10.0
@@ -400,7 +419,7 @@ except master.
 > `changes` policy [introduced](https://gitlab.com/gitlab-org/gitlab-ce/issues/19232) in 11.4
 
 CAUTION: **Warning:**
-This an _alpha_ feature, and it it subject to change at any time without
+This an _alpha_ feature, and it is subject to change at any time without
 prior notice!
 
 Since GitLab 10.0 it is possible to define a more elaborate only/except job
@@ -552,7 +571,7 @@ osx job:
 
 `allow_failure` is used when you want to allow a job to fail without impacting
 the rest of the CI suite. Failed jobs don't contribute to the commit status.
-The default value is `false`.
+The default value is `false`, except for [manual](#whenmanual) jobs.
 
 When enabled and the job fails, the pipeline will be successful/green for all
 intents and purposes, but a "CI build passed with warnings" message  will be
@@ -1297,12 +1316,16 @@ GitLab 11.2. Requires GitLab Runner 11.2 and above.
 
 The `reports` keyword is used for collecting test reports from jobs and
 exposing them in GitLab's UI (merge requests, pipeline views). Read how to use
-this with [JUnit reports](#artifacts-reports-junit).
+this with [JUnit reports](#artifactsreportsjunit).
 
 NOTE: **Note:**
 The test reports are collected regardless of the job results (success or failure).
 You can use [`artifacts:expire_in`](#artifacts-expire_in) to set up an expiration
 date for their artifacts.
+
+NOTE: **Note:** 
+If you also want the ability to browse the report output files, include the
+[`artifacts:paths`](#artifactspaths) keyword.
 
 #### `artifacts:reports:junit`
 
@@ -1312,8 +1335,9 @@ GitLab 11.2. Requires GitLab Runner 11.2 and above.
 The `junit` report collects [JUnit XML files](https://www.ibm.com/support/knowledgecenter/en/SSQ2R2_14.1.0/com.ibm.rsar.analysis.codereview.cobol.doc/topics/cac_useresults_junit.html)
 as artifacts. Although JUnit was originally developed in Java, there are many
 [third party ports](https://en.wikipedia.org/wiki/JUnit#Ports) for other
-languages like Javascript, Python, Ruby, etc.
+languages like JavaScript, Python, Ruby, etc.
 
+See [JUnit test reports](../junit_test_reports.md) for more details and examples.
 Below is an example of collecting a JUnit XML file from Ruby's RSpec test tool:
 
 ```yaml
@@ -1329,8 +1353,6 @@ rspec:
 
 The collected JUnit reports will be uploaded to GitLab as an artifact and will
 be automatically shown in merge requests.
-
-For more examples, see [JUnit test reports](../junit_test_reports.md).
 
 NOTE: **Note:**
 In case the JUnit tool you use exports to multiple XML files, you can specify
@@ -1532,7 +1554,7 @@ test:
 ```
 
 By default, a job will be retried on all failure cases. To have a better control
-on which failures to retry, `retry` can be a hash with with the following keys:
+on which failures to retry, `retry` can be a hash with the following keys:
 
 - `max`: The maximum number of retries.
 - `when`: The failure cases to retry.
@@ -1587,7 +1609,7 @@ Possible values for `when` are:
 > [Introduced](https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/22631) in GitLab 11.5.
 
 `parallel` allows you to configure how many instances of a job to run in
-parallel. This value has to be greater than or equal to two (2) and less or equal than 50.
+parallel. This value has to be greater than or equal to two (2) and less than or equal to 50.
 
 This creates N instances of the same job that run in parallel. They're named
 sequentially from `job_name 1/N` to `job_name N/N`.
@@ -1633,6 +1655,10 @@ rspec:
   script:
     - bundle exec rspec
 ```
+
+NOTE: **Note:**
+`include` requires the external YAML files to have the extensions `.yml` or `.yaml`. 
+The external file will not be included if the extension is missing.
 
 You can define it either as a single string, or, in case you want to include
 more than one files, an array of different values . The following examples
@@ -1813,13 +1839,6 @@ variables:
 These variables can be later used in all executed commands and scripts.
 The YAML-defined variables are also set to all created service containers,
 thus allowing to fine tune them.
-
-To turn off global defined variables in a specific job, define an empty hash:
-
-```yaml
-job_name:
-  variables: {}
-```
 
 Except for the user defined variables, there are also the ones [set up by the
 Runner itself](../variables/README.md#predefined-variables-environment-variables).

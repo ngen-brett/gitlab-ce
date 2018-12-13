@@ -4,6 +4,8 @@ describe User do
   include ProjectForksHelper
   include TermsHelper
 
+  it_behaves_like 'having unique enum values'
+
   describe 'modules' do
     subject { described_class }
 
@@ -1137,12 +1139,38 @@ describe User do
       expect(described_class.find_by_any_email(user.email.upcase, confirmed: true)).to eq user
     end
 
-    it 'finds by secondary email' do
-      email = create(:email, email: 'foo@example.com')
-      user  = email.user
+    context 'finds by secondary email' do
+      let(:user) { email.user }
 
-      expect(described_class.find_by_any_email(email.email)).to eq user
-      expect(described_class.find_by_any_email(email.email, confirmed: true)).to eq user
+      context 'primary email confirmed' do
+        context 'secondary email confirmed' do
+          let!(:email) { create(:email, :confirmed, email: 'foo@example.com') }
+
+          it 'finds user respecting the confirmed flag' do
+            expect(described_class.find_by_any_email(email.email)).to eq user
+            expect(described_class.find_by_any_email(email.email, confirmed: true)).to eq user
+          end
+        end
+
+        context 'secondary email not confirmed' do
+          let!(:email) { create(:email, email: 'foo@example.com') }
+
+          it 'finds user respecting the confirmed flag' do
+            expect(described_class.find_by_any_email(email.email)).to eq user
+            expect(described_class.find_by_any_email(email.email, confirmed: true)).to be_nil
+          end
+        end
+      end
+
+      context 'primary email not confirmed' do
+        let(:user) { create(:user, confirmed_at: nil) }
+        let!(:email) { create(:email, :confirmed, user: user, email: 'foo@example.com') }
+
+        it 'finds user respecting the confirmed flag' do
+          expect(described_class.find_by_any_email(email.email)).to eq user
+          expect(described_class.find_by_any_email(email.email, confirmed: true)).to be_nil
+        end
+      end
     end
 
     it 'returns nil when nothing found' do
@@ -2297,11 +2325,11 @@ describe User do
 
     context 'user is member of all groups' do
       before do
-        group.add_owner(user)
-        nested_group_1.add_owner(user)
-        nested_group_1_1.add_owner(user)
-        nested_group_2.add_owner(user)
-        nested_group_2_1.add_owner(user)
+        group.add_reporter(user)
+        nested_group_1.add_developer(user)
+        nested_group_1_1.add_maintainer(user)
+        nested_group_2.add_developer(user)
+        nested_group_2_1.add_maintainer(user)
       end
 
       it 'returns all groups' do
@@ -3203,7 +3231,7 @@ describe User do
   end
 
   context 'with uploads' do
-    it_behaves_like 'model with mounted uploader', false do
+    it_behaves_like 'model with uploads', false do
       let(:model_object) { create(:user, :with_avatar) }
       let(:upload_attribute) { :avatar }
       let(:uploader_class) { AttachmentUploader }

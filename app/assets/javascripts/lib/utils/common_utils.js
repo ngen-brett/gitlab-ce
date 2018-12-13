@@ -192,8 +192,12 @@ export const contentTop = () => {
   const mrTabsHeight = $('.merge-request-tabs').height() || 0;
   const headerHeight = $('.navbar-gitlab').height() || 0;
   const diffFilesChanged = $('.js-diff-files-changed').height() || 0;
+  const diffFileLargeEnoughScreen =
+    'matchMedia' in window ? window.matchMedia('min-width: 768') : true;
+  const diffFileTitleBar =
+    (diffFileLargeEnoughScreen && $('.diff-file .file-title-flex-parent:visible').height()) || 0;
 
-  return perfBar + mrTabsHeight + headerHeight + diffFilesChanged;
+  return perfBar + mrTabsHeight + headerHeight + diffFilesChanged + diffFileTitleBar;
 };
 
 export const scrollToElement = element => {
@@ -421,12 +425,28 @@ export const historyPushState = newUrl => {
 };
 
 /**
+ * Returns true for a String "true" and false otherwise.
+ * This is the opposite of Boolean(...).toString()
+ *
+ * @param  {String} value
+ * @returns {Boolean}
+ */
+export const parseBoolean = value => value === 'true';
+
+/**
  * Converts permission provided as strings to booleans.
  *
  * @param  {String} string
  * @returns {Boolean}
  */
-export const convertPermissionToBoolean = permission => permission === 'true';
+export const convertPermissionToBoolean = permission => {
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.warn('convertPermissionToBoolean is deprecated! Please use parseBoolean instead.');
+  }
+
+  return parseBoolean(permission);
+};
 
 /**
  * Back Off exponential algorithm
