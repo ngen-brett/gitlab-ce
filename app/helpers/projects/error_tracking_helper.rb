@@ -7,7 +7,7 @@ module Projects::ErrorTrackingHelper
         namespace_id: project.namespace,
         project_id: project
       ),
-      'enable-error-tracking-link' => 'https://todo.later' # project_settings_operations_path(project)
+      'enable-error-tracking-link' => project_settings_operations_path(project)
     }
   end
 end
