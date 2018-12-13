@@ -7,21 +7,18 @@
       %h4
         = _('Error Tracking')
       %p
-        = _('To link Sentry to Gitlab, enter your Sentry URL and bearer token')
+        = _('To link Sentry to GitLab, enter your Sentry URL and bearer token')
     .settings-content
-      / TODO: figure out how to use the form_for helper for this section
-      %form
+      = form_for @error_tracking_setting, as: :error_tracking_setting, url: project_settings_operations_path(@project) do |f|
+        = form_errors(@error_tracking_setting)
         .form-group
           %div.form-check
-            %input.form-check-input(id='checkboxSentry' type='checkbox')
-            %label(for='checkboxSentry')
-              = _('Active')
+            = f.check_box :enabled
+            = f.label :enabled, _('Active')
         .form-group
-          %label.label-bold
-            = _('Sentry API URL')
-          %input.form-control{:placeholder => _('http://<sentry-host>/<project>')}
+          = f.label :uri, _('Sentry API URL'), class: 'label-bold'
+          = f.url_field :uri, class: 'form-control', placeholder: _('http://<sentry-host>/api/0/projects/<organization>/<project>')
         .form-group
-          %label.label-bold
-            = _('Bearer token')
-          %input.form-control{:placeholder => _('Hint token')}
+          = f.label :token, _('Bearer token'), class: 'label-bold'
+          = f.text_field :token, class: 'form-control', placeholder: _('Hint token')
         %input.btn.btn-success{:type => 'submit', :value => _('Save changes')}

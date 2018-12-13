@@ -6,6 +6,7 @@ module Projects
       before_action :authorize_update_environment!, only: [:show]
 
       def show
+        @error_tracking_setting = ErrorTracking::ErrorTrackingSetting.for_project(project)
       end
     end
   end
