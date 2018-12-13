@@ -297,6 +297,11 @@ module API
       expose :build_artifacts_size, as: :job_artifacts_size
     end
 
+    class ProjectFetchStatistic < Grape::Entity
+      expose :count
+      expose :date
+    end
+
     class Member < Grape::Entity
       expose :user, merge: true, using: UserBasic
       expose :access_level
