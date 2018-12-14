@@ -1,20 +1,3 @@
-GIT
-  remote: git://github.com/opentracing-contrib/ruby-rack-tracer.git
-  revision: 04c55fe06d83be7ca213d3a34865dbcf1f6ad5f7
-  branch: master
-  specs:
-    rack-tracer (0.8.0)
-      opentracing (~> 0.4)
-
-GIT
-  remote: git://github.com/salemove/jaeger-client-ruby.git
-  revision: fce1b4747c558f75be8def25fda731eb27077c8d
-  branch: master
-  specs:
-    jaeger-client (0.7.0)
-      opentracing (~> 0.3)
-      thrift
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -406,6 +389,9 @@ GEM
       cause
       json
     ipaddress (0.8.3)
+    jaeger-client (0.7.0)
+      opentracing (~> 0.3)
+      thrift
     jira-ruby (1.4.1)
       activesupport
       multipart-post
@@ -641,6 +627,8 @@ GEM
       rack
     rack-test (0.6.3)
       rack (>= 1.0)
+    rack-tracer (0.8.0)
+      opentracing (~> 0.4)
     rails (5.0.7)
       actioncable (= 5.0.7)
       actionmailer (= 5.0.7)
@@ -1055,7 +1043,7 @@ DEPENDENCIES
   httparty (~> 0.13.3)
   icalendar
   influxdb (~> 0.2)
-  jaeger-client!
+  jaeger-client (~> 0.7.0)
   jira-ruby (~> 1.4)
   jquery-atwho-rails (~> 1.3.2)
   js_regex (~> 2.2.1)
@@ -1116,7 +1104,7 @@ DEPENDENCIES
   rack-cors (~> 1.0.0)
   rack-oauth2 (~> 1.2.1)
   rack-proxy (~> 0.6.0)
-  rack-tracer!
+  rack-tracer (~> 0.8.0)
   rails (= 5.0.7)
   rails-controller-testing
   rails-deprecated_sanitizer (~> 1.0.3)

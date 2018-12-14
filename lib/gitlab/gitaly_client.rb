@@ -45,8 +45,8 @@ module Gitlab
 
     def self.stub(name, storage)
       interceptors = []
-      if true
-        interceptors.append(TracingGRPCClientInterceptor.new)
+      if Gitlab::Tracing.configured?
+        interceptors.append(Gitlab::Tracing::GRPCInterceptor.instance)
       end
       MUTEX.synchronize do
         @stubs ||= {}
