@@ -2,18 +2,18 @@ import * as types from './mutation_types';
 
 export default {
   /**
-  * Sets the main endpoint
-  * @param {Object} state
-  * @param {String} endpoint
-  */
-  [types.SET_ENDPOINT](state, endpoint){
+   * Sets the main endpoint
+   * @param {Object} state
+   * @param {String} endpoint
+   */
+  [types.SET_ENDPOINT](state, endpoint) {
     state.endpoint = endpoint;
   },
 
   /**
    * Sets isLoading to true while the request is being made.
    * @param {Object} state
-  */
+   */
   [types.REQUEST_RELEASES](state) {
     state.isLoading = true;
   },
@@ -24,7 +24,7 @@ export default {
    * Sets the received data
    * @param {Object} state
    * @param {Object} data
-  */
+   */
   [types.RECEIVE_RELEASES_SUCCESS](state, data) {
     state.hasError = false;
     state.isLoading = false;
@@ -37,7 +37,7 @@ export default {
    * Resets the data
    * @param {Object} state
    * @param {Object} data
-  */
+   */
   [types.RECEIVE_RELEASES_ERROR](state) {
     state.isLoading = false;
     state.releases = [];

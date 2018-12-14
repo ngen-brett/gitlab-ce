@@ -11,25 +11,18 @@ export default {
     endpoint: {
       type: String,
       required: true,
-    }
+    },
   },
   computed: {
-    ...mapState([
-      'isLoading',
-      'releases',
-      'hasError',
-    ]),
+    ...mapState(['isLoading', 'releases', 'hasError']),
   },
   created() {
     this.setEndpoint(this.endpoint);
     this.fetchReleases();
   },
   methods: {
-    ...mapActions([
-      'setEndpoint',
-      'fetchReleases'
-    ]),
-  }
+    ...mapActions(['setEndpoint', 'fetchReleases']),
+  },
 };
 </script>
 <template>
@@ -39,16 +32,10 @@ export default {
       :size="2"
       class="js-loading qa-loading-animation prepend-top-20"
     />
-    <div
-      v-else-if="!releases.length"
-      class="js-empty-state"
-    >
+    <div v-else-if="!releases.length" class="js-empty-state">
       {{ __('No releases published yet') }}
     </div>
-    <div
-      v-else
-      class="js-success-state"
-    >
+    <div v-else class="js-success-state">
       <release-block
         v-for="release in releases"
         :key="release.tag_name"

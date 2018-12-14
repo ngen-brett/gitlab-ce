@@ -29,7 +29,7 @@ describe('Releases Store Mutations', () => {
   describe('RECEIVE_RELEASES_SUCCESS', () => {
     beforeAll(() => {
       mutations[types.RECEIVE_RELEASES_SUCCESS](stateCopy, releases);
-    })
+    });
 
     it('sets is loading to false', () => {
       expect(stateCopy.isLoading).toEqual(false);

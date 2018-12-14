@@ -42,7 +42,7 @@ describe('Releases State actions', () => {
     let mock;
 
     beforeEach(() => {
-      mockedState.endpoint = 'endpoint.json;'
+      mockedState.endpoint = 'endpoint.json;';
       mock = new MockAdapter(axios);
     });
 
@@ -113,7 +113,14 @@ describe('Releases State actions', () => {
 
   describe('receiveReleasesError', () => {
     it('should commit RECEIVE_RELEASES_ERROR mutation', done => {
-      testAction(receiveReleasesError, null, mockedState, [{ type: types.RECEIVE_RELEASES_ERROR }], [], done);
+      testAction(
+        receiveReleasesError,
+        null,
+        mockedState,
+        [{ type: types.RECEIVE_RELEASES_ERROR }],
+        [],
+        done,
+      );
     });
   });
 });
