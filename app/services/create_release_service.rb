@@ -15,6 +15,8 @@ class CreateReleaseService < BaseService
       if result[:status] == :success
         project.repository.expire_tags_cache
         existing_tag = result[:tag]
+      else
+        return result
       end
     end
 
