@@ -5491,6 +5491,9 @@ msgstr ""
 msgid "Related merge requests"
 msgstr ""
 
+msgid "Releases"
+msgstr ""
+
 msgid "Remind later"
 msgstr ""
 
