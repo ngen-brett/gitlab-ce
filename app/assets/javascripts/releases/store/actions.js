@@ -27,7 +27,10 @@ export const fetchReleases = ({ state, dispatch }) => {
   axios
     .get(state.endpoint)
     .then(({ data }) => dispatch('receiveReleasesSuccess', data))
-    .catch(() => dispatch('receiveReleasesError'));
+    .catch((error) => {
+      console.log(error)
+      dispatch('receiveReleasesError')
+    });
 };
 
 export const receiveReleasesSuccess = ({ commit }, data) =>

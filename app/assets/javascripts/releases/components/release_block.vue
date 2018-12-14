@@ -36,7 +36,8 @@ export default {
     },
     author: {
       type: Object,
-      required: true,
+      required: false,
+      default: null,
     },
     createdAt: {
       type: String,
@@ -94,7 +95,7 @@ export default {
           <span v-gl-tooltip.bottom :title="tooltipTitle(createdAt)">{{ releasedTimeAgo }}</span>
         </div>
 
-        <div class="d-flex">
+        <div class="d-flex" v-if="author">
           by
           <user-avatar-link
             class="prepend-left-4"

@@ -42,7 +42,7 @@ describe('Releases State actions', () => {
     let mock;
 
     beforeEach(() => {
-      mockedState.endpoint = 'endpoint.json;';
+      mockedState.endpoint = 'endpoint.json';
       mock = new MockAdapter(axios);
     });
 
@@ -56,7 +56,7 @@ describe('Releases State actions', () => {
 
         testAction(
           fetchReleases,
-          null,
+          releases,
           mockedState,
           [],
           [

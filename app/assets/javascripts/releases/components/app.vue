@@ -1,11 +1,13 @@
 <script>
 import { mapState, mapActions } from 'vuex';
 import { GlLoadingIcon } from '@gitlab/ui';
+import ReleaseBlock from './release_block.vue';
 
 export default {
   name: 'ReleasesApp',
   components: {
     GlLoadingIcon,
+    ReleaseBlock,
   },
   props: {
     endpoint: {
@@ -43,7 +45,7 @@ export default {
         :tag="release.tag_name"
         :commit="release.commit"
         :description="release.description_html"
-        :author="release.author"
+        :author="release.commit.author"
         :created-at="release.created_at"
         :assets-count="release.assets.count"
         :sources="release.assets.sources"

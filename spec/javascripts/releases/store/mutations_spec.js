@@ -27,7 +27,7 @@ describe('Releases Store Mutations', () => {
   });
 
   describe('RECEIVE_RELEASES_SUCCESS', () => {
-    beforeAll(() => {
+    beforeEach(() => {
       mutations[types.RECEIVE_RELEASES_SUCCESS](stateCopy, releases);
     });
 
@@ -40,7 +40,7 @@ describe('Releases Store Mutations', () => {
     });
 
     it('sets data', () => {
-      expect(stateCopy.data).toEqual(releases);
+      expect(stateCopy.releases).toEqual(releases);
     });
   });
 
@@ -49,7 +49,7 @@ describe('Releases Store Mutations', () => {
       mutations[types.RECEIVE_RELEASES_ERROR](stateCopy);
 
       expect(stateCopy.isLoading).toEqual(false);
-      expect(stateCopy.data).toEqual([]);
+      expect(stateCopy.releases).toEqual([]);
     });
   });
 });
