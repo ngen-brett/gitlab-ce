@@ -323,7 +323,7 @@ group :metrics do
   gem 'raindrops', '~> 0.18'
 
   # OpenTracing
-  gem 'opentracing', '~> 0.4.1'
+  gem 'opentracing', '~> 0.4.3'
   # gem 'zipkin-tracer', '~0.28.0'
   # gem 'rails-tracer', :github => 'iaintshine/ruby-rails-tracer', :branch => 'master'
   gem 'rack-tracer', :github => 'opentracing-contrib/ruby-rack-tracer', :branch => 'master'
