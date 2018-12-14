@@ -219,7 +219,7 @@ class Project < ActiveRecord::Base
   has_many :deploy_keys, through: :deploy_keys_projects
   has_many :users_star_projects
   has_many :starrers, through: :users_star_projects, source: :user
-  has_many :releases
+  has_many :releases, -> { order 'created_at DESC' }
   has_many :lfs_objects_projects, dependent: :destroy # rubocop:disable Cop/ActiveRecordDependent
   has_many :lfs_objects, through: :lfs_objects_projects
   has_many :lfs_file_locks
