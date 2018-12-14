@@ -27,9 +27,9 @@ export const fetchReleases = ({ state, dispatch }) => {
   axios
     .get(state.endpoint)
     .then(({ data }) => dispatch('receiveReleasesSuccess', data))
-    .catch((error) => {
-      console.log(error)
-      dispatch('receiveReleasesError')
+    .catch(error => {
+      console.log(error);
+      dispatch('receiveReleasesError');
     });
 };
 
