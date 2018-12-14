@@ -525,6 +525,9 @@ msgstr ""
 msgid "An error has occurred"
 msgstr ""
 
+msgid "An error occured while fetching the releases. Please try again."
+msgstr ""
+
 msgid "An error occurred creating the new branch."
 msgstr ""
 
@@ -4435,6 +4438,9 @@ msgid "No prioritised labels with such name or description"
 msgstr ""
 
 msgid "No public groups"
+msgstr ""
+
+msgid "No releases published yet"
 msgstr ""
 
 msgid "No repository"
