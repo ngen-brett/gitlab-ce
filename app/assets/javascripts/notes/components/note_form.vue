@@ -133,6 +133,8 @@ export default {
     },
   },
   mounted() {
+    console.log('THIS IS THE PROBLEM AREA');
+    console.log('Why is it remounting when loading more lines???'); 
     this.$refs.textarea.focus();
   },
   methods: {
