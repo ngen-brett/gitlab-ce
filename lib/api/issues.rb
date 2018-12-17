@@ -233,6 +233,8 @@ module API
           params.delete(:updated_at)
         end
 
+        issue.system_note_timestamp = params[:updated_at] if params[:updated_at].present?
+
         update_params = declared_params(include_missing: false).merge(request: request, api: true)
 
         update_params = convert_parameters_from_legacy_format(update_params)

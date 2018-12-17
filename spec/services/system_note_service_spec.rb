@@ -8,7 +8,11 @@ describe SystemNoteService do
   set(:group)    { create(:group) }
   set(:project)  { create(:project, :repository, group: group) }
   set(:author)   { create(:user) }
-  let(:noteable) { create(:issue, project: project) }
+  let(:noteable) do
+    create(:issue, project: project).tap do |noteable|
+      noteable.system_note_timestamp = Time.at(42)
+    end
+  end
   let(:issue)    { noteable }
 
   shared_examples_for 'a system note' do
