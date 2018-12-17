@@ -50,7 +50,7 @@ export default {
       class="js-short-token"
       :class="{ 'append-bottom-0': !hasVariables }"
     >
-      <span class="font-weight-bold">{{ __('Token') }}</span>
+      <span class="font-weight-bold">{{ __('Token:') }}</span>
       {{ trigger.short_token }}
     </p>
 
