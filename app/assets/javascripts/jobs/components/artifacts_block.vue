@@ -28,17 +28,19 @@ export default {
 </script>
 <template>
   <div class="block">
-    <div class="title">{{ s__('Job|Job artifacts') }}</div>
+    <div class="title font-weight-bold">{{ s__('Job|Job artifacts') }}</div>
 
-    <p v-if="isExpired" class="js-artifacts-removed build-detail-row">
-      {{ s__('Job|The artifacts were removed') }}
-    </p>
+    <p
+      v-if="isExpired"
+      class="js-artifacts-removed build-detail-row"
+    >{{ s__('Job|The artifacts were removed') }}</p>
 
-    <p v-else-if="willExpire" class="js-artifacts-will-be-removed build-detail-row">
-      {{ s__('Job|The artifacts will be removed in') }}
-    </p>
+    <p
+      v-else-if="willExpire"
+      class="js-artifacts-will-be-removed build-detail-row"
+    >{{ s__('Job|The artifacts will be removed in') }}</p>
 
-    <timeago-tooltip v-if="artifact.expire_at" :time="artifact.expire_at" />
+    <timeago-tooltip v-if="artifact.expire_at" :time="artifact.expire_at"/>
 
     <div class="btn-group d-flex" role="group">
       <gl-link
@@ -46,9 +48,7 @@ export default {
         :href="artifact.keep_path"
         class="js-keep-artifacts btn btn-sm btn-default"
         data-method="post"
-      >
-        {{ s__('Job|Keep') }}
-      </gl-link>
+      >{{ s__('Job|Keep') }}</gl-link>
 
       <gl-link
         v-if="artifact.download_path"
@@ -56,17 +56,13 @@ export default {
         class="js-download-artifacts btn btn-sm btn-default"
         download
         rel="nofollow"
-      >
-        {{ s__('Job|Download') }}
-      </gl-link>
+      >{{ s__('Job|Download') }}</gl-link>
 
       <gl-link
         v-if="artifact.browse_path"
         :href="artifact.browse_path"
         class="js-browse-artifacts btn btn-sm btn-default"
-      >
-        {{ s__('Job|Browse') }}
-      </gl-link>
+      >{{ s__('Job|Browse') }}</gl-link>
     </div>
   </div>
 </template>

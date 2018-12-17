@@ -25,30 +25,32 @@ export default {
 };
 </script>
 <template>
-  <div
-    :class="{
+  <div :class="{
       'block-last': isLastBlock,
       block: !isLastBlock,
-    }"
-  >
+    }">
     <p>
-      {{ __('Commit') }}
+      <span class="font-weight-bold">{{ __('Commit') }}</span>
 
-      <gl-link :href="commit.commit_path" class="js-commit-sha commit-sha link-commit">{{
+      <gl-link :href="commit.commit_path" class="js-commit-sha commit-sha link-commit">
+        {{
         commit.short_id
-      }}</gl-link>
+        }}
+      </gl-link>
 
       <clipboard-button
         :text="commit.short_id"
         :title="__('Copy commit SHA to clipboard')"
         css-class="btn btn-clipboard btn-transparent"
       />
-
-      <gl-link v-if="mergeRequest" :href="mergeRequest.path" class="js-link-commit link-commit"
-        >!{{ mergeRequest.iid }}</gl-link
-      >
+      {{ __('in') }}
+      <gl-link
+        v-if="mergeRequest"
+        :href="mergeRequest.path"
+        class="js-link-commit link-commit"
+      >!{{ mergeRequest.iid }}</gl-link>
     </p>
 
-    <p class="build-light-text append-bottom-0">{{ commit.title }}</p>
+    <p class="append-bottom-0">{{ commit.title }}</p>
   </div>
 </template>

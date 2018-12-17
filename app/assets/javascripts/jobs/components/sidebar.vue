@@ -110,31 +110,28 @@ export default {
   <aside class="right-sidebar build-sidebar" data-offset-top="101" data-spy="affix">
     <div class="sidebar-container">
       <div class="blocks-container">
-        <div class="block">
-          <strong class="inline prepend-top-8"> {{ job.name }} </strong>
+        <div class="block d-flex align-items-center">
+          <h4 class="flex-grow-1 prepend-top-8 m-0">{{ job.name }}</h4>
           <gl-link
             v-if="job.retry_path"
             :class="retryButtonClass"
             :href="job.retry_path"
             data-method="post"
             rel="nofollow"
-          >
-            {{ __('Retry') }}
-          </gl-link>
+          >{{ __('Retry') }}</gl-link>
           <gl-link
             v-if="job.terminal_path"
             :href="job.terminal_path"
-            class="js-terminal-link pull-right btn btn-primary
-      btn-inverted visible-md-block visible-lg-block"
+            class="js-terminal-link pull-right btn btn-primary btn-inverted visible-md-block visible-lg-block"
             target="_blank"
           >
-            {{ __('Debug') }} <icon name="external-link" />
+            {{ __('Debug') }}
+            <icon name="external-link"/>
           </gl-link>
           <gl-button
             :aria-label="__('Toggle Sidebar')"
             type="button"
-            class="btn btn-blank gutter-toggle
-        float-right d-block d-md-none js-sidebar-build-toggle"
+            class="btn btn-blank gutter-toggle float-right d-block d-md-none js-sidebar-build-toggle"
             @click="toggleSidebar"
           >
             <i aria-hidden="true" data-hidden="true" class="fa fa-angle-double-right"></i>
@@ -145,25 +142,16 @@ export default {
             v-if="job.new_issue_path"
             :href="job.new_issue_path"
             class="js-new-issue btn btn-success btn-inverted"
-          >
-            {{ __('New issue') }}
-          </gl-link>
+          >{{ __('New issue') }}</gl-link>
           <gl-link
             v-if="job.retry_path"
             :href="job.retry_path"
             class="js-retry-job btn btn-inverted-secondary"
             data-method="post"
             rel="nofollow"
-          >
-            {{ __('Retry') }}
-          </gl-link>
+          >{{ __('Retry') }}</gl-link>
         </div>
         <div :class="{ block: renderBlock }">
-          <p v-if="job.merge_request" class="build-detail-row js-job-mr">
-            <span class="build-light-text"> {{ __('Merge Request:') }} </span>
-            <gl-link :href="job.merge_request.path"> !{{ job.merge_request.iid }} </gl-link>
-          </p>
-
           <detail-row
             v-if="job.duration"
             :value="duration"
@@ -182,7 +170,7 @@ export default {
             class="js-job-erased"
             title="Erased"
           />
-          <detail-row v-if="job.queued" :value="queued" class="js-job-queued" title="Queued" />
+          <detail-row v-if="job.queued" :value="queued" class="js-job-queued" title="Queued"/>
           <detail-row
             v-if="hasTimeout"
             :help-url="runnerHelpUrl"
@@ -190,7 +178,7 @@ export default {
             class="js-job-timeout"
             title="Timeout"
           />
-          <detail-row v-if="job.runner" :value="runnerId" class="js-job-runner" title="Runner" />
+          <detail-row v-if="job.runner" :value="runnerId" class="js-job-runner" title="Runner"/>
           <detail-row
             v-if="job.coverage"
             :value="coverage"
@@ -198,10 +186,8 @@ export default {
             title="Coverage"
           />
           <p v-if="job.tags.length" class="build-detail-row js-job-tags">
-            <span class="build-light-text"> {{ __('Tags:') }} </span>
-            <span v-for="(tag, i) in job.tags" :key="i" class="badge badge-primary">
-              {{ tag }}
-            </span>
+            <span class="font-weight-bold">{{ __('Tags:') }}</span>
+            <span v-for="(tag, i) in job.tags" :key="i" class="badge badge-primary">{{ tag }}</span>
           </p>
 
           <div v-if="job.cancel_path" class="btn-group prepend-top-5" role="group">
@@ -210,14 +196,12 @@ export default {
               class="js-cancel-job btn btn-sm btn-default"
               data-method="post"
               rel="nofollow"
-            >
-              {{ __('Cancel') }}
-            </gl-link>
+            >{{ __('Cancel') }}</gl-link>
           </div>
         </div>
 
-        <artifacts-block v-if="hasArtifact" :artifact="job.artifact" />
-        <trigger-block v-if="hasTriggers" :trigger="job.trigger" />
+        <artifacts-block v-if="hasArtifact" :artifact="job.artifact"/>
+        <trigger-block v-if="hasTriggers" :trigger="job.trigger"/>
         <commit-block
           :is-last-block="hasStages"
           :commit="commit"
@@ -233,7 +217,7 @@ export default {
         />
       </div>
 
-      <jobs-container v-if="jobs.length" :jobs="jobs" :job-id="job.id" />
+      <jobs-container v-if="jobs.length" :jobs="jobs" :job-id="job.id"/>
     </div>
   </aside>
 </template>

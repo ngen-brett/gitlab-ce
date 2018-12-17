@@ -43,33 +43,36 @@ export default {
 
 <template>
   <div class="build-widget block">
-    <h4 class="title">{{ __('Trigger') }}</h4>
+    <h4 class="mt-0">{{ __('Trigger') }}</h4>
 
     <p
       v-if="trigger.short_token"
       class="js-short-token"
       :class="{ 'append-bottom-0': !hasVariables }"
     >
-      <span class="build-light-text"> {{ __('Token') }} </span> {{ trigger.short_token }}
+      <span class="font-weight-bold">{{ __('Token') }}</span>
+      {{ trigger.short_token }}
     </p>
 
     <template v-if="hasVariables">
       <p class="trigger-variables-btn-container">
-        <span class="build-light-text"> {{ __('Variables:') }} </span>
+        <span class="font-weight-bold">{{ __('Variables:') }}</span>
 
-        <gl-button v-if="hasValues" class="group js-reveal-variables" @click="toggleValues">
-          {{ getToggleButtonText }}
-        </gl-button>
+        <gl-button
+          v-if="hasValues"
+          class="group js-reveal-variables"
+          @click="toggleValues"
+        >{{ getToggleButtonText }}</gl-button>
       </p>
 
       <table class="js-build-variables trigger-build-variables">
         <tr v-for="(variable, index) in trigger.variables" :key="`${variable.key}-${index}`">
-          <td class="js-build-variable trigger-build-variable trigger-variables-table-cell">
-            {{ variable.key }}
-          </td>
-          <td class="js-build-value trigger-build-value trigger-variables-table-cell">
-            {{ getDisplayValue(variable.value) }}
-          </td>
+          <td
+            class="js-build-variable trigger-build-variable trigger-variables-table-cell"
+          >{{ variable.key }}</td>
+          <td
+            class="js-build-value trigger-build-value trigger-variables-table-cell"
+          >{{ getDisplayValue(variable.value) }}</td>
         </tr>
       </table>
     </template>
