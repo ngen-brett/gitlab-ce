@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
-describe Projects::ReleasesController do
+describe Projects::Tags::ReleasesController do
   let!(:project) { create(:project, :repository) }
   let!(:user)    { create(:user) }
   let!(:release) { create(:release, project: project) }
