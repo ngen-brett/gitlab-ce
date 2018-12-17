@@ -144,6 +144,10 @@ describe SystemNoteService do
       it 'sets the note text' do
         expect(subject.note).to eq "assigned to @#{assignee.username}"
       end
+
+      it 'sets the note :created_at' do
+        expect(subject.created_at).to eq Time.at(42)
+      end
     end
 
     context 'when assignee removed' do
@@ -151,6 +155,10 @@ describe SystemNoteService do
 
       it 'sets the note text' do
         expect(subject.note).to eq 'removed assignee'
+      end
+
+      it 'sets the note :created_at' do
+        expect(subject.created_at).to eq Time.at(42)
       end
     end
   end
@@ -165,6 +173,10 @@ describe SystemNoteService do
 
     it_behaves_like 'a system note' do
       let(:action) { 'assignee' }
+    end
+
+    it 'sets the note :created_at' do
+      expect(subject.created_at).to eq Time.at(42)
     end
 
     def build_note(old_assignees, new_assignees)
@@ -217,6 +229,10 @@ describe SystemNoteService do
 
           expect(subject.note).to eq "changed milestone to #{reference}"
         end
+
+        it 'sets the note :created_at' do
+          expect(subject.created_at).to eq Time.at(42)
+        end
       end
 
       context 'when milestone removed' do
@@ -224,6 +240,10 @@ describe SystemNoteService do
 
         it 'sets the note text' do
           expect(subject.note).to eq 'removed milestone'
+        end
+
+        it 'sets the note :created_at' do
+          expect(subject.created_at).to eq Time.at(42)
         end
       end
     end
@@ -241,6 +261,10 @@ describe SystemNoteService do
         it 'sets the note text to use the milestone name' do
           expect(subject.note).to eq "changed milestone to #{milestone.to_reference(format: :name)}"
         end
+
+        it 'sets the note :created_at' do
+          expect(subject.created_at).to eq Time.at(42)
+        end
       end
 
       context 'when milestone removed' do
@@ -248,6 +272,10 @@ describe SystemNoteService do
 
         it 'sets the note text' do
           expect(subject.note).to eq 'removed milestone'
+        end
+
+        it 'sets the note :created_at' do
+          expect(subject.created_at).to eq Time.at(42)
         end
       end
     end
@@ -286,6 +314,10 @@ describe SystemNoteService do
 
       it_behaves_like 'a system note' do
         let(:action) { 'opened' }
+      end
+
+      it 'sets the note :created_at' do
+        expect(subject.created_at).to eq Time.at(42)
       end
     end
 
@@ -333,7 +365,11 @@ describe SystemNoteService do
   end
 
   describe '.change_title' do
-    let(:noteable) { create(:issue, project: project, title: 'Lorem ipsum') }
+    let(:noteable) do
+      create(:issue, project: project, title: 'Lorem ipsum').tap do |issue|
+        issue.system_note_timestamp = Time.at(42)
+      end
+    end
 
     subject { described_class.change_title(noteable, project, author, 'Old title') }
 
@@ -345,6 +381,10 @@ describe SystemNoteService do
       it 'sets the note text' do
         expect(subject.note)
           .to eq "changed title from **{-Old title-}** to **{+Lorem ipsum+}**"
+      end
+
+      it 'sets the note :created_at' do
+        expect(subject.created_at).to eq Time.at(42)
       end
     end
   end
@@ -359,6 +399,10 @@ describe SystemNoteService do
 
       it 'sets the note text' do
         expect(subject.note).to eq('changed the description')
+      end
+
+      it 'sets the note :created_at' do
+        expect(subject.created_at).to eq Time.at(42)
       end
     end
   end
@@ -485,7 +529,11 @@ describe SystemNoteService do
       describe 'note_body' do
         context 'cross-project' do
           let(:project2) { create(:project, :repository) }
-          let(:mentioner) { create(:issue, project: project2) }
+          let(:mentioner) do
+            create(:issue, project: project2).tap do |issue|
+              issue.system_note_timestamp = Time.at(42)
+            end
+          end
 
           context 'from Commit' do
             let(:mentioner) { project2.repository.commit }
@@ -498,6 +546,10 @@ describe SystemNoteService do
           context 'from non-Commit' do
             it 'references the mentioning object' do
               expect(subject.note).to eq "mentioned in issue #{mentioner.to_reference(project)}"
+            end
+
+            it 'sets the note :created_at' do
+              expect(subject.created_at).to eq Time.at(42)
             end
           end
         end
@@ -514,6 +566,10 @@ describe SystemNoteService do
           context 'from non-Commit' do
             it 'references the mentioning object' do
               expect(subject.note).to eq "mentioned in issue #{mentioner.to_reference}"
+            end
+
+            it 'sets the note :created_at' do
+              expect(subject.created_at).to eq Time.at(42)
             end
           end
         end
@@ -547,7 +603,7 @@ describe SystemNoteService do
       end
     end
 
-    context 'when notable is an ExternalIssue' do
+    context 'when noteable is an ExternalIssue' do
       let(:noteable) { ExternalIssue.new('EXT-1234', project) }
       it 'is truthy' do
         mentioner = noteable.dup
