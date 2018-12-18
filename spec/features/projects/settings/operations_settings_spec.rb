@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe 'Projects > Settings > For a forked project', :js do
@@ -12,7 +14,6 @@ describe 'Projects > Settings > For a forked project', :js do
   end
 
   describe 'Sidebar > Operations' do
-
     context 'when sidebar feature flag enabled' do
       it 'renders the settings link in the sidebar' do
         visit project_path(project)
