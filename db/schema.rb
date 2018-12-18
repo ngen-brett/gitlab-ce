@@ -153,7 +153,6 @@ ActiveRecord::Schema.define(version: 20181212104941) do
     t.boolean "authorized_keys_enabled", default: true, null: false
     t.string "auto_devops_domain"
     t.boolean "pages_domain_verification_enabled", default: true, null: false
-    t.string "user_default_internal_regex"
     t.boolean "allow_local_requests_from_hooks_and_services", default: false, null: false
     t.boolean "enforce_terms", default: false
     t.boolean "mirror_available", default: true, null: false
@@ -161,8 +160,9 @@ ActiveRecord::Schema.define(version: 20181212104941) do
     t.boolean "instance_statistics_visibility_private", default: false, null: false
     t.boolean "web_ide_clientside_preview_enabled", default: false, null: false
     t.boolean "user_show_add_ssh_key_message", default: true, null: false
-    t.integer "usage_stats_set_by_user_id"
+    t.string "user_default_internal_regex"
     t.integer "receive_max_input_size"
+    t.integer "usage_stats_set_by_user_id"
     t.integer "diff_max_patch_bytes", default: 102400, null: false
     t.integer "archive_builds_in_seconds"
     t.string "commit_email_hostname"
@@ -479,7 +479,7 @@ ActiveRecord::Schema.define(version: 20181212104941) do
     t.integer "iid"
     t.integer "merge_request_id"
     t.index ["auto_canceled_by_id"], name: "index_ci_pipelines_on_auto_canceled_by_id", using: :btree
-    t.index ["merge_request_id"], name: "index_ci_pipelines_on_merge_request_id", where: "(merge_request_id IS NOT NULL)", using: :btree
+    t.index ["merge_request_id"], name: "index_ci_pipelines_on_merge_request_id", using: :btree
     t.index ["pipeline_schedule_id"], name: "index_ci_pipelines_on_pipeline_schedule_id", using: :btree
     t.index ["project_id", "iid"], name: "index_ci_pipelines_on_project_id_and_iid", unique: true, where: "(iid IS NOT NULL)", using: :btree
     t.index ["project_id", "ref", "status", "id"], name: "index_ci_pipelines_on_project_id_and_ref_and_status_and_id", using: :btree
@@ -738,10 +738,10 @@ ActiveRecord::Schema.define(version: 20181212104941) do
     t.integer "cluster_project_id"
     t.datetime_with_timezone "created_at", null: false
     t.datetime_with_timezone "updated_at", null: false
-    t.text "encrypted_service_account_token"
     t.string "encrypted_service_account_token_iv"
     t.string "namespace", null: false
     t.string "service_account_name"
+    t.text "encrypted_service_account_token"
     t.index ["cluster_id", "namespace"], name: "kubernetes_namespaces_cluster_and_namespace", unique: true, using: :btree
     t.index ["cluster_id"], name: "index_clusters_kubernetes_namespaces_on_cluster_id", using: :btree
     t.index ["cluster_project_id"], name: "index_clusters_kubernetes_namespaces_on_cluster_project_id", using: :btree
@@ -826,8 +826,8 @@ ActiveRecord::Schema.define(version: 20181212104941) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string "on_stop"
-    t.integer "status", limit: 2, null: false
     t.datetime_with_timezone "finished_at"
+    t.integer "status", limit: 2, null: false
     t.index ["created_at"], name: "index_deployments_on_created_at", using: :btree
     t.index ["deployable_type", "deployable_id"], name: "index_deployments_on_deployable_type_and_deployable_id", using: :btree
     t.index ["environment_id", "id"], name: "index_deployments_on_environment_id_and_id", using: :btree
@@ -959,8 +959,8 @@ ActiveRecord::Schema.define(version: 20181212104941) do
   end
 
   create_table "group_custom_attributes", force: :cascade do |t|
-    t.datetime_with_timezone "created_at", null: false
-    t.datetime_with_timezone "updated_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.integer "group_id", null: false
     t.string "key", null: false
     t.string "value", null: false
@@ -1551,8 +1551,8 @@ ActiveRecord::Schema.define(version: 20181212104941) do
   end
 
   create_table "project_custom_attributes", force: :cascade do |t|
-    t.datetime_with_timezone "created_at", null: false
-    t.datetime_with_timezone "updated_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.integer "project_id", null: false
     t.string "key", null: false
     t.string "value", null: false
@@ -1792,6 +1792,7 @@ ActiveRecord::Schema.define(version: 20181212104941) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["path"], name: "index_redirect_routes_on_path", unique: true, using: :btree
+    t.index ["path"], name: "index_redirect_routes_on_path_text_pattern_ops", using: :btree, opclasses: {"path"=>"varchar_pattern_ops"}
     t.index ["source_type", "source_id"], name: "index_redirect_routes_on_source_type_and_source_id", using: :btree
   end
 

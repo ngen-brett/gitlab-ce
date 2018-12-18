@@ -2,10 +2,7 @@
 .select2-container {
   width: 100% !important;
 
-  &.input-md {
-    display: block;
-  }
-
+  &.input-md,
   &.input-lg {
     display: block;
   }

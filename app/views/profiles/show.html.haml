@@ -78,7 +78,7 @@
       .row
         - if @user.read_only_attribute?(:name)
           = f.text_field :name, required: true, readonly: true, wrapper: { class: 'col-md-9' },
-          help: s_("Profiles|Your name was automatically set based on your %{provider_label} account, so people you know can recognize you.") % { provider_label: attribute_provider_label(:name) }
+          help: s_("Profiles|Your name was automatically set based on your %{provider_label} account, so people you know can recognize you") % { provider_label: attribute_provider_label(:name) }
         - else
           = f.text_field :name, label: 'Full name', required: true, wrapper: { class: 'col-md-9' }, help: s_("Profiles|Enter your name, so people you know can recognize you")
         = f.text_field :id, readonly: true, label: 'User ID', wrapper: { class: 'col-md-3' }
