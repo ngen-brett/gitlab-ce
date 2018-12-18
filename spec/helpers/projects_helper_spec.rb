@@ -519,4 +519,70 @@ describe ProjectsHelper do
       expect(helper.legacy_render_context({})).to be_empty
     end
   end
+
+  describe '#show_merge_request_count' do
+    context 'when the feature flag is enabled' do
+      before do
+        stub_feature_flags(project_list_show_mr_count: true)
+      end
+
+      it 'returns true if compact mode is disabled' do
+        compact_mode = false
+
+        expect(helper.show_merge_request_count?(true, compact_mode)).to be_truthy
+      end
+
+      it 'returns false if in compact mode is enabled' do
+        compact_mode = true
+
+        expect(helper.show_merge_request_count?(true, compact_mode)).to be_falsey
+      end
+    end
+
+    context 'when the feature flag is disabled' do
+      before do
+        stub_feature_flags(project_list_show_mr_count: false)
+      end
+
+      it 'always returns false' do
+        compact_mode = false
+
+        expect(helper.show_merge_request_count?(false, compact_mode)).to be_falsy
+        expect(helper.show_merge_request_count?(true, compact_mode)).to be_falsy
+      end
+    end
+  end
+
+  describe '#show_issue_count?' do
+    context 'when the feature flag is enabled' do
+      before do
+        stub_feature_flags(project_list_show_issue_count: true)
+      end
+
+      it 'returns true if compact mode is disabled' do
+        compact_mode = false
+
+        expect(helper.show_issue_count?(true, compact_mode)).to be_truthy
+      end
+
+      it 'returns false if compact mode is enabled' do
+        compact_mode = true
+
+        expect(helper.show_issue_count?(true, compact_mode)).to be_falsey
+      end
+    end
+
+    context 'when the feature flag is disabled' do
+      before do
+        stub_feature_flags(project_list_show_issue_count: false)
+      end
+
+      it 'always returns false' do
+        compact_mode = false
+
+        expect(helper.show_issue_count?(false, compact_mode)).to be_falsy
+        expect(helper.show_issue_count?(true, compact_mode)).to be_falsy
+      end
+    end
+  end
 end
