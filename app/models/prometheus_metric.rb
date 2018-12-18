@@ -53,17 +53,17 @@ class PrometheusMetric < ActiveRecord::Base
   def priority
     case group.to_sym
     when :nginx_ingress, :ha_proxy, :aws_elb, :nginx
-    10
+      10
     when :kubernetes
-    5
+      5
     when :business
-    0
+      0
     when :response
-    -5
+      -5
     when :system
-    -10
+      -10
     else
-    -15
+      -15
     end
   end
 
