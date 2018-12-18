@@ -5,9 +5,9 @@ require 'rails_helper'
 describe Gitlab::Prometheus::MetricGroup do
   describe '.common_metrics' do
     let!(:project_metric) { create(:prometheus_metric) }
-    let!(:common_metric_group_a) { create(:prometheus_metric, :common, group: :aws_elb, priority: 5) }
-    let!(:common_metric_group_b_q1) { create(:prometheus_metric, :common, group: :kubernetes, priority: 10) }
-    let!(:common_metric_group_b_q2) { create(:prometheus_metric, :common, group: :kubernetes, priority: 10) }
+    let!(:common_metric_group_a) { create(:prometheus_metric, :common, group: :aws_elb) }
+    let!(:common_metric_group_b_q1) { create(:prometheus_metric, :common, group: :kubernetes) }
+    let!(:common_metric_group_b_q2) { create(:prometheus_metric, :common, group: :kubernetes) }
 
     subject { described_class.common_metrics }
 
@@ -24,7 +24,9 @@ describe Gitlab::Prometheus::MetricGroup do
 
     it 'orders by priority' do
       priorities = subject.map(&:priority)
+      names = subject.map(&:name)
       expect(priorities).to eq([10, 5])
+      expect(names).to eq(['Response metrics (AWS ELB)', 'System metrics (Kubernetes)'])
     end
   end
 

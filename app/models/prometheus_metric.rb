@@ -50,6 +50,23 @@ class PrometheusMetric < ActiveRecord::Base
     kubernetes: %w(container_memory_usage_bytes container_cpu_usage_seconds_total)
   }.freeze
 
+  def priority
+    case group.to_sym
+    when :nginx_ingress, :ha_proxy, :aws_elb, :nginx
+    10
+    when :kubernetes
+    5
+    when :business
+    0
+    when :response
+    -5
+    when :system
+    -10
+    else
+    -15
+    end
+  end
+
   def group_title
     GROUP_TITLES[group.to_sym]
   end

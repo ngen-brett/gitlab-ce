@@ -64,6 +64,29 @@ describe PrometheusMetric do
     it_behaves_like 'group_title', :system, 'System metrics (Custom)'
   end
 
+  describe '#priority' do
+    using RSpec::Parameterized::TableSyntax
+
+    where(:group, :priority) do
+      :nginx_ingress | 10
+      :ha_proxy      | 10
+      :aws_elb       | 10
+      :nginx         | 10
+      :kubernetes    | 5
+      :business      | 0
+      :response      | -5
+      :system        | -10
+    end
+
+    with_them do
+      before do
+        subject.group = group
+      end
+
+      it { expect(subject.priority).to eq(priority) }
+    end
+  end
+
   describe '#to_query_metric' do
     it 'converts to queryable metric object' do
       expect(subject.to_query_metric).to be_instance_of(Gitlab::Prometheus::Metric)

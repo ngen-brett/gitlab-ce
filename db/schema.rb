@@ -1722,7 +1722,6 @@ ActiveRecord::Schema.define(version: 20181212104941) do
     t.datetime_with_timezone "updated_at", null: false
     t.boolean "common", default: false, null: false
     t.string "identifier"
-    t.integer "priority"
     t.index ["common"], name: "index_prometheus_metrics_on_common", using: :btree
     t.index ["group"], name: "index_prometheus_metrics_on_group", using: :btree
     t.index ["identifier"], name: "index_prometheus_metrics_on_identifier", unique: true, using: :btree

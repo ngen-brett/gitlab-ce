@@ -11,7 +11,11 @@ module Gitlab
 
       def self.common_metrics
         ::PrometheusMetric.common.group_by(&:group_title).map do |name, metrics|
-          MetricGroup.new(name: name, priority: metrics&.first&.priority || 0, metrics: metrics.map(&:to_query_metric))
+          MetricGroup.new(
+            name: name,
+            priority: metrics.map(&:priority).max,
+            metrics: metrics.map(&:to_query_metric)
+          )
         end
         .sort_by(&:priority).reverse
       end
