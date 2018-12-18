@@ -1507,5 +1507,12 @@ module API
       expose :from_content
       expose :to_content
     end
+
+    class Cluster < Grape::Entity
+      expose :id, :name
+      expose :user, using: Entities::UserBasic
+      expose :created_at
+      expose :provider_type, :platform_type, :environment_scope, :cluster_type
+    end
   end
 end
