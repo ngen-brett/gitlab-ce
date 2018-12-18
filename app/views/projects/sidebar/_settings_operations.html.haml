@@ -1,4 +1,4 @@
 - if Feature.enabled?(:error_tracking, @project, default_enabled: true)
   = nav_link(controller: [:operations]) do
-    = link_to project_settings_operations_path(@project), title: _('Operations') do
+    = link_to project_settings_operations_path(@project), title: _('Operations'), 'data-qa-id': 'settings-operations' do
       = _('Operations')
