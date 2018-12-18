@@ -49,6 +49,11 @@ export default {
       type: Object,
       required: true,
     },
+    line: {
+      type: Object,
+      required: false,
+      default: null,
+    },
     renderDiffFile: {
       type: Boolean,
       required: false,
@@ -63,6 +68,11 @@ export default {
       type: Boolean,
       required: false,
       default: false,
+    },
+    helpPagePath: {
+      type: String,
+      required: false,
+      default: '',
     },
   },
   data() {
@@ -160,9 +170,13 @@ export default {
       return expanded || this.alwaysExpanded || isResolvedNonDiffDiscussion;
     },
     actionText() {
-      const commitId = this.discussion.commit_id ? truncateSha(this.discussion.commit_id) : '';
       const linkStart = `<a href="${_.escape(this.discussion.discussion_path)}">`;
       const linkEnd = '</a>';
+
+      let { commit_id: commitId } = this.discussion;
+      if (commitId) {
+        commitId = `<span class="commit-sha">${truncateSha(commitId)}</span>`;
+      }
 
       let text = s__('MergeRequests|started a discussion');
 
@@ -189,6 +203,13 @@ export default {
         },
         false,
       );
+    },
+    diffLine() {
+      if (this.discussion.diff_discussion && this.discussion.truncated_diff_lines) {
+        return this.discussion.truncated_diff_lines.slice(-1)[0];
+      }
+
+      return this.line;
     },
   },
   watch: {
@@ -353,6 +374,8 @@ Please check your network connection and try again.`;
                   <component
                     :is="componentName(initialDiscussion)"
                     :note="componentData(initialDiscussion)"
+                    :line="line"
+                    :help-page-path="helpPagePath"
                     @handleDeleteNote="deleteNoteHandler"
                   >
                     <slot slot="avatar-badge" name="avatar-badge"></slot>
@@ -369,6 +392,8 @@ Please check your network connection and try again.`;
                       v-for="note in replies"
                       :key="note.id"
                       :note="componentData(note)"
+                      :help-page-path="helpPagePath"
+                      :line="line"
                       @handleDeleteNote="deleteNoteHandler"
                     />
                   </template>
@@ -379,6 +404,8 @@ Please check your network connection and try again.`;
                     v-for="(note, index) in discussion.notes"
                     :key="note.id"
                     :note="componentData(note)"
+                    :help-page-path="helpPagePath"
+                    :line="diffLine"
                     @handleDeleteNote="deleteNoteHandler"
                   >
                     <slot v-if="index === 0" slot="avatar-badge" name="avatar-badge"></slot>
@@ -386,7 +413,7 @@ Please check your network connection and try again.`;
                 </template>
               </ul>
               <div
-                v-if="!isRepliesCollapsed"
+                v-if="!isRepliesCollapsed || !hasReplies"
                 :class="{ 'is-replying': isReplying }"
                 class="discussion-reply-holder"
               >
@@ -394,7 +421,7 @@ Please check your network connection and try again.`;
                   <div class="discussion-with-resolve-btn">
                     <button
                       type="button"
-                      class="js-vue-discussion-reply btn btn-text-field mr-sm-2 qa-discussion-reply"
+                      class="js-vue-discussion-reply btn btn-text-field qa-discussion-reply"
                       title="Add a reply"
                       @click="showReplyForm"
                     >
@@ -403,7 +430,7 @@ Please check your network connection and try again.`;
                     <div v-if="discussion.resolvable">
                       <button
                         type="button"
-                        class="btn btn-default mr-sm-2"
+                        class="btn btn-default ml-sm-2"
                         @click="resolveHandler();"
                       >
                         <i v-if="isResolving" aria-hidden="true" class="fa fa-spinner fa-spin"></i>
@@ -443,6 +470,7 @@ Please check your network connection and try again.`;
                   ref="noteForm"
                   :discussion="discussion"
                   :is-editing="false"
+                  :line="diffLine"
                   save-button-title="Comment"
                   @handleFormUpdate="saveReply"
                   @cancelForm="cancelReplyForm"
