@@ -405,9 +405,6 @@ msgstr ""
 msgid "Admin Overview"
 msgstr ""
 
-msgid "Admin area"
-msgstr ""
-
 msgid "AdminArea| You are about to permanently delete the user %{username}. Issues, merge requests, and groups linked to them will be transferred to a system-wide \"Ghost-user\". To avoid data loss, consider using the %{strong_start}block user%{strong_end} feature instead. Once you %{strong_start}Delete user%{strong_end}, it cannot be undone or recovered."
 msgstr ""
 
@@ -660,6 +657,12 @@ msgstr ""
 msgid "Applications"
 msgstr ""
 
+msgid "Applied"
+msgstr ""
+
+msgid "Apply suggestion"
+msgstr ""
+
 msgid "Apr"
 msgstr ""
 
@@ -706,6 +709,9 @@ msgid "Artifacts"
 msgstr ""
 
 msgid "Ask your group maintainer to set up a group Runner."
+msgstr ""
+
+msgid "Assets"
 msgstr ""
 
 msgid "Assign custom color like #FF0000"
@@ -847,6 +853,9 @@ msgid "Available shared Runners:"
 msgstr ""
 
 msgid "Available specific runners"
+msgstr ""
+
+msgid "Avatar for %{assigneeName}"
 msgstr ""
 
 msgid "Avatar will be removed. Are you sure?"
@@ -1488,6 +1497,9 @@ msgstr ""
 msgid "ClusterIntegration|Choose which of your environments will use this cluster."
 msgstr ""
 
+msgid "ClusterIntegration|Clusters are utilized by selecting the nearest ancestor with a matching environment scope. For example, project clusters will override group clusters."
+msgstr ""
+
 msgid "ClusterIntegration|Copy API URL"
 msgstr ""
 
@@ -1528,6 +1540,15 @@ msgid "ClusterIntegration|Environment scope"
 msgstr ""
 
 msgid "ClusterIntegration|Every new Google Cloud Platform (GCP) account receives $300 in credit upon %{sign_up_link}. In partnership with Google, GitLab is able to offer an additional $200 for both new and existing GCP accounts to get started with GitLab's Google Kubernetes Engine Integration."
+msgstr ""
+
+msgid "ClusterIntegration|Failed to configure Google Kubernetes Engine Cluster: %{message}"
+msgstr ""
+
+msgid "ClusterIntegration|Failed to request to Google Cloud Platform: %{message}"
+msgstr ""
+
+msgid "ClusterIntegration|Failed to run Kubeclient: %{message}"
 msgstr ""
 
 msgid "ClusterIntegration|Fetching machine types"
@@ -2581,6 +2602,9 @@ msgstr ""
 msgid "Download"
 msgstr ""
 
+msgid "Download asset"
+msgstr ""
+
 msgid "Download tar"
 msgstr ""
 
@@ -2654,6 +2678,9 @@ msgid "Emails"
 msgstr ""
 
 msgid "Embed"
+msgstr ""
+
+msgid "Empty file"
 msgstr ""
 
 msgid "Enable"
@@ -2920,6 +2947,9 @@ msgstr ""
 msgid "Expiration date"
 msgstr ""
 
+msgid "Expired %{expiredOn}"
+msgstr ""
+
 msgid "Expires in %{expires_at}"
 msgstr ""
 
@@ -3089,6 +3119,9 @@ msgid "ForkedFromProjectPath|Forked from %{project_name} (deleted)"
 msgstr ""
 
 msgid "Forking in progress"
+msgstr ""
+
+msgid "Forks"
 msgstr ""
 
 msgid "Format"
@@ -3591,6 +3624,9 @@ msgstr ""
 msgid "Input your repository URL"
 msgstr ""
 
+msgid "Insert suggestion"
+msgstr ""
+
 msgid "Install GitLab Runner"
 msgstr ""
 
@@ -3914,6 +3950,9 @@ msgid "Loading the GitLab IDE..."
 msgstr ""
 
 msgid "Loading..."
+msgstr ""
+
+msgid "Loading…"
 msgstr ""
 
 msgid "Lock"
@@ -4360,6 +4399,9 @@ msgid "No branches found"
 msgstr ""
 
 msgid "No changes"
+msgstr ""
+
+msgid "No changes between %{ref_start}%{source_branch}%{ref_end} and %{ref_start}%{target_branch}%{ref_end}"
 msgstr ""
 
 msgid "No connection could be made to a Gitaly Server, please check your logs!"
@@ -5623,6 +5665,9 @@ msgstr ""
 msgid "Response metrics (HA Proxy)"
 msgstr ""
 
+msgid "Response metrics (NGINX Ingress VTS)"
+msgstr ""
+
 msgid "Response metrics (NGINX Ingress)"
 msgstr ""
 
@@ -6086,6 +6131,9 @@ msgstr ""
 msgid "Something went wrong when toggling the button"
 msgstr ""
 
+msgid "Something went wrong while applying the suggestion. Please try again."
+msgstr ""
+
 msgid "Something went wrong while closing the %{issuable}. Please try again later"
 msgstr ""
 
@@ -6275,6 +6323,9 @@ msgstr ""
 msgid "Starred projects"
 msgstr ""
 
+msgid "Stars"
+msgstr ""
+
 msgid "Start a %{new_merge_request} with these changes"
 msgstr ""
 
@@ -6291,6 +6342,12 @@ msgid "Start the Runner!"
 msgstr ""
 
 msgid "Started"
+msgstr ""
+
+msgid "Started %{startsIn}"
+msgstr ""
+
+msgid "Starts %{startsIn}"
 msgstr ""
 
 msgid "Starts at (UTC)"
@@ -6344,6 +6401,9 @@ msgstr ""
 msgid "Subscribed"
 msgstr ""
 
+msgid "Suggested change"
+msgstr ""
+
 msgid "Switch branch/tag"
 msgstr ""
 
@@ -6357,6 +6417,9 @@ msgid "System metrics (Custom)"
 msgstr ""
 
 msgid "System metrics (Kubernetes)"
+msgstr ""
+
+msgid "Tag"
 msgstr ""
 
 msgid "Tags"
