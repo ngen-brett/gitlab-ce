@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Gitlab::GroupHierarchy, :postgresql do
+describe Gitlab::ObjectHierarchy, :postgresql do
   let!(:parent) { create(:group) }
   let!(:child1) { create(:group, parent: parent) }
   let!(:child2) { create(:group, parent: child1) }
@@ -105,9 +105,27 @@ describe Gitlab::GroupHierarchy, :postgresql do
     end
   end
 
+<<<<<<< HEAD:spec/lib/gitlab/group_hierarchy_spec.rb
   describe '#all_groups' do
+=======
+  describe '#root' do
+    it 'includes only the roots' do
+      relation = described_class.new(Group.where(id: child2)).roots
+
+      expect(relation).to contain_exactly(parent)
+    end
+
+    it 'when quering parent it includes parent' do
+      relation = described_class.new(Group.where(id: parent)).roots
+
+      expect(relation).to contain_exactly(parent)
+    end
+  end
+
+  describe '#all_objects' do
+>>>>>>> 38bed336196... Rename GroupHierarchy into ObjectHierarchy:spec/lib/gitlab/object_hierarchy_spec.rb
     let(:relation) do
-      described_class.new(Group.where(id: child1.id)).all_groups
+      described_class.new(Group.where(id: child1.id)).all_objects
     end
 
     it 'includes the base rows' do
@@ -123,13 +141,13 @@ describe Gitlab::GroupHierarchy, :postgresql do
     end
 
     it 'uses ancestors_base #initialize argument for ancestors' do
-      relation = described_class.new(Group.where(id: child1.id), Group.where(id: Group.maximum(:id).succ)).all_groups
+      relation = described_class.new(Group.where(id: child1.id), Group.where(id: Group.maximum(:id).succ)).all_objects
 
       expect(relation).to include(parent)
     end
 
     it 'uses descendants_base #initialize argument for descendants' do
-      relation = described_class.new(Group.where(id: Group.maximum(:id).succ), Group.where(id: child1.id)).all_groups
+      relation = described_class.new(Group.where(id: Group.maximum(:id).succ), Group.where(id: child1.id)).all_objects
 
       expect(relation).to include(child2)
     end
