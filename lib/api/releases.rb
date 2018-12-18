@@ -4,10 +4,10 @@ module API
   class Releases < Grape::API
     include PaginationParams
 
-    TAG_ENDPOINT_REQUIREMENTS = API::NAMESPACE_OR_PROJECT_REQUIREMENTS.merge(tag_name: API::NO_SLASH_URL_PART_REGEX)
+    RELEASE_ENDPOINT_REQUIREMETS = API::NAMESPACE_OR_PROJECT_REQUIREMENTS.merge(tag_name: API::NO_SLASH_URL_PART_REGEX)
 
     before { error!('404 Not Found', 404) unless Feature.enabled?(:releases_page) }
-    before { authorize! :download_code, user_project }
+    before { authorize! :read_release, user_project }
 
     params do
       requires :id, type: String, desc: 'The ID of a project'
@@ -33,7 +33,7 @@ module API
       params do
         requires :tag_name, type: String, desc: 'The name of the tag'
       end
-      get ':id/releases/:tag_name', requirements: TAG_ENDPOINT_REQUIREMENTS do
+      get ':id/releases/:tag_name', requirements: RELEASE_ENDPOINT_REQUIREMETS do
         release = user_project.releases.find_by_tag(params[:tag_name])
         not_found!('Release') unless release
 
@@ -51,7 +51,7 @@ module API
         optional :ref,                 type: String, desc: 'The commit sha or branch name'
       end
       post ':id/releases' do
-        authorize_push_project
+        authorize!(:create_release, user_project)
 
         result = ::CreateReleaseService.new(user_project, current_user)
           .execute(params[:tag_name], params[:description], params[:name], params[:ref])
@@ -71,8 +71,8 @@ module API
         requires :tag_name,    type: String, desc: 'The name of the tag'
         requires :description, type: String, desc: 'Release notes with markdown support'
       end
-      put ':id/releases/:tag_name', requirements: TAG_ENDPOINT_REQUIREMENTS do
-        authorize_push_project
+      put ':id/releases/:tag_name', requirements: RELEASE_ENDPOINT_REQUIREMETS do
+        authorize!(:update_release, user_project)
 
         result = UpdateReleaseService.new(user_project, current_user)
           .execute(params[:tag_name], params[:description])
