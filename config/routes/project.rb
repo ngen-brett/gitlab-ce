@@ -24,10 +24,6 @@ constraints(::Constraints::ProjectUrlConstrainer.new) do
           module: :projects,
           as: :project) do
 
-      namespace :settings do
-        resource :operations, only: [:show]
-      end
-
       resources :autocomplete_sources, only: [] do
         collection do
           get 'members'
@@ -442,6 +438,10 @@ constraints(::Constraints::ProjectUrlConstrainer.new) do
         resource :repository, only: [:show], controller: :repository do
           post :create_deploy_token, path: 'deploy_token/create'
           post :cleanup
+        end
+        resource :operations, only: [:show]
+        namespace :operations do
+          resource :error_tracking, controller: :error_tracking, only: [:create]
         end
       end
 

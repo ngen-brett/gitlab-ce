@@ -9,7 +9,7 @@
       %p
         = _('To link Sentry to GitLab, enter your Sentry URL and bearer token')
     .settings-content
-      = form_for @error_tracking_setting, as: :error_tracking_setting, url: project_settings_operations_path(@project) do |f|
+      = form_for @error_tracking_setting, as: :error_tracking_setting, url: namespace_project_settings_operations_error_tracking_path(@project.namespace, @project), method: :post do |f|
         = form_errors(@error_tracking_setting)
         .form-group
           %div.form-check
