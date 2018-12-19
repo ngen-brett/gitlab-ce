@@ -23,6 +23,10 @@ class EnvironmentEntity < Grape::Entity
     stop_project_environment_path(environment.project, environment)
   end
 
+  expose :cluster_type, if: ->(environment, _) { environment.deployment_platform.present? } do |environment|
+    environment.deployment_platform.cluster.cluster_type
+  end
+
   expose :terminal_path, if: ->(*) { environment.has_terminals? && can_access_terminal? } do |environment|
     terminal_project_environment_path(environment.project, environment)
   end
