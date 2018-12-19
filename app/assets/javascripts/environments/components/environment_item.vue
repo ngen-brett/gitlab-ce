@@ -14,6 +14,7 @@ import MonitoringButtonComponent from './environment_monitoring.vue';
 import CommitComponent from '../../vue_shared/components/commit.vue';
 import eventHub from '../event_hub';
 import { convertObjectPropsToCamelCase } from '~/lib/utils/common_utils';
+import { CLUSTER_TYPE } from '~/clusters/constants';
 
 /**
  * Environment Item Component
@@ -90,7 +91,7 @@ export default {
      * @returns {Boolean}
      */
     disableGroupClusterFeatures() {
-      return this.model && this.model.cluster_type === 'group_type';
+      return this.model && this.model.cluster_type === CLUSTER_TYPE.GROUP;
     },
 
     /**
