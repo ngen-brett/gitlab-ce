@@ -85,6 +85,15 @@ export default {
     },
 
     /**
+     * Hide group cluster features which are not currently implemented.
+     * 
+     * @returns {Boolean}
+     */
+    disableGroupClusterFeatures() {
+      return this.model && this.model.cluster_type === 'group_type';
+    },
+
+    /**
      * Returns whether the environment can be stopped.
      *
      * @returns {Boolean}
@@ -547,6 +556,7 @@ export default {
         <terminal-button-component
           v-if="model && model.terminal_path"
           :terminal-path="model.terminal_path"
+          :disabled="disableGroupClusterFeatures"
         />
 
         <rollback-component
