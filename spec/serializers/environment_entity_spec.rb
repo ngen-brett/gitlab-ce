@@ -40,4 +40,21 @@ describe EnvironmentEntity do
       expect(subject).to include(:metrics_path)
     end
   end
+
+  context 'with deployment platform' do
+    let(:project) { create(:project, :repository) }
+    let(:environment) { create(:environment, project: project) }
+    let!(:cluster) do
+      create(:cluster,
+             :provided_by_gcp,
+             :project,
+             environment_scope: '*',
+             projects: [project])
+    end
+
+    it 'should include cluster_type' do
+      expect(subject).to include(:cluster_type)
+      expect(subject[:cluster_type]).to eq("project_type")
+    end
+  end
 end

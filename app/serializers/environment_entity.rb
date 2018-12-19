@@ -2,6 +2,7 @@
 
 class EnvironmentEntity < Grape::Entity
   include RequestAwareEntity
+  include Gitlab::Utils::StrongMemoize
 
   expose :id
   expose :name
@@ -23,8 +24,8 @@ class EnvironmentEntity < Grape::Entity
     stop_project_environment_path(environment.project, environment)
   end
 
-  expose :cluster_type, if: ->(environment, _) { environment.deployment_platform.present? } do |environment|
-    environment.deployment_platform.cluster.cluster_type
+  expose :cluster_type, if: ->(environment, _) { deployment_platform.present? } do |environment|
+    deployment_platform.cluster.cluster_type
   end
 
   expose :terminal_path, if: ->(*) { environment.has_terminals? && can_access_terminal? } do |environment|
@@ -51,5 +52,11 @@ class EnvironmentEntity < Grape::Entity
 
   def can_access_terminal?
     can?(request.current_user, :create_environment_terminal, environment)
+  end
+
+  def deployment_platform
+    strong_memoize(:deployment_platform) do
+      environment.deployment_platform
+    end
   end
 end
