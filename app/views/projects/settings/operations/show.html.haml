@@ -2,23 +2,25 @@
 - page_title _('Operations')
 
 - if Feature.enabled?(:error_tracking, @project)
-  %section.settings.expanded
-    .settings-header
-      %h4
-        = _('Error Tracking')
-      %p
-        = _('To link Sentry to GitLab, enter your Sentry URL and bearer token')
-    .settings-content
-      = form_for @error_tracking_setting, as: :error_tracking_setting, url: namespace_project_settings_operations_error_tracking_path(@project.namespace, @project), method: :post do |f|
-        = form_errors(@error_tracking_setting)
-        .form-group
-          %div.form-check
-            = f.check_box :enabled
-            = f.label :enabled, _('Active')
-        .form-group
-          = f.label :uri, _('Sentry API URL'), class: 'label-bold'
-          = f.url_field :uri, class: 'form-control', placeholder: _('http://<sentry-host>/api/0/projects/<organization>/<project>')
-        .form-group
-          = f.label :token, _('Bearer token'), class: 'label-bold'
-          = f.text_field :token, class: 'form-control', placeholder: _('Hint token')
-        %input.btn.btn-success{:type => 'submit', :value => _('Save changes')}
+  %section
+    %h4
+      = _('Error Tracking')
+    %p
+      = _('To link Sentry to GitLab, enter your Sentry URL and Auth Token.')
+    = form_for @error_tracking_setting, as: :error_tracking_setting, url: namespace_project_settings_operations_error_tracking_path(@project.namespace, @project), method: :post do |f|
+      = form_errors(@error_tracking_setting)
+      .form-group
+        %div.form-check
+          = f.check_box :enabled, class: 'form-check-input'
+          = f.label :enabled, _('Active'), class: 'form-check-label'
+      .form-group
+        = f.label :uri, _('Sentry API URL'), class: 'label-bold'
+        = f.url_field :uri, class: 'form-control', placeholder: _('http://<sentry-host>/api/0/projects/{organization_slug}/{project_slug}/issues/')
+        %p.form-text.text-muted
+          = _('Enter your Sentry API URL')
+      .form-group
+        = f.label :token, _('Auth Token'), class: 'label-bold'
+        = f.text_field :token, class: 'form-control'
+        %p.form-text.text-muted
+          = _('Find and manage Auth Tokens in your Sentry account settings page.')
+      %input.btn.btn-success{:type => 'submit', :value => _('Save changes')}
