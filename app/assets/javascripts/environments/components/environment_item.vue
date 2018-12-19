@@ -87,7 +87,7 @@ export default {
 
     /**
      * Hide group cluster features which are not currently implemented.
-     * 
+     *
      * @returns {Boolean}
      */
     disableGroupClusterFeatures() {
