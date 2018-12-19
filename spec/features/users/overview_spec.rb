@@ -122,7 +122,7 @@ describe 'Overview tab on a user profile', :js do
 
       it 'shows projects in "compact mode"' do
         page.within('#js-overview .projects-block') do
-          expect(find('.js-projects-list-holder')).to have_selector('.compact');
+          expect(find('.js-projects-list-holder')).to have_selector('.compact')
         end
       end
     end
