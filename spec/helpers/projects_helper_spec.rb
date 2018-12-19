@@ -520,6 +520,34 @@ describe ProjectsHelper do
     end
   end
 
+  describe '#explore_projects_tab?' do
+    subject { helper.explore_projects_tab? }
+
+    it 'returns true when on the "All" tab under "Explore projects"' do
+      allow(@request).to receive(:path) { explore_projects_path }
+
+      expect(subject).to be_truthy
+    end
+
+    it 'returns true when on the "Trending" tab under "Explore projects"' do
+      allow(@request).to receive(:path) { trending_explore_projects_path }
+
+      expect(subject).to be_truthy
+    end
+
+    it 'returns true when on the "Starred" tab under "Explore projects"' do
+      allow(@request).to receive(:path) { starred_explore_projects_path }
+
+      expect(subject).to be_truthy
+    end
+
+    it 'returns false when on the "Your projects" tab' do
+      allow(@request).to receive(:path) { dashboard_projects_path }
+
+      expect(subject).to be_falsey
+    end
+  end
+
   describe '#show_merge_request_count' do
     context 'when the feature flag is enabled' do
       before do
