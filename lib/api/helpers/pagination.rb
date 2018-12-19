@@ -3,6 +3,8 @@
 module API
   module Helpers
     module Pagination
+      TOTAL_COUNT_LIMIT = 1000
+
       def paginate(relation)
         strategy = if params[:pagination] == 'keyset' && Feature.enabled?('api_keyset_pagination')
                      KeysetPaginationStrategy
@@ -180,7 +182,9 @@ module API
         def paginate(relation)
           relation = add_default_order(relation)
 
+          count = relation.limit(TOTAL_COUNT_LIMIT).count(:all)
           relation.page(params[:page]).per(params[:per_page]).tap do |data|
+            data = data.without_count unless count < TOTAL_COUNT_LIMIT
             add_pagination_headers(data)
           end
         end

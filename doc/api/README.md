@@ -434,6 +434,14 @@ Additional pagination headers are also sent back.
 | `X-Next-Page`   | The index of the next page |
 | `X-Prev-Page`   | The index of the previous page |
 
+> **Notes**:
+>
+> - For performance reasons since [GitLab 10.7][ce-23931], if the total of
+>   resources is more than 1000, the `X-Total` and `X-Total-Pages` headers are
+>   not present in the response headers.
+
+[ce-2893]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/23931
+
 ## Namespaced path encoding
 
 If using namespaced API calls, make sure that the `NAMESPACE/PROJECT_NAME` is
