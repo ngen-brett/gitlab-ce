@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181218192239) do
+ActiveRecord::Schema.define(version: 20181219121140) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1927,6 +1927,7 @@ ActiveRecord::Schema.define(version: 20181218192239) do
     t.text "description"
     t.text "description_html"
     t.index ["author_id"], name: "index_snippets_on_author_id", using: :btree
+    t.index ["content"], name: "index_snippets_on_content_trigram", using: :gin, opclasses: {"content"=>"gin_trgm_ops"}
     t.index ["file_name"], name: "index_snippets_on_file_name_trigram", using: :gin, opclasses: {"file_name"=>"gin_trgm_ops"}
     t.index ["project_id"], name: "index_snippets_on_project_id", using: :btree
     t.index ["title"], name: "index_snippets_on_title_trigram", using: :gin, opclasses: {"title"=>"gin_trgm_ops"}
