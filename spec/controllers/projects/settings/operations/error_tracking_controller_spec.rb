@@ -59,6 +59,18 @@ describe Projects::Settings::Operations::ErrorTrackingController do
       end
     end
 
+    context 'with feature flag disabled' do
+      before do
+        stub_feature_flags(error_tracking: false)
+      end
+
+      it 'renders 404' do
+        post :create, params: project_params(project)
+
+        expect(response).to have_gitlab_http_status(:not_found)
+      end
+    end
+
     context 'as a reporter' do
       before do
         project.add_reporter(user)

@@ -5,6 +5,7 @@ module Projects
     module Operations
       class ErrorTrackingController < Projects::ApplicationController
         before_action :authorize_update_environment!
+        before_action :check_feature_flag
 
         def create
           result = ::Projects::ErrorTracking::SettingService
@@ -21,6 +22,10 @@ module Projects
         end
 
         private
+
+        def check_feature_flag
+          render_404 unless Feature.enabled?(:error_tracking, current_user)
+        end
 
         def setting_params
           params
