@@ -724,7 +724,8 @@ describe Gitlab::GitAccess do
     end
 
     let(:changes) do
-      { push_new_branch: "#{Gitlab::Git::BLANK_SHA} 570e7b2ab refs/heads/wow",
+      { any: Gitlab::GitAccess::ANY,
+        push_new_branch: "#{Gitlab::Git::BLANK_SHA} 570e7b2ab refs/heads/wow",
         push_master: '6f6d7e7ed 570e7b2ab refs/heads/master',
         push_protected_branch: '6f6d7e7ed 570e7b2ab refs/heads/feature',
         push_remove_protected_branch: "570e7b2ab #{Gitlab::Git::BLANK_SHA} "\
@@ -786,6 +787,7 @@ describe Gitlab::GitAccess do
 
     permissions_matrix = {
       admin: {
+        any: true,
         push_new_branch: true,
         push_master: true,
         push_protected_branch: true,
@@ -797,6 +799,7 @@ describe Gitlab::GitAccess do
       },
 
       maintainer: {
+        any: true,
         push_new_branch: true,
         push_master: true,
         push_protected_branch: true,
@@ -808,6 +811,7 @@ describe Gitlab::GitAccess do
       },
 
       developer: {
+        any: true,
         push_new_branch: true,
         push_master: true,
         push_protected_branch: false,
@@ -819,6 +823,7 @@ describe Gitlab::GitAccess do
       },
 
       reporter: {
+        any: false,
         push_new_branch: false,
         push_master: false,
         push_protected_branch: false,
@@ -830,6 +835,7 @@ describe Gitlab::GitAccess do
       },
 
       guest: {
+        any: false,
         push_new_branch: false,
         push_master: false,
         push_protected_branch: false,
