@@ -13,8 +13,8 @@ module Gitlab
       #
       # @param [Object] start first project id for the range
       # @param [Object] finish last project id for the range
-      def bulk_schedule(start, finish)
-        StorageMigratorWorker.perform_async(start, finish)
+      def bulk_schedule(start:, finish:, operation:)
+        StorageMigratorWorker.perform_async(start, finish, operation)
       end
 
       # Start migration of projects from specified range
@@ -25,11 +25,16 @@ module Gitlab
       # @param [Object] start first project id for the range
       # @param [Object] finish last project id for the range
       # rubocop: disable CodeReuse/ActiveRecord
-      def bulk_migrate(start, finish)
+      def bulk_migrate(start:, finish:, operation:)
         projects = build_relation(start, finish)
 
         projects.with_route.find_each(batch_size: BATCH_SIZE) do |project|
-          migrate(project)
+          case operation
+          when :migrate
+            migrate(project)
+          when :rollback
+            rollback(project)
+          end
         end
       end
       # rubocop: enable CodeReuse/ActiveRecord
@@ -43,6 +48,10 @@ module Gitlab
         project.migrate_to_hashed_storage!
       rescue => err
         Rails.logger.error("#{err.message} migrating storage of #{project.full_path} (ID=#{project.id}), trace - #{err.backtrace}")
+      end
+
+      def rollback(project)
+        # TODO: implement rollback strategy
       end
 
       private
