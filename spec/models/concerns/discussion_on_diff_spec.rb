@@ -58,6 +58,14 @@ describe DiscussionOnDiff do
         expect(truncated_lines).to eq([])
       end
     end
+
+    context 'when the discussion is on an image' do
+      subject { create(:image_diff_note_on_merge_request).to_discussion }
+
+      it 'returns an empty array' do
+        expect(truncated_lines).to eq([])
+      end
+    end
   end
 
   describe '#line_code_in_diffs' do
