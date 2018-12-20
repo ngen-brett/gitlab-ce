@@ -7903,7 +7903,7 @@ msgstr ""
 msgid "here"
 msgstr ""
 
-msgid "http://<sentry-host>/api/0/projects/<organization>/<project>"
+msgid "http://<sentry-host>/api/0/projects/{organization_slug}/{project_slug}/issues/"
 msgstr ""
 
 msgid "https://your-bitbucket-server"
