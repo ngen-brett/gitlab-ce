@@ -28,20 +28,21 @@ export default {
     },
   },
   computed: {
-    jobLine() {
-      if (this.user.bio && this.user.organization) {
+    bioLine() {
+      if (this.user.bio) {
+        return this.user.bio;
+      }
+      return null;
+    },
+    organizationLine() {
+      if (this.user.organization) {
         return sprintf(
-          __('%{bio} at %{organization}'),
+          __('at %{organization}'),
           {
-            bio: this.user.bio,
             organization: this.user.organization,
           },
           false,
         );
-      } else if (this.user.bio) {
-        return this.user.bio;
-      } else if (this.user.organization) {
-        return this.user.organization;
       }
       return null;
     },
@@ -86,7 +87,8 @@ export default {
           <gl-skeleton-loading v-else :lines="1" class="animation-container-small mb-1" />
         </div>
         <div class="text-secondary">
-          {{ jobLine }}
+          <span class="d-block">{{ bioLine }}</span>
+          <span class="d-block">{{ organizationLine }}</span>
           <gl-skeleton-loading
             v-if="jobInfoIsLoading"
             :lines="1"
