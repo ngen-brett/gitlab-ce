@@ -898,14 +898,6 @@ describe Notify do
           it 'does not include diffs with character-level highlighting' do
             is_expected.not_to have_body_text '<span class="p">}</span></span>'
           end
-
-          it 'ends the intro with a dot' do
-            is_expected.to have_body_text "#{note.diff_file.file_path}</a>."
-          end
-        end
-
-        it 'ends the intro with a colon' do
-          is_expected.to have_body_text "#{note.diff_file.file_path}</a>:"
         end
 
         it 'includes diffs with character-level highlighting' do
