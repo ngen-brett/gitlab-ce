@@ -10,7 +10,7 @@
     = form_for @error_tracking_setting, as: :error_tracking_setting, url: namespace_project_settings_operations_error_tracking_path(@project.namespace, @project), method: :post do |f|
       = form_errors(@error_tracking_setting)
       .form-group
-        %div.form-check
+        .form-check
           = f.check_box :enabled, class: 'form-check-input'
           = f.label :enabled, _('Active'), class: 'form-check-label'
       .form-group
@@ -23,4 +23,4 @@
         = f.text_field :token, class: 'form-control'
         %p.form-text.text-muted
           = _('Find and manage Auth Tokens in your Sentry account settings page.')
-      %input.btn.btn-success{:type => 'submit', :value => _('Save changes')}
+      %input.btn.btn-success{ :type => 'submit', :value => _('Save changes') }
