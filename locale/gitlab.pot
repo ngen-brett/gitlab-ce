@@ -138,9 +138,6 @@ msgstr ""
 msgid "%{openOrClose} %{noteable}"
 msgstr ""
 
-msgid "%{organization}"
-msgstr ""
-
 msgid "%{percent}%% complete"
 msgstr ""
 

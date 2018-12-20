@@ -36,13 +36,7 @@ export default {
     },
     organizationLine() {
       if (this.user.organization) {
-        return sprintf(
-          __('%{organization}'),
-          {
-            organization: this.user.organization,
-          },
-          false,
-        );
+        return this.user.organization;
       }
       return null;
     },
