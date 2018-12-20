@@ -37,7 +37,7 @@ export default {
     organizationLine() {
       if (this.user.organization) {
         return sprintf(
-          __('at %{organization}'),
+          __('%{organization}'),
           {
             organization: this.user.organization,
           },
