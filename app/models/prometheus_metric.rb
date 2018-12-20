@@ -5,11 +5,12 @@ class PrometheusMetric < ActiveRecord::Base
 
   enum group: {
     # built-in groups
-    nginx_ingress: -1,
+    nginx_ingress_vts: -1,
     ha_proxy: -2,
     aws_elb: -3,
     nginx: -4,
     kubernetes: -5,
+    nginx_ingress: -6,
 
     # custom/user groups
     business: 0,
@@ -19,6 +20,11 @@ class PrometheusMetric < ActiveRecord::Base
 
   GROUP_DETAILS = {
     # built-in groups
+    nginx_ingress_vts: {
+      group_title: _('Response metrics (NGINX Ingress VTS)'),
+      required_metrics: %w(nginx_upstream_responses_total nginx_upstream_response_msecs_avg),
+      priority: 10
+    },
     nginx_ingress: {
       group_title: _('Response metrics (NGINX Ingress)'),
       required_metrics: %w(nginx_upstream_responses_total nginx_upstream_response_msecs_avg),
