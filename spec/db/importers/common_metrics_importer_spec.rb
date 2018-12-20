@@ -9,7 +9,11 @@ describe Importers::PrometheusMetric do
   end
 
   it 'GROUP_TITLES equals ::PrometheusMetric' do
-    expect(described_class::GROUP_TITLES).to eq(::PrometheusMetric::GROUP_TITLES)
+    expect(described_class::GROUP_TITLES).to eq(
+      ::PrometheusMetric::GROUP_DETAILS.each_with_object({}) do |(key, value), memo|
+        memo[key] = value[:group_title]
+      end
+    )
   end
 end
 

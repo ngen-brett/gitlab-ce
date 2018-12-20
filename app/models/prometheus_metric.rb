@@ -17,6 +17,49 @@ class PrometheusMetric < ActiveRecord::Base
     system: 2
   }
 
+  GROUP_DETAILS = {
+    # built-in groups
+    nginx_ingress: {
+      group_title: _('Response metrics (NGINX Ingress)'),
+      required_metrics: %w(nginx_upstream_responses_total nginx_upstream_response_msecs_avg),
+      priority: 10
+    },
+    ha_proxy: {
+      group_title: _('Response metrics (HA Proxy)'),
+      required_metrics: %w(haproxy_frontend_http_requests_total haproxy_frontend_http_responses_total),
+      priority: 10
+    },
+    aws_elb: {
+      group_title: _('Response metrics (AWS ELB)'),
+      required_metrics: %w(aws_elb_request_count_sum aws_elb_latency_average aws_elb_httpcode_backend_5_xx_sum),
+      priority: 10
+    },
+    nginx: {
+      group_title: _('Response metrics (NGINX)'),
+      required_metrics: %w(nginx_server_requests nginx_server_requestMsec),
+      priority: 10
+    },
+    kubernetes: {
+      group_title: _('System metrics (Kubernetes)'),
+      required_metrics: %w(container_memory_usage_bytes container_cpu_usage_seconds_total),
+      priority: 5
+    },
+
+    # custom/user groups
+    business: {
+      group_title: _('Business metrics (Custom)'),
+      priority: 0
+    },
+    response: {
+      group_title: _('Response metrics (Custom)'),
+      priority: -5
+    },
+    system: {
+      group_title: _('System metrics (Custom)'),
+      priority: -10
+    }
+  }.freeze
+
   validates :title, presence: true
   validates :query, presence: true
   validates :group, presence: true
@@ -28,51 +71,16 @@ class PrometheusMetric < ActiveRecord::Base
 
   scope :common, -> { where(common: true) }
 
-  GROUP_TITLES = {
-    # built-in groups
-    nginx_ingress: _('Response metrics (NGINX Ingress)'),
-    ha_proxy: _('Response metrics (HA Proxy)'),
-    aws_elb: _('Response metrics (AWS ELB)'),
-    nginx: _('Response metrics (NGINX)'),
-    kubernetes: _('System metrics (Kubernetes)'),
-
-    # custom/user groups
-    business: _('Business metrics (Custom)'),
-    response: _('Response metrics (Custom)'),
-    system: _('System metrics (Custom)')
-  }.freeze
-
-  REQUIRED_METRICS = {
-    nginx_ingress: %w(nginx_upstream_responses_total nginx_upstream_response_msecs_avg),
-    ha_proxy: %w(haproxy_frontend_http_requests_total haproxy_frontend_http_responses_total),
-    aws_elb: %w(aws_elb_request_count_sum aws_elb_latency_average aws_elb_httpcode_backend_5_xx_sum),
-    nginx: %w(nginx_server_requests nginx_server_requestMsec),
-    kubernetes: %w(container_memory_usage_bytes container_cpu_usage_seconds_total)
-  }.freeze
-
   def priority
-    case group.to_sym
-    when :nginx_ingress, :ha_proxy, :aws_elb, :nginx
-      10
-    when :kubernetes
-      5
-    when :business
-      0
-    when :response
-      -5
-    when :system
-      -10
-    else
-      -15
-    end
+    get_group_details(group)&.fetch(:priority)
   end
 
   def group_title
-    GROUP_TITLES[group.to_sym]
+    get_group_details(group)&.fetch(:group_title)
   end
 
   def required_metrics
-    REQUIRED_METRICS[group.to_sym].to_a.map(&:to_s)
+    get_group_details(group)&.fetch(:required_metrics, []).to_a.map(&:to_s)
   end
 
   def to_query_metric
@@ -102,5 +110,11 @@ class PrometheusMetric < ActiveRecord::Base
         ]
       }]
     end
+  end
+
+  private
+
+  def get_group_details(group)
+    GROUP_DETAILS.fetch(group.to_sym, nil)
   end
 end
