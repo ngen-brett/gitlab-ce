@@ -1988,6 +1988,9 @@ variables:
   GIT_STRATEGY: none
 ```
 
+CAUTION: **Warning:** `GIT_STRATEGY` is not supported for Kubernetes 
+executor at the moment.
+
 ### Git submodule strategy
 
 > Requires GitLab Runner v1.10+.
