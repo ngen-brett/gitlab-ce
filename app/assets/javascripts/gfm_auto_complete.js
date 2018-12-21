@@ -59,7 +59,6 @@ class GfmAutoComplete {
       alias: 'commands',
       searchKey: 'search',
       skipSpecialCharacterTest: true,
-      skipMarkdownCharacterTest: true,
       data: GfmAutoComplete.defaultLoadingData,
       displayTpl(value) {
         const cssClasses = [];
@@ -221,13 +220,13 @@ class GfmAutoComplete {
       displayTpl(value) {
         let tmpl = GfmAutoComplete.Loading.template;
         if (value.title != null) {
-          tmpl = GfmAutoComplete.Issues.templateFunction(value.id, value.title);
+          tmpl = GfmAutoComplete.Issues.templateFunction(value);
         }
         return tmpl;
       },
       data: GfmAutoComplete.defaultLoadingData,
-      // eslint-disable-next-line no-template-curly-in-string
-      insertTpl: '${atwho-at}${id}',
+      insertTpl: GfmAutoComplete.Issues.insertTemplateFunction,
+      skipSpecialCharacterTest: true,
       callbacks: {
         ...this.getDefaultCallbacks(),
         beforeSave(issues) {
@@ -238,6 +237,7 @@ class GfmAutoComplete {
             return {
               id: i.iid,
               title: sanitize(i.title),
+              reference: i.reference,
               search: `${i.iid} ${i.title}`,
             };
           });
@@ -287,13 +287,13 @@ class GfmAutoComplete {
       displayTpl(value) {
         let tmpl = GfmAutoComplete.Loading.template;
         if (value.title != null) {
-          tmpl = GfmAutoComplete.Issues.templateFunction(value.id, value.title);
+          tmpl = GfmAutoComplete.Issues.templateFunction(value);
         }
         return tmpl;
       },
       data: GfmAutoComplete.defaultLoadingData,
-      // eslint-disable-next-line no-template-curly-in-string
-      insertTpl: '${atwho-at}${id}',
+      insertTpl: GfmAutoComplete.Issues.insertTemplateFunction,
+      skipSpecialCharacterTest: true,
       callbacks: {
         ...this.getDefaultCallbacks(),
         beforeSave(merges) {
@@ -304,6 +304,7 @@ class GfmAutoComplete {
             return {
               id: m.iid,
               title: sanitize(m.title),
+              reference: m.reference,
               search: `${m.iid} ${m.title}`,
             };
           });
@@ -397,7 +398,7 @@ class GfmAutoComplete {
       displayTpl(value) {
         let tmpl = GfmAutoComplete.Loading.template;
         if (value.title != null) {
-          tmpl = GfmAutoComplete.Issues.templateFunction(value.id, value.title);
+          tmpl = GfmAutoComplete.Issues.templateFunction(value);
         }
         return tmpl;
       },
@@ -594,8 +595,12 @@ GfmAutoComplete.Labels = {
 };
 // Issues, MergeRequests and Snippets
 GfmAutoComplete.Issues = {
-  templateFunction(id, title) {
-    return `<li><small>${id}</small> ${_.escape(title)}</li>`;
+  insertTemplateFunction(value) {
+    // eslint-disable-next-line no-template-curly-in-string
+    return value.reference || '${atwho-at}${id}';
+  },
+  templateFunction({ id, title, reference }) {
+    return `<li><small>${reference || id}</small> ${_.escape(title)}</li>`;
   },
 };
 // Milestones
