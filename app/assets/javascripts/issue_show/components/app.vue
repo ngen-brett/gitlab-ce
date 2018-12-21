@@ -129,6 +129,10 @@ export default {
       required: false,
       default: true,
     },
+    lockVersion: {
+      type: Number,
+      required: true,
+    },
   },
   data() {
     const store = new Store({
@@ -140,6 +144,7 @@ export default {
       updatedByName: this.updatedByName,
       updatedByPath: this.updatedByPath,
       taskStatus: this.initialTaskStatus,
+      lockVersion: this.lockVersion,
     });
 
     return {

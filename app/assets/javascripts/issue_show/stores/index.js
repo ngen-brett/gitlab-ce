@@ -22,6 +22,7 @@ export default class Store {
     this.state.updatedAt = data.updated_at;
     this.state.updatedByName = data.updated_by_name;
     this.state.updatedByPath = data.updated_by_path;
+    this.state.lockVersion = data.lock_version;
   }
 
   stateShouldUpdate(data) {
