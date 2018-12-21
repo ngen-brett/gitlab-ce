@@ -29,7 +29,8 @@ module Banzai
         # If in the future the syntax is about to be made GitHub-compatible, please, add `:GITHUB_PRE_LANG` render option below
         # and remove `code_block` method from `lib/banzai/renderer/common_mark/html.rb`.
         RENDER_OPTIONS = [
-          :DEFAULT # default rendering system. Nothing special.
+          :DEFAULT,   # default rendering system. Nothing special.
+          :SOURCEPOS  # enable embedding of source position information
         ].freeze
 
         def initialize
