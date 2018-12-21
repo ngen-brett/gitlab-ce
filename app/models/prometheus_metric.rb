@@ -24,10 +24,10 @@ class PrometheusMetric < ActiveRecord::Base
       group_title: _('Response metrics (NGINX Ingress VTS)'),
       required_metrics: %w(nginx_upstream_responses_total nginx_upstream_response_msecs_avg),
       priority: 10
-    },
+    }.freeze,
     nginx_ingress: {
       group_title: _('Response metrics (NGINX Ingress)'),
-      required_metrics: %w(nginx_upstream_responses_total nginx_upstream_response_msecs_avg),
+      required_metrics: %w(nginx_ingress_controller_requests nginx_ingress_controller_ingress_upstream_latency_seconds_sum),
       priority: 10
     }.freeze,
     ha_proxy: {
@@ -78,15 +78,15 @@ class PrometheusMetric < ActiveRecord::Base
   scope :common, -> { where(common: true) }
 
   def priority
-    get_group_details(group)&.fetch(:priority)
+    group_details(group).fetch(:priority)
   end
 
   def group_title
-    get_group_details(group)&.fetch(:group_title)
+    group_details(group).fetch(:group_title)
   end
 
   def required_metrics
-    get_group_details(group)&.fetch(:required_metrics, []).to_a.map(&:to_s)
+    group_details(group).fetch(:required_metrics, []).map(&:to_s)
   end
 
   def to_query_metric
@@ -120,7 +120,7 @@ class PrometheusMetric < ActiveRecord::Base
 
   private
 
-  def get_group_details(group)
-    GROUP_DETAILS.fetch(group.to_sym, nil)
+  def group_details(group)
+    GROUP_DETAILS.fetch(group.to_sym)
   end
 end
