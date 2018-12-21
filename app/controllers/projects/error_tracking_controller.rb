@@ -2,6 +2,7 @@
 
 class Projects::ErrorTrackingController < Projects::ApplicationController
   before_action :check_feature_flag!
+  before_action :push_feature_flag_to_frontend
 
   def list
   end
@@ -63,5 +64,9 @@ class Projects::ErrorTrackingController < Projects::ApplicationController
 
   def check_feature_flag!
     render_404 unless Feature.enabled?(:error_tracking, project)
+  end
+
+  def push_feature_flag_to_frontend
+    push_frontend_feature_flag(:error_tracking, current_user)
   end
 end
