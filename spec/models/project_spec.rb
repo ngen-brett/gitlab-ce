@@ -3121,6 +3121,32 @@ describe Project do
     end
   end
 
+  describe '#git_transfer_in_progress?' do
+    let(:project) { build(:project) }
+    subject { project.git_transfer_in_progress? }
+
+    it 'returns false when repo_reference_count and wiki_reference_count are 0' do
+      allow(project).to receive(:repo_reference_count) { 0 }
+      allow(project).to receive(:wiki_reference_count) { 0 }
+
+      expect(subject).to be_falsey
+    end
+
+    it 'returns true when repo_reference_count is > 0' do
+      allow(project).to receive(:repo_reference_count) { 2 }
+      allow(project).to receive(:wiki_reference_count) { 0 }
+
+      expect(subject).to be_truthy
+    end
+
+    it 'returns true when wiki_reference_count is > 0' do
+      allow(project).to receive(:repo_reference_count) { 0 }
+      allow(project).to receive(:wiki_reference_count) { 2 }
+
+      expect(subject).to be_truthy
+    end
+  end
+
   context 'legacy storage' do
     let(:project) { create(:project, :repository, :legacy_storage) }
     let(:gitlab_shell) { Gitlab::Shell.new }
@@ -3179,10 +3205,6 @@ describe Project do
     describe '#migrate_to_hashed_storage!' do
       it 'returns true' do
         expect(project.migrate_to_hashed_storage!).to be_truthy
-      end
-
-      it 'flags as read-only' do
-        expect { project.migrate_to_hashed_storage! }.to change { project.repository_read_only }.to(true)
       end
 
       it 'schedules ProjectMigrateHashedStorageWorker with delayed start when the project repo is in use' do

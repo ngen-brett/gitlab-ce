@@ -15,6 +15,12 @@ describe Projects::HashedStorage::MigrateRepositoryService do
       allow(service).to receive(:gitlab_shell) { gitlab_shell }
     end
 
+    it 'tries to lock the repository' do
+      expect(service).to receive(:try_to_lock_repository!)
+
+      service.execute
+    end
+
     context 'when succeeds' do
       it 'renames project and wiki repositories' do
         service.execute
@@ -82,6 +88,20 @@ describe Projects::HashedStorage::MigrateRepositoryService do
 
     def expect_move_repository(from_name, to_name)
       expect(gitlab_shell).to receive(:mv_repository).with(project.repository_storage, from_name, to_name).and_call_original
+    end
+  end
+
+  describe '#try_to_lock_repository!' do
+    subject { service.send(:try_to_lock_repository!) }
+
+    it 'flags as read-only when no git operation is in progress' do
+      expect { subject }.to change { project.repository_read_only }.to(true)
+    end
+
+    it 'fails when there is a git operation is in progress' do
+      allow(project).to receive(:repo_reference_count) { 1 }
+
+      expect { subject }.to raise_error(Projects::HashedStorage::RepositoryMigrationError)
     end
   end
 end
