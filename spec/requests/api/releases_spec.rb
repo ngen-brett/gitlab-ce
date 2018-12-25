@@ -1,20 +1,53 @@
 require 'spec_helper'
 
 describe API::Releases do
-  let(:user) { create(:user) }
-  let(:guest) { create(:user).tap { |u| project.add_guest(u) } }
-  let(:project) { create(:project, :repository, creator: user, path: 'my.project') }
-  let(:tag_name) { project.repository.find_tag('v1.1.0').name }
-
-  let(:project_id) { project.id }
-  let(:current_user) { nil }
+  let(:project) { create(:project, :repository) }
+  let(:maintainer) { create(:user) }
+  let(:repoter) { create(:user) }
+  let(:non_project_member) { create(:user) }
+  let(:commit) { create(:commit, project: project) }
 
   before do
-    project.add_maintainer(user)
+    project.add_maintainer(maintainer)
+    project.add_reporter(repoter)
+
+    project.repository.add_tag(maintainer, 'v0.1', commit.id)
+    project.repository.add_tag(maintainer, 'v0.2', commit.id)
   end
 
   describe 'GET /projects/:id/releases' do
-    # TODO:
+    context 'when there are two releases' do
+      let!(:release_1) { create(:release, project: project, tag: 'v0.1', author: maintainer) }
+      let!(:release_2) { create(:release, project: project, tag: 'v0.2', author: maintainer) }
+
+      it 'returns 200 HTTP status' do
+        get api("/projects/#{project.id}/releases", maintainer)
+
+        expect(response).to have_gitlab_http_status(:ok)
+      end
+
+      it 'returns releases ordered by created_at' do
+        get api("/projects/#{project.id}/releases", maintainer)
+
+        expect(json_response.count).to eq(2)
+        expect(json_response.first['tag_name']).to eq(release_2.tag)
+        expect(json_response.second['tag_name']).to eq(release_1.tag)
+      end
+
+      it 'matches response schema' do
+        get api("/projects/#{project.id}/releases", maintainer)
+
+        expect(response).to match_response_schema('releases')
+      end
+    end
+
+    context 'when tag does not exist in git repository' do
+      let!(:release_2) { create(:release, project: project, tag: 'v1.1.5') }
+    end
+
+    context 'when user does not have permission' do
+
+    end
   end
 
   describe 'GET /projects/:id/releases/:tag_name' do

@@ -120,11 +120,11 @@ module API
 
     helpers do
       def authorize_create_release!
-        authorize! :create_release, release
+        authorize! :create_release, user_project
       end
 
       def authorize_read_release!
-        authorize! :read_release, release
+        authorize! :read_release, user_project
       end
 
       def authorize_update_release!

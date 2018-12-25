@@ -12,6 +12,7 @@ describe UpdateReleaseService do
   let(:create_service) { CreateReleaseService.new(project, user, tag: tag_name, description: description) }
 
   before do
+    project.add_developer(user)
     create_service.execute
   end
 

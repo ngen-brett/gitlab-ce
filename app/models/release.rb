@@ -19,9 +19,12 @@ class Release < ActiveRecord::Base
     self.find_by(project: project, tag: tag)
   end
 
+  def actual_sha
+    sha || repository.find_tag(tag)&.dereferenced_target
+  end
+  
   def commit
-    git_tag = repository.find_tag(tag)
-    repository.commit(git_tag.dereferenced_target)
+    repository.commit(actual_sha)
   end
 
   def sources_formats
