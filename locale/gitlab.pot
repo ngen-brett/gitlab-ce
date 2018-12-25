@@ -4790,6 +4790,24 @@ msgstr ""
 msgid "PipelineCharts|Total:"
 msgstr ""
 
+msgid "PipelineFlags|Auto DevOps"
+msgstr ""
+
+msgid "PipelineFlags|error"
+msgstr ""
+
+msgid "PipelineFlags|latest"
+msgstr ""
+
+msgid "PipelineFlags|merge request"
+msgstr ""
+
+msgid "PipelineFlags|stuck"
+msgstr ""
+
+msgid "PipelineFlags|yaml invalid"
+msgstr ""
+
 msgid "PipelineSchedules|Activated"
 msgstr ""
 
@@ -6819,6 +6837,9 @@ msgid "This page is unavailable because you are not allowed to read information 
 msgstr ""
 
 msgid "This page will be removed in a future release."
+msgstr ""
+
+msgid "This pipeline is run in a merge request context"
 msgstr ""
 
 msgid "This pipeline makes use of a predefined CI/CD configuration enabled by <b>Auto DevOps.</b>"
