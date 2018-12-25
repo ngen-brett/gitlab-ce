@@ -8,7 +8,7 @@ class DeleteReleaseService < BaseService
     return error('Release does not exist', 404) unless release
     return error('Access Denied', 403) unless allowed?
 
-    if release.destory
+    if release.destroy
       success(release: release)
     else
       error(release.errors.messages || '400 Bad request', 400)
@@ -21,15 +21,19 @@ class DeleteReleaseService < BaseService
     Ability.allowed?(current_user, :admin_release, release)
   end
 
+  def tag_name
+    params[:tag]
+  end
+
   def release
     strong_memoize(:release) do
-      project.releases.find_by_tag(@tag_name)
+      project.releases.find_by_tag(tag_name)
     end
   end
 
   def existing_tag
     strong_memoize(:existing_tag) do
-      repository.find_tag(@tag_name)
+      repository.find_tag(tag_name)
     end
   end
 

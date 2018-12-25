@@ -57,7 +57,8 @@ module API
         ref = attributes.delete(:ref)
         attributes.delete(:id)
 
-        result = ::CreateReleaseService.new(user_project, current_user, attributes)
+        result = ::CreateReleaseService
+          .new(user_project, current_user, attributes)
           .execute(ref)
 
         if result[:status] == :success
@@ -81,7 +82,9 @@ module API
 
         attributes = declared(params)
         attributes.delete(:id)
-        result = UpdateReleaseService.new(user_project, current_user, attributes).execute
+        result = UpdateReleaseService
+          .new(user_project, current_user, attributes)
+          .execute
 
         if result[:status] == :success
           present result[:release], with: Entities::Release
@@ -98,17 +101,42 @@ module API
         requires :tag_name,    type: String, desc: 'The name of the tag', as: :tag
       end
       delete ':id/releases/:tag_name', requirements: RELEASE_ENDPOINT_REQUIREMETS do
-        authorize_update_release!
+        authorize_admin_release!
 
         attributes = declared(params)
         attributes.delete(:id)
-        result = DeleteReleaseService.new(user_project, current_user, attributes).execute
+
+        result = DeleteReleaseService
+          .new(user_project, current_user, attributes)
+          .execute
 
         if result[:status] == :success
           present result[:release], with: Entities::Release
         else
           render_api_error!(result[:message], result[:http_status])
         end
+      end
+    end
+
+    helpers do
+      def authorize_create_release!
+        authorize! :create_release, release
+      end
+
+      def authorize_read_release!
+        authorize! :read_release, release
+      end
+
+      def authorize_update_release!
+        authorize! :update_release, release
+      end
+
+      def authorize_admin_release!
+        authorize! :admin_release, release
+      end
+
+      def release
+        user_project.releases.find_by_tag(params[:tag])
       end
     end
   end

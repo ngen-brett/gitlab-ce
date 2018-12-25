@@ -1,1 +1,78 @@
-#TODO:
+require 'spec_helper'
+
+describe DeleteReleaseService do
+  let(:project) { create(:project, :repository) }
+  let(:mainatiner) { create(:user) }
+  let(:repoter) { create(:user) }
+  let(:tag) { 'v1.1.0' }
+  let!(:release) { create(:release, project: project, tag: tag) }
+  let(:service) { described_class.new(project, user, params) }
+  let(:params) { { tag: tag } }
+  let(:user) { mainatiner }
+
+  before do
+    project.add_maintainer(mainatiner)
+    project.add_reporter(repoter)
+  end
+
+  describe '#execute' do
+    subject { service.execute }
+
+    context 'when there is a release' do
+      it 'removes the release' do
+        expect { subject }.to change { project.releases.count }.by(-1)
+      end
+
+      it 'returns the destoried object' do
+        is_expected.to eq(
+          {
+            :status => :success,
+            :release => release
+          }
+        )
+      end
+    end
+
+    context 'when tag is not found' do
+      let(:tag) { 'v1.1.1' }
+
+      it 'returns an error' do
+        is_expected.to eq(
+          {
+            :message => 'Tag does not exist',
+            :status => :error,
+            :http_status => 404
+          }
+        )
+      end
+    end
+
+    context 'when release is not found' do
+      let!(:release) { }
+
+      it 'returns an error' do
+        is_expected.to eq(
+          {
+            :message => 'Release does not exist',
+            :status => :error,
+            :http_status => 404
+          }
+        )
+      end
+    end
+
+    context 'when user does not have permission' do
+      let(:user) { repoter }
+
+      it 'returns an error' do
+        is_expected.to eq(
+          {
+            :message => 'Access Denied',
+            :status => :error,
+            :http_status => 403
+          }
+        )
+      end
+    end
+  end
+end
