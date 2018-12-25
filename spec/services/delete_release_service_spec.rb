@@ -23,7 +23,7 @@ describe DeleteReleaseService do
         expect { subject }.to change { project.releases.count }.by(-1)
       end
 
-      it 'returns the destoried object' do
+      it 'returns the destroyed object' do
         is_expected.to eq(
           {
             :status => :success,
