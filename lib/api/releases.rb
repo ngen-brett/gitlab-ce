@@ -46,10 +46,10 @@ module API
         success Entities::Release
       end
       params do
-        requires :name,                type: String, desc: 'The name of the release'
-        requires :tag_name,            type: String, desc: 'The name of the tag', as: :tag
-        requires :description,         type: String, desc: 'The release notes'
-        optional :ref,                 type: String, desc: 'The commit sha or branch name'
+        requires :tag_name,    type: String, desc: 'The name of the tag', as: :tag
+        requires :name,        type: String, desc: 'The name of the release'
+        requires :description, type: String, desc: 'The release notes'
+        optional :ref,         type: String, desc: 'The commit sha or branch name'
       end
       post ':id/releases' do
         authorize_create_release!
@@ -61,7 +61,7 @@ module API
         if result[:status] == :success
           present result[:release], with: Entities::Release
         else
-          render_api_error!(result[:message], 400)
+          render_api_error!(result[:message], result[:http_status])
         end
       end
 
@@ -71,16 +71,14 @@ module API
       end
       params do
         requires :tag_name,    type: String, desc: 'The name of the tag', as: :tag
-        requires :name,        type: String, desc: 'The name of the release'
-        requires :description, type: String, desc: 'Release notes with markdown support'
+        optional :name,        type: String, desc: 'The name of the release'
+        optional :description, type: String, desc: 'Release notes with markdown support'
       end
       put ':id/releases/:tag_name', requirements: RELEASE_ENDPOINT_REQUIREMETS do
         authorize_update_release!
 
-        attributes = declared(params)
-        attributes.delete(:id)
         result = ::Releases::UpdateService
-          .new(user_project, current_user, attributes)
+          .new(user_project, current_user, declared_params(include_missing: false))
           .execute
 
         if result[:status] == :success
@@ -100,11 +98,8 @@ module API
       delete ':id/releases/:tag_name', requirements: RELEASE_ENDPOINT_REQUIREMETS do
         authorize_admin_release!
 
-        attributes = declared(params)
-        attributes.delete(:id)
-
         result = ::Releases::DestroyService
-          .new(user_project, current_user, attributes)
+          .new(user_project, current_user, declared_params(include_missing: false))
           .execute
 
         if result[:status] == :success

@@ -8,6 +8,7 @@ module Releases
       return error('Tag does not exist', 404) unless existing_tag
       return error('Release does not exist', 404) unless release
       return error('Access Denied', 403) unless allowed?
+      return error('params is empty', 400) if empty_params?
 
       if release.update(params)
         success(release: release)
@@ -20,6 +21,10 @@ module Releases
 
     def allowed?
       Ability.allowed?(current_user, :update_release, release)
+    end
+
+    def empty_params?
+      params.except(:tag).empty?
     end
   end
 end

@@ -184,8 +184,42 @@ describe API::Releases do
       expect(project.releases.last.description).to eq('Super nice release')
     end
 
-    context 'when failed to create a new release due to validation error' do
-      # TODO: 
+    context 'when name is empty' do
+      let(:params) do
+        {
+          name: '',
+          tag_name: 'v0.1',
+          description: 'Super nice release'
+        }
+      end
+
+      it 'returns an error as validation failure' do
+        post api("/projects/#{project.id}/releases", maintainer), params: params
+  
+        expect(response).to have_gitlab_http_status(:bad_request)
+        expect(json_response['message'])
+          .to eq("Validation failed: Name can't be blank")
+      end
+    end
+
+    context 'when description is empty' do
+      let(:params) do
+        {
+          name: 'New release',
+          tag_name: 'v0.1',
+          description: ''
+        }
+      end
+
+      it 'returns an error as validation failure' do
+        expect do
+          post api("/projects/#{project.id}/releases", maintainer), params: params
+        end.not_to change { Release.count }
+  
+        expect(response).to have_gitlab_http_status(:bad_request)
+        expect(json_response['message'])
+          .to eq("Validation failed: Description can't be blank")
+      end
     end
 
     it 'matches response schema' do
@@ -232,13 +266,15 @@ describe API::Releases do
       let(:params) do
         {
           name: 'Android ~ Ice Cream Sandwich ~',
-          tag_name: 'v4.0',
+          tag_name: tag_name,
           description: 'Android 4.0–4.0.4 "Ice Cream Sandwich" is the ninth' \
                        'version of the Android mobile operating system developed' \
                        'by Google.',
           ref: 'master'
         }
       end
+
+      let(:tag_name) { 'v4.0' }
 
       it 'creates a new tag' do
         expect do
@@ -262,47 +298,241 @@ describe API::Releases do
           'by Google.')
       end
 
-      context 'when failed to create a new tag' do
-        # TODO: 
+      context 'when ref name is HEAD' do
+        let(:tag_name) { 'HEAD' }
+
+        it 'returns an error as failure on tag creation' do
+          post api("/projects/#{project.id}/releases", maintainer), params: params
+
+          expect(response).to have_gitlab_http_status(:internal_server_error)
+          expect(json_response['message']).to eq('Tag name invalid')
+        end
+      end
+
+      context 'when ref name is empty' do
+        let(:tag_name) { '' }
+
+        it 'returns an error as failure on tag creation' do
+          post api("/projects/#{project.id}/releases", maintainer), params: params
+
+          expect(response).to have_gitlab_http_status(:internal_server_error)
+          expect(json_response['message']).to eq('Tag name invalid')
+        end
       end
     end
 
     context 'when release already exists' do
       before do
-        create(:release, tag_name: 'v0.1', name: 'New release')
+        create(:release, project: project, tag: 'v0.1', name: 'New release')
       end
 
       it 'returns an error as conflicted request' do
         post api("/projects/#{project.id}/releases", maintainer), params: params
 
-        expect(response).to have_gitlab_http_status(:conflicted)
+        expect(response).to have_gitlab_http_status(:conflict)
       end
     end
 
-    # it 'cannot find the API' do
-    #   get api("/projects/#{project.id}/releases/v0.1", maintainer)
+    context 'when feature flag is disabled' do
+      before do
+        stub_feature_flags(releases_page: false)
+      end
 
-    #   expect(response).to have_gitlab_http_status(:not_found)
-    # end
+      it 'cannot find the API' do
+        post api("/projects/#{project.id}/releases", maintainer), params: params
 
-    # context 'when feature flag is disabled' do
-    #   before do
-    #     stub_feature_flags(releases_page: false)
-    #   end
-
-    #   it 'cannot find the API' do
-    #     post api("/projects/#{project.id}/releases", maintainer), params: params
-
-    #     expect(response).to have_gitlab_http_status(:not_found)
-    #   end
-    # end
+        expect(response).to have_gitlab_http_status(:not_found)
+      end
+    end
   end
 
   describe 'PUT /projects/:id/releases/:tag_name' do
-    # TODO:
+    let(:params) { { description: 'Best release ever!' } }
+
+    let!(:release) do
+      create(:release,
+             project: project,
+             tag: 'v0.1',
+             name: 'New release',
+             description: 'Super nice release')
+    end
+
+    it 'accepts the request' do
+      put api("/projects/#{project.id}/releases/v0.1", maintainer), params: params
+
+      expect(response).to have_gitlab_http_status(:ok)
+    end
+
+    it 'updates the description' do
+      put api("/projects/#{project.id}/releases/v0.1", maintainer), params: params
+
+      expect(project.releases.last.description).to eq('Best release ever!')
+    end
+
+    it 'does not change other attributes' do
+      put api("/projects/#{project.id}/releases/v0.1", maintainer), params: params
+
+      expect(project.releases.last.tag).to eq('v0.1')
+      expect(project.releases.last.name).to eq('New release')
+    end
+
+    it 'matches response schema' do
+      put api("/projects/#{project.id}/releases/v0.1", maintainer), params: params
+
+      expect(response).to match_response_schema('release')
+    end
+
+    context 'when user tries to update sha' do
+      let(:params) { { sha: 'xxx' } }
+
+      it 'does not allow the request' do
+        put api("/projects/#{project.id}/releases/v0.1", maintainer), params: params
+
+        expect(response).to have_gitlab_http_status(:bad_request)
+      end
+    end
+
+    context 'when params is empty' do
+      let(:params) { { } }
+
+      it 'does not allow the request' do
+        put api("/projects/#{project.id}/releases/v0.1", maintainer), params: params
+
+        expect(response).to have_gitlab_http_status(:bad_request)
+      end
+    end
+
+    context 'when there are no corresponding releases' do
+      let!(:release) { }
+
+      it 'forbids the request' do
+        put api("/projects/#{project.id}/releases/v0.1", maintainer), params: params
+
+        expect(response).to have_gitlab_http_status(:forbidden)
+      end
+    end
+
+    context 'when user is a reporter' do
+      it 'forbids the request' do
+        put api("/projects/#{project.id}/releases/v0.1", reporter), params: params
+
+        expect(response).to have_gitlab_http_status(:forbidden)
+      end
+    end
+
+    context 'when user is not a project member' do
+      it 'forbids the request' do
+        put api("/projects/#{project.id}/releases/v0.1", non_project_member),
+             params: params
+
+        expect(response).to have_gitlab_http_status(:not_found)
+      end
+
+      context 'when project is public' do
+        let(:project) { create(:project, :repository, :public) }
+
+        it 'forbids the request' do
+          put api("/projects/#{project.id}/releases/v0.1", non_project_member),
+               params: params
+  
+          expect(response).to have_gitlab_http_status(:forbidden)
+        end
+      end
+    end
+
+    context 'when feature flag is disabled' do
+      before do
+        stub_feature_flags(releases_page: false)
+      end
+
+      it 'cannot find the API' do
+        put api("/projects/#{project.id}/releases/v0.1", non_project_member),
+          params: params
+
+        expect(response).to have_gitlab_http_status(:not_found)
+      end
+    end
   end
 
   describe 'DELETE /projects/:id/releases/:tag_name' do
-    # TODO:
+    let!(:release) do
+      create(:release,
+             project: project,
+             tag: 'v0.1',
+             name: 'New release',
+             description: 'Super nice release')
+    end
+
+    it 'accepts the request' do
+      delete api("/projects/#{project.id}/releases/v0.1", maintainer)
+
+      expect(response).to have_gitlab_http_status(:ok)
+    end
+
+    it 'destroys the release' do
+      expect do
+        delete api("/projects/#{project.id}/releases/v0.1", maintainer)
+      end.to change { Release.count }.by(-1)
+    end
+
+    it 'does not remove a tag in repository' do
+      expect do
+        delete api("/projects/#{project.id}/releases/v0.1", maintainer)
+      end.not_to change { Project.find_by_id(project.id).repository.tag_count }
+    end
+
+    it 'matches response schema' do
+      delete api("/projects/#{project.id}/releases/v0.1", maintainer)
+
+      expect(response).to match_response_schema('release')
+    end
+
+    context 'when there are no corresponding releases' do
+      let!(:release) { }
+
+      it 'forbids the request' do
+        delete api("/projects/#{project.id}/releases/v0.1", maintainer)
+
+        expect(response).to have_gitlab_http_status(:forbidden)
+      end
+    end
+
+    context 'when user is a reporter' do
+      it 'forbids the request' do
+        delete api("/projects/#{project.id}/releases/v0.1", reporter)
+
+        expect(response).to have_gitlab_http_status(:forbidden)
+      end
+    end
+
+    context 'when user is not a project member' do
+      it 'forbids the request' do
+        delete api("/projects/#{project.id}/releases/v0.1", non_project_member)
+
+        expect(response).to have_gitlab_http_status(:not_found)
+      end
+
+      context 'when project is public' do
+        let(:project) { create(:project, :repository, :public) }
+
+        it 'forbids the request' do
+          delete api("/projects/#{project.id}/releases/v0.1", non_project_member)
+  
+          expect(response).to have_gitlab_http_status(:forbidden)
+        end
+      end
+    end
+
+    context 'when feature flag is disabled' do
+      before do
+        stub_feature_flags(releases_page: false)
+      end
+
+      it 'cannot find the API' do
+        delete api("/projects/#{project.id}/releases/v0.1", non_project_member)
+
+        expect(response).to have_gitlab_http_status(:not_found)
+      end
+    end
   end
 end

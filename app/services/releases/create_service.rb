@@ -43,8 +43,8 @@ module Releases
       )
 
       success(tag: tag, release: release)
-    rescue ActiveRecord::RecordInvalid
-      error('Failed to save release entry due to invalid parameters', 400)
+    rescue ActiveRecord::RecordInvalid => e
+      error(e.message, 400)
     end
   end
 end
