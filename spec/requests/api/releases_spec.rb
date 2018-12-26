@@ -298,7 +298,7 @@ describe API::Releases do
           'by Google.')
       end
 
-      context 'when ref name is HEAD' do
+      context 'when tag name is HEAD' do
         let(:tag_name) { 'HEAD' }
 
         it 'returns an error as failure on tag creation' do
@@ -309,7 +309,7 @@ describe API::Releases do
         end
       end
 
-      context 'when ref name is empty' do
+      context 'when tag name is empty' do
         let(:tag_name) { '' }
 
         it 'returns an error as failure on tag creation' do
