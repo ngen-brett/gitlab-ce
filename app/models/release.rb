@@ -12,6 +12,7 @@ class Release < ActiveRecord::Base
 
   validates :description, :project, :tag, presence: true
   validates :tag, uniqueness: { scope: :project }
+  validates :sha, presence: true, on: :create
 
   scope :sorted, -> { order(created_at: :desc) }
 
