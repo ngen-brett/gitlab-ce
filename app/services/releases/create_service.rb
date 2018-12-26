@@ -13,7 +13,9 @@ module Releases
       unless tag_exist?
         return error('Ref is not specified', 422) unless ref
 
-        result = create_tag
+        result = Tags::CreateService
+          .new(project, current_user)
+          .execute(tag_name, ref, nil)
 
         if result[:status] == :success
           new_tag = result[:tag]
@@ -31,24 +33,18 @@ module Releases
       Ability.allowed?(current_user, :create_release, project)
     end
 
-    def create_tag
-      Tags::CreateService
-        .new(project, current_user)
-        .execute(tag_name, ref, nil)
-    end
-
     def create_release(tag)
-      create_params = {
+      release = project.releases.create!(
+        name: name,
+        description: description,
         author: current_user,
-        name: tag.name,
+        tag: tag.name,
         sha: tag.dereferenced_target.sha
-      }.merge(params)
-
-      release = project.releases.create!(create_params)
+      )
 
       success(tag: tag, release: release)
     rescue ActiveRecord::RecordInvalid
-      error('Failed to save release record due to invalid parameters', 400)
+      error('Failed to save release entry due to invalid parameters', 400)
     end
   end
 end

@@ -4,10 +4,9 @@ describe Releases::CreateService do
   let(:project) { create(:project, :repository) }
   let(:user) { create(:user) }
   let(:tag_name) { project.repository.tag_names.first }
-  let(:name) { 'Bionic Beaver'}
+  let(:name) { 'Bionic Beaver' }
   let(:description) { 'Awesome release!' }
-  let(:params) { { tag: tag_name, name: name, description: description } }
-  let(:service) { described_class.new(project, user, params) }
+  let(:params) { { tag: tag_name, name: name, description: description, ref: ref } }
   let(:ref) { nil }
 
   before do
@@ -16,7 +15,7 @@ describe Releases::CreateService do
 
   shared_examples 'a successful release creation' do
     it 'creates a new release' do
-      result = service.execute(ref)
+      result = service.execute
       expect(result[:status]).to eq(:success)
       release = project.releases.find_by(tag: tag_name)
       expect(release).not_to be_nil
@@ -28,11 +27,14 @@ describe Releases::CreateService do
 
   it_behaves_like 'a successful release creation'
 
-  it 'raises an error if the tag does not exist' do
-    service.params[:tag] = 'foobar'
+  context 'when the tag does not exist' do
+    let(:tag_name) { 'non-exist-tag' }
 
-    result = service.execute
-    expect(result[:status]).to eq(:error)
+    it 'raises an error' do
+      result = service.execute
+
+      expect(result[:status]).to eq(:error)
+    end
   end
 
   it 'keeps track of the commit sha' do
@@ -53,7 +55,7 @@ describe Releases::CreateService do
     it 'creates a tag if the tag does not exist' do
       expect(project.repository.ref_exists?("refs/tags/#{tag_name}")).to be_falsey
 
-      result = service.execute(ref)
+      result = service.execute
       expect(result[:status]).to eq(:success)
       expect(project.repository.ref_exists?("refs/tags/#{tag_name}")).to be_truthy
 
@@ -74,5 +76,9 @@ describe Releases::CreateService do
       expect(result[:status]).to eq(:error)
       expect(project.releases.find_by(tag: tag_name).description).to eq(description)
     end
+  end
+
+  def service
+    described_class.new(project, user, params)
   end
 end

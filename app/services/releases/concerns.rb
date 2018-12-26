@@ -13,6 +13,14 @@ module Releases
       def ref
         params[:ref]
       end
+
+      def name
+        params[:name]
+      end
+
+      def description
+        params[:description]
+      end
   
       def release
         strong_memoize(:release) do
