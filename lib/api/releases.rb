@@ -4,7 +4,8 @@ module API
   class Releases < Grape::API
     include PaginationParams
 
-    RELEASE_ENDPOINT_REQUIREMETS = API::NAMESPACE_OR_PROJECT_REQUIREMENTS.merge(tag_name: API::NO_SLASH_URL_PART_REGEX)
+    RELEASE_ENDPOINT_REQUIREMETS = API::NAMESPACE_OR_PROJECT_REQUIREMENTS
+      .merge(tag_name: API::NO_SLASH_URL_PART_REGEX)
 
     before { error!('404 Not Found', 404) unless Feature.enabled?(:releases_page, user_project) }
     before { authorize_read_release! }
@@ -53,11 +54,8 @@ module API
       post ':id/releases' do
         authorize_create_release!
 
-        attributes = declared(params)
-        attributes.delete(:id)
-
-        result = Releases::CreateService
-          .new(user_project, current_user, attributes)
+        result = ::Releases::CreateService
+          .new(user_project, current_user, declared_params(include_missing: false))
           .execute
 
         if result[:status] == :success
@@ -81,7 +79,7 @@ module API
 
         attributes = declared(params)
         attributes.delete(:id)
-        result = Releases::UpdateService
+        result = ::Releases::UpdateService
           .new(user_project, current_user, attributes)
           .execute
 
@@ -105,7 +103,7 @@ module API
         attributes = declared(params)
         attributes.delete(:id)
 
-        result = Releases::DestroyService
+        result = ::Releases::DestroyService
           .new(user_project, current_user, attributes)
           .execute
 

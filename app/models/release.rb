@@ -11,6 +11,7 @@ class Release < ActiveRecord::Base
   belongs_to :author, class_name: 'User'
 
   validates :description, :project, :tag, presence: true
+  validates :tag, uniqueness: { scope: :project }
 
   scope :sorted, -> { order(created_at: :desc) }
 
@@ -27,7 +28,7 @@ class Release < ActiveRecord::Base
   end
 
   def tag_missing?
-    !!actual_tag
+    actual_tag.nil?
   end
 
   def sources_formats
