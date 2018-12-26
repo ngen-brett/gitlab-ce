@@ -42,7 +42,15 @@ describe API::Releases do
     end
 
     context 'when tag does not exist in git repository' do
-      let!(:release_2) { create(:release, project: project, tag: 'v1.1.5') }
+      let!(:release) { create(:release, project: project, tag: 'v1.1.5') }
+
+      it 'returns empty list' do
+        get api("/projects/#{project.id}/releases", maintainer)
+
+        expect(json_response.count).to eq(1)
+        expect(json_response.first['tag_name']).to eq(release_2.tag)
+        expect(json_response.second['tag_name']).to eq(release_1.tag)
+      end
     end
 
     context 'when user does not have permission' do

@@ -54,12 +54,11 @@ module API
         authorize_create_release!
 
         attributes = declared(params)
-        ref = attributes.delete(:ref)
         attributes.delete(:id)
 
-        result = ::CreateReleaseService
+        result = Releases::CreateService
           .new(user_project, current_user, attributes)
-          .execute(ref)
+          .execute
 
         if result[:status] == :success
           present result[:release], with: Entities::Release
@@ -82,7 +81,7 @@ module API
 
         attributes = declared(params)
         attributes.delete(:id)
-        result = UpdateReleaseService
+        result = Releases::UpdateService
           .new(user_project, current_user, attributes)
           .execute
 
@@ -106,7 +105,7 @@ module API
         attributes = declared(params)
         attributes.delete(:id)
 
-        result = DeleteReleaseService
+        result = Releases::DestroyService
           .new(user_project, current_user, attributes)
           .execute
 

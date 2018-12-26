@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe DeleteReleaseService do
+describe Releases::DestroyService do
   let(:project) { create(:project, :repository) }
   let(:mainatiner) { create(:user) }
   let(:repoter) { create(:user) }

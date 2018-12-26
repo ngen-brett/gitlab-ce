@@ -1,0 +1,40 @@
+# frozen_string_literal: true
+
+module Releases
+  module Concerns
+    extend ActiveSupport::Concern
+    include Gitlab::Utils::StrongMemoize
+
+    included do
+      def tag_name
+        params[:tag]
+      end
+
+      def ref
+        params[:ref]
+      end
+  
+      def release
+        strong_memoize(:release) do
+          project.releases.find_by_tag(tag_name)
+        end
+      end
+  
+      def existing_tag
+        strong_memoize(:existing_tag) do
+          repository.find_tag(tag_name)
+        end
+      end
+
+      def tag_exist?
+        !!existing_tag
+      end
+
+      def repository
+        strong_memoize(:repository) do
+          project.repository
+        end
+      end
+    end
+  end
+end
