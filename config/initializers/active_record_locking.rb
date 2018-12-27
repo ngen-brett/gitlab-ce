@@ -19,12 +19,7 @@ module ActiveRecord
         return 0 if attribute_names.empty?
 
         lock_col = self.class.locking_column
-
         previous_lock_value = send(lock_col).to_i
-
-        # This line is added as a patch
-        previous_lock_value = nil if previous_lock_value == '0' || previous_lock_value == 0
-
         increment_lock
 
         attribute_names += [lock_col]
@@ -35,7 +30,8 @@ module ActiveRecord
 
           affected_rows = relation.where(
             self.class.primary_key => id,
-            lock_col => previous_lock_value
+            # Patched because when `lock_version` is read as `0`, it may actually be `NULL` in the DB.
+            lock_col => previous_lock_value == 0 ? [nil, 0] : previous_lock_value
           ).update_all(
             attributes_for_update(attribute_names).map do |name|
               [name, _read_attribute(name)]
@@ -55,13 +51,14 @@ module ActiveRecord
         end
       end
 
-      # This is patched because we need it to query `lock_version IS NULL`
-      # rather than `lock_version = 0` whenever lock_version is NULL.
+      # Patched because when `lock_version` is read as `0`, it may actually be `NULL` in the DB.
       def relation_for_destroy
         return super unless locking_enabled?
 
-        column_name = self.class.locking_column
-        super.where(self.class.arel_table[column_name].eq(self[column_name]))
+        lock_col = self.class.locking_column
+        previous_lock_value = send(lock_col).to_i
+
+        super.where(lock_col => previous_lock_value == 0 ? [nil, 0] : previous_lock_value)
       end
     end
 
