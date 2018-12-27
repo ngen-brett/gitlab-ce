@@ -17,7 +17,7 @@ class IssueBoardEntity < Grape::Entity
   end
 
   expose :milestone, expose_nil: false do |issue|
-    API::Entities::Project.represent issue.milestone, only: [:id, :title]
+    API::Entities::Milestone.represent issue.milestone, only: [:id, :title]
   end
 
   expose :assignees do |issue|
@@ -37,7 +37,7 @@ class IssueBoardEntity < Grape::Entity
   end
 
   expose :issue_sidebar_endpoint, if: -> (issue) { issue.project } do |issue|
-    project_issue_path(issue.project, issue, format: :json, serializer: 'sidebar')
+    project_issue_path(issue.project, issue, format: :json, serializer: 'sidebar_extras')
   end
 
   expose :toggle_subscription_endpoint, if: -> (issue) { issue.project } do |issue|

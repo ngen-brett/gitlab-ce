@@ -548,15 +548,15 @@ production: &base
       #     app_id: 'YOUR_APP_ID',
       #     app_secret: 'YOUR_APP_SECRET' }
       # - { name: 'jwt',
-      #     app_secret: 'YOUR_APP_SECRET',
       #     args: {
-      #             algorithm: 'HS256',
-      #             uid_claim: 'email',
-      #             required_claims: ["name", "email"],
-      #             info_map: { name: "name", email: "email" },
-      #             auth_url: 'https://example.com/',
-      #             valid_within: null,
-      #           }
+      #       secret: 'YOUR_APP_SECRET',
+      #       algorithm: 'HS256', # Supported algorithms: 'RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512', 'HS256', 'HS384', 'HS512'
+      #       uid_claim: 'email',
+      #       required_claims: ['name', 'email'],
+      #       info_map: { name: 'name', email: 'email' },
+      #       auth_url: 'https://example.com/',
+      #       valid_within: 3600 # 1 hour
+      #     }
       #   }
       # - { name: 'saml',
       #     label: 'Our SAML Provider',
@@ -612,7 +612,7 @@ production: &base
     storages: # You must have at least a `default` storage path.
       default:
         path: /home/git/repositories/
-        gitaly_address: unix:/home/git/gitlab/tmp/sockets/private/gitaly.socket # TCP connections are supported too (e.g. tcp://host:port)
+        gitaly_address: unix:/home/git/gitlab/tmp/sockets/private/gitaly.socket # TCP connections are supported too (e.g. tcp://host:port). TLS connections are also supported using the system certificate pool (eg: tls://host:port).
         # gitaly_token: 'special token' # Optional: override global gitaly.token for this storage.
 
   ## Backup settings

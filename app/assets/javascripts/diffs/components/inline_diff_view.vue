@@ -17,6 +17,11 @@ export default {
       type: Array,
       required: true,
     },
+    helpPagePath: {
+      type: String,
+      required: false,
+      default: '',
+    },
   },
   computed: {
     ...mapGetters('diffs', ['commitId']),
@@ -44,9 +49,10 @@ export default {
           :is-bottom="index + 1 === diffLinesLength"
         />
         <inline-diff-comment-row
-          :key="`icr-${index}`"
+          :key="`icr-${line.line_code || index}`"
           :diff-file-hash="diffFile.file_hash"
           :line="line"
+          :help-page-path="helpPagePath"
         />
       </template>
     </tbody>

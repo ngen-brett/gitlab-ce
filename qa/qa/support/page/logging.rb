@@ -37,8 +37,8 @@ module QA
           exists
         end
 
-        def find_element(name)
-          log("finding :#{name}")
+        def find_element(name, wait: Capybara.default_max_wait_time)
+          log("finding :#{name} (wait: #{wait})")
 
           element = super
 
@@ -71,10 +71,24 @@ module QA
           super
         end
 
-        def has_element?(name)
+        def select_element(name, value)
+          log(%Q(selecting "#{value}" in :#{name}))
+
+          super
+        end
+
+        def has_element?(name, wait: Capybara.default_max_wait_time)
           found = super
 
           log("has_element? :#{name} returned #{found}")
+
+          found
+        end
+
+        def has_no_text?(text)
+          found = super
+
+          log(%Q{has_no_text?('#{text}') returned #{found}})
 
           found
         end
@@ -85,6 +99,16 @@ module QA
           element = super
 
           log("end within element :#{name}")
+
+          element
+        end
+
+        def within_element_by_index(name, index)
+          log("within elements :#{name} at index #{index}")
+
+          element = super
+
+          log("end within elements :#{name} at index #{index}")
 
           element
         end
