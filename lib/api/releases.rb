@@ -128,7 +128,11 @@ module API
       end
 
       def release
-        user_project.releases.find_by_tag(params[:tag])
+        user_project.releases.find_by_tag(params[:tag]).tap do |release|
+          unless can?(current_user, :read_release, release)
+            not_found!('Release')
+          end
+        end
       end
     end
   end

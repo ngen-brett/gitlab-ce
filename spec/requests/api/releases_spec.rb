@@ -408,7 +408,7 @@ describe API::Releases do
       it 'forbids the request' do
         put api("/projects/#{project.id}/releases/v0.1", maintainer), params: params
 
-        expect(response).to have_gitlab_http_status(:forbidden)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 
@@ -493,7 +493,7 @@ describe API::Releases do
       it 'forbids the request' do
         delete api("/projects/#{project.id}/releases/v0.1", maintainer)
 
-        expect(response).to have_gitlab_http_status(:forbidden)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 

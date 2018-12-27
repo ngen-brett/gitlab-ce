@@ -60,10 +60,15 @@ module API
         if result[:status] == :success
           # Release creation with Tags API was deprecated in GitLab 11.7
           if params[:release_description].present?
-            Releases::CreateService.new(
-              user_project, current_user,
-              tag: params[:tag_name], description: params[:release_description]
-            ).execute
+            release_create_params = {
+              tag: params[:tag_name],
+              name: params[:tag_name], # Name can be specified in new API
+              description: params[:release_description]
+            }
+
+            ::Releases::CreateService
+              .new(user_project, current_user, release_create_params)
+              .execute
           end
 
           present result[:tag],
@@ -107,11 +112,18 @@ module API
       post ':id/repository/tags/:tag_name/release', requirements: TAG_ENDPOINT_REQUIREMENTS do
         authorize_create_release!
 
-        attributes = declared(params)
-        attributes.delete(:id)
+        ##
+        # Legacy API does not support tag auto creation.
+        not_found!('Tag') unless user_project.repository.find_tag(params[:tag])
 
-        result = Releases::CreateService
-          .new(user_project, current_user, attributes)
+        release_create_params = {
+          tag: params[:tag],
+          name: params[:tag], # Name can be specified in new API
+          description: params[:description]
+        }
+
+        result = ::Releases::CreateService
+          .new(user_project, current_user, release_create_params)
           .execute
 
         if result[:status] == :success
@@ -126,23 +138,38 @@ module API
         success Entities::TagRelease
       end
       params do
-        requires :tag_name,    type: String, desc: 'The name of the tag'
+        requires :tag_name,    type: String, desc: 'The name of the tag', as: :tag
         requires :description, type: String, desc: 'Release notes with markdown support'
       end
       put ':id/repository/tags/:tag_name/release', requirements: TAG_ENDPOINT_REQUIREMENTS do
         authorize_update_release!
 
-        result = Releases::UpdateService.new(
-          user_project,
-          current_user,
-          tag: params[:tag_name],
-          description: params[:description]
-        ).execute
+        result = ::Releases::UpdateService
+          .new(user_project, current_user, declared_params(include_missing: false))
+          .execute
 
         if result[:status] == :success
           present result[:release], with: Entities::TagRelease
         else
           render_api_error!(result[:message], result[:http_status])
+        end
+      end
+    end
+
+    helpers do
+      def authorize_create_release!
+        authorize! :create_release, user_project
+      end
+
+      def authorize_update_release!
+        authorize! :update_release, release
+      end
+
+      def release
+        user_project.releases.find_by_tag(params[:tag]).tap do |release|
+          unless can?(current_user, :read_release, release)
+            not_found!('Release')
+          end
         end
       end
     end

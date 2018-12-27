@@ -6,5 +6,14 @@ FactoryBot.define do
     description "Awesome release"
     project
     author
+
+    trait :legacy do
+      after(:create) do |release|
+        ##
+        # Legacy release records do not have sha and author
+        release.update_column(:sha, nil)
+        release.update_column(:author_id, nil)
+      end
+    end
   end
 end
