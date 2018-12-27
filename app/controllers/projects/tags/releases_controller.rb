@@ -12,7 +12,7 @@ class Projects::Tags::ReleasesController < Projects::ApplicationController
   end
 
   def update
-    if release.update!(release_params)
+    if release.update(release_params)
       redirect_to project_tag_path(@project, @tag.name)
     else
       render :edit
