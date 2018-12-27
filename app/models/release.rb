@@ -4,6 +4,8 @@ class Release < ActiveRecord::Base
   include CacheMarkdownField
   include Gitlab::Utils::StrongMemoize
 
+  SOURCE_FORMATS = %w(zip tar.gz tar.bz2 tar).freeze
+
   cache_markdown_field :description
 
   belongs_to :project
@@ -33,17 +35,13 @@ class Release < ActiveRecord::Base
     actual_tag.nil?
   end
 
-  def sources_formats
-    @sources_formats ||= %w(zip tar.gz tar.bz2 tar).freeze
-  end
-
   # TODO: placeholder for frontend API compatibility
   def links
     []
   end
 
   def assets_count
-    links.size + sources_formats.size
+    links.size + SOURCE_FORMATS.size
   end
 
   private

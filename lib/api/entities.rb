@@ -1105,7 +1105,7 @@ module API
         expose :links
         expose :sources do |release, _opts|
           archive_path = "#{release.project.path}-#{release.tag.tr('/', '-')}"
-          release.sources_formats.map do |format|
+          release::SOURCE_FORMATS.map do |format|
             {
               format: format,
               url: Gitlab::Routing.url_helpers.project_archive_url(release.project, id: File.join(release.tag, archive_path), format: format)
