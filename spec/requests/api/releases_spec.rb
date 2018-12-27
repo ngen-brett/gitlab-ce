@@ -65,7 +65,7 @@ describe API::Releases do
 
         it 'allows the request' do
           get api("/projects/#{project.id}/releases", non_project_member)
-  
+
           expect(response).to have_gitlab_http_status(:ok)
         end
       end
@@ -140,7 +140,7 @@ describe API::Releases do
 
         it 'allows the request' do
           get api("/projects/#{project.id}/releases/v0.1", non_project_member)
-  
+
           expect(response).to have_gitlab_http_status(:ok)
         end
       end
@@ -195,7 +195,7 @@ describe API::Releases do
 
       it 'returns an error as validation failure' do
         post api("/projects/#{project.id}/releases", maintainer), params: params
-  
+
         expect(response).to have_gitlab_http_status(:bad_request)
         expect(json_response['message'])
           .to eq("Validation failed: Name can't be blank")
@@ -215,7 +215,7 @@ describe API::Releases do
         expect do
           post api("/projects/#{project.id}/releases", maintainer), params: params
         end.not_to change { Release.count }
-  
+
         expect(response).to have_gitlab_http_status(:bad_request)
         expect(json_response['message'])
           .to eq("Validation failed: Description can't be blank")
@@ -256,7 +256,7 @@ describe API::Releases do
         it 'forbids the request' do
           post api("/projects/#{project.id}/releases", non_project_member),
                params: params
-  
+
           expect(response).to have_gitlab_http_status(:forbidden)
         end
       end
@@ -289,7 +289,7 @@ describe API::Releases do
         expect do
           post api("/projects/#{project.id}/releases", maintainer), params: params
         end.to change { Release.count }.by(1)
-  
+
         expect(project.releases.last.name).to eq('Android ~ Ice Cream Sandwich ~')
         expect(project.releases.last.tag).to eq('v4.0')
         expect(project.releases.last.description).to eq(
@@ -393,7 +393,7 @@ describe API::Releases do
     end
 
     context 'when params is empty' do
-      let(:params) { { } }
+      let(:params) { {} }
 
       it 'does not allow the request' do
         put api("/projects/#{project.id}/releases/v0.1", maintainer), params: params
@@ -434,7 +434,7 @@ describe API::Releases do
         it 'forbids the request' do
           put api("/projects/#{project.id}/releases/v0.1", non_project_member),
                params: params
-  
+
           expect(response).to have_gitlab_http_status(:forbidden)
         end
       end
@@ -517,7 +517,7 @@ describe API::Releases do
 
         it 'forbids the request' do
           delete api("/projects/#{project.id}/releases/v0.1", non_project_member)
-  
+
           expect(response).to have_gitlab_http_status(:forbidden)
         end
       end

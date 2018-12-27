@@ -21,13 +21,13 @@ module Releases
       def description
         params[:description]
       end
-  
+
       def release
         strong_memoize(:release) do
           project.releases.find_by_tag(tag_name)
         end
       end
-  
+
       def existing_tag
         strong_memoize(:existing_tag) do
           repository.find_tag(tag_name)

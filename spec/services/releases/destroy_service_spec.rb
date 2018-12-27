@@ -26,8 +26,8 @@ describe Releases::DestroyService do
       it 'returns the destroyed object' do
         is_expected.to eq(
           {
-            :status => :success,
-            :release => release
+            status: :success,
+            release: release
           }
         )
       end
@@ -39,9 +39,9 @@ describe Releases::DestroyService do
       it 'returns an error' do
         is_expected.to eq(
           {
-            :message => 'Tag does not exist',
-            :status => :error,
-            :http_status => 404
+            message: 'Tag does not exist',
+            status: :error,
+            http_status: 404
           }
         )
       end
@@ -53,9 +53,9 @@ describe Releases::DestroyService do
       it 'returns an error' do
         is_expected.to eq(
           {
-            :message => 'Release does not exist',
-            :status => :error,
-            :http_status => 404
+            message: 'Release does not exist',
+            status: :error,
+            http_status: 404
           }
         )
       end
@@ -67,9 +67,9 @@ describe Releases::DestroyService do
       it 'returns an error' do
         is_expected.to eq(
           {
-            :message => 'Access Denied',
-            :status => :error,
-            :http_status => 403
+            message: 'Access Denied',
+            status: :error,
+            http_status: 403
           }
         )
       end
