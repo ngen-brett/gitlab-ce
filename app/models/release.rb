@@ -4,8 +4,6 @@ class Release < ActiveRecord::Base
   include CacheMarkdownField
   include Gitlab::Utils::StrongMemoize
 
-  SOURCE_FORMATS = %w(zip tar.gz tar.bz2 tar).freeze
-
   cache_markdown_field :description
 
   belongs_to :project
