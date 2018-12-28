@@ -38,9 +38,13 @@ export default class UserOverviewBlock {
     if (count && count > 0) {
       document.querySelector(`${this.container} .js-view-all`).classList.remove('hide');
     } else {
-      document
-        .querySelector(`${this.container} .nothing-here-block`)
-        .classList.add('text-left', 'p-0');
+      const nothingHereBlock = document.querySelector(`${this.container} .nothing-here-block`);
+
+      if (nothingHereBlock) {
+        document
+          .querySelector(`${this.container} .nothing-here-block`)
+          .classList.add('text-left', 'p-0');
+      }
     }
 
     loadingEl.classList.add('hide');
