@@ -85,7 +85,7 @@ class Project < ActiveRecord::Base
   default_value_for :snippets_enabled, gitlab_config_features.snippets
   default_value_for :only_allow_merge_if_all_discussions_are_resolved, false
 
-  add_authentication_token_field :runners_token
+  add_authentication_token_field :runners_token, encrypted: true, migrating: true
 
   before_validation :mark_remote_mirrors_for_removal, if: -> { RemoteMirror.table_exists? }
 
@@ -238,6 +238,7 @@ class Project < ActiveRecord::Base
   has_one :cluster_project, class_name: 'Clusters::Project'
   has_many :clusters, through: :cluster_project, class_name: 'Clusters::Cluster'
   has_many :cluster_ingresses, through: :clusters, source: :application_ingress, class_name: 'Clusters::Applications::Ingress'
+  has_many :kubernetes_namespaces, class_name: 'Clusters::KubernetesNamespace'
 
   has_many :prometheus_metrics
 
@@ -247,7 +248,17 @@ class Project < ActiveRecord::Base
   has_many :container_repositories, dependent: :destroy # rubocop:disable Cop/ActiveRecordDependent
 
   has_many :commit_statuses
-  has_many :pipelines, class_name: 'Ci::Pipeline', inverse_of: :project
+  # The relation :all_pipelines is intented to be used when we want to get the
+  # whole list of pipelines associated to the project
+  has_many :all_pipelines, class_name: 'Ci::Pipeline', inverse_of: :project
+  # The relation :ci_pipelines is intented to be used when we want to get only
+  # those pipeline which are directly related to CI. There are
+  # other pipelines, like webide ones, that we won't retrieve
+  # if we use this relation.
+  has_many :ci_pipelines,
+          -> { ci_sources },
+          class_name: 'Ci::Pipeline',
+          inverse_of: :project
   has_many :stages, class_name: 'Ci::Stage', inverse_of: :project
 
   # Ci::Build objects store data on the file system such as artifact files and
@@ -290,6 +301,8 @@ class Project < ActiveRecord::Base
   delegate :add_guest, :add_reporter, :add_developer, :add_maintainer, :add_role, to: :team
   delegate :add_master, to: :team # @deprecated
   delegate :group_runners_enabled, :group_runners_enabled=, :group_runners_enabled?, to: :ci_cd_settings
+  delegate :group_clusters_enabled?, to: :group, allow_nil: true
+  delegate :root_ancestor, to: :namespace, allow_nil: true
 
   # Validations
   validates :creator, presence: true, on: :create
@@ -326,6 +339,7 @@ class Project < ActiveRecord::Base
     presence: true,
     inclusion: { in: ->(_object) { Gitlab.config.repositories.storages.keys } }
   validates :variables, variable_duplicates: { scope: :environment_scope }
+  validates :bfg_object_map, file_size: { maximum: :max_attachment_size }
 
   # Scopes
   scope :pending_delete, -> { where(pending_delete: true) }
@@ -382,15 +396,25 @@ class Project < ActiveRecord::Base
     .where(project_ci_cd_settings: { group_runners_enabled: true })
   end
 
+  scope :missing_kubernetes_namespace, -> (kubernetes_namespaces) do
+    subquery = kubernetes_namespaces.select('1').where('clusters_kubernetes_namespaces.project_id = projects.id')
+
+    where('NOT EXISTS (?)', subquery)
+  end
+
   enum auto_cancel_pending_pipelines: { disabled: 0, enabled: 1 }
 
-  chronic_duration_attr :build_timeout_human_readable, :build_timeout, default: 3600
+  chronic_duration_attr :build_timeout_human_readable, :build_timeout,
+    default: 3600, error_message: 'Maximum job timeout has a value which could not be accepted'
 
   validates :build_timeout, allow_nil: true,
                             numericality: { greater_than_or_equal_to: 10.minutes,
                                             less_than: 1.month,
                                             only_integer: true,
                                             message: 'needs to be beetween 10 minutes and 1 month' }
+
+  # Used by Projects::CleanupService to hold a map of rewritten object IDs
+  mount_uploader :bfg_object_map, AttachmentUploader
 
   # Returns a project, if it is not about to be removed.
   #
@@ -545,10 +569,12 @@ class Project < ActiveRecord::Base
 
   # returns all ancestor-groups upto but excluding the given namespace
   # when no namespace is given, all ancestors upto the top are returned
-  def ancestors_upto(top = nil)
-    Gitlab::GroupHierarchy.new(Group.where(id: namespace_id))
-      .base_and_ancestors(upto: top)
+  def ancestors_upto(top = nil, hierarchy_order: nil)
+    Gitlab::ObjectHierarchy.new(Group.where(id: namespace_id))
+      .base_and_ancestors(upto: top, hierarchy_order: hierarchy_order)
   end
+
+  alias_method :ancestors, :ancestors_upto
 
   def lfs_enabled?
     return namespace.lfs_enabled? if self[:lfs_enabled].nil?
@@ -620,13 +646,18 @@ class Project < ActiveRecord::Base
 
   # ref can't be HEAD, can only be branch/tag name or SHA
   def latest_successful_builds_for(ref = default_branch)
-    latest_pipeline = pipelines.latest_successful_for(ref)
+    latest_pipeline = ci_pipelines.latest_successful_for(ref)
 
     if latest_pipeline
       latest_pipeline.builds.latest.with_artifacts_archive
     else
       builds.none
     end
+  end
+
+  def latest_successful_build_for(job_name, ref = default_branch)
+    builds = latest_successful_builds_for(ref)
+    builds.find_by!(name: job_name)
   end
 
   def merge_base_commit(first_commit_id, second_commit_id)
@@ -718,15 +749,9 @@ class Project < ActiveRecord::Base
     return if data.nil? && credentials.nil?
 
     project_import_data = import_data || build_import_data
-    if data
-      project_import_data.data ||= {}
-      project_import_data.data = project_import_data.data.merge(data)
-    end
 
-    if credentials
-      project_import_data.credentials ||= {}
-      project_import_data.credentials = project_import_data.credentials.merge(credentials)
-    end
+    project_import_data.merge_data(data.to_h)
+    project_import_data.merge_credentials(credentials.to_h)
 
     project_import_data
   end
@@ -1060,6 +1085,12 @@ class Project < ActiveRecord::Base
     path
   end
 
+  def all_clusters
+    group_clusters = Clusters::Cluster.joins(:groups).where(cluster_groups: { group_id: ancestors_upto } )
+
+    Clusters::Cluster.from_union([clusters, group_clusters])
+  end
+
   def items_for(entity)
     case entity
     when 'issue' then
@@ -1140,6 +1171,11 @@ class Project < ActiveRecord::Base
     "#{web_url}.git"
   end
 
+  # Is overriden in EE
+  def lfs_http_url_to_repo(_)
+    http_url_to_repo
+  end
+
   def forked?
     fork_network && fork_network.root_project != self
   end
@@ -1208,10 +1244,8 @@ class Project < ActiveRecord::Base
   end
 
   def track_project_repository
-    return unless hashed_storage?(:repository)
-
-    project_repo = project_repository || build_project_repository
-    project_repo.update!(shard_name: repository_storage, disk_path: disk_path)
+    repository = project_repository || build_project_repository
+    repository.update!(shard_name: repository_storage, disk_path: disk_path)
   end
 
   def create_repository(force: false)
@@ -1370,7 +1404,7 @@ class Project < ActiveRecord::Base
 
     return unless sha
 
-    pipelines.order(id: :desc).find_by(sha: sha, ref: ref)
+    ci_pipelines.order(id: :desc).find_by(sha: sha, ref: ref)
   end
 
   def latest_successful_pipeline_for_default_branch
@@ -1379,12 +1413,12 @@ class Project < ActiveRecord::Base
     end
 
     @latest_successful_pipeline_for_default_branch =
-      pipelines.latest_successful_for(default_branch)
+      ci_pipelines.latest_successful_for(default_branch)
   end
 
   def latest_successful_pipeline_for(ref = nil)
     if ref && ref != default_branch
-      pipelines.latest_successful_for(ref)
+      ci_pipelines.latest_successful_for(ref)
     else
       latest_successful_pipeline_for_default_branch
     end
@@ -1548,6 +1582,7 @@ class Project < ActiveRecord::Base
     import_state.remove_jid
     update_project_counter_caches
     after_create_default_branch
+    join_pool_repository
     refresh_markdown_cache!
   end
 
@@ -1940,7 +1975,55 @@ class Project < ActiveRecord::Base
     Ability.allowed?(user, :read_project_snippet, self)
   end
 
+  def max_attachment_size
+    Gitlab::CurrentSettings.max_attachment_size.megabytes.to_i
+  end
+
+  def object_pool_params
+    return {} unless !forked? && git_objects_poolable?
+
+    {
+      repository_storage: repository_storage,
+      pool_repository:    pool_repository || create_new_pool_repository
+    }
+  end
+
+  # Git objects are only poolable when the project is or has:
+  # - Hashed storage -> The object pool will have a remote to its members, using relative paths.
+  #                     If the repository path changes we would have to update the remote.
+  # - Public         -> User will be able to fetch Git objects that might not exist
+  #                     in their own repository.
+  # - Repository     -> Else the disk path will be empty, and there's nothing to pool
+  def git_objects_poolable?
+    hashed_storage?(:repository) &&
+      public? &&
+      repository_exists? &&
+      Gitlab::CurrentSettings.hashed_storage_enabled &&
+      Feature.enabled?(:object_pools, self)
+  end
+
+  def leave_pool_repository
+    pool_repository&.unlink_repository(repository)
+  end
+
   private
+
+  def create_new_pool_repository
+    pool = begin
+             create_pool_repository!(shard: Shard.by_name(repository_storage), source_project: self)
+           rescue ActiveRecord::RecordNotUnique
+             pool_repository(true)
+           end
+
+    pool.schedule unless pool.scheduled?
+    pool
+  end
+
+  def join_pool_repository
+    return unless pool_repository
+
+    ObjectPool::JoinWorker.perform_async(pool_repository.id, self.id)
+  end
 
   def use_hashed_storage
     if self.new_record? && Gitlab::CurrentSettings.hashed_storage_enabled

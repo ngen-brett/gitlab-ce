@@ -3,7 +3,6 @@
 class Namespace < ActiveRecord::Base
   include CacheMarkdownField
   include Sortable
-  include Gitlab::ShellAdapter
   include Gitlab::VisibilityLevel
   include Routable
   include AfterCommitQueue
@@ -176,44 +175,44 @@ class Namespace < ActiveRecord::Base
 
   # Returns all ancestors, self, and descendants of the current namespace.
   def self_and_hierarchy
-    Gitlab::GroupHierarchy
+    Gitlab::ObjectHierarchy
       .new(self.class.where(id: id))
-      .all_groups
+      .all_objects
   end
 
   # Returns all the ancestors of the current namespaces.
   def ancestors
     return self.class.none unless parent_id
 
-    Gitlab::GroupHierarchy
+    Gitlab::ObjectHierarchy
       .new(self.class.where(id: parent_id))
       .base_and_ancestors
   end
 
   # returns all ancestors upto but excluding the given namespace
   # when no namespace is given, all ancestors upto the top are returned
-  def ancestors_upto(top = nil)
-    Gitlab::GroupHierarchy.new(self.class.where(id: id))
-      .ancestors(upto: top)
+  def ancestors_upto(top = nil, hierarchy_order: nil)
+    Gitlab::ObjectHierarchy.new(self.class.where(id: id))
+      .ancestors(upto: top, hierarchy_order: hierarchy_order)
   end
 
   def self_and_ancestors
     return self.class.where(id: id) unless parent_id
 
-    Gitlab::GroupHierarchy
+    Gitlab::ObjectHierarchy
       .new(self.class.where(id: id))
       .base_and_ancestors
   end
 
   # Returns all the descendants of the current namespace.
   def descendants
-    Gitlab::GroupHierarchy
+    Gitlab::ObjectHierarchy
       .new(self.class.where(parent_id: id))
       .base_and_descendants
   end
 
   def self_and_descendants
-    Gitlab::GroupHierarchy
+    Gitlab::ObjectHierarchy
       .new(self.class.where(id: id))
       .base_and_descendants
   end
@@ -243,7 +242,7 @@ class Namespace < ActiveRecord::Base
   end
 
   def root_ancestor
-    ancestors.reorder(nil).find_by(parent_id: nil)
+    self_and_ancestors.reorder(nil).find_by(parent_id: nil)
   end
 
   def subgroup?
@@ -294,7 +293,7 @@ class Namespace < ActiveRecord::Base
   end
 
   def force_share_with_group_lock_on_descendants
-    return unless Group.supports_nested_groups?
+    return unless Group.supports_nested_objects?
 
     # We can't use `descendants.update_all` since Rails will throw away the WITH
     # RECURSIVE statement. We also can't use WHERE EXISTS since we can't use
@@ -307,6 +306,7 @@ class Namespace < ActiveRecord::Base
   def write_projects_repository_config
     all_projects.find_each do |project|
       project.write_repository_config
+      project.track_project_repository
     end
   end
 end

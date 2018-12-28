@@ -18,6 +18,8 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
   it { is_expected.to delegate_method(:managed?).to(:cluster) }
   it { is_expected.to delegate_method(:kubernetes_namespace).to(:cluster) }
 
+  it_behaves_like 'having unique enum values'
+
   describe 'before_validation' do
     context 'when namespace includes upper case' do
       let(:kubernetes) { create(:cluster_platform_kubernetes, :configured, namespace: namespace) }
@@ -273,6 +275,36 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
         )
       end
     end
+
+    context 'group level cluster' do
+      let!(:cluster) { create(:cluster, :group, platform_kubernetes: kubernetes) }
+
+      let(:project) { create(:project, group: cluster.group) }
+
+      subject { kubernetes.predefined_variables(project: project) }
+
+      context 'no kubernetes namespace for the project' do
+        it_behaves_like 'setting variables'
+
+        it 'does not return KUBE_TOKEN' do
+          expect(subject).not_to include(
+            { key: 'KUBE_TOKEN', value: kubernetes.token, public: false }
+          )
+        end
+      end
+
+      context 'kubernetes namespace exists for the project' do
+        let!(:kubernetes_namespace) { create(:cluster_kubernetes_namespace, :with_token, cluster: cluster, project: project) }
+
+        it_behaves_like 'setting variables'
+
+        it 'sets KUBE_TOKEN' do
+          expect(subject).to include(
+            { key: 'KUBE_TOKEN', value: kubernetes_namespace.service_account_token, public: false }
+          )
+        end
+      end
+    end
   end
 
   describe '#terminals' do
@@ -293,12 +325,13 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
 
     context 'with valid pods' do
       let(:pod) { kube_pod(app: environment.slug) }
+      let(:pod_with_no_terminal) { kube_pod(app: environment.slug, status: "Pending") }
       let(:terminals) { kube_terminals(service, pod) }
 
       before do
         stub_reactive_cache(
           service,
-          pods: [pod, pod, kube_pod(app: "should-be-filtered-out")]
+          pods: [pod, pod, pod_with_no_terminal, kube_pod(app: "should-be-filtered-out")]
         )
       end
 
@@ -362,7 +395,7 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
 
     context 'when namespace is updated' do
       it 'should call ConfigureWorker' do
-        expect(ClusterPlatformConfigureWorker).to receive(:perform_async).with(cluster.id).once
+        expect(ClusterConfigureWorker).to receive(:perform_async).with(cluster.id).once
 
         platform.namespace = 'new-namespace'
         platform.save
@@ -371,7 +404,7 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
 
     context 'when namespace is not updated' do
       it 'should not call ConfigureWorker' do
-        expect(ClusterPlatformConfigureWorker).not_to receive(:perform_async)
+        expect(ClusterConfigureWorker).not_to receive(:perform_async)
 
         platform.username = "new-username"
         platform.save
