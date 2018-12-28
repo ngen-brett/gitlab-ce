@@ -28,15 +28,6 @@ class Release < ActiveRecord::Base
     actual_tag.nil?
   end
 
-  # TODO: placeholder for frontend API compatibility
-  def links
-    []
-  end
-
-  def assets_count
-    links.size + SOURCE_FORMATS.size
-  end
-
   private
 
   def actual_sha
