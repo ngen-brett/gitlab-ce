@@ -4,7 +4,7 @@ class Projects::Tags::ReleasesController < Projects::ApplicationController
   # Authorize
   before_action :require_non_empty_project
   before_action :authorize_download_code!
-  before_action :authorize_update_release!
+  before_action :authorize_push_code!
   before_action :tag
   before_action :release
 
@@ -12,11 +12,16 @@ class Projects::Tags::ReleasesController < Projects::ApplicationController
   end
 
   def update
-    if release.update(release_params)
-      redirect_to project_tag_path(@project, @tag.name)
+    # Release belongs to Tag which is not active record object,
+    # it exists only to save a description to each Tag.
+    # If description is empty we should destroy the existing record.
+    if release_params[:description].present?
+      release.update(release_params)
     else
-      render :edit
+      release.destroy
     end
+
+    redirect_to project_tag_path(@project, @tag.name)
   end
 
   private
@@ -25,26 +30,13 @@ class Projects::Tags::ReleasesController < Projects::ApplicationController
     @tag ||= @repository.find_tag(params[:tag_id])
   end
 
-  def sha
-    @sha ||= tag.dereferenced_target.id
-  end
-
+  # rubocop: disable CodeReuse/ActiveRecord
   def release
-    @release ||= @project.releases.find_by_tag(tag.name) || build_release
+    @release ||= @project.releases.find_or_initialize_by(tag: @tag.name)
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def release_params
     params.require(:release).permit(:description)
-  end
-
-  ##
-  # Legacy release creation form does not have `name` input.
-  # We should fill it with tag_name because `name` is requied parameter today.
-  def build_release
-    @project.releases.build(tag: tag.name, name: tag.name, sha: sha)
-  end
-
-  def authorize_update_release!
-    return access_denied! unless can?(current_user, :update_release, release)
   end
 end
