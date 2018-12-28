@@ -18,10 +18,6 @@ class Release < ActiveRecord::Base
 
   delegate :repository, to: :project
 
-  def self.by_tag(project, tag)
-    self.find_by(project: project, tag: tag)
-  end
-
   def commit
     strong_memoize(:commit) do
       repository.commit(actual_sha)
