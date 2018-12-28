@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe 'Project > Show > User interacts with auto devops implicitly enabled banner' do
+describe 'Project > Show > User interacts with Auto DevOps implicitly enabled banner' do
   let(:project) { create(:project, :repository) }
   let(:user) { create(:user) }
 
@@ -14,25 +14,31 @@ describe 'Project > Show > User interacts with auto devops implicitly enabled ba
   context 'when user does not have maintainer access' do
     let(:role) { :developer }
 
-    context 'when AutoDevOps is implicitly enabled' do
-      it 'does not display AutoDevOps implicitly enabled banner' do
-        expect(page).not_to have_css('.auto-devops-implicitly-enabled-banner')
-      end
+    it 'does not display AutoDevOps implicitly enabled banner' do
+      expect(page).not_to have_css('.auto-devops-implicitly-enabled-banner')
     end
   end
 
   context 'when user has mantainer access' do
     let(:role) { :maintainer }
+    let(:builds_visibility) { ProjectFeature::ENABLED }
 
     context 'when AutoDevOps is implicitly enabled' do
       before do
         stub_application_setting(auto_devops_enabled: true)
+        project.project_feature.update_attribute(:builds_access_level, builds_visibility)
 
         visit project_path(project)
       end
 
       it 'display AutoDevOps implicitly enabled banner' do
         expect(page).to have_css('.auto-devops-implicitly-enabled-banner')
+      end
+
+      it 'displays a Settings link' do
+        page.within('.auto-devops-implicitly-enabled-banner') do
+          expect(page).to have_link('Settings')
+        end
       end
 
       context 'when user dismisses the banner', :js do
@@ -42,6 +48,16 @@ describe 'Project > Show > User interacts with auto devops implicitly enabled ba
           visit project_path(project)
 
           expect(page).not_to have_css('.auto-devops-implicitly-enabled-banner')
+        end
+      end
+
+      context 'when project has builds disabled' do
+        let(:builds_visibility) { ProjectFeature::DISABLED }
+
+        it 'should not display More Information link' do
+          page.within('.auto-devops-implicitly-enabled-banner') do
+            expect(page).not_to have_link('Settings')
+          end
         end
       end
     end

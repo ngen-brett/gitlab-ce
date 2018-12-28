@@ -205,11 +205,17 @@ module ProjectsHelper
   end
 
   def show_auto_devops_implicitly_enabled_banner?(project)
+    return false unless project.has_auto_devops_implicitly_enabled?
+    return false unless user_has_maintainer_access?(project)
+    return false if project.repository.gitlab_ci_yml
+
     cookie_key = "hide_auto_devops_implicitly_enabled_banner_#{project.id}"
 
-    project.has_auto_devops_implicitly_enabled? &&
-      cookies[cookie_key.to_sym].blank? &&
-      (project.owner == current_user || project.team.maintainer?(current_user))
+    cookies[cookie_key.to_sym].blank?
+  end
+
+  def user_has_maintainer_access?(project)
+    project.owner == current_user || project.team.maintainer?(current_user)
   end
 
   def link_to_set_password

@@ -629,4 +629,75 @@ describe ProjectsHelper do
       end
     end
   end
+
+  describe '#show_auto_devops_implicitly_enabled_banner?' do
+    using RSpec::Parameterized::TableSyntax
+
+    let(:user) { create(:user) }
+
+    let(:feature_visibilities) do
+      {
+        enabled: ProjectFeature::ENABLED,
+        disabled: ProjectFeature::DISABLED
+      }
+    end
+
+    where(:global_setting, :project_setting, :gitlab_ci_yml, :user_role, :result) do
+      # With global setting enabled
+      true | nil | true  | :maintainer | false
+      true | nil | true  | :developer  | false
+      true | nil | false | :maintainer | true
+      true | nil | false | :developer  | false
+
+      true | true | true  | :maintainer | false
+      true | true | true  | :developer  | false
+      true | true | false | :maintainer | false
+      true | true | false | :developer  | false
+
+      true | false | true  | :maintainer | false
+      true | false | true  | :developer  | false
+      true | false | false | :maintainer | false
+      true | false | false | :developer  | false
+
+      # With global setting disabled
+      false | nil | true  | :maintainer | false
+      false | nil | true  | :developer  | false
+      false | nil | false | :maintainer | false
+      false | nil | false | :developer  | false
+
+      false | true | true  | :maintainer | false
+      false | true | true  | :developer  | false
+      false | true | false | :maintainer | false
+      false | true | false | :developer  | false
+
+      false | false | true  | :maintainer | false
+      false | false | true  | :developer  | false
+      false | false | false | :maintainer | false
+      false | false | false | :developer  | false
+    end
+
+    with_them do
+      let(:project) do
+        if project_setting.nil?
+          create(:project, :repository)
+        else
+          create(:project, :repository, :auto_devops)
+        end
+      end
+
+      before do
+        stub_application_setting(auto_devops_enabled: global_setting)
+
+        allow(helper).to receive(:current_user).and_return(user)
+        allow_any_instance_of(Repository).to receive(:gitlab_ci_yml).and_return(gitlab_ci_yml)
+
+        project.auto_devops.update_attribute(:enabled, project_setting) unless project_setting.nil?
+        project.add_user(user, user_role)
+      end
+
+      subject { helper.show_auto_devops_implicitly_enabled_banner?(project) }
+
+      it { is_expected.to eq(result) }
+    end
+  end
 end
