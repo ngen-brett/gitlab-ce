@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Gitlab::LegacyGithubImport::ReleaseFormatter do
-  let!(:project) { create(:project, namespace: create(:namespace, path: 'octocat')) }
+  let!(:project) { create(:project, :repository, namespace: create(:namespace, path: 'octocat')) }
   let(:octocat) { double(id: 123456, login: 'octocat') }
   let(:created_at) { DateTime.strptime('2011-01-26T19:01:12Z') }
 
@@ -25,6 +25,8 @@ describe Gitlab::LegacyGithubImport::ReleaseFormatter do
       expected = {
         project: project,
         tag: 'v1.0.0',
+        name: 'First release',
+        sha: project.repository.find_tag('v1.0.0').dereferenced_target.sha,
         description: 'Release v1.0.0',
         created_at: created_at,
         updated_at: created_at
