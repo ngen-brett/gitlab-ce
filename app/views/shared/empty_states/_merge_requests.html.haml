@@ -1,6 +1,10 @@
 - button_path = local_assigns.fetch(:button_path, false)
 - project_select_button = local_assigns.fetch(:project_select_button, false)
 - has_button = button_path || project_select_button
+- closed_merged_count = issuables_count_for_state(:merged, :closed)
+- opened_merged_count = issuables_count_for_state(:merged, :opened)
+- is_opened_state = params[:state] == 'opened'
+- is_closed_state = params[:state] == 'closed'
 
 .row.empty-state.merge-requests
   .col-12
@@ -13,6 +17,18 @@
           = _("Sorry, your filter produced no results")
         %p.text-center
           = _("To widen your search, change or remove filters above")
+        %div.text-center
+          = link_to _("New merge request"), project_new_merge_request_path(@project), class: "btn btn-success", title: _("New merge request"), id: "new_merge_request_link"
+      - elsif is_opened_state && opened_merged_count == 0 && closed_merged_count > 0
+        %h4.text-center
+          = _("There are no open merge requests")
+        %p.text-center
+          = _("To keep this project going, create a new merge request")
+        %div.text-center
+          = link_to _("New merge request"), project_new_merge_request_path(@project), class: "btn btn-success", title: _("New merge request"), id: "new_merge_request_link"
+      - elsif is_closed_state && opened_merged_count > 0 && closed_merged_count == 0
+        %h4.text-center
+          = _("There are no closed merge requests")
       - else
         %h4
           = _("Merge requests are a place to propose changes you've made to a project and discuss those changes with others")
