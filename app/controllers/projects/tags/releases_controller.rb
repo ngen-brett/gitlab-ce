@@ -29,11 +29,9 @@ class Projects::Tags::ReleasesController < Projects::ApplicationController
     @sha ||= tag.dereferenced_target.id
   end
 
-  # rubocop: disable CodeReuse/ActiveRecord
   def release
     @release ||= @project.releases.find_by_tag(tag.name) || build_release
   end
-  # rubocop: enable CodeReuse/ActiveRecord
 
   def release_params
     params.require(:release).permit(:description)
