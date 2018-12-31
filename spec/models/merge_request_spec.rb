@@ -559,6 +559,57 @@ describe MergeRequest do
     end
   end
 
+  describe '#preload_discussions_diff_highlight' do
+    let(:merge_request) { create(:merge_request) }
+
+    context 'with commit diff note' do
+      let(:other_merge_request) { create(:merge_request) }
+
+      let!(:diff_note) do
+        create(:diff_note_on_commit, project: merge_request.project)
+      end
+
+      let!(:other_mr_diff_note) do
+        create(:diff_note_on_commit, project: other_merge_request.project)
+      end
+
+      it 'preloads diff highlighting' do
+        expect_next_instance_of(Gitlab::DiscussionsDiff::FileCollection) do |collection|
+          note_diff_file = diff_note.note_diff_file
+
+          expect(collection)
+            .to receive(:load_highlight)
+            .with([note_diff_file.id]).and_call_original
+        end
+
+        merge_request.preload_discussions_diff_highlight
+      end
+    end
+
+    context 'with merge request diff note' do
+      let!(:unresolved_diff_note) do
+        create(:diff_note_on_merge_request, project: merge_request.project, noteable: merge_request)
+      end
+
+      let!(:resolved_diff_note) do
+        create(:diff_note_on_merge_request, :resolved, project: merge_request.project, noteable: merge_request)
+      end
+
+      it 'preloads diff highlighting' do
+        expect_next_instance_of(Gitlab::DiscussionsDiff::FileCollection) do |collection|
+          note_diff_file = unresolved_diff_note.note_diff_file
+
+          expect(collection)
+            .to receive(:load_highlight)
+            .with([note_diff_file.id])
+            .and_call_original
+        end
+
+        merge_request.preload_discussions_diff_highlight
+      end
+    end
+  end
+
   describe '#diff_size' do
     let(:merge_request) do
       build(:merge_request, source_branch: 'expand-collapse-files', target_branch: 'master')
@@ -1206,6 +1257,119 @@ describe MergeRequest do
         expect(subject.all_pipelines).to contain_exactly(pipeline)
       end
     end
+
+    context 'when pipelines exist for the branch and merge request' do
+      let(:source_ref) { 'feature' }
+      let(:target_ref) { 'master' }
+
+      let!(:branch_pipeline) do
+        create(:ci_pipeline,
+               source: :push,
+               project: project,
+               ref: source_ref,
+               sha: shas.second)
+      end
+
+      let!(:merge_request_pipeline) do
+        create(:ci_pipeline,
+               source: :merge_request,
+               project: project,
+               ref: source_ref,
+               sha: shas.second,
+               merge_request: merge_request)
+      end
+
+      let(:merge_request) do
+        create(:merge_request,
+               source_project: project,
+               source_branch: source_ref,
+               target_project: project,
+               target_branch: target_ref)
+      end
+
+      let(:project) { create(:project, :repository) }
+      let(:shas) { project.repository.commits(source_ref, limit: 2).map(&:id) }
+
+      before do
+        allow(merge_request).to receive(:all_commit_shas) { shas }
+      end
+
+      it 'returns merge request pipeline first' do
+        expect(merge_request.all_pipelines)
+          .to eq([merge_request_pipeline,
+                  branch_pipeline])
+      end
+
+      context 'when there are a branch pipeline and a merge request pipeline' do
+        let!(:branch_pipeline_2) do
+          create(:ci_pipeline,
+                 source: :push,
+                 project: project,
+                 ref: source_ref,
+                 sha: shas.first)
+        end
+
+        let!(:merge_request_pipeline_2) do
+          create(:ci_pipeline,
+                 source: :merge_request,
+                 project: project,
+                 ref: source_ref,
+                 sha: shas.first,
+                 merge_request: merge_request)
+        end
+
+        it 'returns merge request pipelines first' do
+          expect(merge_request.all_pipelines)
+            .to eq([merge_request_pipeline_2,
+                    merge_request_pipeline,
+                    branch_pipeline_2,
+                    branch_pipeline])
+        end
+      end
+
+      context 'when there are multiple merge request pipelines from the same branch' do
+        let!(:branch_pipeline_2) do
+          create(:ci_pipeline,
+                 source: :push,
+                 project: project,
+                 ref: source_ref,
+                 sha: shas.first)
+        end
+
+        let!(:merge_request_pipeline_2) do
+          create(:ci_pipeline,
+                 source: :merge_request,
+                 project: project,
+                 ref: source_ref,
+                 sha: shas.first,
+                 merge_request: merge_request_2)
+        end
+
+        let(:merge_request_2) do
+          create(:merge_request,
+                 source_project: project,
+                 source_branch: source_ref,
+                 target_project: project,
+                 target_branch: 'stable')
+        end
+
+        before do
+          allow(merge_request_2).to receive(:all_commit_shas) { shas }
+        end
+
+        it 'returns only related merge request pipelines' do
+          expect(merge_request.all_pipelines)
+            .to eq([merge_request_pipeline,
+                    branch_pipeline_2,
+                    branch_pipeline])
+
+          expect(merge_request_2.all_pipelines)
+            .to eq([merge_request_pipeline_2,
+                    branch_pipeline_2,
+                    branch_pipeline])
+        end
+      end
+    end
   end
 
   describe '#has_test_reports?' do
@@ -1223,6 +1387,30 @@ describe MergeRequest do
       let(:merge_request) { create(:merge_request, source_project: project) }
 
       it { is_expected.to be_falsey }
+    end
+  end
+
+  describe '#calculate_reactive_cache' do
+    let(:project) { create(:project, :repository) }
+    let(:merge_request) { create(:merge_request, source_project: project) }
+    subject { merge_request.calculate_reactive_cache(service_class_name) }
+
+    context 'when given an unknown service class name' do
+      let(:service_class_name) { 'Integer' }
+
+      it 'raises a NameError exception' do
+        expect { subject }.to raise_error(NameError, service_class_name)
+      end
+    end
+
+    context 'when given a known service class name' do
+      let(:service_class_name) { 'Ci::CompareTestReportsService' }
+
+      it 'does not raises a NameError exception' do
+        allow_any_instance_of(service_class_name.constantize).to receive(:execute).and_return(nil)
+
+        expect { subject }.not_to raise_error
+      end
     end
   end
 
@@ -1772,7 +1960,7 @@ describe MergeRequest do
           allow(subject).to receive(:head_pipeline) { nil }
         end
 
-        it { expect(subject.mergeable_ci_state?).to be_falsey }
+        it { expect(subject.mergeable_ci_state?).to be_truthy }
       end
     end
 
@@ -1955,7 +2143,7 @@ describe MergeRequest do
           head_commit_sha: commit.sha
         )
 
-        subject.merge_request_diff(true)
+        subject.reload_merge_request_diff
       end
     end
 

@@ -27,7 +27,8 @@ project_tree:
     - :award_emoji
     - notes:
         :author
-  - :releases
+  - releases:
+      :author
   - project_members:
     - :user
   - merge_requests:
@@ -51,7 +52,7 @@ project_tree:
     - resource_label_events:
       - label:
           :priorities
-  - pipelines:
+  - ci_pipelines:
     - notes:
       - :author
       - events:
@@ -100,6 +101,7 @@ excluded_attributes:
     - :import_source
     - :mirror
     - :runners_token
+    - :runners_token_encrypted
     - :repository_storage
     - :repository_read_only
     - :lfs_enabled
@@ -114,6 +116,10 @@ excluded_attributes:
     - :remote_mirror_available_overridden
     - :description_html
     - :repository_languages
+    - :bfg_object_map
+  namespaces:
+    - :runners_token
+    - :runners_token_encrypted
   project_import_state:
     - :last_error
     - :jid
@@ -138,6 +144,7 @@ excluded_attributes:
   statuses:
     - :trace
     - :token
+    - :token_encrypted
     - :when
     - :artifacts_file
     - :artifacts_metadata
@@ -155,6 +162,9 @@ excluded_attributes:
     - :encrypted_token_iv
     - :encrypted_url
     - :encrypted_url_iv
+  runners:
+    - :token
+    - :token_encrypted
   services:
     - :template
 
