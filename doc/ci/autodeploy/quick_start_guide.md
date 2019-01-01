@@ -37,7 +37,7 @@ Once you have the Kubernetes Dashboard interface running, you should visit `Secr
 
 ![connect to cluster](img/guide_secret.png)
 
-You need to copy-paste the ca.crt and token into your project on GitLab.com in the Kubernetes integration page under project `Settings` > `Integrations` > `Project services` > `Kubernetes`. Don't actually copy the namespace though. Each project should have a unique namespace, and by leaving it blank, GitLab will create one for you.
+You need to copy-paste the ca.crt and token into your project on GitLab.com in the Kubernetes integration page under project **Settings > Integrations > Project services > Kubernetes**. Don't actually copy the namespace though. Each project should have a unique namespace, and by leaving it blank, GitLab will create one for you.
 
 ![connect to cluster](img/guide_integration.png)
 
