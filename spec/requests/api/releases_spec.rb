@@ -374,12 +374,10 @@ describe API::Releases do
               })
             end
 
-            it 'returns an error' do
+            it 'recognizes as a bad request' do
               post api("/projects/#{project.id}/releases", maintainer), params: params
 
               expect(response).to have_gitlab_http_status(:bad_request)
-              expect(json_response['message'])
-                .to include('duplicate key value violates unique constraint')
             end
           end
         end
