@@ -641,10 +641,9 @@
   resolved "https://registry.yarnpkg.com/@gitlab/svgs/-/svgs-1.43.0.tgz#28dee2122d068cd3b925cd9884d97465ebaca12d"
   integrity sha512-wuN3NITmyBV9bOXsFfAjtndFrjTlH6Kf3+6aqT5kHKKLe/B4w7uTU1L9H/cyR0wGD7HbOh584a05eDcuH04fPA==
 
-"@gitlab/ui@^1.16.0":
+"@gitlab/ui@https://gitlab.com/gitlab-org/gitlab-ui/-/jobs/136517622/artifacts/raw/gitlab-ui.add-table.tgz":
   version "1.16.2"
-  resolved "https://registry.yarnpkg.com/@gitlab/ui/-/ui-1.16.2.tgz#fecba9f9198db9fa82e922d3c7fe11dd81e3e9a3"
-  integrity sha512-8m11f9ZQaQZyxmJ6YlgRp0wh94CY95L+Dz5nDFKakwgJA6U5XxQutL1Szip/SCq7u47MXkvQpo5kUQwoAz7K2Q==
+  resolved "https://gitlab.com/gitlab-org/gitlab-ui/-/jobs/136517622/artifacts/raw/gitlab-ui.add-table.tgz#9cc949fc0a4b7d84b8322e4f437ca04aa2c96a63"
   dependencies:
     babel-standalone "^6.26.0"
     bootstrap-vue "^2.0.0-rc.11"
