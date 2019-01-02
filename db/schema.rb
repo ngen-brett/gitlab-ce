@@ -153,16 +153,16 @@ ActiveRecord::Schema.define(version: 20181219145520) do
     t.boolean "authorized_keys_enabled", default: true, null: false
     t.string "auto_devops_domain"
     t.boolean "pages_domain_verification_enabled", default: true, null: false
-    t.string "user_default_internal_regex"
     t.boolean "allow_local_requests_from_hooks_and_services", default: false, null: false
     t.boolean "enforce_terms", default: false
     t.boolean "mirror_available", default: true, null: false
     t.boolean "hide_third_party_offers", default: false, null: false
     t.boolean "instance_statistics_visibility_private", default: false, null: false
+    t.string "user_default_internal_regex"
     t.boolean "web_ide_clientside_preview_enabled", default: false, null: false
     t.boolean "user_show_add_ssh_key_message", default: true, null: false
-    t.integer "usage_stats_set_by_user_id"
     t.integer "receive_max_input_size"
+    t.integer "usage_stats_set_by_user_id"
     t.integer "diff_max_patch_bytes", default: 102400, null: false
     t.integer "archive_builds_in_seconds"
     t.string "commit_email_hostname"
@@ -739,10 +739,10 @@ ActiveRecord::Schema.define(version: 20181219145520) do
     t.integer "cluster_project_id"
     t.datetime_with_timezone "created_at", null: false
     t.datetime_with_timezone "updated_at", null: false
-    t.text "encrypted_service_account_token"
     t.string "encrypted_service_account_token_iv"
     t.string "namespace", null: false
     t.string "service_account_name"
+    t.text "encrypted_service_account_token"
     t.index ["cluster_id", "namespace"], name: "kubernetes_namespaces_cluster_and_namespace", unique: true, using: :btree
     t.index ["cluster_id"], name: "index_clusters_kubernetes_namespaces_on_cluster_id", using: :btree
     t.index ["cluster_project_id"], name: "index_clusters_kubernetes_namespaces_on_cluster_project_id", using: :btree
@@ -827,8 +827,8 @@ ActiveRecord::Schema.define(version: 20181219145520) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string "on_stop"
-    t.integer "status", limit: 2, null: false
     t.datetime_with_timezone "finished_at"
+    t.integer "status", limit: 2, null: false
     t.index ["created_at"], name: "index_deployments_on_created_at", using: :btree
     t.index ["deployable_type", "deployable_id"], name: "index_deployments_on_deployable_type_and_deployable_id", using: :btree
     t.index ["environment_id", "id"], name: "index_deployments_on_environment_id_and_id", using: :btree
@@ -960,8 +960,8 @@ ActiveRecord::Schema.define(version: 20181219145520) do
   end
 
   create_table "group_custom_attributes", force: :cascade do |t|
-    t.datetime_with_timezone "created_at", null: false
-    t.datetime_with_timezone "updated_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.integer "group_id", null: false
     t.string "key", null: false
     t.string "value", null: false
@@ -1552,8 +1552,8 @@ ActiveRecord::Schema.define(version: 20181219145520) do
   end
 
   create_table "project_custom_attributes", force: :cascade do |t|
-    t.datetime_with_timezone "created_at", null: false
-    t.datetime_with_timezone "updated_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.integer "project_id", null: false
     t.string "key", null: false
     t.string "value", null: false
@@ -1969,6 +1969,7 @@ ActiveRecord::Schema.define(version: 20181219145520) do
     t.text "from_content", null: false
     t.text "to_content", null: false
     t.index ["note_id", "relative_order"], name: "index_suggestions_on_note_id_and_relative_order", unique: true, using: :btree
+    t.index ["note_id"], name: "index_suggestions_on_note_id", using: :btree
   end
 
   create_table "system_note_metadata", force: :cascade do |t|
@@ -2127,7 +2128,7 @@ ActiveRecord::Schema.define(version: 20181219145520) do
     t.index ["user_id"], name: "index_user_preferences_on_user_id", unique: true, using: :btree
   end
 
-  create_table "user_statuses", primary_key: "user_id", force: :cascade do |t|
+  create_table "user_statuses", primary_key: "user_id", id: :integer, force: :cascade do |t|
     t.integer "cached_markdown_version"
     t.string "emoji", default: "speech_balloon", null: false
     t.string "message", limit: 100
@@ -2454,7 +2455,7 @@ ActiveRecord::Schema.define(version: 20181219145520) do
   add_foreign_key "term_agreements", "users", on_delete: :cascade
   add_foreign_key "timelogs", "issues", name: "fk_timelogs_issues_issue_id", on_delete: :cascade
   add_foreign_key "timelogs", "merge_requests", name: "fk_timelogs_merge_requests_merge_request_id", on_delete: :cascade
-  add_foreign_key "todos", "namespaces", column: "group_id", on_delete: :cascade
+  add_foreign_key "todos", "namespaces", column: "group_id", name: "fk_a27c483435", on_delete: :cascade
   add_foreign_key "todos", "notes", name: "fk_91d1f47b13", on_delete: :cascade
   add_foreign_key "todos", "projects", name: "fk_45054f9c45", on_delete: :cascade
   add_foreign_key "todos", "users", column: "author_id", name: "fk_ccf0373936", on_delete: :cascade
