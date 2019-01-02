@@ -27,6 +27,7 @@ module Gitlab
         target_branch_sha = attributes.delete(:target_branch_sha)
         iid = attributes[:iid]
 
+        # TODO: Is this used somewhere else now?
         merge_request, already_exists = create_merge_request_without_hooks(project, attributes, iid)
 
         if merge_request
