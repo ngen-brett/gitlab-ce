@@ -70,6 +70,11 @@ h6,
   margin-bottom: 10px;
 }
 
+// Our adjustments add unnecessary margin-tops to modal-title:
+.modal-title {
+  margin-top: 0;
+}
+
 h5,
 .h5 {
   font-size: $gl-font-size;
