@@ -1578,6 +1578,8 @@ class Project < ActiveRecord::Base
     repository.after_import
     wiki.repository.after_import
     import_state.finish
+    # TODO: Specs and move this to InternalId model/module
+    InternalId.where(project: self).delete_all
     import_state.remove_jid
     update_project_counter_caches
     after_create_default_branch
