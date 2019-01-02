@@ -54,6 +54,12 @@ export default {
     showDropdowns() {
       return !this.commit && this.mergeRequestDiffs.length;
     },
+    fileTreeIcon() {
+      return this.showTreeList ? 'collapse-left' : 'expand-left';
+    },
+    toggleFileBrowserTitle() {
+      return this.showTreeList ? 'Hide file browser' : 'Show file browser';
+    },
   },
   methods: {
     ...mapActions('diffs', [
@@ -79,10 +85,10 @@ export default {
         :class="{
           active: showTreeList,
         }"
-        :title="__('Toggle file browser')"
+        :title="__(toggleFileBrowserTitle)"
         @click="toggleShowTreeList"
       >
-        <icon name="hamburger" />
+        <icon :name="fileTreeIcon" />
       </button>
       <div v-if="showDropdowns" class="d-flex align-items-center compare-versions-container">
         Changes between

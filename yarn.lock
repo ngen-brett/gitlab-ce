@@ -636,10 +636,10 @@
     eslint-plugin-promise "^4.0.1"
     eslint-plugin-vue "^5.0.0"
 
-"@gitlab/svgs@^1.43.0":
-  version "1.43.0"
-  resolved "https://registry.yarnpkg.com/@gitlab/svgs/-/svgs-1.43.0.tgz#28dee2122d068cd3b925cd9884d97465ebaca12d"
-  integrity sha512-wuN3NITmyBV9bOXsFfAjtndFrjTlH6Kf3+6aqT5kHKKLe/B4w7uTU1L9H/cyR0wGD7HbOh584a05eDcuH04fPA==
+"@gitlab/svgs@^1.46.0":
+  version "1.46.0"
+  resolved "https://registry.yarnpkg.com/@gitlab/svgs/-/svgs-1.46.0.tgz#e2cf3fa34b5f9eb21bdc689d9de8ff2c30bdf16c"
+  integrity sha512-HUj9hVReQ9J2wC8GMsWrwMswIYP9/wU0zz+Mh2OSMvAbeWNXpMX7pfPX6qXNukSfJlQesrxAVq8o7lgk4In7mQ==
 
 "@gitlab/ui@^1.18.0":
   version "1.18.0"

@@ -707,7 +707,9 @@
 }
 
 .mr-version-controls {
-  position: relative;
+  position: sticky;
+  top: 126px;
+  z-index: 103;
   background: $gray-light;
   color: $gl-text-color;
 
