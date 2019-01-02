@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20181219145520) do
+ActiveRecord::Schema.define(version: 20181228175414) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1796,6 +1796,15 @@ ActiveRecord::Schema.define(version: 20181219145520) do
     t.index ["source_type", "source_id"], name: "index_redirect_routes_on_source_type_and_source_id", using: :btree
   end
 
+  create_table "release_links", force: :cascade do |t|
+    t.integer "release_id", null: false
+    t.string "url", null: false
+    t.string "name", null: false
+    t.datetime_with_timezone "created_at", null: false
+    t.datetime_with_timezone "updated_at", null: false
+    t.index ["release_id", "name"], name: "index_release_links_on_release_id_and_name", unique: true, using: :btree
+  end
+
   create_table "releases", force: :cascade do |t|
     t.string "tag"
     t.text "description"
@@ -2437,6 +2446,7 @@ ActiveRecord::Schema.define(version: 20181219145520) do
   add_foreign_key "protected_tag_create_access_levels", "users"
   add_foreign_key "protected_tags", "projects", name: "fk_8e4af87648", on_delete: :cascade
   add_foreign_key "push_event_payloads", "events", name: "fk_36c74129da", on_delete: :cascade
+  add_foreign_key "release_links", "releases", on_delete: :cascade
   add_foreign_key "releases", "projects", name: "fk_47fe2a0596", on_delete: :cascade
   add_foreign_key "releases", "users", column: "author_id", name: "fk_8e4456f90f", on_delete: :nullify
   add_foreign_key "remote_mirrors", "projects", on_delete: :cascade
