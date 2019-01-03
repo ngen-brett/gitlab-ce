@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class FeatureFlagEntity < Grape::Entity
+  include RequestAwareEntity
+
   expose :id
   expose :active
   expose :created_at
@@ -8,11 +10,25 @@ class FeatureFlagEntity < Grape::Entity
   expose :name
   expose :description
 
-  expose :edit_path, if: -> (feature_flag, _) { can?(request.current_user, :update_feature_flag, feature_flag) } do |feature_flag|
+  expose :edit_path, if: -> (feature_flag, _) { can_update?(feature_flag) } do |feature_flag|
     edit_project_feature_flag_path(feature_flag.project, feature_flag)
   end
 
-  expose :delete_path, if: -> (feature_flag, _) { can?(request.current_user, :destroy_feature_flag, feature_flag) } do |feature_flag|
-    delete_project_feature_flag_path(feature_flag.project, feature_flag)
+  expose :destroy_path, if: -> (feature_flag, _) { can_destroy?(feature_flag) } do |feature_flag|
+    project_feature_flag_path(feature_flag.project, feature_flag)
+  end
+
+  private
+
+  def can_update?(feature_flag)
+    can?(current_user, :update_feature_flag, feature_flag)
+  end
+
+  def can_destroy?(feature_flag)
+    can?(current_user, :destroy_feature_flag, feature_flag)
+  end
+
+  def current_user
+    request.current_user
   end
 end

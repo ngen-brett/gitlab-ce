@@ -19,7 +19,7 @@ class Projects::FeatureFlagsController < Projects::ApplicationController
     respond_to do |format|
       format.html
       format.json do
-        Gitlab::PollingInterval.set_header(response, interval: POLLING_INTERVAL)
+        Gitlab::PollingInterval.set_header(response, interval: 10_000)
 
         render json: FeatureFlagSerializer
           .new(project: @project, current_user: @current_user)
