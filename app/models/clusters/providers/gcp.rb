@@ -32,6 +32,8 @@ module Clusters
           greater_than: 0
         }
 
+      default_value_for :legacy_abac, false
+
       state_machine :status, initial: :scheduled do
         state :scheduled, value: 1
         state :creating, value: 2
