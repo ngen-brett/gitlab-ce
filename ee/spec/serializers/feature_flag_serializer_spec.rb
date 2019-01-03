@@ -9,6 +9,7 @@ describe FeatureFlagSerializer do
   let(:feature_flags) { create_list(:operations_feature_flag, 3) }
 
   before do
+    stub_licensed_features(feature_flags: true)
     project.add_developer(user)
   end
 
@@ -16,7 +17,8 @@ describe FeatureFlagSerializer do
     subject { serializer.represent(feature_flags) }
 
     it 'includes feature flag attributes' do
-      is_expected.to all(include(:id, :active, :created_at, :updated_at, :description, :name))
+      is_expected.to all(include(:id, :active, :created_at, :updated_at,
+        :description, :name))
     end
   end
 end
