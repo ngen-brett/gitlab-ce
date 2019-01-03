@@ -67,7 +67,7 @@ describe Projects::FeatureFlagsController do
       create(:operations_feature_flag, project: project, active: true)
     end
 
-    let!(:feature_flag_deactive) do
+    let!(:feature_flag_inactive) do
       create(:operations_feature_flag, project: project, active: false)
     end
 
@@ -76,7 +76,7 @@ describe Projects::FeatureFlagsController do
 
       expect(json_response.count).to eq(2)
       expect(json_response.first['name']).to eq(feature_flag_active.name)
-      expect(json_response.second['name']).to eq(feature_flag_deactive.name)
+      expect(json_response.second['name']).to eq(feature_flag_inactive.name)
     end
 
     it 'returns edit path and destroy path' do
