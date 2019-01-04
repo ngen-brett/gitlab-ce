@@ -98,13 +98,7 @@ export default {
           <li v-for="link in assets.links" :key="link.name" class="append-bottom-8">
             <gl-link v-gl-tooltip.bottom :title="__('Download asset')" :href="link.url">
               <icon name="package" class="align-middle append-right-4 align-text-bottom" />
-              // Somethinig like this?
-              // if link.external?
-              //   {{ link.name }} + '(external source)'
-              // else
-              //   {{ link.name }}
-              // end
-              {{ link.name }}
+              {{ link.name }} <span v-if="link.external"> {{ __('(external source)') }}</span>
             </gl-link>
           </li>
         </ul>
