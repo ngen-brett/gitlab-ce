@@ -223,6 +223,7 @@ export default {
         :tags-path="tagsPath"
         :show-legend="showLegend"
         :small-graph="forceSmallGraph"
+        group-id='monitor-area-chart'
       >
         <!-- EE content -->
         {{ null }}

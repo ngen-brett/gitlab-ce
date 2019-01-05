@@ -6,6 +6,7 @@ export default {
   components: {
     GlAreaChart,
   },
+  inheritAttrs: false,
   props: {
     graphData: {
       type: Object,
@@ -74,9 +75,6 @@ export default {
       const [date, value] = params;
       return [dateFormat(date, 'dd mmm yyyy, h:MMtt'), value.toFixed(3)];
     },
-    onCreated(chart) {
-      this.$emit('created', chart);
-    },
   },
 };
 </script>
@@ -88,10 +86,10 @@ export default {
       <div class="prometheus-graph-widgets"><slot></slot></div>
     </div>
     <gl-area-chart
+      v-bind="$attrs"
       :data="chartData"
       :option="chartOptions"
       :format-tooltip-text="formatTooltipText"
-      @created="onCreated"
     />
   </div>
 </template>
