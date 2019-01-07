@@ -60,12 +60,23 @@
             Without projects
             %small.badge.badge-pill= limited_counter_with_delimiter(User.without_projects)
 
-  %ul.flex-list.content-list
-    - if @users.empty?
-      %li
-        .nothing-here-block No users found.
-    - else
-      = render partial: 'admin/users/user', collection: @users
+  .table-holder
+    %table.table
+      %thead
+        %tr
+          %th 
+            = _('Name')
+          %th 
+            = _('Created at')
+          %th 
+            = _('Last activity')
+          %th
+      %tbody.flex-list.content-list
+        - if @users.empty?
+          %tr
+            %td.nothing-here-block No users found.
+        - else
+          = render partial: 'admin/users/user', collection: @users
 
   = paginate @users, theme: "gitlab"
 

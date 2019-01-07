@@ -2249,6 +2249,9 @@ msgstr ""
 msgid "Created At"
 msgstr ""
 
+msgid "Created at"
+msgstr ""
+
 msgid "Created by me"
 msgstr ""
 
@@ -3876,6 +3879,9 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Last Pipeline"
+msgstr ""
+
+msgid "Last activity"
 msgstr ""
 
 msgid "Last commit"

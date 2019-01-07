@@ -101,6 +101,12 @@ ul.unstyled-list > li {
   border-bottom: 0;
 }
 
+tbody.content-list {
+  a {
+    color: $gl-text-color;
+  }
+}
+
 // Generic content list
 ul.content-list {
   @include basic-list;
