@@ -122,20 +122,21 @@ module IssuableCollections
     return unless issuable_sorting_field
 
     user_preference = current_user.user_preference
+    sort_preference = user_preference.public_send(issuable_sorting_field) # rubocop:disable GitlabSecurity/PublicSend
 
     sort_param = params[:sort]
-    sort_param ||= user_preference[issuable_sorting_field]
+    sort_param ||= sort_preference
 
     return sort_param if Gitlab::Database.read_only?
 
-    if user_preference[issuable_sorting_field] != sort_param
-      user_preference.update_attribute(issuable_sorting_field, sort_param)
+    if sort_preference != sort_param
+      user_preference.update(issuable_sorting_field => sort_param)
     end
 
     sort_param
   end
 
-  # Implement default_sorting_field method on controllers
+  # Implement issuable_sorting_field method on controllers
   # to choose which column to store the sorting parameter.
   def issuable_sorting_field
     nil

@@ -177,6 +177,10 @@ class Projects::IssuesController < Projects::ApplicationController
 
   protected
 
+  def issuable_sorting_field
+    :issue_sort_by_field
+  end
+
   # rubocop: disable CodeReuse/ActiveRecord
   def issue
     return @issue if defined?(@issue)

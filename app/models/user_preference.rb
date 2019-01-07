@@ -5,10 +5,38 @@ class UserPreference < ActiveRecord::Base
   # enum options with same name for multiple fields, also it creates
   # extra methods that aren't really needed here.
   NOTES_FILTERS = { all_notes: 0, only_comments: 1, only_activity: 2 }.freeze
+  SORT_BY = {
+    priority: 0,
+    created_date: 1,
+    created_asc: 2,
+    updated_desc: 3,
+    updated_asc: 4,
+    milestone: 5,
+    milestone_due_desc: 6,
+    popularity: 7,
+    label_priority: 8,
+    due_date: 9 # issues only
+  }.freeze
 
   belongs_to :user
 
   validates :issue_notes_filter, :merge_request_notes_filter, inclusion: { in: NOTES_FILTERS.values }, presence: true
+  validates :issue_sort_by, :merge_request_sort_by, inclusion: { in: SORT_BY.values }, allow_nil: true
+
+  [:issue, :merge_request].each do |type|
+    attr = :"#{type}_sort_by"
+
+    define_method "#{attr}_field" do
+      # Return the key that matches the DB value as a string
+      # By using the safe navigator we ensure that `nil.to_s` returns `nil` instead of an empty string `""`
+      val = self[attr]
+      SORT_BY.key(val)&.to_s
+    end
+
+    define_method "#{attr}_field=" do |val|
+      self[attr] = SORT_BY[val.to_sym]
+    end
+  end
 
   class << self
     def notes_filters

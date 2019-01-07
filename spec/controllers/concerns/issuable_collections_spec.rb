@@ -17,8 +17,54 @@ describe IssuableCollections do
     controller = klass.new
 
     allow(controller).to receive(:params).and_return(ActionController::Parameters.new(params))
+    allow(controller).to receive(:current_user).and_return(user)
 
     controller
+  end
+
+  describe '#set_sort_order_from_user_preference' do
+    describe 'when sort param given' do
+      let(:params) { { sort: 'updated_desc' } }
+
+      context 'when issuable_sorting_field is defined' do
+        before do
+          controller.class.define_method(:issuable_sorting_field)  { :issue_sort_by_field }
+        end
+
+        it 'sets user_preference with the right value' do
+          controller.send(:set_sort_order_from_user_preference)
+
+          expect(user.user_preference.reload.issue_sort_by_field).to eq('updated_desc')
+          expect(user.user_preference.issue_sort_by).to eq(3)
+        end
+      end
+
+      context 'when no issuable_sorting_field is defined on the controller' do
+        it 'does not touch user_preference' do
+          allow(user).to receive(:user_preference)
+
+          controller.send(:set_sort_order_from_user_preference)
+
+          expect(user).not_to have_received(:user_preference)
+        end
+      end
+    end
+
+    context 'when a user sorting preference exists' do
+      let(:params) { {} }
+
+      before do
+        controller.class.define_method(:issuable_sorting_field)  { :issue_sort_by_field }
+      end
+
+      it 'returns the set preference' do
+        user.user_preference.update(issue_sort_by: 4)
+
+        sort_preference = controller.send(:set_sort_order_from_user_preference)
+
+        expect(sort_preference).to eq('updated_asc')
+      end
+    end
   end
 
   describe '#set_set_order_from_cookie' do

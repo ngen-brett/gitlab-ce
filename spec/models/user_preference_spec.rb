@@ -3,9 +3,10 @@
 require 'spec_helper'
 
 describe UserPreference do
+  let(:user_preference) { create(:user_preference) }
+
   describe '#set_notes_filter' do
     let(:issuable) { build_stubbed(:issue) }
-    let(:user_preference) { create(:user_preference) }
 
     shared_examples 'setting system notes' do
       it 'returns updated discussion filter' do
@@ -48,6 +49,66 @@ describe UserPreference do
 
         expect(user_preference.set_notes_filter(9999, issuable)).to eq(only_comments)
       end
+    end
+  end
+
+  describe 'sort_by preferences' do
+    shared_examples_for 'a sort_by preference' do
+      it 'validates that the sorting field is valid' do
+        user_preference.update(attribute => 19)
+
+        expect(user_preference).not_to be_valid
+      end
+
+      it 'allows nil sort fields' do
+        user_preference.update(attribute => nil)
+
+        expect(user_preference).to be_valid
+      end
+
+      context 'attribute_field' do
+        let(:method) { :"#{attribute}_field" }
+
+        it 'turns DB values into strings' do
+          user_preference.update(attribute => 4)
+
+          expect(user_preference.send(method)).to eq('updated_asc')
+        end
+
+        it 'passes nils through' do
+          user_preference.update(attribute => nil)
+
+          expect(user_preference.send(method)).to be_nil
+        end
+      end
+
+      context 'attribute_field=' do
+        let(:method) { :"#{attribute}_field=" }
+
+        it 'turns strings into proper DB values' do
+          user_preference.send(method, 'updated_asc')
+
+          expect(user_preference[attribute]).to eq(4)
+        end
+
+        it 'sets DB column to nil if key is unknown' do
+          user_preference.send(method, 'not_a_sort_column')
+
+          expect(user_preference[attribute]).to be_nil
+        end
+      end
+    end
+
+    context 'merge_request_sort_by attribute' do
+      let(:attribute) { :merge_request_sort_by }
+
+      it_behaves_like 'a sort_by preference'
+    end
+
+    context 'issue_sort_by attribute' do
+      let(:attribute) { :issue_sort_by }
+
+      it_behaves_like 'a sort_by preference'
     end
   end
 end
