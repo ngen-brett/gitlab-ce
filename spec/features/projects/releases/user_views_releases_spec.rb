@@ -36,7 +36,7 @@ describe 'User views releases', :js do
 
       it 'sees that the link is external resource' do
         visit project_releases_path(project)
-  
+
         page.within('.js-assets-list') do
           expect(page).to have_content('(external source)')
         end
