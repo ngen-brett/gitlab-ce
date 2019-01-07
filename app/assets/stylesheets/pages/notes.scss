@@ -1,6 +1,7 @@
 $system-note-icon-size: 32px;
 $system-note-svg-size: 16px;
 $note-form-margin-left: 72px;
+$note-header-margin-bottom: 8px;
 
 @mixin vertical-line($left) {
   &::before {
@@ -153,12 +154,12 @@ $note-form-margin-left: 72px;
     position: relative;
 
     .timeline-discussion-body {
-      margin-top: -8px;
+      margin-top: -$note-header-margin-bottom;
       overflow-x: auto;
       overflow-y: hidden;
 
-      .discussion-resolved-text {
-        margin-bottom: 8px;
+      .note-body {
+        margin-top: $note-header-margin-bottom;
       }
     }
 
