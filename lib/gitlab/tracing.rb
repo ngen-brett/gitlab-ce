@@ -7,7 +7,11 @@ module Gitlab
     # emit tracing. Since other components may start before Rails, and may not have access to ApplicationSettings,
     # an env var makes more sense.
     def self.enabled?
-      !!ENV['GITLAB_TRACING']
+      !!ENV['GITLAB_TRACING'] && !ENV['GITLAB_TRACING'].empty?
+    end
+
+    def self.connection_string
+      ENV['GITLAB_TRACING']
     end
   end
 end

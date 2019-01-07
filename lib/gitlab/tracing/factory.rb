@@ -4,17 +4,16 @@ require "cgi"
 
 module Gitlab
   module Tracing
-    module Factory
-      def self.create_tracer(service_name)
-        tracing_connection = ENV['GITLAB_TRACING']
-        return nil unless tracing_connection
+    class Factory
+      def self.create_tracer(service_name, connection_string)
+        return nil unless connection_string && !connection_string.empty?
 
         begin
-          opentracing_details = parse_connection_string(tracing_connection)
+          opentracing_details = parse_connection_string(connection_string)
 
           case opentracing_details[:driver_name]
           when "jaeger"
-            Gitlab::Tracing::JaegerFactory.create_tracer(service_name, opentracing_details[:options])
+            JaegerFactory.create_tracer(service_name, opentracing_details[:options])
           else
             nil
           end
@@ -33,7 +32,7 @@ module Gitlab
         end
 
         options = if parsed.query
-                    Hash[CGI.parse(parsed.query).map { |k, v| [k, v.first] }]
+                    Hash[CGI.parse(parsed.query).map { |k, v| [k.to_sym, v.first] }]
                   else
                     {}
                   end
