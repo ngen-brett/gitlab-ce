@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe "Admin::Users" do
-  include Spec::Support::Helpers::Features::ListRowsHelpers
+  include Spec::Support::Helpers::Features::TableListHelpers
 
   let!(:user) do
     create(:omniauth_user, provider: 'twitter', extern_uid: '123456')
