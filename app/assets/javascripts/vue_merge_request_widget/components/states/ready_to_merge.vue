@@ -2,6 +2,7 @@
 import successSvg from 'icons/_icon_status_success.svg';
 import warningSvg from 'icons/_icon_status_warning.svg';
 import simplePoll from '~/lib/utils/simple_poll';
+import { pluralize } from '~/lib/utils/text_utility';
 import MergeRequest from '../../../merge_request';
 import Flash from '../../../flash';
 import statusIcon from '../mr_widget_status_icon.vue';
@@ -109,6 +110,14 @@ export default {
     shouldShowSquashBeforeMerge() {
       const { commitsCount, enableSquashBeforeMerge } = this.mr;
       return enableSquashBeforeMerge && commitsCount > 1;
+    },
+    commitsCountMessage() {
+      return this.mr.squash
+        ? `1 commit and 1 merge commit will be added to ${this.mr.targetBranch}`
+        : `${this.mr.commitsCount} ${pluralize(
+            'commit',
+            this.mr.commitsCount,
+          )} and 1 merge commit will be added to ${this.mr.targetBranch}`;
     },
   },
   methods: {
@@ -326,7 +335,7 @@ export default {
                 Modify commit message
               </button>
             </div>
-            <div class="mr-widget-commits-count item-title">Test</div>
+            <div class="mr-widget-commits-count item-title">{{ commitsCountMessage }}</div>
           </template>
           <template v-else>
             <span class="bold js-resolve-mr-widget-items-message">
