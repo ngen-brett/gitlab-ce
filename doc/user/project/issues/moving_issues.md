@@ -11,9 +11,9 @@ You can move an issue with the "Move issue" button at the bottom of the right-si
 
 ## Moving Issues in Bulk
 
-You can also bulk move all the issues from one project to another in the rails console. The below script will move all the issues from one project to another that are not in status `closed`.
+You can also bulk move all the issues from one project to another in the rails console. The below script will move all the issues from one project to another that are not in status **closed**.
 
-To access rails console run `sudo gitlab-rails console` on the GitLab server and run the below script. Please be sure to change `project`, `admin_user` and `target_project` to your values.
+To access rails console run `sudo gitlab-rails console` on the GitLab server and run the below script. Please be sure to change **project**, **admin_user** and **target_project** to your values.
 
 ```
 project = Project.find_by_full_path('full path of the project where issues are moved from')
@@ -30,3 +30,4 @@ issues.each do |issue|
 end; nil
 
 ``` 
+{: .language-ruby}
