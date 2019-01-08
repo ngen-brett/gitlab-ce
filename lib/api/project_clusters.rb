@@ -65,6 +65,8 @@ module API
       post ':id/clusters/user' do
         authorize! :create_cluster, user_project
 
+        forbidden!('Instance does not support multiple Kubernetes clusters') unless can_add_cluster?
+
         user_cluster = ::Clusters::CreateService
           .new(current_user, create_cluster_user_params)
           .execute
@@ -136,6 +138,10 @@ module API
 
       def update_cluster_params
         declared_params(include_missing: false).without(:cluster_id)
+      end
+
+      def can_add_cluster?
+        can?(current_user, :add_cluster, user_project)
       end
     end
   end
