@@ -12,6 +12,7 @@ describe 'Projects > Files > User browses LFS files' do
     before do
       allow_any_instance_of(Project).to receive(:lfs_enabled?).and_return(false)
       visit project_tree_path(project, 'lfs')
+      wait_for_requests
     end
 
     it 'is possible to see raw content of LFS pointer' do
@@ -30,6 +31,7 @@ describe 'Projects > Files > User browses LFS files' do
     before do
       allow_any_instance_of(Project).to receive(:lfs_enabled?).and_return(true)
       visit project_tree_path(project, 'lfs')
+      wait_for_requests
     end
 
     it 'shows an LFS object' do
