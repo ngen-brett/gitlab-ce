@@ -295,38 +295,42 @@ export default {
             </li>
           </ul>
         </span>
-        <div class="media-body-wrap space-children">
+        <div class="media-body-wrap">
           <template v-if="shouldShowMergeControls()">
-            <label v-if="mr.canRemoveSourceBranch">
-              <input
-                id="remove-source-branch-input"
-                v-model="removeSourceBranch"
-                :disabled="isRemoveSourceBranchButtonDisabled"
-                class="js-remove-source-branch-checkbox"
-                type="checkbox"
+            <div class="mr-widget-checkboxes space-shildren">
+              <label v-if="mr.canRemoveSourceBranch">
+                <input
+                  id="remove-source-branch-input"
+                  v-model="removeSourceBranch"
+                  :disabled="isRemoveSourceBranchButtonDisabled"
+                  class="js-remove-source-branch-checkbox"
+                  type="checkbox"
+                />
+                Remove source branch
+              </label>
+
+              <!-- Placeholder for EE extension of this component -->
+              <squash-before-merge
+                v-if="shouldShowSquashBeforeMerge"
+                :mr="mr"
+                :is-merge-button-disabled="isMergeButtonDisabled"
               />
-              Remove source branch
-            </label>
 
-            <!-- Placeholder for EE extension of this component -->
-            <squash-before-merge
-              v-if="shouldShowSquashBeforeMerge"
-              :mr="mr"
-              :is-merge-button-disabled="isMergeButtonDisabled"
-            />
+              <span v-if="mr.ffOnlyEnabled" class="js-fast-forward-message">
+                Fast-forward merge without a merge commit
+              </span>
 
-            <span v-if="mr.ffOnlyEnabled" class="js-fast-forward-message">
-              Fast-forward merge without a merge commit
-            </span>
-            <button
-              v-else
-              :disabled="isMergeButtonDisabled"
-              class="js-modify-commit-message-button btn btn-default btn-sm"
-              type="button"
-              @click="toggleCommitMessageEditor"
-            >
-              Modify commit message
-            </button>
+              <button
+                v-else
+                :disabled="isMergeButtonDisabled"
+                class="js-modify-commit-message-button btn btn-default btn-sm"
+                type="button"
+                @click="toggleCommitMessageEditor"
+              >
+                Modify commit message
+              </button>
+            </div>
+            <div class="mr-widget-commits-count item-title">Test</div>
           </template>
           <template v-else>
             <span class="bold js-resolve-mr-widget-items-message">
