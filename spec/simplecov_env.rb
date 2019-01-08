@@ -16,8 +16,9 @@ module SimpleCovEnv
   def configure_job
     SimpleCov.configure do
       if ENV['CI_JOB_NAME']
-        coverage_dir "coverage/#{ENV['CI_JOB_NAME']}"
-        command_name ENV['CI_JOB_NAME']
+        job_name = ENV['CI_JOB_NAME'].tr('/', ' ')
+        coverage_dir "coverage/#{job_name}"
+        command_name job_name
       end
 
       if ENV['CI']
