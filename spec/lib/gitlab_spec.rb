@@ -8,6 +8,7 @@ describe Gitlab do
       expect(described_class.root).to eq(Pathname.new(File.expand_path('../..', __dir__)))
     end
   end
+
   describe '.revision' do
     let(:cmd) { %W[#{described_class.config.git.bin_path} log --pretty=format:%h -n 1] }
 
@@ -66,6 +67,84 @@ describe Gitlab do
           expect(described_class.revision).to eq('Unknown')
         end
       end
+    end
+  end
+
+  describe '.final_release?' do
+    subject { described_class.final_release? }
+
+    context 'pre release' do
+      before do
+        stub_const('Gitlab::VERSION', '11.0.0-pre')
+      end
+
+      it { is_expected.to be false }
+    end
+
+    context 'RC release' do
+      before do
+        stub_const('Gitlab::VERSION', '11.0.0-rc2')
+      end
+
+      it { is_expected.to be false }
+    end
+
+    context 'final release' do
+      before do
+        stub_const('Gitlab::VERSION', '11.0.2')
+      end
+
+      it { is_expected.to be true }
+    end
+  end
+
+  describe '.minor_release' do
+    subject { described_class.minor_release }
+
+    before do
+      stub_const('Gitlab::VERSION', '11.0.1-rc3')
+    end
+
+    it { is_expected.to eql '11.0' }
+  end
+
+  describe '.previous_release' do
+    subject { described_class.previous_release }
+
+    context 'major release' do
+      before do
+        stub_const('Gitlab::VERSION', '11.0.1-pre')
+      end
+
+      it { is_expected.to eql '10' }
+    end
+
+    context 'minor release' do
+      before do
+        stub_const('Gitlab::VERSION', '11.2.1-rc3')
+      end
+
+      it { is_expected.to eql '11.1' }
+    end
+  end
+
+  describe '.new_major_release?' do
+    subject { described_class.new_major_release? }
+
+    context 'major release' do
+      before do
+        stub_const('Gitlab::VERSION', '11.0.1-pre')
+      end
+
+      it { is_expected.to be true }
+    end
+
+    context 'minor release' do
+      before do
+        stub_const('Gitlab::VERSION', '11.2.1-rc3')
+      end
+
+      it { is_expected.to be false }
     end
   end
 

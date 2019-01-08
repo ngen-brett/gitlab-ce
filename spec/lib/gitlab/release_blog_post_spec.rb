@@ -1,0 +1,73 @@
+require 'spec_helper'
+
+describe Gitlab::ReleaseBlogPost do
+  describe '.blog_post_url' do
+    let(:releases_xml) do
+      <<~EOS
+      <?xml version='1.0' encoding='utf-8' ?>
+      <feed xmlns='http://www.w3.org/2005/Atom'>
+      <entry>
+      <release>11.2</release>
+      <id>https://about.gitlab.com/2018/08/22/gitlab-11-2-released/</id>
+      </entry>
+      <entry>
+      <release>11.1</release>
+      <id>https://about.gitlab.com/2018/07/22/gitlab-11-1-released/</id>
+      </entry>
+      <entry>
+      <release>11.0</release>
+      <id>https://about.gitlab.com/2018/06/22/gitlab-11-0-released/</id>
+      </entry>
+      <entry>
+      <release>10.8</release>
+      <id>https://about.gitlab.com/2018/05/22/gitlab-10-8-released/</id>
+      </entry>
+      </feed>
+      EOS
+    end
+
+    subject { described_class.instance.blog_post_url }
+
+    before do
+      stub_request(:get, 'https://about.gitlab.com/releases.xml')
+        .to_return(status: 200, headers: { 'content-type' => ['text/xml'] }, body: releases_xml)
+    end
+
+    around do |example|
+      release_post_url = described_class.instance.instance_variable_get(:@url)
+      described_class.instance.instance_variable_set(:@url, nil)
+      example.run
+      described_class.instance.instance_variable_set(:@url, release_post_url)
+    end
+
+    context 'major release' do
+      before do
+        stub_const('Gitlab::VERSION', '11.0.0-rc3')
+      end
+
+      it 'returns the blog post url' do
+        expect(subject).to eql('https://about.gitlab.com/2018/05/22/gitlab-10-8-released/')
+      end
+    end
+
+    context 'minor release' do
+      before do
+        stub_const('Gitlab::VERSION', '11.2.0-rc3')
+      end
+
+      it 'returns the blog post url' do
+        expect(subject).to eql('https://about.gitlab.com/2018/07/22/gitlab-11-1-released/')
+      end
+    end
+
+    context 'patch release' do
+      before do
+        stub_const('Gitlab::VERSION', '11.2.1-rc3')
+      end
+
+      it 'returns the blog post url' do
+        expect(subject).to eql('https://about.gitlab.com/2018/08/22/gitlab-11-2-released/')
+      end
+    end
+  end
+end
