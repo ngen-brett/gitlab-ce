@@ -15,7 +15,7 @@ You can also bulk move all the issues from one project to another in the rails c
 
 To access rails console run `sudo gitlab-rails console` on the GitLab server and run the below script. Please be sure to change **project**, **admin_user** and **target_project** to your values.
 
-```
+```ruby
 project = Project.find_by_full_path('full path of the project where issues are moved from')
 issues = project.issues
 admin_user = User.find_by_username('username of admin user') # make sure user has permissions to move the issues
@@ -29,5 +29,4 @@ issues.each do |issue|
    end
 end; nil
 
-``` 
-{: .language-ruby}
+```
