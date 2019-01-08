@@ -39,7 +39,7 @@
 
 .mr-widget-section {
   .media {
-    align-items: center;
+    align-items: flex-start;
   }
 
   .code-text {
@@ -88,8 +88,13 @@
   color: $gl-text-color;
 
   .mr-widget-section,
-  .mr-widget-footer {
+  .mr-widget-footer,
+  .mr-widget-commits-count {
     border-top: solid 1px $border-color;
+  }
+
+  .mr-widget-checkboxes {
+    padding-bottom: $gl-padding;
   }
 
   .mr-widget-footer {
