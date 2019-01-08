@@ -111,7 +111,7 @@ export default {
       return enableSquashBeforeMerge && commitsCount > 1;
     },
     commitsCountMessage() {
-      return this.mr.squash
+      return this.mr.squash && this.shouldShowSquashBeforeMerge
         ? `1 commit and 1 merge commit will be added to ${this.mr.targetBranch}`
         : `${this.mr.commitsCount} ${pluralize(
             'commit',
