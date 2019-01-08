@@ -93,9 +93,14 @@
     border-top: solid 1px $border-color;
   }
 
+  .mr-widget-commits-count {
+    border-bottom: 1px solid $border-color;
+  }
+
   .mr-widget-checkboxes {
     padding-bottom: $gl-padding;
   }
+  
 
   .mr-widget-footer {
     padding: 0;
@@ -107,6 +112,14 @@
     > .media {
       padding: $gl-padding;
     }
+  }
+
+  .avatar-cell {
+    align-self: auto;
+  }
+
+  .commit-detail {
+    line-height: 20px;
   }
 
   form {
