@@ -1,5 +1,0 @@
----
-title: Fix MR sidebar to correctly warning if assignee can't merge
-merge_request: 24243
-author:
-type: fixed
