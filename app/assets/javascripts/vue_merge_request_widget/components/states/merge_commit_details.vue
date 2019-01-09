@@ -16,6 +16,7 @@ export default {
     commitMessageLinkTitle: { type: String },
     ffOnlyEnabled: { type: Boolean },
     squash: { type: Boolean },
+    commit: { type: Object, required: true },
   },
   computed: {
     author() {
@@ -41,18 +42,6 @@ export default {
     return {
       showCommitMessageEditor: false,
       showCommitDescription: false,
-      // TODO: move this to props when get an actual commit data from API
-      commit: {
-        author: {
-          avatar_url:
-            'https://www.gravatar.com/avatar/79e8be0c27f341afc67c0ab9f9030d17?s=72&amp;d=identicon',
-          id: '12345',
-          name: 'Ash Mackenzie',
-        },
-        author_email: 'amckenzie@gitlab.com',
-        authored_date: '2018-12-05',
-        description_html: 'Test description!',
-      },
     };
   },
   methods: {
