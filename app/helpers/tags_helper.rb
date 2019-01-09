@@ -15,7 +15,7 @@ module TagsHelper
     project_tags_path(@project, @id, options)
   end
 
-  def tag_list(project)
+  def topic_list(project)
     html = []
 
     project.tag_list.each do |tag|
