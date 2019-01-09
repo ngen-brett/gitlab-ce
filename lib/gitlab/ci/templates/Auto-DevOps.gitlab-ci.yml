@@ -71,11 +71,10 @@ stages:
 
 build:
   stage: build
-  image: docker:stable-git
-  services:
-  - docker:stable-dind
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   script:
-    - setup_docker
     - build
   only:
     - branches
@@ -821,47 +820,35 @@ rollout 100%:
   }
 
   function build() {
-    registry_login
-
+    echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     if [[ -f Dockerfile ]]; then
       echo "Building Dockerfile-based application..."
-      docker build \
-        --build-arg HTTP_PROXY="$HTTP_PROXY" \
-        --build-arg http_proxy="$http_proxy" \
-        --build-arg HTTPS_PROXY="$HTTPS_PROXY" \
-        --build-arg https_proxy="$https_proxy" \
-        --build-arg FTP_PROXY="$FTP_PROXY" \
-        --build-arg ftp_proxy="$ftp_proxy" \
-        --build-arg NO_PROXY="$NO_PROXY" \
-        --build-arg no_proxy="$no_proxy" \
-        -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
     else
       echo "Building Heroku-based application using gliderlabs/herokuish docker image..."
-      docker run -i \
-        -e BUILDPACK_URL \
-        -e HTTP_PROXY \
-        -e http_proxy \
-        -e HTTPS_PROXY \
-        -e https_proxy \
-        -e FTP_PROXY \
-        -e ftp_proxy \
-        -e NO_PROXY \
-        -e no_proxy \
-        --name="$CI_CONTAINER_NAME" -v "$(pwd):/tmp/app:ro" gliderlabs/herokuish /bin/herokuish buildpack build
-      docker commit "$CI_CONTAINER_NAME" "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
-      docker rm "$CI_CONTAINER_NAME" >/dev/null
-      echo ""
-
-      echo "Configuring $CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG docker image..."
-      docker create --expose 5000 --env PORT=5000 --name="$CI_CONTAINER_NAME" "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" /bin/herokuish procfile start web
-      docker commit "$CI_CONTAINER_NAME" "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
-      docker rm "$CI_CONTAINER_NAME" >/dev/null
-      echo ""
+      cat > $CI_PROJECT_DIR/Dockerfile <<EOF
+  FROM gliderlabs/herokuish
+  COPY . /tmp/app
+  RUN /bin/herokuish buildpack build
+  RUN rm -rf /tmp/app
+  ENV PORT=5000
+  EXPOSE 5000
+  ENTRYPOINT /bin/herokuish procfile start web
+  EOF
     fi
 
-    echo "Pushing to GitLab Container Registry..."
-    docker push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
-    echo ""
+    /kaniko/executor \
+      --build-arg BUILDPACK_URL="$BUILDPACK_URL" \
+      --build-arg HTTP_PROXY="$HTTP_PROXY" \
+      --build-arg http_proxy="$http_proxy" \
+      --build-arg HTTPS_PROXY="$HTTPS_PROXY" \
+      --build-arg https_proxy="$https_proxy" \
+      --build-arg FTP_PROXY="$FTP_PROXY" \
+      --build-arg ftp_proxy="$ftp_proxy" \
+      --build-arg NO_PROXY="$NO_PROXY" \
+      --build-arg no_proxy="$no_proxy" \
+      --context "$CI_PROJECT_DIR" \
+      --dockerfile "$CI_PROJECT_DIR/Dockerfile" \
+      --destination "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
   }
 
   function initialize_tiller() {
