@@ -5,26 +5,31 @@ import mountComponent from 'spec/helpers/vue_mount_component_helper';
 describe('MRWidgetMergeCommitDetails', () => {
   let vm;
   beforeEach(() => {
-    const Component = Vue.extend(mergeCommitDetailsComponent, {
-      showCommitMessageEditor: false,
-      showCommitDescription: false,
+    const Component = Vue.extend(mergeCommitDetailsComponent);
+    vm = mountComponent(Component, {
       commit: {
         author: {
           avatar_url:
             'https://www.gravatar.com/avatar/79e8be0c27f341afc67c0ab9f9030d17?s=72&amp;d=identicon',
           id: '12345',
-          name: 'Ash Mackenzie',
+          name: 'Test Name',
         },
-        author_email: 'amckenzie@gitlab.com',
+        author_email: 'test@gitlab.com',
         authored_date: '2018-12-05',
         description_html: 'Test description!',
       },
     });
-    vm = mountComponent(Component);
   });
 
   afterEach(() => {
     vm.$destroy();
+  });
+
+  describe('data', () => {
+    it('should have default data', () => {
+      expect(vm.showCommitMessageEditor).toBeFalsy();
+      expect(vm.showCommitDescription).toBeFalsy();
+    });
   });
 
   it('should toggle showCommitMessageEditor flag', () => {
@@ -32,5 +37,12 @@ describe('MRWidgetMergeCommitDetails', () => {
     vm.toggleCommitMessageEditor();
 
     expect(vm.showCommitMessageEditor).toBeTruthy();
+  });
+
+  it('should toggle showCommitDescription flag', () => {
+    expect(vm.showCommitDescription).toBeFalsy();
+    vm.toggleCommitDescription();
+
+    expect(vm.showCommitDescription).toBeTruthy();
   });
 });

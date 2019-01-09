@@ -34,6 +34,18 @@ export default {
       squashCommitMessage: 'Test squash commit message',
       successSvg,
       warningSvg,
+      // TODO: change this to mr.commit when present in API
+      commit: {
+        author: {
+          avatar_url:
+            'https://www.gravatar.com/avatar/79e8be0c27f341afc67c0ab9f9030d17?s=72&amp;d=identicon',
+          id: '12345',
+          name: 'Ash Mackenzie',
+        },
+        author_email: 'amckenzie@gitlab.com',
+        authored_date: '2018-12-05',
+        description_html: 'Test description!',
+      },
     };
   },
   computed: {
@@ -330,12 +342,14 @@ export default {
               <merge-commit-details
                 squash
                 v-if="this.mr.squash"
+                :commit="commit"
                 :isMergeButtonDisabled="isMergeButtonDisabled"
                 :commitMessage="squashCommitMessage"
                 :ffOnlyEnabled="mr.ffOnlyEnabled"
                 @changeCommitMessage="squashCommitMessage = $event;"
               />
               <merge-commit-details
+                :commit="commit"
                 :isMergeButtonDisabled="isMergeButtonDisabled"
                 :commitMessage="commitMessage"
                 :commitMessageLinkTitle="commitMessageLinkTitle"
