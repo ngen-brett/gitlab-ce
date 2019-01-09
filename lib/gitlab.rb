@@ -42,7 +42,7 @@ module Gitlab
   end
 
   def self.final_release?
-    !VERSION.include?('RC') && !pre_release?
+    !VERSION.include?('rc') && !pre_release?
   end
 
   def self.minor_release
@@ -51,7 +51,11 @@ module Gitlab
 
   def self.previous_release
     if version_info.minor.to_i > 0
-      version_info.major.to_s + '.' + (version_info.minor.to_i - 1).to_s
+      if version_info.patch.to_i > 0
+        version_info.major.to_s + '.' + (version_info.minor.to_i).to_s
+      else
+        version_info.major.to_s + '.' + (version_info.minor.to_i - 1).to_s
+      end
     else
       (version_info.major.to_i - 1).to_s
     end
