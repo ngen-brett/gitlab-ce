@@ -51,6 +51,7 @@ variables:
 
   KUBERNETES_VERSION: 1.10.9
   HELM_VERSION: 2.11.0
+  KANIKO_VERSION: 0.7.0
 
   DOCKER_DRIVER: overlay2
 
@@ -72,7 +73,7 @@ stages:
 build:
   stage: build
   image:
-    name: gcr.io/kaniko-project/executor:debug
+    name: "gcr.io/kaniko-project/executor:debug-v$KANIKO_VERSION"
     entrypoint: [""]
   script:
     - build
@@ -825,7 +826,7 @@ rollout 100%:
       echo "Building Dockerfile-based application..."
     else
       echo "Building Heroku-based application using gliderlabs/herokuish docker image..."
-      cat > $CI_PROJECT_DIR/Dockerfile <<EOF
+      cat > Dockerfile <<EOF
   FROM gliderlabs/herokuish
   COPY . /tmp/app
   RUN /bin/herokuish buildpack build
