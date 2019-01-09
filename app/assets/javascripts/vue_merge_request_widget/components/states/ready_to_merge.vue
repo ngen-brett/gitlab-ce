@@ -31,6 +31,7 @@ export default {
       isMakingRequest: false,
       isMergingImmediately: false,
       commitMessage: this.mr.commitMessage,
+      squashCommitMessage: 'Test squash commit message',
       successSvg,
       warningSvg,
     };
@@ -326,6 +327,13 @@ export default {
             </div>
             <div class="mr-widget-commits-count item-title">{{ commitsCountMessage }}</div>
             <ul class="content-list commit-list flex-list">
+              <merge-commit-details
+                squash
+                :isMergeButtonDisabled="isMergeButtonDisabled"
+                :commitMessage="squashCommitMessage"
+                :ffOnlyEnabled="mr.ffOnlyEnabled"
+                @changeCommitMessage="squashCommitMessage = $event;"
+              />
               <merge-commit-details
                 :isMergeButtonDisabled="isMergeButtonDisabled"
                 :commitMessage="commitMessage"
