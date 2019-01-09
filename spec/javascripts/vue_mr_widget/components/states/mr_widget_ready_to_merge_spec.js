@@ -319,15 +319,6 @@ describe('ReadyToMerge', () => {
       });
     });
 
-    describe('toggleCommitMessageEditor', () => {
-      it('should toggle showCommitMessageEditor flag', () => {
-        expect(vm.showCommitMessageEditor).toBeFalsy();
-        vm.toggleCommitMessageEditor();
-
-        expect(vm.showCommitMessageEditor).toBeTruthy();
-      });
-    });
-
     describe('handleMergeButtonClick', () => {
       const returnPromise = status =>
         new Promise(resolve => {
