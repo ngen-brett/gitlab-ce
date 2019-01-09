@@ -1,6 +1,11 @@
 <script>
+import UserAvatarLink from '~/vue_shared/components/user_avatar/user_avatar_link.vue';
+
 export default {
   name: 'MergeCommitDetails',
+  components: {
+    UserAvatarLink,
+  },
   props: {
     isMergeButtonDisabled: { type: Boolean },
     commitMessage: { type: String },
@@ -8,9 +13,40 @@ export default {
     ffOnlyEnabled: { type: Boolean },
     squash: { type: Boolean },
   },
+  computed: {
+    author() {
+      return this.commit.author || {};
+    },
+    authorName() {
+      return this.author.name || this.commit.author_name;
+    },
+    authorClass() {
+      return this.author.name ? 'js-user-link' : '';
+    },
+    authorId() {
+      return this.author.id ? this.author.id : '';
+    },
+    authorUrl() {
+      return this.author.web_url || `mailto:${this.commit.author_email}`;
+    },
+    authorAvatar() {
+      return this.author.avatar_url || this.commit.author_gravatar_url;
+    },
+  },
   data() {
     return {
       showCommitMessageEditor: false,
+
+      // TODO: move this to props when get an actual commit data from API
+      commit: {
+        author: {
+          avatar_url:
+            'https://www.gravatar.com/avatar/79e8be0c27f341afc67c0ab9f9030d17?s=72&amp;d=identicon',
+          id: '12345',
+          name: 'Ash Mackenzie',
+        },
+        author_email: 'amckenzie@gitlab.com',
+      },
     };
   },
   methods: {
@@ -24,14 +60,13 @@ export default {
 <template>
   <li>
     <div class="commit flex-row">
-      <div class="avatar-cell d-none d-sm-block">
-        <img
-          alt="Ash McKenzie's avatar"
-          src="https://www.gravatar.com/avatar/79e8be0c27f341afc67c0ab9f9030d17?s=72&amp;d=identicon"
-          class="avatar s36 d-none d-sm-inline"
-          title="Ash McKenzie"
-        />
-      </div>
+      <user-avatar-link
+        :link-href="authorUrl"
+        :img-src="authorAvatar"
+        :img-alt="authorName"
+        :img-size="36"
+        class="avatar-cell d-none d-sm-block"
+      />
       <div class="commit-detail flex-list">
         <div class="commit-content qa-commit-content">
           <div class="committer">

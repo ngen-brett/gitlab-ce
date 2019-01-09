@@ -329,6 +329,7 @@ export default {
             <ul class="content-list commit-list flex-list">
               <merge-commit-details
                 squash
+                v-if="this.mr.squash"
                 :isMergeButtonDisabled="isMergeButtonDisabled"
                 :commitMessage="squashCommitMessage"
                 :ffOnlyEnabled="mr.ffOnlyEnabled"
