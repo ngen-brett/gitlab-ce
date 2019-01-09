@@ -86,6 +86,7 @@ export default {
           v-if="commit.description_html"
           class="text-expander js-toggle-button"
           type="button"
+          @click="showCommitDescription"
           :aria-label="__('Toggle commit description')"
         >
           <icon :size="12" name="ellipsis_h" />
