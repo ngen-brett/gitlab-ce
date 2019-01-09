@@ -24,6 +24,22 @@ describe Gitlab::Kubernetes::KubeClient do
     end
   end
 
+  describe 'redirection' do
+    before do
+      redirect_url = 'https://not-under-our-control.example.com/api/v1/pods'
+
+      stub_request(:get, "#{api_url}/api/v1/pods")
+        .to_return(status: 302,  headers: { location: redirect_url })
+
+      stub_request(:get, redirect_url)
+        .to_return(status: 200, body: '{}')
+    end
+
+    it 'does not follow redirects' do
+      expect { client.get_pods }.to raise_error(Kubeclient::HttpError)
+    end
+  end
+
   describe '#core_client' do
     subject { client.core_client }
 

@@ -78,7 +78,7 @@ module Gitlab
 
       def initialize(api_prefix, **kubeclient_options)
         @api_prefix = api_prefix
-        @kubeclient_options = kubeclient_options
+        @kubeclient_options = kubeclient_options.merge(http_max_redirects: 0)
       end
 
       def create_or_update_cluster_role_binding(resource)
