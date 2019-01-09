@@ -5,6 +5,7 @@ export default {
     isMergeButtonDisabled: { type: Boolean },
     commitMessage: { type: String },
     commitMessageLinkTitle: { type: String },
+    ffOnlyEnabled: { type: Boolean },
   },
   data() {
     return {
@@ -12,7 +13,9 @@ export default {
     };
   },
   methods: {
-    toggleCommitMessageEditor() {},
+    toggleCommitMessageEditor() {
+      this.showCommitMessageEditor = !this.showCommitMessageEditor;
+    },
   },
 };
 </script>
@@ -48,7 +51,7 @@ export default {
           <span class="commit-row-message item-title"> {{ commitMessage }} </span>
         </div>
         <div class="commit-actions flex-row d-none d-sm-flex">
-          <span v-if="mr.ffOnlyEnabled" class="js-fast-forward-message">
+          <span v-if="ffOnlyEnabled" class="js-fast-forward-message">
             Fast-forward merge without a merge commit
           </span>
 
@@ -73,7 +76,7 @@ export default {
             <textarea
               id="commit-message"
               :value="commitMessage"
-              @change="$emit('changeCommitMessage', e => e.target.value);"
+              @change="$emit('changeCommitMessage', $event.target.value);"
               class="form-control js-commit-message"
               required="required"
               rows="14"
