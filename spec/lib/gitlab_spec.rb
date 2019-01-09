@@ -124,7 +124,7 @@ describe Gitlab do
         stub_const('Gitlab::VERSION', '11.2.1-rc3')
       end
 
-      it { is_expected.to eql '11.1' }
+      it { is_expected.to eql '11.2' }
     end
   end
 
