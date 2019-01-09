@@ -114,10 +114,6 @@
     }
   }
 
-  .avatar-cell {
-    align-self: auto;
-  }
-
   .commit-detail {
     line-height: 20px;
   }
@@ -439,10 +435,6 @@
       color: $gl-text-color;
     }
   }
-}
-
-.mr-widget-body-controls {
-  flex-wrap: wrap;
 }
 
 .mr_source_commit,

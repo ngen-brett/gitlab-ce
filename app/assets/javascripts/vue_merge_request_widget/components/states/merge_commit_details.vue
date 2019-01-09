@@ -6,6 +6,7 @@ export default {
     commitMessage: { type: String },
     commitMessageLinkTitle: { type: String },
     ffOnlyEnabled: { type: Boolean },
+    squash: { type: Boolean },
   },
   data() {
     return {
@@ -35,17 +36,19 @@ export default {
         <div class="commit-content qa-commit-content">
           <div class="committer">
             <a class="commit-author-link" href="mailto:amckenzie@gitlab.com">Ash McKenzie</a>
-            authored
-            <time
-              class="js-timeago js-timeago-render"
-              title=""
-              datetime="2018-12-12T02:25:37Z"
-              data-toggle="tooltip"
-              data-placement="bottom"
-              data-container="body"
-              data-original-title="Dec 12, 2018 2:25am"
-              data-tid="29"
-              >3 weeks ago</time
+            <template v-if="squash">
+              authored
+              <time
+                class="js-timeago js-timeago-render"
+                title=""
+                datetime="2018-12-12T02:25:37Z"
+                data-toggle="tooltip"
+                data-placement="bottom"
+                data-container="body"
+                data-original-title="Dec 12, 2018 2:25am"
+                data-tid="29"
+                >3 weeks ago</time
+              ></template
             >
           </div>
           <span class="commit-row-message item-title"> {{ commitMessage }} </span>
@@ -84,7 +87,7 @@ export default {
             ></textarea>
           </div>
           <p class="hint">Try to keep the first line under 52 characters and the others under 72</p>
-          <div class="hint">
+          <div class="hint" v-if="!squash">
             <a href="#" @click.prevent="$emit('updateCommitMessage');">
               {{ commitMessageLinkTitle }}
             </a>
