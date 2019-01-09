@@ -1,10 +1,14 @@
 <script>
 import UserAvatarLink from '~/vue_shared/components/user_avatar/user_avatar_link.vue';
+import TimeAgoTooltip from '~/vue_shared/components/time_ago_tooltip.vue';
+import Icon from '~/vue_shared/components/icon.vue';
 
 export default {
   name: 'MergeCommitDetails',
   components: {
     UserAvatarLink,
+    TimeAgoTooltip,
+    Icon,
   },
   props: {
     isMergeButtonDisabled: { type: Boolean },
@@ -36,7 +40,7 @@ export default {
   data() {
     return {
       showCommitMessageEditor: false,
-
+      showCommitDescription: false,
       // TODO: move this to props when get an actual commit data from API
       commit: {
         author: {
@@ -46,12 +50,17 @@ export default {
           name: 'Ash Mackenzie',
         },
         author_email: 'amckenzie@gitlab.com',
+        authored_date: '2018-12-05',
+        description_html: 'Test description!',
       },
     };
   },
   methods: {
     toggleCommitMessageEditor() {
       this.showCommitMessageEditor = !this.showCommitMessageEditor;
+    },
+    toggleCommitDescription() {
+      this.showCommitDescription = !this.showCommitDescription;
     },
   },
 };
@@ -70,23 +79,34 @@ export default {
       <div class="commit-detail flex-list">
         <div class="commit-content qa-commit-content">
           <div class="committer">
-            <a class="commit-author-link" href="mailto:amckenzie@gitlab.com">Ash McKenzie</a>
+            <a
+              :href="authorUrl"
+              :class="authorClass"
+              :data-user-id="authorId"
+              v-text="authorName"
+            ></a>
             <template v-if="squash">
-              authored
-              <time
-                class="js-timeago js-timeago-render"
-                title=""
-                datetime="2018-12-12T02:25:37Z"
-                data-toggle="tooltip"
-                data-placement="bottom"
-                data-container="body"
-                data-original-title="Dec 12, 2018 2:25am"
-                data-tid="29"
-                >3 weeks ago</time
-              ></template
-            >
+              {{ s__('CommitWidget|authored') }}
+              <time-ago-tooltip :time="commit.authored_date" />
+            </template>
           </div>
           <span class="commit-row-message item-title"> {{ commitMessage }} </span>
+
+          <button
+            v-if="commit.description_html"
+            class="text-expander js-toggle-button"
+            type="button"
+            :aria-label="__('Toggle commit description')"
+            @click="toggleCommitDescription"
+          >
+            <icon :size="12" name="ellipsis_h" />
+          </button>
+          <pre
+            v-if="commit.description_html"
+            :style="[showCommitDescription ? { display: 'block' } : {}]"
+            class="commit-row-description js-toggle-content append-bottom-8"
+            v-html="commit.description_html"
+          ></pre>
         </div>
         <div class="commit-actions flex-row d-none d-sm-flex">
           <span v-if="ffOnlyEnabled" class="js-fast-forward-message">
