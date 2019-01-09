@@ -31,10 +31,12 @@ export default {
       isMergingImmediately: false,
       commitMessage: this.mr.commitMessage,
       squashBeforeMerge: this.mr.squash,
+      // Mock property to represent squash commit message
+      squashCommitMessage: 'Test squash commit message',
       successSvg,
       warningSvg,
-      // TODO: change this to mr.commit when present in API
-      commit: {
+      // TODO: change this to mr.merge_commit and mr.squash_commit when present in API
+      mergeCommit: {
         author: {
           avatar_url:
             'https://www.gravatar.com/avatar/79e8be0c27f341afc67c0ab9f9030d17?s=72&amp;d=identicon',
@@ -43,6 +45,17 @@ export default {
         },
         author_email: 'amckenzie@gitlab.com',
         authored_date: '2018-12-05',
+      },
+      squashCommit: {
+        author: {
+          avatar_url:
+            'https://www.gravatar.com/avatar/79e8be0c27f341afc67c0ab9f9030d17?s=72&amp;d=identicon',
+          id: '12345',
+          name: 'Ash Mackenzie',
+        },
+        author_email: 'amckenzie@gitlab.com',
+        authored_date: '2018-12-05',
+        title_html: 'Test squash commit message',
         description_html: 'Test description!',
       },
     };
@@ -179,6 +192,9 @@ export default {
           this.isMakingRequest = false;
           new Flash('Something went wrong. Please try again.'); // eslint-disable-line
         });
+    },
+    handleUpdateSquash(val) {
+      this.squashBeforeMerge = val;
     },
     initiateMergePolling() {
       simplePoll((continuePolling, stopPolling) => {
@@ -349,15 +365,15 @@ export default {
             <ul class="content-list commit-list flex-list">
               <merge-commit-details
                 squash
-                v-if="this.mr.squash"
-                :commit="commit"
+                v-if="squashBeforeMerge"
+                :commit="squashCommit"
                 :isMergeButtonDisabled="isMergeButtonDisabled"
                 :commitMessage="squashCommitMessage"
                 :ffOnlyEnabled="mr.ffOnlyEnabled"
                 @changeCommitMessage="squashCommitMessage = $event;"
               />
               <merge-commit-details
-                :commit="commit"
+                :commit="mergeCommit"
                 :isMergeButtonDisabled="isMergeButtonDisabled"
                 :commitMessage="commitMessage"
                 :commitMessageLinkTitle="commitMessageLinkTitle"
