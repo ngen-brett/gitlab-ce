@@ -16,8 +16,8 @@ describe API::CommitStatuses do
     let(:get_url) { "/projects/#{project.id}/repository/commits/#{sha}/statuses" }
 
     context 'ci commit exists' do
-      let!(:master) { project.pipelines.create(source: :push, sha: commit.id, ref: 'master', protected: false) }
-      let!(:develop) { project.pipelines.create(source: :push, sha: commit.id, ref: 'develop', protected: false) }
+      let!(:master) { project.ci_pipelines.create(source: :push, sha: commit.id, ref: 'master', protected: false) }
+      let!(:develop) { project.ci_pipelines.create(source: :push, sha: commit.id, ref: 'develop', protected: false) }
 
       context "reporter user" do
         let(:statuses_id) { json_response.map { |status| status['id'] } }
@@ -39,7 +39,7 @@ describe API::CommitStatuses do
           end
 
           it 'returns latest commit statuses' do
-            expect(response).to have_http_status(200)
+            expect(response).to have_gitlab_http_status(200)
 
             expect(response).to include_pagination_headers
             expect(json_response).to be_an Array
@@ -51,11 +51,11 @@ describe API::CommitStatuses do
 
         context 'all commit statuses' do
           before do
-            get api(get_url, reporter), all: 1
+            get api(get_url, reporter), params: { all: 1 }
           end
 
           it 'returns all commit statuses' do
-            expect(response).to have_http_status(200)
+            expect(response).to have_gitlab_http_status(200)
             expect(response).to include_pagination_headers
             expect(json_response).to be_an Array
             expect(statuses_id).to contain_exactly(status1.id, status2.id,
@@ -66,11 +66,11 @@ describe API::CommitStatuses do
 
         context 'latest commit statuses for specific ref' do
           before do
-            get api(get_url, reporter), ref: 'develop'
+            get api(get_url, reporter), params: { ref: 'develop' }
           end
 
           it 'returns latest commit statuses for specific ref' do
-            expect(response).to have_http_status(200)
+            expect(response).to have_gitlab_http_status(200)
             expect(response).to include_pagination_headers
             expect(json_response).to be_an Array
             expect(statuses_id).to contain_exactly(status3.id, status5.id)
@@ -79,11 +79,11 @@ describe API::CommitStatuses do
 
         context 'latest commit statues for specific name' do
           before do
-            get api(get_url, reporter), name: 'coverage'
+            get api(get_url, reporter), params: { name: 'coverage' }
           end
 
           it 'return latest commit statuses for specific name' do
-            expect(response).to have_http_status(200)
+            expect(response).to have_gitlab_http_status(200)
             expect(response).to include_pagination_headers
             expect(json_response).to be_an Array
             expect(statuses_id).to contain_exactly(status4.id, status5.id)
@@ -110,7 +110,7 @@ describe API::CommitStatuses do
       end
 
       it "does not return project commits" do
-        expect(response).to have_http_status(403)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
 
@@ -120,7 +120,7 @@ describe API::CommitStatuses do
       end
 
       it "does not return project commits" do
-        expect(response).to have_http_status(401)
+        expect(response).to have_gitlab_http_status(401)
       end
     end
   end
@@ -133,15 +133,16 @@ describe API::CommitStatuses do
         context "for #{status}" do
           context 'uses only required parameters' do
             it 'creates commit status' do
-              post api(post_url, developer), state: status
+              post api(post_url, developer), params: { state: status }
 
-              expect(response).to have_http_status(201)
+              expect(response).to have_gitlab_http_status(201)
               expect(json_response['sha']).to eq(commit.id)
               expect(json_response['status']).to eq(status)
               expect(json_response['name']).to eq('default')
               expect(json_response['ref']).not_to be_empty
               expect(json_response['target_url']).to be_nil
               expect(json_response['description']).to be_nil
+
               if status == 'failed'
                 expect(CommitStatus.find(json_response['id'])).to be_api_failure
               end
@@ -152,14 +153,14 @@ describe API::CommitStatuses do
 
       context 'transitions status from pending' do
         before do
-          post api(post_url, developer), state: 'pending'
+          post api(post_url, developer), params: { state: 'pending' }
         end
 
         %w[running success failed canceled].each do |status|
           it "to #{status}" do
-            expect { post api(post_url, developer), state: status }.not_to change { CommitStatus.count }
+            expect { post api(post_url, developer), params: { state: status } }.not_to change { CommitStatus.count }
 
-            expect(response).to have_http_status(201)
+            expect(response).to have_gitlab_http_status(201)
             expect(json_response['status']).to eq(status)
           end
         end
@@ -168,7 +169,7 @@ describe API::CommitStatuses do
       context 'with all optional parameters' do
         context 'when creating a commit status' do
           subject do
-            post api(post_url, developer), {
+            post api(post_url, developer), params: {
               state: 'success',
               context: 'coverage',
               ref: 'master',
@@ -181,7 +182,7 @@ describe API::CommitStatuses do
           it 'creates commit status' do
             subject
 
-            expect(response).to have_http_status(201)
+            expect(response).to have_gitlab_http_status(201)
             expect(json_response['sha']).to eq(commit.id)
             expect(json_response['status']).to eq('success')
             expect(json_response['name']).to eq('coverage')
@@ -197,7 +198,7 @@ describe API::CommitStatuses do
             it 'sets head pipeline' do
               subject
 
-              expect(response).to have_http_status(201)
+              expect(response).to have_gitlab_http_status(201)
               expect(merge_request.reload.head_pipeline).not_to be_nil
             end
           end
@@ -205,7 +206,7 @@ describe API::CommitStatuses do
 
         context 'when updatig a commit status' do
           before do
-            post api(post_url, developer), {
+            post api(post_url, developer), params: {
               state: 'running',
               context: 'coverage',
               ref: 'master',
@@ -214,7 +215,7 @@ describe API::CommitStatuses do
               target_url: 'http://gitlab.com/status'
             }
 
-            post api(post_url, developer), {
+            post api(post_url, developer), params: {
               state: 'success',
               name: 'coverage',
               ref: 'master',
@@ -224,7 +225,7 @@ describe API::CommitStatuses do
           end
 
           it 'updates a commit status' do
-            expect(response).to have_http_status(201)
+            expect(response).to have_gitlab_http_status(201)
             expect(json_response['sha']).to eq(commit.id)
             expect(json_response['status']).to eq('success')
             expect(json_response['name']).to eq('coverage')
@@ -243,14 +244,14 @@ describe API::CommitStatuses do
       context 'when retrying a commit status' do
         before do
           post api(post_url, developer),
-            { state: 'failed', name: 'test', ref: 'master' }
+            params: { state: 'failed', name: 'test', ref: 'master' }
 
           post api(post_url, developer),
-            { state: 'success', name: 'test', ref: 'master' }
+            params: { state: 'success', name: 'test', ref: 'master' }
         end
 
         it 'correctly posts a new commit status' do
-          expect(response).to have_http_status(201)
+          expect(response).to have_gitlab_http_status(201)
           expect(json_response['sha']).to eq(commit.id)
           expect(json_response['status']).to eq('success')
         end
@@ -264,11 +265,11 @@ describe API::CommitStatuses do
 
       context 'when status is invalid' do
         before do
-          post api(post_url, developer), state: 'invalid'
+          post api(post_url, developer), params: { state: 'invalid' }
         end
 
         it 'does not create commit status' do
-          expect(response).to have_http_status(400)
+          expect(response).to have_gitlab_http_status(400)
         end
       end
 
@@ -278,7 +279,7 @@ describe API::CommitStatuses do
         end
 
         it 'does not create commit status' do
-          expect(response).to have_http_status(400)
+          expect(response).to have_gitlab_http_status(400)
         end
       end
 
@@ -286,45 +287,47 @@ describe API::CommitStatuses do
         let(:sha) { 'invalid_sha' }
 
         before do
-          post api(post_url, developer), state: 'running'
+          post api(post_url, developer), params: { state: 'running' }
         end
 
         it 'returns not found error' do
-          expect(response).to have_http_status(404)
+          expect(response).to have_gitlab_http_status(404)
         end
       end
 
       context 'when target URL is an invalid address' do
         before do
-          post api(post_url, developer), state: 'pending',
-                                         target_url: 'invalid url'
+          post api(post_url, developer), params: {
+                                           state: 'pending',
+                                           target_url: 'invalid url'
+                                         }
         end
 
         it 'responds with bad request status and validation errors' do
-          expect(response).to have_http_status(400)
+          expect(response).to have_gitlab_http_status(400)
           expect(json_response['message']['target_url'])
-            .to include 'must be a valid URL'
+            .to include 'is blocked: Only allowed protocols are http, https'
         end
       end
     end
 
     context 'reporter user' do
       before do
-        post api(post_url, reporter), state: 'running'
+        post api(post_url, reporter), params: { state: 'running' }
       end
 
       it 'does not create commit status' do
-        expect(response).to have_http_status(403)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
 
     context 'guest user' do
       before do
-        post api(post_url, guest), state: 'running'
+        post api(post_url, guest), params: { state: 'running' }
       end
 
       it 'does not create commit status' do
-        expect(response).to have_http_status(403)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
 
@@ -334,7 +337,7 @@ describe API::CommitStatuses do
       end
 
       it 'does not create commit status' do
-        expect(response).to have_http_status(401)
+        expect(response).to have_gitlab_http_status(401)
       end
     end
   end

@@ -1,23 +1,42 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Email
     module Handler
       module ReplyProcessing
         private
 
+        attr_reader :project_id, :project_slug, :project_path, :incoming_email_token
+
         def author
           raise NotImplementedError
         end
 
+        # rubocop:disable Gitlab/ModuleWithInstanceVariables
         def project
-          raise NotImplementedError
+          return @project if instance_variable_defined?(:@project)
+
+          if project_id
+            @project = Project.find_by_id(project_id)
+            @project = nil unless valid_project_slug?(@project)
+          else
+            @project = Project.find_by_full_path(project_path)
+          end
+
+          @project
         end
+        # rubocop:enable Gitlab/ModuleWithInstanceVariables
 
         def message
           @message ||= process_message
         end
 
-        def process_message
-          message = ReplyParser.new(mail).execute.strip
+        def message_including_reply
+          @message_with_reply ||= process_message(trim_reply: false)
+        end
+
+        def process_message(**kwargs)
+          message = ReplyParser.new(mail, **kwargs).execute.strip
           add_attachments(message)
         end
 
@@ -32,8 +51,12 @@ module Gitlab
         def validate_permission!(permission)
           raise UserNotFoundError unless author
           raise UserBlockedError if author.blocked?
-          raise ProjectNotFound unless author.can?(:read_project, project)
-          raise UserNotAuthorizedError unless author.can?(permission, project)
+
+          if project
+            raise ProjectNotFound unless author.can?(:read_project, project)
+          end
+
+          raise UserNotAuthorizedError unless author.can?(permission, project || noteable)
         end
 
         def verify_record!(record:, invalid_exception:, record_name:)
@@ -47,6 +70,10 @@ module Gitlab
           end.join
 
           raise invalid_exception, msg
+        end
+
+        def valid_project_slug?(found_project)
+          project_slug == found_project.full_path_slug
         end
       end
     end

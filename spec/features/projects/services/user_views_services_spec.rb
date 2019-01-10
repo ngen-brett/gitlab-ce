@@ -5,7 +5,7 @@ describe 'User views services' do
   let(:user) { create(:user) }
 
   before do
-    project.add_master(user)
+    project.add_maintainer(user)
     sign_in(user)
 
     visit(project_settings_integrations_path(project))
@@ -21,5 +21,6 @@ describe 'User views services' do
     expect(page).to have_content('JetBrains TeamCity')
     expect(page).to have_content('Asana')
     expect(page).to have_content('Irker (IRC gateway)')
+    expect(page).to have_content('Packagist')
   end
 end

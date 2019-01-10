@@ -1,25 +1,35 @@
 export default class SidebarStore {
-  constructor(store) {
+  constructor(options) {
     if (!SidebarStore.singleton) {
-      const { currentUser, rootPath, editable } = store;
-      this.currentUser = currentUser;
-      this.rootPath = rootPath;
-      this.editable = editable;
-      this.timeEstimate = 0;
-      this.totalTimeSpent = 0;
-      this.humanTimeEstimate = '';
-      this.humanTimeSpent = '';
-      this.assignees = [];
-      this.isFetching = {
-        assignees: true,
-      };
-      this.autocompleteProjects = [];
-      this.moveToProjectId = 0;
-
-      SidebarStore.singleton = this;
+      this.initSingleton(options);
     }
 
     return SidebarStore.singleton;
+  }
+
+  initSingleton(options) {
+    const { currentUser, rootPath, editable } = options;
+    this.currentUser = currentUser;
+    this.rootPath = rootPath;
+    this.editable = editable;
+    this.timeEstimate = 0;
+    this.totalTimeSpent = 0;
+    this.humanTimeEstimate = '';
+    this.humanTimeSpent = '';
+    this.assignees = [];
+    this.isFetching = {
+      assignees: true,
+      participants: true,
+      subscriptions: true,
+    };
+    this.isLoading = {};
+    this.autocompleteProjects = [];
+    this.moveToProjectId = 0;
+    this.isLockDialogOpen = false;
+    this.participants = [];
+    this.subscribed = null;
+
+    SidebarStore.singleton = this;
   }
 
   setAssigneeData(data) {
@@ -36,6 +46,24 @@ export default class SidebarStore {
     this.humanTotalTimeSpent = data.human_total_time_spent;
   }
 
+  setParticipantsData(data) {
+    this.isFetching.participants = false;
+    this.participants = data.participants || [];
+  }
+
+  setSubscriptionsData(data) {
+    this.isFetching.subscriptions = false;
+    this.subscribed = data.subscribed || false;
+  }
+
+  setFetchingState(key, value) {
+    this.isFetching[key] = value;
+  }
+
+  setLoadingState(key, value) {
+    this.isLoading[key] = value;
+  }
+
   addAssignee(assignee) {
     if (!this.findAssignee(assignee)) {
       this.assignees.push(assignee);
@@ -43,7 +71,7 @@ export default class SidebarStore {
   }
 
   findAssignee(findAssignee) {
-    return this.assignees.filter(assignee => assignee.id === findAssignee.id)[0];
+    return this.assignees.find(assignee => assignee.id === findAssignee.id);
   }
 
   removeAssignee(removeAssignee) {
@@ -58,6 +86,10 @@ export default class SidebarStore {
 
   setAutocompleteProjects(projects) {
     this.autocompleteProjects = projects;
+  }
+
+  setSubscribedState(subscribed) {
+    this.subscribed = subscribed;
   }
 
   setMoveToProjectId(moveToProjectId) {

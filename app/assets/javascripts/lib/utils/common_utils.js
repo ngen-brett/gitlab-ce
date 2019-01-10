@@ -1,5 +1,14 @@
+import $ from 'jquery';
+import axios from './axios_utils';
+import { getLocationHash } from './url_utility';
+import { convertToCamelCase } from './text_utility';
+import { isObject } from './type_utility';
 
-export const getPagePath = (index = 0) => $('body').data('page').split(':')[index];
+export const getPagePath = (index = 0) => {
+  const page = $('body').attr('data-page') || '';
+
+  return page.split(':')[index];
+};
 
 export const isInGroupsPage = () => getPagePath() === 'groups';
 
@@ -19,33 +28,36 @@ export const getGroupSlug = () => {
   return null;
 };
 
-export const isInIssuePage = () => {
-  const page = getPagePath(1);
-  const action = getPagePath(2);
+export const checkPageAndAction = (page, action) => {
+  const pagePath = getPagePath(1);
+  const actionPath = getPagePath(2);
 
-  return page === 'issues' && action === 'show';
+  return pagePath === page && actionPath === action;
 };
 
-export const ajaxGet = url => $.ajax({
-  type: 'GET',
-  url,
-  dataType: 'script',
-});
+export const isInIssuePage = () => checkPageAndAction('issues', 'show');
+export const isInMRPage = () => checkPageAndAction('merge_requests', 'show');
+export const isInEpicPage = () => checkPageAndAction('epics', 'show');
 
-export const ajaxPost = (url, data) => $.ajax({
-  type: 'POST',
-  url,
-  data,
-});
+export const ajaxGet = url =>
+  axios
+    .get(url, {
+      params: { format: 'js' },
+      responseType: 'text',
+    })
+    .then(({ data }) => {
+      $.globalEval(data);
+    });
 
-export const rstrip = (val) => {
+export const rstrip = val => {
   if (val) {
     return val.replace(/\s+$/, '');
   }
   return val;
 };
 
-export const updateTooltipTitle = ($tooltipEl, newTitle) => $tooltipEl.attr('title', newTitle).tooltip('fixTitle');
+export const updateTooltipTitle = ($tooltipEl, newTitle) =>
+  $tooltipEl.attr('title', newTitle).tooltip('_fixTitle');
 
 export const disableButtonIfEmptyField = (fieldSelector, buttonSelector, eventName = 'input') => {
   const field = $(fieldSelector);
@@ -54,7 +66,7 @@ export const disableButtonIfEmptyField = (fieldSelector, buttonSelector, eventNa
     closestSubmit.disable();
   }
   // eslint-disable-next-line func-names
-  return field.on(eventName, function () {
+  return field.on(eventName, function() {
     if (rstrip($(this).val()) === '') {
       return closestSubmit.disable();
     }
@@ -65,72 +77,108 @@ export const disableButtonIfEmptyField = (fieldSelector, buttonSelector, eventNa
 // automatically adjust scroll position for hash urls taking the height of the navbar into account
 // https://github.com/twitter/bootstrap/issues/1768
 export const handleLocationHash = () => {
-  let hash = window.gl.utils.getLocationHash();
+  let hash = getLocationHash();
   if (!hash) return;
 
   // This is required to handle non-unicode characters in hash
   hash = decodeURIComponent(hash);
 
+  const target = document.getElementById(hash) || document.getElementById(`user-content-${hash}`);
   const fixedTabs = document.querySelector('.js-tabs-affix');
-  const fixedDiffStats = document.querySelector('.js-diff-files-changed.is-stuck');
+  const fixedDiffStats = document.querySelector('.js-diff-files-changed');
   const fixedNav = document.querySelector('.navbar-gitlab');
+  const performanceBar = document.querySelector('#js-peek');
+  const topPadding = 8;
 
   let adjustment = 0;
   if (fixedNav) adjustment -= fixedNav.offsetHeight;
 
-  // scroll to user-generated markdown anchor if we cannot find a match
-  if (document.getElementById(hash) === null) {
-    const target = document.getElementById(`user-content-${hash}`);
-    if (target && target.scrollIntoView) {
-      target.scrollIntoView(true);
-      window.scrollBy(0, adjustment);
-    }
-  } else {
-    // only adjust for fixedTabs when not targeting user-generated content
-    if (fixedTabs) {
-      adjustment -= fixedTabs.offsetHeight;
-    }
-
-    if (fixedDiffStats) {
-      adjustment -= fixedDiffStats.offsetHeight;
-    }
-
-    window.scrollBy(0, adjustment);
+  if (target && target.scrollIntoView) {
+    target.scrollIntoView(true);
   }
+
+  if (fixedTabs) {
+    adjustment -= fixedTabs.offsetHeight;
+  }
+
+  if (fixedDiffStats) {
+    adjustment -= fixedDiffStats.offsetHeight;
+  }
+
+  if (performanceBar) {
+    adjustment -= performanceBar.offsetHeight;
+  }
+
+  if (isInMRPage()) {
+    adjustment -= topPadding;
+  }
+
+  window.scrollBy(0, adjustment);
 };
 
 // Check if element scrolled into viewport from above or below
 // Courtesy http://stackoverflow.com/a/7557433/414749
-export const isInViewport = (el) => {
+export const isInViewport = (el, offset = {}) => {
   const rect = el.getBoundingClientRect();
+  const { top, left } = offset;
 
   return (
-    rect.top >= 0 &&
-    rect.left >= 0 &&
+    rect.top >= (top || 0) &&
+    rect.left >= (left || 0) &&
     rect.bottom <= window.innerHeight &&
     rect.right <= window.innerWidth
   );
 };
 
-export const parseUrl = (url) => {
+export const parseUrl = url => {
   const parser = document.createElement('a');
   parser.href = url;
   return parser;
 };
 
-export const parseUrlPathname = (url) => {
+export const parseUrlPathname = url => {
   const parsedUrl = parseUrl(url);
   // parsedUrl.pathname will return an absolute path for Firefox and a relative path for IE11
   // We have to make sure we always have an absolute path.
   return parsedUrl.pathname.charAt(0) === '/' ? parsedUrl.pathname : `/${parsedUrl.pathname}`;
 };
 
-// We can trust that each param has one & since values containing & will be encoded
-// Remove the first character of search as it is always ?
-export const getUrlParamsArray = () => window.location.search.slice(1).split('&').map((param) => {
-  const split = param.split('=');
-  return [decodeURI(split[0]), split[1]].join('=');
-});
+const splitPath = (path = '') => path.replace(/^\?/, '').split('&');
+
+export const urlParamsToArray = (path = '') =>
+  splitPath(path)
+    .filter(param => param.length > 0)
+    .map(param => {
+      const split = param.split('=');
+      return [decodeURI(split[0]), split[1]].join('=');
+    });
+
+export const getUrlParamsArray = () => urlParamsToArray(window.location.search);
+
+export const urlParamsToObject = (path = '') =>
+  splitPath(path).reduce((dataParam, filterParam) => {
+    if (filterParam === '') {
+      return dataParam;
+    }
+
+    const data = dataParam;
+    let [key, value] = filterParam.split('=');
+    const isArray = key.includes('[]');
+    key = key.replace('[]', '');
+    value = decodeURIComponent(value.replace(/\+/g, ' '));
+
+    if (isArray) {
+      if (!data[key]) {
+        data[key] = [];
+      }
+
+      data[key].push(value);
+    } else {
+      data[key] = value;
+    }
+
+    return data;
+  }, {});
 
 export const isMetaKey = e => e.metaKey || e.ctrlKey || e.altKey || e.shiftKey;
 
@@ -140,14 +188,32 @@ export const isMetaKey = e => e.metaKey || e.ctrlKey || e.altKey || e.shiftKey;
 // 3) Middle-click or Mouse Wheel Click (e.which is 2)
 export const isMetaClick = e => e.metaKey || e.ctrlKey || e.which === 2;
 
-export const scrollToElement = ($el) => {
-  const top = $el.offset().top;
+export const contentTop = () => {
+  const perfBar = $('#js-peek').height() || 0;
   const mrTabsHeight = $('.merge-request-tabs').height() || 0;
   const headerHeight = $('.navbar-gitlab').height() || 0;
+  const diffFilesChanged = $('.js-diff-files-changed').height() || 0;
+  const diffFileLargeEnoughScreen =
+    'matchMedia' in window ? window.matchMedia('min-width: 768') : true;
+  const diffFileTitleBar =
+    (diffFileLargeEnoughScreen && $('.diff-file .file-title-flex-parent:visible').height()) || 0;
 
-  return $('body, html').animate({
-    scrollTop: top - mrTabsHeight - headerHeight,
-  }, 200);
+  return perfBar + mrTabsHeight + headerHeight + diffFilesChanged + diffFileTitleBar;
+};
+
+export const scrollToElement = element => {
+  let $el = element;
+  if (!(element instanceof $)) {
+    $el = $(element);
+  }
+  const { top } = $el.offset();
+
+  return $('body, html').animate(
+    {
+      scrollTop: top - contentTop(),
+    },
+    200,
+  );
 };
 
 /**
@@ -165,24 +231,52 @@ export const getParameterByName = (name, urlToParse) => {
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
 };
 
-export const getSelectedFragment = () => {
+const handleSelectedRange = (range, restrictToNode) => {
+  // Make sure this range is within the restricting container
+  if (restrictToNode && !range.intersectsNode(restrictToNode)) return null;
+
+  // If only a part of the range is within the wanted container, we need to restrict the range to it
+  if (restrictToNode && !restrictToNode.contains(range.commonAncestorContainer)) {
+    if (!restrictToNode.contains(range.startContainer)) range.setStart(restrictToNode, 0);
+    if (!restrictToNode.contains(range.endContainer))
+      range.setEnd(restrictToNode, restrictToNode.childNodes.length);
+  }
+
+  const container = range.commonAncestorContainer;
+  // add context to fragment if needed
+  if (container.tagName === 'OL') {
+    const parentContainer = document.createElement(container.tagName);
+    parentContainer.appendChild(range.cloneContents());
+    return parentContainer;
+  }
+  return range.cloneContents();
+};
+
+export const getSelectedFragment = restrictToNode => {
   const selection = window.getSelection();
   if (selection.rangeCount === 0) return null;
+  // Most usages of the selection only want text from a part of the page (e.g. discussion)
+  if (restrictToNode && !selection.containsNode(restrictToNode, true)) return null;
+
   const documentFragment = document.createDocumentFragment();
+  documentFragment.originalNodes = [];
+
   for (let i = 0; i < selection.rangeCount; i += 1) {
-    documentFragment.appendChild(selection.getRangeAt(i).cloneContents());
+    const range = selection.getRangeAt(i);
+    const handledRange = handleSelectedRange(range, restrictToNode);
+    if (handledRange) {
+      documentFragment.appendChild(handledRange);
+      documentFragment.originalNodes.push(range.commonAncestorContainer);
+    }
   }
   if (documentFragment.textContent.length === 0) return null;
 
   return documentFragment;
 };
 
-// TODO: Update this name, there is a gl.text.insertText function.
 export const insertText = (target, text) => {
   // Firefox doesn't support `document.execCommand('insertText', false, text)` on textareas
-  const selectionStart = target.selectionStart;
-  const selectionEnd = target.selectionEnd;
-  const value = target.value;
+  const { selectionStart, selectionEnd, value } = target;
 
   const textBefore = value.substring(0, selectionStart);
   const textAfter = value.substring(selectionEnd, value.length);
@@ -193,10 +287,13 @@ export const insertText = (target, text) => {
   // eslint-disable-next-line no-param-reassign
   target.value = newText;
   // eslint-disable-next-line no-param-reassign
-  target.selectionStart = target.selectionEnd = selectionStart + insertedText.length;
+  target.selectionStart = selectionStart + insertedText.length;
+
+  // eslint-disable-next-line no-param-reassign
+  target.selectionEnd = selectionStart + insertedText.length;
 
   // Trigger autosave
-  $(target).trigger('input');
+  target.dispatchEvent(new Event('input'));
 
   // Trigger autosize
   const event = document.createEvent('Event');
@@ -205,7 +302,8 @@ export const insertText = (target, text) => {
 };
 
 export const nodeMatchesSelector = (node, selector) => {
-  const matches = Element.prototype.matches ||
+  const matches =
+    Element.prototype.matches ||
     Element.prototype.matchesSelector ||
     Element.prototype.mozMatchesSelector ||
     Element.prototype.msMatchesSelector ||
@@ -218,7 +316,8 @@ export const nodeMatchesSelector = (node, selector) => {
 
   // IE11 doesn't support `node.matches(selector)`
 
-  let parentNode = node.parentNode;
+  let { parentNode } = node;
+
   if (!parentNode) {
     parentNode = document.createElement('div');
     // eslint-disable-next-line no-param-reassign
@@ -234,10 +333,10 @@ export const nodeMatchesSelector = (node, selector) => {
   this will take in the headers from an API response and normalize them
   this way we don't run into production issues when nginx gives us lowercased header keys
 */
-export const normalizeHeaders = (headers) => {
+export const normalizeHeaders = headers => {
   const upperCaseHeaders = {};
 
-  Object.keys(headers).forEach((e) => {
+  Object.keys(headers || {}).forEach(e => {
     upperCaseHeaders[e.toUpperCase()] = headers[e];
   });
 
@@ -248,12 +347,14 @@ export const normalizeHeaders = (headers) => {
   this will take in the getAllResponseHeaders result and normalize them
   this way we don't run into production issues when nginx gives us lowercased header keys
 */
-export const normalizeCRLFHeaders = (headers) => {
+export const normalizeCRLFHeaders = headers => {
   const headersObject = {};
   const headersArray = headers.split('\n');
 
-  headersArray.forEach((header) => {
+  headersArray.forEach(header => {
     const keyValue = header.split(': ');
+
+    // eslint-disable-next-line prefer-destructuring
     headersObject[keyValue[0]] = keyValue[1];
   });
 
@@ -276,44 +377,62 @@ export const parseIntPagination = paginationInformation => ({
 });
 
 /**
- * Updates the search parameter of a URL given the parameter and value provided.
+ * Given a string of query parameters creates an object.
  *
- * If no search params are present we'll add it.
- * If param for page is already present, we'll update it
- * If there are params but not for the given one, we'll add it at the end.
- * Returns the new search parameters.
+ * @example
+ * `scope=all&page=2` -> { scope: 'all', page: '2'}
+ * `scope=all` -> { scope: 'all' }
+ * ``-> {}
+ * @param {String} query
+ * @returns {Object}
+ */
+export const parseQueryStringIntoObject = (query = '') => {
+  if (query === '') return {};
+
+  return query.split('&').reduce((acc, element) => {
+    const val = element.split('=');
+    Object.assign(acc, {
+      [val[0]]: decodeURIComponent(val[1]),
+    });
+    return acc;
+  }, {});
+};
+
+/**
+ * Converts object with key-value pairs
+ * into query-param string
+ *
+ * @param {Object} params
+ */
+export const objectToQueryString = (params = {}) =>
+  Object.keys(params)
+    .map(param => `${param}=${params[param]}`)
+    .join('&');
+
+export const buildUrlWithCurrentLocation = param => {
+  if (param) return `${window.location.pathname}${param}`;
+
+  return window.location.pathname;
+};
+
+/**
+ * Based on the current location and the string parameters provided
+ * creates a new entry in the history without reloading the page.
  *
  * @param {String} param
- * @param {Number|String|Undefined|Null} value
- * @return {String}
  */
-export const setParamInURL = (param, value) => {
-  let search;
-  const locationSearch = window.location.search;
-
-  if (locationSearch.length) {
-    const parameters = locationSearch.substring(1, locationSearch.length)
-      .split('&')
-      .reduce((acc, element) => {
-        const val = element.split('=');
-        // eslint-disable-next-line no-param-reassign
-        acc[val[0]] = decodeURIComponent(val[1]);
-        return acc;
-      }, {});
-
-    parameters[param] = value;
-
-    const toString = Object.keys(parameters)
-      .map(val => `${val}=${encodeURIComponent(parameters[val])}`)
-      .join('&');
-
-    search = `?${toString}`;
-  } else {
-    search = `?${param}=${value}`;
-  }
-
-  return search;
+export const historyPushState = newUrl => {
+  window.history.pushState({}, document.title, newUrl);
 };
+
+/**
+ * Returns true for a String "true" and false otherwise.
+ * This is the opposite of Boolean(...).toString()
+ *
+ * @param  {String} value
+ * @returns {Boolean}
+ */
+export const parseBoolean = value => value === 'true';
 
 /**
  * Converts permission provided as strings to booleans.
@@ -321,7 +440,14 @@ export const setParamInURL = (param, value) => {
  * @param  {String} string
  * @returns {Boolean}
  */
-export const convertPermissionToBoolean = permission => permission === 'true';
+export const convertPermissionToBoolean = permission => {
+  if (process.env.NODE_ENV !== 'production') {
+    // eslint-disable-next-line no-console
+    console.warn('convertPermissionToBoolean is deprecated! Please use parseBoolean instead.');
+  }
+
+  return parseBoolean(permission);
+};
 
 /**
  * Back Off exponential algorithm
@@ -360,7 +486,7 @@ export const backOff = (fn, timeout = 60000) => {
   let timeElapsed = 0;
 
   return new Promise((resolve, reject) => {
-    const stop = arg => ((arg instanceof Error) ? reject(arg) : resolve(arg));
+    const stop = arg => (arg instanceof Error ? reject(arg) : resolve(arg));
 
     const next = () => {
       if (timeElapsed < timeout) {
@@ -376,7 +502,70 @@ export const backOff = (fn, timeout = 60000) => {
   });
 };
 
-export const setFavicon = (faviconPath) => {
+export const createOverlayIcon = (iconPath, overlayPath) => {
+  const faviconImage = document.createElement('img');
+
+  return new Promise(resolve => {
+    faviconImage.onload = () => {
+      const size = 32;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+
+      const context = canvas.getContext('2d');
+      context.clearRect(0, 0, size, size);
+      context.drawImage(
+        faviconImage,
+        0,
+        0,
+        faviconImage.width,
+        faviconImage.height,
+        0,
+        0,
+        size,
+        size,
+      );
+
+      const overlayImage = document.createElement('img');
+      overlayImage.onload = () => {
+        context.drawImage(
+          overlayImage,
+          0,
+          0,
+          overlayImage.width,
+          overlayImage.height,
+          0,
+          0,
+          size,
+          size,
+        );
+
+        const faviconWithOverlayUrl = canvas.toDataURL();
+
+        resolve(faviconWithOverlayUrl);
+      };
+      overlayImage.src = overlayPath;
+    };
+    faviconImage.src = iconPath;
+  });
+};
+
+export const setFaviconOverlay = overlayPath => {
+  const faviconEl = document.getElementById('favicon');
+
+  if (!faviconEl) {
+    return null;
+  }
+
+  const iconPath = faviconEl.getAttribute('data-original-href');
+
+  return createOverlayIcon(iconPath, overlayPath).then(faviconWithOverlayUrl =>
+    faviconEl.setAttribute('href', faviconWithOverlayUrl),
+  );
+};
+
+export const setFavicon = faviconPath => {
   const faviconEl = document.getElementById('favicon');
   if (faviconEl && faviconPath) {
     faviconEl.setAttribute('href', faviconPath);
@@ -385,32 +574,105 @@ export const setFavicon = (faviconPath) => {
 
 export const resetFavicon = () => {
   const faviconEl = document.getElementById('favicon');
-  const originalFavicon = faviconEl ? faviconEl.getAttribute('href') : null;
+
   if (faviconEl) {
+    const originalFavicon = faviconEl.getAttribute('data-original-href');
     faviconEl.setAttribute('href', originalFavicon);
   }
 };
 
-export const setCiStatusFavicon = (pageUrl) => {
-  $.ajax({
-    url: pageUrl,
-    dataType: 'json',
-    success: (data) => {
+export const setCiStatusFavicon = pageUrl =>
+  axios
+    .get(pageUrl)
+    .then(({ data }) => {
       if (data && data.favicon) {
-        setFavicon(data.favicon);
-      } else {
-        resetFavicon();
+        return setFaviconOverlay(data.favicon);
       }
-    },
-    error: () => {
+      return resetFavicon();
+    })
+    .catch(error => {
       resetFavicon();
-    },
+      throw error;
+    });
+
+export const spriteIcon = (icon, className = '') => {
+  const classAttribute = className.length > 0 ? `class="${className}"` : '';
+
+  return `<svg ${classAttribute}><use xlink:href="${gon.sprite_icons}#${icon}" /></svg>`;
+};
+
+/**
+ * This method takes in object with snake_case property names
+ * and returns new object with camelCase property names
+ *
+ * Reasoning for this method is to ensure consistent property
+ * naming conventions across JS code.
+ */
+export const convertObjectPropsToCamelCase = (obj = {}, options = {}) => {
+  if (obj === null) {
+    return {};
+  }
+
+  const initial = Array.isArray(obj) ? [] : {};
+
+  return Object.keys(obj).reduce((acc, prop) => {
+    const result = acc;
+    const val = obj[prop];
+
+    if (options.deep && (isObject(val) || Array.isArray(val))) {
+      result[convertToCamelCase(prop)] = convertObjectPropsToCamelCase(val, options);
+    } else {
+      result[convertToCamelCase(prop)] = obj[prop];
+    }
+    return acc;
+  }, initial);
+};
+
+export const imagePath = imgUrl =>
+  `${gon.asset_host || ''}${gon.relative_url_root || ''}/assets/${imgUrl}`;
+
+export const addSelectOnFocusBehaviour = (selector = '.js-select-on-focus') => {
+  // Click a .js-select-on-focus field, select the contents
+  // Prevent a mouseup event from deselecting the input
+  $(selector).on('focusin', function selectOnFocusCallback() {
+    $(this)
+      .select()
+      .one('mouseup', e => {
+        e.preventDefault();
+      });
   });
 };
 
-export const spriteIcon = icon => `<svg><use xlink:href="${gon.sprite_icons}#${icon}" /></svg>`;
+/**
+ * Method to round of values with decimal places
+ * with provided precision.
+ *
+ * Taken from https://stackoverflow.com/a/7343013/414749
+ *
+ * Eg; roundOffFloat(3.141592, 3) = 3.142
+ *
+ * Refer to spec/javascripts/lib/utils/common_utils_spec.js for
+ * more supported examples.
+ *
+ * @param {Float} number
+ * @param {Number} precision
+ */
+export const roundOffFloat = (number, precision = 0) => {
+  // eslint-disable-next-line no-restricted-properties
+  const multiplier = Math.pow(10, precision);
+  return Math.round(number * multiplier) / multiplier;
+};
 
-export const imagePath = imgUrl => `${gon.asset_host || ''}${gon.relative_url_root || ''}/assets/${imgUrl}`;
+/**
+ * Represents navigation type constants of the Performance Navigation API.
+ * Detailed explanation see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceNavigation.
+ */
+export const NavigationType = {
+  TYPE_NAVIGATE: 0,
+  TYPE_RELOAD: 1,
+  TYPE_BACK_FORWARD: 2,
+  TYPE_RESERVED: 255,
+};
 
 window.gl = window.gl || {};
 window.gl.utils = {
@@ -422,7 +684,6 @@ window.gl.utils = {
   getGroupSlug,
   isInIssuePage,
   ajaxGet,
-  ajaxPost,
   rstrip,
   updateTooltipTitle,
   disableButtonIfEmptyField,

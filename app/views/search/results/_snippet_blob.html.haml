@@ -7,7 +7,7 @@
     = snippet.title
     by
     = link_to user_snippets_path(snippet.author) do
-      = image_tag avatar_icon(snippet.author), class: "avatar avatar-inline s16", alt: ''
+      = image_tag avatar_icon_for_user(snippet.author), class: "avatar avatar-inline s16", alt: ''
       = snippet.author_name
     %span.light= time_ago_with_tooltip(snippet.created_at)
   %h4.snippet-title
@@ -21,7 +21,7 @@
       .file-content.wiki
         - snippet_chunks.each do |chunk|
           - unless chunk[:data].empty?
-            = markup(snippet.file_name, chunk[:data])
+            = markup(snippet.file_name, chunk[:data], legacy_render_context(params))
           - else
             .file-content.code
               .nothing-here-block Empty file
@@ -39,7 +39,7 @@
         .blob-content
           - snippet_chunks.each do |chunk|
             - unless chunk[:data].empty?
-              = highlight(snippet.file_name, chunk[:data], repository: nil, plain: snippet.blob.no_highlighting?)
+              = highlight(snippet.file_name, chunk[:data])
             - else
               .file-content.code
                 .nothing-here-block Empty file

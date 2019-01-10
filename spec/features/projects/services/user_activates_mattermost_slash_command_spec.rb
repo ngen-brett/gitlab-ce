@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-feature 'Setup Mattermost slash commands', :js do
+describe 'Set up Mattermost slash commands', :js do
   let(:user) { create(:user) }
   let(:project) { create(:project) }
   let(:service) { project.create_mattermost_slash_commands_service }
@@ -8,7 +8,7 @@ feature 'Setup Mattermost slash commands', :js do
 
   before do
     stub_mattermost_setting(enabled: mattermost_enabled)
-    project.team << [user, :master]
+    project.add_maintainer(user)
     sign_in(user)
     visit edit_project_service_path(project, service)
   end
@@ -64,7 +64,7 @@ feature 'Setup Mattermost slash commands', :js do
       click_link 'Add to Mattermost'
 
       expect(page).to have_content('The team where the slash commands will be used in')
-      expect(page).to have_content('This is the only available team.')
+      expect(page).to have_content('This is the only available team that you are a member of.')
     end
 
     it 'shows a disabled prefilled select if user is a member of 1 team' do
@@ -76,7 +76,7 @@ feature 'Setup Mattermost slash commands', :js do
       select_element = find('#mattermost_team_id')
       selected_option = select_element.find('option[selected]')
 
-      expect(select_element['disabled']).to be(true)
+      expect(select_element['disabled']).to eq("true")
       expect(selected_option).to have_content(team_name.to_s)
     end
 
@@ -94,7 +94,7 @@ feature 'Setup Mattermost slash commands', :js do
       click_link 'Add to Mattermost'
 
       expect(page).to have_content('Select the team where the slash commands will be used in')
-      expect(page).to have_content('The list shows all available teams.')
+      expect(page).to have_content('The list shows all available teams that you are a member of.')
     end
 
     it 'shows a select with team options user is a member of multiple teams' do
@@ -104,7 +104,7 @@ feature 'Setup Mattermost slash commands', :js do
 
       select_element = find('#mattermost_team_id')
 
-      expect(select_element['disabled']).to be(false)
+      expect(select_element['disabled']).to be_falsey
       expect(select_element.all('option').count).to eq(3)
     end
 
@@ -122,7 +122,7 @@ feature 'Setup Mattermost slash commands', :js do
 
       click_link 'Add to Mattermost'
 
-      expect(find('input[type="submit"]')['disabled']).not_to be(true)
+      expect(find('input[type="submit"]')['disabled']).not_to eq("true")
     end
 
     it 'disables the submit button if the required fields are not provided', :js do
@@ -132,7 +132,7 @@ feature 'Setup Mattermost slash commands', :js do
 
       fill_in('mattermost_trigger', with: '')
 
-      expect(find('input[type="submit"]')['disabled']).to be(true)
+      expect(find('input[type="submit"]')['disabled']).to eq("true")
     end
 
     def stub_teams(count: 0)

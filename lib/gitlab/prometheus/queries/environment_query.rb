@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Prometheus
     module Queries
       class EnvironmentQuery < BaseQuery
+        # rubocop: disable CodeReuse/ActiveRecord
         def query(environment_id)
           ::Environment.find_by(id: environment_id).try do |environment|
             environment_slug = environment.slug
@@ -18,6 +21,12 @@ module Gitlab
               cpu_current: client_query(cpu_query, time: timeframe_end)
             }
           end
+        end
+        # rubocop: enable CodeReuse/ActiveRecord
+
+        def self.transform_reactive_result(result)
+          result[:metrics] = result.delete :data
+          result
         end
       end
     end

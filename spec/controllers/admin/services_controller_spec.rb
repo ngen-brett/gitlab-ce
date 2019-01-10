@@ -13,14 +13,14 @@ describe Admin::ServicesController do
     Service.available_services_names.each do |service_name|
       context "#{service_name}" do
         let!(:service) do
-          service_template = service_name.concat("_service").camelize.constantize
+          service_template = "#{service_name}_service".camelize.constantize
           service_template.where(template: true).first_or_create
         end
 
         it 'successfully displays the template' do
-          get :edit, id: service.id
+          get :edit, params: { id: service.id }
 
-          expect(response).to have_http_status(200)
+          expect(response).to have_gitlab_http_status(200)
         end
       end
     end
@@ -44,17 +44,17 @@ describe Admin::ServicesController do
     it 'calls the propagation worker when service is active' do
       expect(PropagateServiceTemplateWorker).to receive(:perform_async).with(service.id)
 
-      put :update, id: service.id, service: { active: true }
+      put :update, params: { id: service.id, service: { active: true } }
 
-      expect(response).to have_http_status(302)
+      expect(response).to have_gitlab_http_status(302)
     end
 
     it 'does not call the propagation worker when service is not active' do
       expect(PropagateServiceTemplateWorker).not_to receive(:perform_async)
 
-      put :update, id: service.id, service: { properties: {} }
+      put :update, params: { id: service.id, service: { properties: {} } }
 
-      expect(response).to have_http_status(302)
+      expect(response).to have_gitlab_http_status(302)
     end
   end
 end

@@ -60,7 +60,7 @@ Let's consider the following scenario:
    hosted in private repositories and you have multiple CI jobs that make use
    of these repositories.
 
-2. You invite a new [external user][ext]. CI jobs created by that user do not
+1. You invite a new [external user][ext]. CI jobs created by that user do not
    have access to internal repositories, because the user also doesn't have the
    access from within GitLab. You as an employee have to grant explicit access
    for this user. This allows us to prevent from accidental data leakage.
@@ -91,7 +91,7 @@ to steal the tokens of other jobs.
 
 Since 9.0 [pipeline triggers][triggers] do support the new permission model.
 The new triggers do impersonate their associated user including their access
-to projects and their project permissions. To migrate trigger to use new permisison
+to projects and their project permissions. To migrate trigger to use new permission
 model use **Take ownership**.
 
 ## Before GitLab 8.12
@@ -205,16 +205,16 @@ With the update permission model we also extended the support for accessing
 Container Registries for private projects.
 
 > **Notes:**
-- GitLab Runner versions prior to 1.8 don't incorporate the introduced changes
-  for permissions. This makes the `image:` directive to not work with private
-  projects automatically and it needs to be configured manually on Runner's host
-  with a predefined account (for example administrator's personal account with
-  access token created explicitly for this purpose). This issue is resolved with
-  latest changes in GitLab Runner 1.8 which receives GitLab credentials with
-  build data.
-- Starting from GitLab 8.12, if you have [2FA] enabled in your account, you need
-  to pass a [personal access token][pat] instead of your password in order to
-  login to GitLab's Container Registry.
+> - GitLab Runner versions prior to 1.8 don't incorporate the introduced changes
+>   for permissions. This makes the `image:` directive to not work with private
+>   projects automatically and it needs to be configured manually on Runner's host
+>   with a predefined account (for example administrator's personal account with
+>   access token created explicitly for this purpose). This issue is resolved with
+>   latest changes in GitLab Runner 1.8 which receives GitLab credentials with
+>   build data.
+> - Starting from GitLab 8.12, if you have [2FA] enabled in your account, you need
+>   to pass a [personal access token][pat] instead of your password in order to
+>   login to GitLab's Container Registry.
 
 Your jobs can access all container images that you would normally have access
 to. The only implication is that you can push to the Container Registry of the
@@ -230,7 +230,7 @@ test:
     - docker run $CI_REGISTRY/group/other-project:latest
 ```
 
-[job permissions]: ../permissions.md#jobs-permissions
+[job permissions]: ../permissions.md#job-permissions
 [comment]: https://gitlab.com/gitlab-org/gitlab-ce/issues/22484#note_16648302
 [ext]: ../permissions.md#external-users
 [gitsub]: ../../ci/git_submodules.md

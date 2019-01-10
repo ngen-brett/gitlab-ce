@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'uri'
 
 class IrkerService < Service
   prop_accessor :server_host, :server_port, :default_irc_uri
   prop_accessor :recipients, :channels
   boolean_accessor :colorize_messages
-  validates :recipients, presence: true, if: :activated?
+  validates :recipients, presence: true, if: :valid_recipients?
 
   before_validation :get_channels
 
@@ -102,7 +104,7 @@ class IrkerService < Service
         new_recipient = URI.join(default_irc_uri, '/', recipient).to_s
         uri = consider_uri(URI.parse(new_recipient))
       rescue
-        Rails.logger.error("Unable to create a valid URL from #{default_irc_uri} and #{recipient}")
+        log_error("Unable to create a valid URL", default_irc_uri: default_irc_uri, recipient: recipient)
       end
     end
 

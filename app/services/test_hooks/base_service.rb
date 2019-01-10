@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TestHooks
   class BaseService
     attr_accessor :hook, :current_user, :trigger
@@ -9,7 +11,7 @@ module TestHooks
     end
 
     def execute
-      trigger_key = hook.class::TRIGGERS.key(trigger.to_sym)
+      trigger_key = hook.class.triggers.key(trigger.to_sym)
       trigger_data_method = "#{trigger}_data"
 
       if trigger_key.nil? || !self.respond_to?(trigger_data_method, true)
@@ -19,7 +21,7 @@ module TestHooks
       error_message = catch(:validation_error) do
         sample_data = self.__send__(trigger_data_method) # rubocop:disable GitlabSecurity/PublicSend
 
-        return hook.execute(sample_data, trigger_key)
+        return hook.execute(sample_data, trigger_key) # rubocop:disable Cop/AvoidReturnFromBlocks
       end
 
       error(error_message)

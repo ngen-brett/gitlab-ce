@@ -1,13 +1,11 @@
 import Vue from 'vue';
 import descriptionTemplate from '~/issue_show/components/fields/description_template.vue';
-import '~/templates/issuable_template_selector';
-import '~/templates/issuable_template_selectors';
 
 describe('Issue description template component', () => {
   let vm;
   let formState;
 
-  beforeEach((done) => {
+  beforeEach(done => {
     const Component = Vue.extend(descriptionTemplate);
     formState = {
       description: 'test',
@@ -26,24 +24,20 @@ describe('Issue description template component', () => {
   });
 
   it('renders templates as JSON array in data attribute', () => {
-    expect(
-      vm.$el.querySelector('.js-issuable-selector').getAttribute('data-data'),
-    ).toBe('[{"name":"test"}]');
+    expect(vm.$el.querySelector('.js-issuable-selector').getAttribute('data-data')).toBe(
+      '[{"name":"test"}]',
+    );
   });
 
   it('updates formState when changing template', () => {
     vm.issuableTemplate.editor.setValue('test new template');
 
-    expect(
-      formState.description,
-    ).toBe('test new template');
+    expect(formState.description).toBe('test new template');
   });
 
   it('returns formState description with editor getValue', () => {
     formState.description = 'testing new template';
 
-    expect(
-      vm.issuableTemplate.editor.getValue(),
-    ).toBe('testing new template');
+    expect(vm.issuableTemplate.editor.getValue()).toBe('testing new template');
   });
 });

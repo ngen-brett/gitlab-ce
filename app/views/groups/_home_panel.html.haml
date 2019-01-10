@@ -1,7 +1,7 @@
-.group-home-panel.text-center
+.group-home-panel.text-center.border-bottom
   %div{ class: container_class }
     .avatar-container.s70.group-avatar
-      = image_tag group_icon(@group), class: "avatar s70 avatar-tile"
+      = group_icon(@group, class: "avatar s70 avatar-tile")
     %h1.group-title
       = @group.name
       %span.visibility-icon.has-tooltip{ data: { container: 'body' }, title: visibility_icon_description(@group) }
@@ -12,6 +12,6 @@
         = markdown_field(@group, :description)
 
     - if current_user
-      .group-buttons
+      .group-buttons.d-none.d-sm-block
         = render 'shared/members/access_request_buttons', source: @group
         = render 'shared/notifications/button', notification_setting: @notification_setting

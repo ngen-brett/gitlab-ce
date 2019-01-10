@@ -9,8 +9,8 @@ To measure the impact of a merge request you can use
 [Sherlock](profiling.md#sherlock). It's also highly recommended that you read
 the following guides:
 
-* [Performance Guidelines](performance.md)
-* [What requires downtime?](what_requires_downtime.md)
+- [Performance Guidelines](performance.md)
+- [What requires downtime?](what_requires_downtime.md)
 
 ## Impact Analysis
 
@@ -162,12 +162,13 @@ need for running complex operations to fetch the data. You should use Redis if
 data should be cached for a certain time period instead of the duration of the
 transaction.
 
-For example, say you process multiple snippets of text containiner username
+For example, say you process multiple snippets of text containing username
 mentions (e.g. `Hello @alice` and `How are you doing @alice?`). By caching the
 user objects for every username we can remove the need for running the same
 query for every mention of `@alice`.
 
 Caching data per transaction can be done using
-[RequestStore](https://github.com/steveklabnik/request_store). Caching data in
-Redis can be done using [Rails' caching
+[RequestStore](https://github.com/steveklabnik/request_store) (use
+`Gitlab::SafeRequestStore` to avoid having to remember to check
+`RequestStore.active?`). Caching data in Redis can be done using [Rails' caching
 system](http://guides.rubyonrails.org/caching_with_rails.html).

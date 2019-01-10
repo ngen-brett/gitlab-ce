@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Profiles::PreferencesController < Profiles::ApplicationController
   before_action :user
 
@@ -6,7 +8,7 @@ class Profiles::PreferencesController < Profiles::ApplicationController
 
   def update
     begin
-      result = Users::UpdateService.new(user, preferences_params).execute
+      result = Users::UpdateService.new(current_user, preferences_params.merge(user: user)).execute
 
       if result[:status] == :success
         flash[:notice] = 'Preferences saved.'

@@ -54,7 +54,7 @@ describe Admin::ProjectsFinder do
 
     context 'filter by visibility_level' do
       before do
-        private_project.add_master(user)
+        private_project.add_maintainer(user)
       end
 
       context 'private' do
@@ -136,7 +136,7 @@ describe Admin::ProjectsFinder do
     context 'filter by name' do
       let(:params) { { name: 'C' } }
 
-      it { is_expected.to match_array([shared_project, public_project, private_project]) }
+      it { is_expected.to match_array([public_project]) }
     end
 
     context 'sorting' do

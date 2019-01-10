@@ -12,7 +12,11 @@ GET /projects/:id/repository/tags
 
 Parameters:
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `id` | integer/string| yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user|
+| `order_by` | string | no | Return tags ordered by `name` or `updated` fields. Default is `updated` |
+| `sort` | string | no | Return tags sorted in `asc` or `desc` order. Default is `desc` |
 
 ```json
 [
@@ -38,6 +42,7 @@ Parameters:
       "description": "Amazing release. Wow"
     },
     "name": "v1.0.0",
+    "target": "2695effb5807a22ff3d138d593fd856244e155e7",
     "message": null
   }
 ]
@@ -60,7 +65,7 @@ Parameters:
 | `tag_name` | string | yes | The name of the tag |
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects/5/repository/tags/v1.0.0
+curl --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/repository/tags/v1.0.0
 ```
 
 Example Response:
@@ -69,6 +74,7 @@ Example Response:
 {
   "name": "v5.0.0",
   "message": null,
+  "target": "60a8ff033665e1207714d6670fcd7b65304ec02f",
   "commit": {
     "id": "60a8ff033665e1207714d6670fcd7b65304ec02f",
     "short_id": "60a8ff03",
@@ -128,11 +134,15 @@ Parameters:
     "description": "Amazing release. Wow"
   },
   "name": "v1.0.0",
+  "target": "2695effb5807a22ff3d138d593fd856244e155e7",
   "message": null
 }
 ```
 The message will be `null` when creating a lightweight tag otherwise
 it will contain the annotation.
+
+The target will contain the tag objects ID when creating annotated tags,
+otherwise it will contain the commit ID when creating lightweight tags.
 
 In case of an error,
 status code `405` with an explaining error message is returned.
@@ -164,7 +174,18 @@ Parameters:
 
 - `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
 - `tag_name` (required) - The name of a tag
+
+Request body:
+
 - `description` (required) - Release notes with markdown support
+
+```json
+{
+  "description": "Amazing release. Wow"
+}
+```
+
+Response:
 
 ```json
 {
@@ -185,7 +206,18 @@ Parameters:
 
 - `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
 - `tag_name` (required) - The name of a tag
+
+Request body:
+
 - `description` (required) - Release notes with markdown support
+
+```json
+{
+  "description": "Amazing release. Wow"
+}
+```
+
+Response:
 
 ```json
 {

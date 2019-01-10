@@ -30,7 +30,7 @@ describe MicrosoftTeamsService do
 
   describe "#execute" do
     let(:user)    { create(:user) }
-    let(:project) { create(:project, :repository) }
+    set(:project) { create(:project, :repository, :wiki_repo) }
 
     before do
       allow(chat_service).to receive_messages(
@@ -92,6 +92,10 @@ describe MicrosoftTeamsService do
         service.hook_data(merge_request, 'open')
       end
 
+      before do
+        project.add_developer(user)
+      end
+
       it "calls Microsoft Teams API" do
         chat_service.execute(merge_sample_data)
 
@@ -108,12 +112,8 @@ describe MicrosoftTeamsService do
           message: "user created page: Awesome wiki_page"
         }
       end
-
-      let(:wiki_page_sample_data) do
-        service = WikiPages::CreateService.new(project, user, opts)
-        wiki_page = service.execute
-        Gitlab::DataBuilder::WikiPage.build(wiki_page, user, 'create')
-      end
+      let(:wiki_page) { create(:wiki_page, wiki: project.wiki, attrs: opts) }
+      let(:wiki_page_sample_data) { Gitlab::DataBuilder::WikiPage.build(wiki_page, user, 'create') }
 
       it "calls Microsoft Teams API" do
         chat_service.execute(wiki_page_sample_data)
@@ -225,10 +225,15 @@ describe MicrosoftTeamsService do
 
       it 'calls Microsoft Teams API for pipeline events' do
         data = Gitlab::DataBuilder::Pipeline.build(pipeline)
+        data[:markdown] = true
 
         chat_service.execute(data)
 
-        expect(WebMock).to have_requested(:post, webhook_url).once
+        message = ChatMessage::PipelineMessage.new(data)
+
+        expect(WebMock).to have_requested(:post, webhook_url)
+          .with(body: hash_including({ summary: message.summary }))
+          .once
       end
     end
 

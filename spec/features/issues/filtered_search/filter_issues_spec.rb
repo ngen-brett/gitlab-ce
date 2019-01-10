@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'Filter issues', js: true do
+describe 'Filter issues', :js do
   include FilteredSearchHelpers
 
   let(:project) { create(:project) }
@@ -10,6 +10,7 @@ describe 'Filter issues', js: true do
   # When the name is longer, the filtered search input can end up scrolling
   # horizontally, and PhantomJS can't handle it.
   let(:user) { create(:user, name: 'Ann') }
+  let(:user2) { create(:user, name: 'jane') }
 
   let!(:bug_label) { create(:label, project: project, title: 'bug') }
   let!(:caps_sensitive_label) { create(:label, project: project, title: 'CaPs') }
@@ -22,19 +23,8 @@ describe 'Filter issues', js: true do
     end
   end
 
-  def expect_issues_list_count(open_count, closed_count = 0)
-    all_count = open_count + closed_count
-
-    expect(page).to have_issuable_counts(open: open_count, closed: closed_count, all: all_count)
-    page.within '.issues-list' do
-      expect(page).to have_selector('.issue', count: open_count)
-    end
-  end
-
   before do
-    project.add_master(user)
-
-    user2 = create(:user)
+    project.add_maintainer(user)
 
     create(:issue, project: project, author: user2, title: "Bug report 1")
     create(:issue, project: project, author: user2, title: "Bug report 2")
@@ -122,6 +112,24 @@ describe 'Filter issues', js: true do
         expect_issues_list_count(3)
         expect_filtered_search_input_empty
       end
+
+      it 'filters issues by invalid assignee' do
+        skip('to be tested, issue #26546')
+      end
+
+      it 'filters issues by multiple assignees' do
+        create(:issue, project: project, author: user, assignees: [user2, user])
+
+        input_filtered_search("assignee:@#{user.username} assignee:@#{user2.username}")
+
+        expect_tokens([
+          assignee_token(user.name),
+          assignee_token(user2.name)
+        ])
+
+        expect_issues_list_count(1)
+        expect_filtered_search_input_empty
+      end
     end
   end
 
@@ -139,7 +147,7 @@ describe 'Filter issues', js: true do
         input_filtered_search('label:none')
 
         expect_tokens([label_token('none', false)])
-        expect_issues_list_count(8)
+        expect_issues_list_count(4)
         expect_filtered_search_input_empty
       end
 
@@ -257,7 +265,7 @@ describe 'Filter issues', js: true do
 
     context 'issue label clicked' do
       it 'filters and displays in search bar' do
-        find('.issues-list .issue .issue-main-info .issuable-info a .label', text: multiple_words_label.title).click
+        find('.issues-list .issue .issuable-main-info .issuable-info a .badge', text: multiple_words_label.title).click
 
         expect_issues_list_count(1)
         expect_tokens([label_token("\"#{multiple_words_label.title}\"")])
@@ -405,32 +413,30 @@ describe 'Filter issues', js: true do
     end
 
     context 'sorting' do
-      it 'sorts by oldest updated' do
-        create(:issue,
+      it 'sorts by created date' do
+        new_issue = create(:issue,
           title: '3 days ago',
           project: project,
           author: user,
-          created_at: 3.days.ago,
-          updated_at: 3.days.ago)
+          created_at: 3.days.ago)
 
-        old_issue = create(:issue,
+        create(:issue,
           title: '5 days ago',
           project: project,
           author: user,
-          created_at: 5.days.ago,
-          updated_at: 5.days.ago)
+          created_at: 5.days.ago)
 
         input_filtered_search('days ago')
 
         expect_issues_list_count(2)
 
-        sort_toggle = find('.filtered-search-wrapper .dropdown-toggle')
+        sort_toggle = find('.filter-dropdown-container .dropdown')
         sort_toggle.click
 
-        find('.filtered-search-wrapper .dropdown-menu li a', text: 'Oldest updated').click
+        find('.filter-dropdown-container .dropdown-menu li a', text: 'Created date').click
         wait_for_requests
 
-        expect(find('.issues-list .issue:first-of-type .issue-title-text a')).to have_content(old_issue.title)
+        expect(find('.issues-list .issue:first-of-type .issue-title-text a')).to have_content(new_issue.title)
       end
     end
   end
@@ -479,13 +485,13 @@ describe 'Filter issues', js: true do
       it "for #{type}" do
         visit path
 
-        link = find_link('Subscribe')
+        link = find_link('Subscribe to RSS feed')
         params = CGI.parse(URI.parse(link[:href]).query)
         auto_discovery_link = find('link[type="application/atom+xml"]', visible: false)
         auto_discovery_params = CGI.parse(URI.parse(auto_discovery_link[:href]).query)
 
         expected = {
-          'rss_token' => [user.rss_token],
+          'feed_token' => [user.feed_token],
           'milestone_title' => [milestone.title],
           'assignee_id' => [user.id.to_s]
         }
@@ -501,6 +507,21 @@ describe 'Filter issues', js: true do
 
     it_behaves_like 'updates atom feed link', :group do
       let(:path) { issues_group_path(group, milestone_title: milestone.title, assignee_id: user.id) }
+    end
+
+    it 'updates atom feed link for group issues' do
+      visit issues_group_path(group, milestone_title: milestone.title, assignee_id: user.id)
+      link = find('.nav-controls a[title="Subscribe to RSS feed"]', visible: false)
+      params = CGI.parse(URI.parse(link[:href]).query)
+      auto_discovery_link = find('link[type="application/atom+xml"]', visible: false)
+      auto_discovery_params = CGI.parse(URI.parse(auto_discovery_link[:href]).query)
+
+      expect(params).to include('feed_token' => [user.feed_token])
+      expect(params).to include('milestone_title' => [milestone.title])
+      expect(params).to include('assignee_id' => [user.id.to_s])
+      expect(auto_discovery_params).to include('feed_token' => [user.feed_token])
+      expect(auto_discovery_params).to include('milestone_title' => [milestone.title])
+      expect(auto_discovery_params).to include('assignee_id' => [user.id.to_s])
     end
   end
 

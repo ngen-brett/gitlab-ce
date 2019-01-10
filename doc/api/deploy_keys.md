@@ -9,7 +9,7 @@ GET /deploy_keys
 ```
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/deploy_keys"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/deploy_keys"
 ```
 
 Example response:
@@ -19,15 +19,13 @@ Example response:
   {
     "id": 1,
     "title": "Public key",
-    "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
-    "can_push": false,
+    "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",    
     "created_at": "2013-10-02T10:12:29Z"
   },
   {
     "id": 3,
     "title": "Another Public key",
-    "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
-    "can_push": true,
+    "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",    
     "created_at": "2013-10-02T11:12:29Z"
   }
 ]
@@ -46,7 +44,7 @@ GET /projects/:id/deploy_keys
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/deploy_keys"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/deploy_keys"
 ```
 
 Example response:
@@ -57,15 +55,15 @@ Example response:
     "id": 1,
     "title": "Public key",
     "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
-    "can_push": false,
-    "created_at": "2013-10-02T10:12:29Z"
+    "created_at": "2013-10-02T10:12:29Z",
+    "can_push": false
   },
   {
     "id": 3,
     "title": "Another Public key",
     "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
-    "can_push": false,
-    "created_at": "2013-10-02T11:12:29Z"
+    "created_at": "2013-10-02T11:12:29Z",
+    "can_push": false
   }
 ]
 ```
@@ -86,7 +84,7 @@ Parameters:
 | `key_id`  | integer | yes | The ID of the deploy key |
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/deploy_keys/11"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/deploy_keys/11"
 ```
 
 Example response:
@@ -96,8 +94,8 @@ Example response:
   "id": 1,
   "title": "Public key",
   "key": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAIEAiPWx6WM4lhHNedGfBpPJNPpZ7yKu+dnn1SJejgt4596k6YjzGGphH2TUxwKzxcKDKKezwkpfnxPkSMkuEspGRt/aZZ9wa++Oi7Qkr8prgHc4soW6NUlfDzpvZK2H5E7eQaSeP3SAwGmQKUFHCddNaP0L+hM7zhFNzjFvpaMgJw0=",
-  "can_push": false,
-  "created_at": "2013-10-02T10:12:29Z"
+  "created_at": "2013-10-02T10:12:29Z",
+  "can_push": false
 }
 ```
 
@@ -120,7 +118,7 @@ POST /projects/:id/deploy_keys
 | `can_push` | boolean | no  | Can deploy key push to the project's repository |
 
 ```bash
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" --header "Content-Type: application/json" --data '{"title": "My deploy key", "key": "ssh-rsa AAAA...", "can_push": "true"}' "https://gitlab.example.com/api/v4/projects/5/deploy_keys/"
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" --header "Content-Type: application/json" --data '{"title": "My deploy key", "key": "ssh-rsa AAAA...", "can_push": "true"}' "https://gitlab.example.com/api/v4/projects/5/deploy_keys/"
 ```
 
 Example response:
@@ -132,6 +130,36 @@ Example response:
    "title" : "My deploy key",
    "can_push": true,
    "created_at" : "2015-08-29T12:44:31.550Z"
+}
+```
+
+## Update deploy key
+
+Updates a deploy key for a project.
+
+```
+PUT /projects/:id/deploy_keys/:key_id
+```
+
+| Attribute  | Type | Required | Description |
+| ---------  | ---- | -------- | ----------- |
+| `id`       | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
+| `title`    | string  | no | New deploy key's title |
+| `can_push` | boolean | no  | Can deploy key push to the project's repository |
+
+```bash
+curl --request PUT --header "PRIVATE-TOKEN: <your_access_token>" --header "Content-Type: application/json" --data '{"title": "New deploy key", "can_push": true}' "https://gitlab.example.com/api/v4/projects/5/deploy_keys/11"
+```
+
+Example response:
+
+```json
+{
+   "id": 11,
+   "title": "New deploy key",
+   "key": "ssh-rsa AAAA...",
+   "created_at": "2015-08-29T12:44:31.550Z",
+   "can_push": true
 }
 ```
 
@@ -149,7 +177,7 @@ DELETE /projects/:id/deploy_keys/:key_id
 | `key_id`  | integer | yes | The ID of the deploy key |
 
 ```bash
-curl --request DELETE --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/deploy_keys/13"
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/deploy_keys/13"
 ```
 
 ## Enable a deploy key
@@ -157,7 +185,7 @@ curl --request DELETE --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gi
 Enables a deploy key for a project so this can be used. Returns the enabled key, with a status code 201 when successful.
 
 ```bash
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects/5/deploy_keys/13/enable
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/deploy_keys/13/enable
 ```
 
 | Attribute | Type | Required | Description |

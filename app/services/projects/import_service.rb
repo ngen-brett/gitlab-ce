@@ -1,22 +1,48 @@
+# frozen_string_literal: true
+
 module Projects
   class ImportService < BaseService
     include Gitlab::ShellAdapter
 
     Error = Class.new(StandardError)
 
+    # Returns true if this importer is supposed to perform its work in the
+    # background.
+    #
+    # This method will only return `true` if async importing is explicitly
+    # supported by an importer class (`Gitlab::GithubImport::ParallelImporter`
+    # for example).
+    def async?
+      has_importer? && !!importer_class.try(:async?)
+    end
+
     def execute
-      add_repository_to_project unless project.gitlab_project_import?
+      add_repository_to_project
+
+      download_lfs_objects
 
       import_data
 
       success
     rescue => e
-      error("Error importing repository #{project.import_url} into #{project.full_path} - #{e.message}")
+      error("Error importing repository #{project.safe_import_url} into #{project.full_path} - #{e.message}")
     end
 
     private
 
     def add_repository_to_project
+      if project.external_import? && !unknown_url?
+        begin
+          Gitlab::UrlBlocker.validate!(project.import_url, ports: Project::VALID_IMPORT_PORTS)
+        rescue Gitlab::UrlBlocker::BlockedUrlError => e
+          raise Error, "Blocked import URL: #{e.message}"
+        end
+      end
+
+      # We should skip the repository for a GitHub import or GitLab project import,
+      # because these importers fetch the project repositories for us.
+      return if importer_imports_repository?
+
       if unknown_url?
         # In this case, we only want to import issues, not a repository.
         create_repository
@@ -32,17 +58,14 @@ module Projects
     end
 
     def import_repository
-      raise Error, 'Blocked import URL.' if Gitlab::UrlBlocker.blocked_url?(project.import_url)
-
-      # We should return early for a GitHub import because the new GitHub
-      # importer fetch the project repositories for us.
-      return if project.github_import?
-
       begin
-        if project.gitea_import?
-          fetch_repository
+        refmap = importer_class.try(:refmap) if has_importer?
+
+        if refmap
+          project.ensure_repository
+          project.repository.fetch_as_mirror(project.import_url, refmap: refmap)
         else
-          clone_repository
+          gitlab_shell.import_repository(project.repository_storage, project.disk_path, project.import_url)
         end
       rescue Gitlab::Shell::Error => e
         # Expire cache to prevent scenarios such as:
@@ -54,15 +77,25 @@ module Projects
       end
     end
 
-    def clone_repository
-      gitlab_shell.import_repository(project.repository_storage_path, project.disk_path, project.import_url)
-    end
+    def download_lfs_objects
+      # In this case, we only want to import issues
+      return if unknown_url?
 
-    def fetch_repository
-      project.ensure_repository
-      project.repository.add_remote(project.import_type, project.import_url)
-      project.repository.set_remote_as_mirror(project.import_type)
-      project.repository.fetch_remote(project.import_type, forced: true)
+      # If it has its own repository importer, it has to implements its own lfs import download
+      return if importer_imports_repository?
+
+      return unless project.lfs_enabled?
+
+      oids_to_download = Projects::LfsPointers::LfsImportService.new(project).execute
+      download_service = Projects::LfsPointers::LfsDownloadService.new(project)
+
+      oids_to_download.each do |oid, link|
+        download_service.execute(oid, link)
+      end
+    rescue => e
+      # Right now, to avoid aborting the importing process, we silently fail
+      # if any exception raises.
+      Rails.logger.error("The Lfs import process failed. #{e.message}")
     end
 
     def import_data
@@ -75,16 +108,24 @@ module Projects
       end
     end
 
+    def importer_class
+      @importer_class ||= Gitlab::ImportSources.importer(project.import_type)
+    end
+
     def has_importer?
       Gitlab::ImportSources.importer_names.include?(project.import_type)
     end
 
     def importer
-      Gitlab::ImportSources.importer(project.import_type).new(project)
+      importer_class.new(project)
     end
 
     def unknown_url?
       project.import_url == Project::UNKNOWN_IMPORT_URL
+    end
+
+    def importer_imports_repository?
+      has_importer? && importer_class.try(:imports_repository?)
     end
   end
 end

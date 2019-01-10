@@ -1,5 +1,5 @@
 namespace :admin do
-  resources :users, constraints: { id: /[a-zA-Z.\/0-9_\-]+/ } do
+  resources :users, constraints: { id: %r{[a-zA-Z./0-9_\-]+} } do
     resources :keys, only: [:show, :destroy]
     resources :identities, except: [:show]
     resources :impersonation_tokens, only: [:index, :create] do
@@ -24,6 +24,8 @@ namespace :admin do
   resource :impersonation, only: :destroy
 
   resources :abuse_reports, only: [:index, :destroy]
+  resources :gitaly_servers, only: [:index]
+
   resources :spam_logs, only: [:index, :destroy] do
     member do
       post :mark_as_ham
@@ -52,12 +54,12 @@ namespace :admin do
 
   resources :hooks, only: [:index, :create, :edit, :update, :destroy] do
     member do
-      get :test
+      post :test
     end
 
     resources :hook_logs, only: [:show] do
       member do
-        get :retry
+        post :retry
       end
     end
   end
@@ -67,14 +69,11 @@ namespace :admin do
   end
 
   resource :logs, only: [:show]
-  resource :health_check, controller: 'health_check', only: [:show] do
-    post :reset_storage_health
-  end
+  resource :health_check, controller: 'health_check', only: [:show]
   resource :background_jobs, controller: 'background_jobs', only: [:show]
+
   resource :system_info, controller: 'system_info', only: [:show]
   resources :requests_profiles, only: [:index, :show], param: :name, constraints: { name: /.+\.html/ }
-
-  get 'conversational_development_index' => 'conversational_development_index#show'
 
   resources :projects, only: [:index]
 
@@ -97,18 +96,21 @@ namespace :admin do
 
   resource :appearances, only: [:show, :create, :update], path: 'appearance' do
     member do
-      get :preview
+      get :preview_sign_in
       delete :logo
       delete :header_logos
+      delete :favicon
     end
   end
 
   resource :application_settings, only: [:show, :update] do
     resources :services, only: [:index, :edit, :update]
+
     get :usage_data
-    put :reset_runners_token
+    put :reset_registration_token
     put :reset_health_check_token
     put :clear_repository_check_states
+    get :integrations, :repository, :templates, :ci_cd, :reporting, :metrics_and_profiling, :network, :geo, :preferences
   end
 
   resources :labels
@@ -119,8 +121,6 @@ namespace :admin do
       get :pause
     end
   end
-
-  resources :cohorts, only: :index
 
   resources :jobs, only: :index do
     collection do

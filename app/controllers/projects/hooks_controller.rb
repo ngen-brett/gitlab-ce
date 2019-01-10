@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Projects::HooksController < Projects::ApplicationController
   include HooksExecution
 
@@ -21,6 +23,7 @@ class Projects::HooksController < Projects::ApplicationController
       @hooks = @project.hooks.select(&:persisted?)
       flash[:alert] = @hook.errors.full_messages.join.html_safe
     end
+
     redirect_to project_settings_integrations_path(@project)
   end
 
@@ -28,7 +31,7 @@ class Projects::HooksController < Projects::ApplicationController
   end
 
   def update
-    if hook.update_attributes(hook_params)
+    if hook.update(hook_params)
       flash[:notice] = 'Hook was successfully updated.'
       redirect_to project_settings_integrations_path(@project)
     else
@@ -47,7 +50,7 @@ class Projects::HooksController < Projects::ApplicationController
   def destroy
     hook.destroy
 
-    redirect_to project_settings_integrations_path(@project), status: 302
+    redirect_to project_settings_integrations_path(@project), status: :found
   end
 
   private
@@ -57,24 +60,16 @@ class Projects::HooksController < Projects::ApplicationController
   end
 
   def hook_logs
-    @hook_logs ||=
-      Kaminari.paginate_array(hook.web_hook_logs.order(created_at: :desc)).page(params[:page])
+    @hook_logs ||= hook.web_hook_logs.recent.page(params[:page])
   end
 
   def hook_params
     params.require(:hook).permit(
-      :job_events,
-      :pipeline_events,
       :enable_ssl_verification,
-      :issues_events,
-      :confidential_issues_events,
-      :merge_requests_events,
-      :note_events,
-      :push_events,
-      :tag_push_events,
       :token,
       :url,
-      :wiki_page_events
+      :push_events_branch_filter,
+      *ProjectHook.triggers.values
     )
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Helper methods for per-User preferences
 module PreferencesHelper
   def layout_choices
@@ -9,34 +11,35 @@ module PreferencesHelper
 
   # Maps `dashboard` values to more user-friendly option text
   DASHBOARD_CHOICES = {
-    projects: 'Your Projects (default)',
-    stars:    'Starred Projects',
-    project_activity: "Your Projects' Activity",
-    starred_project_activity: "Starred Projects' Activity",
-    groups: "Your Groups",
-    todos: "Your Todos"
+    projects: _("Your Projects (default)"),
+    stars:    _("Starred Projects"),
+    project_activity: _("Your Projects' Activity"),
+    starred_project_activity: _("Starred Projects' Activity"),
+    groups: _("Your Groups"),
+    todos: _("Your Todos"),
+    issues: _("Assigned Issues"),
+    merge_requests: _("Assigned Merge Requests"),
+    operations: _("Operations Dashboard")
   }.with_indifferent_access.freeze
 
   # Returns an Array usable by a select field for more user-friendly option text
   def dashboard_choices
-    defined = User.dashboards
+    dashboards = User.dashboards.keys
 
-    if defined.size != DASHBOARD_CHOICES.size
-      # Ensure that anyone adding new options updates this method too
-      raise "`User` defines #{defined.size} dashboard choices," \
-        " but `DASHBOARD_CHOICES` defined #{DASHBOARD_CHOICES.size}."
-    else
-      defined.map do |key, _|
-        # Use `fetch` so `KeyError` gets raised when a key is missing
-        [DASHBOARD_CHOICES.fetch(key), key]
-      end
+    validate_dashboard_choices!(dashboards)
+    dashboards -= excluded_dashboard_choices
+
+    dashboards.map do |key|
+      # Use `fetch` so `KeyError` gets raised when a key is missing
+      [DASHBOARD_CHOICES.fetch(key), key]
     end
   end
 
   def project_view_choices
     [
       ['Files and Readme (default)', :files],
-      ['Activity', :activity]
+      ['Activity', :activity],
+      ['Readme', :readme]
     ]
   end
 
@@ -48,29 +51,19 @@ module PreferencesHelper
     Gitlab::ColorSchemes.for_user(current_user).css_class
   end
 
-  def default_project_view
-    return anonymous_project_view unless current_user
+  private
 
-    user_view = current_user.project_view
-
-    if can?(current_user, :download_code, @project)
-      user_view
-    elsif user_view == "activity"
-      "activity"
-    elsif @project.wiki_enabled?
-      "wiki"
-    elsif @project.feature_available?(:issues, current_user)
-      "projects/issues/issues"
-    else
-      "customize_workflow"
+  # Ensure that anyone adding new options updates `DASHBOARD_CHOICES` too
+  def validate_dashboard_choices!(user_dashboards)
+    if user_dashboards.size != DASHBOARD_CHOICES.size
+      raise "`User` defines #{user_dashboards.size} dashboard choices," \
+        " but `DASHBOARD_CHOICES` defined #{DASHBOARD_CHOICES.size}."
     end
   end
 
-  def anonymous_project_view
-    if !@project.empty_repo? && can?(current_user, :download_code, @project)
-      'files'
-    else
-      'activity'
-    end
+  # List of dashboard choice to be excluded from CE.
+  # EE would override this.
+  def excluded_dashboard_choices
+    ['operations']
   end
 end

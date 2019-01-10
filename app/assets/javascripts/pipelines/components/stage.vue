@@ -1,5 +1,4 @@
 <script>
-
 /**
  * Renders each stage of the pipeline mini graph.
  *
@@ -13,12 +12,27 @@
  * 4. Commit widget
  */
 
-/* global Flash */
-import { borderlessStatusIconEntityMap } from '../../vue_shared/ci_status_icons';
-import loadingIcon from '../../vue_shared/components/loading_icon.vue';
-import tooltip from '../../vue_shared/directives/tooltip';
+import $ from 'jquery';
+import { GlLoadingIcon, GlTooltipDirective } from '@gitlab/ui';
+import { __ } from '../../locale';
+import Flash from '../../flash';
+import axios from '../../lib/utils/axios_utils';
+import eventHub from '../event_hub';
+import Icon from '../../vue_shared/components/icon.vue';
+import JobItem from './graph/job_item.vue';
+import { PIPELINES_TABLE } from '../constants';
 
 export default {
+  components: {
+    Icon,
+    JobItem,
+    GlLoadingIcon,
+  },
+
+  directives: {
+    GlTooltip: GlTooltipDirective,
+  },
+
   props: {
     stage: {
       type: Object,
@@ -30,10 +44,12 @@ export default {
       required: false,
       default: false,
     },
-  },
 
-  directives: {
-    tooltip,
+    type: {
+      type: String,
+      required: false,
+      default: '',
+    },
   },
 
   data() {
@@ -43,8 +59,28 @@ export default {
     };
   },
 
-  components: {
-    loadingIcon,
+  computed: {
+    dropdownClass() {
+      return this.dropdownContent.length > 0
+        ? 'js-builds-dropdown-container'
+        : 'js-builds-dropdown-loading';
+    },
+
+    triggerButtonClass() {
+      return `ci-status-icon-${this.stage.status.group}`;
+    },
+
+    borderlessIcon() {
+      return `${this.stage.status.icon}_borderless`;
+    },
+  },
+
+  watch: {
+    updateDropdown() {
+      if (this.updateDropdown && this.isDropdownOpen() && !this.isLoading) {
+        this.fetchJobs();
+      }
+    },
   },
 
   updated() {
@@ -53,37 +89,27 @@ export default {
     }
   },
 
-  watch: {
-    updateDropdown() {
-      if (this.updateDropdown &&
-        this.isDropdownOpen() &&
-        !this.isLoading) {
-        this.fetchJobs();
-      }
-    },
-  },
-
   methods: {
     onClickStage() {
       if (!this.isDropdownOpen()) {
+        eventHub.$emit('clickedDropdown');
         this.isLoading = true;
         this.fetchJobs();
       }
     },
 
     fetchJobs() {
-      this.$http.get(this.stage.dropdown_path)
-        .then(response => response.json())
-        .then((data) => {
-          this.dropdownContent = data.html;
+      axios
+        .get(this.stage.dropdown_path)
+        .then(({ data }) => {
+          this.dropdownContent = data.latest_statuses;
           this.isLoading = false;
         })
         .catch(() => {
           this.closeDropdown();
           this.isLoading = false;
 
-          const flash = new Flash('Something went wrong on our end.');
-          return flash;
+          Flash(__('Something went wrong on our end.'));
         });
     },
 
@@ -96,10 +122,12 @@ export default {
      * target the click event of this component.
      */
     stopDropdownClickPropagation() {
-      $(this.$el.querySelectorAll('.js-builds-dropdown-list a.mini-pipeline-graph-dropdown-item'))
-        .on('click', (e) => {
-          e.stopPropagation();
-        });
+      $(
+        '.js-builds-dropdown-list button, .js-builds-dropdown-list a.mini-pipeline-graph-dropdown-item',
+        this.$el,
+      ).on('click', e => {
+        e.stopPropagation();
+      });
     },
 
     closeDropdown() {
@@ -111,19 +139,15 @@ export default {
     isDropdownOpen() {
       return this.$el.classList.contains('open');
     },
-  },
 
-  computed: {
-    dropdownClass() {
-      return this.dropdownContent.length > 0 ? 'js-builds-dropdown-container' : 'js-builds-dropdown-loading';
-    },
-
-    triggerButtonClass() {
-      return `ci-status-icon-${this.stage.status.group}`;
-    },
-
-    svgIcon() {
-      return borderlessStatusIconEntityMap[this.stage.status.icon];
+    pipelineActionRequestComplete() {
+      if (this.type === PIPELINES_TABLE) {
+        // warn the table to update
+        eventHub.$emit('refreshPipelinesTable');
+      } else {
+        // close the dropdown in mr widget
+        $(this.$refs.dropdown).dropdown('toggle');
+      }
     },
   },
 };
@@ -132,45 +156,41 @@ export default {
 <template>
   <div class="dropdown">
     <button
-      v-tooltip
-      :class="triggerButtonClass"
-      @click="onClickStage"
-      class="mini-pipeline-graph-dropdown-toggle js-builds-dropdown-button"
-      :title="stage.title"
-      data-placement="top"
-      data-toggle="dropdown"
-      type="button"
       id="stageDropdown"
+      ref="dropdown"
+      v-gl-tooltip.hover
+      :class="triggerButtonClass"
+      :title="stage.title"
+      class="mini-pipeline-graph-dropdown-toggle js-builds-dropdown-button"
+      data-toggle="dropdown"
+      data-display="static"
+      type="button"
       aria-haspopup="true"
-      aria-expanded="false">
-
-      <span
-        v-html="svgIcon"
-        aria-hidden="true"
-        :aria-label="stage.title">
+      aria-expanded="false"
+      @click="onClickStage"
+    >
+      <span :aria-label="stage.title" aria-hidden="true" class="no-pointer-events">
+        <icon :name="borderlessIcon" />
       </span>
 
-      <i
-        class="fa fa-caret-down"
-        aria-hidden="true">
-      </i>
+      <i class="fa fa-caret-down" aria-hidden="true"> </i>
     </button>
 
-    <ul
+    <div
       class="dropdown-menu mini-pipeline-graph-dropdown-menu js-builds-dropdown-container"
-      aria-labelledby="stageDropdown">
-
-      <li
-        :class="dropdownClass"
-        class="js-builds-dropdown-list scrollable-menu">
-
-        <loading-icon v-if="isLoading"/>
-
-        <ul
-          v-else
-          v-html="dropdownContent">
-        </ul>
-      </li>
-    </ul>
+      aria-labelledby="stageDropdown"
+    >
+      <gl-loading-icon v-if="isLoading" />
+      <ul v-else class="js-builds-dropdown-list scrollable-menu">
+        <li v-for="job in dropdownContent" :key="job.id">
+          <job-item
+            :dropdown-length="dropdownContent.length"
+            :job="job"
+            css-class-job-name="mini-pipeline-graph-dropdown-item"
+            @pipelineActionRequestComplete="pipelineActionRequestComplete"
+          />
+        </li>
+      </ul>
+    </div>
   </div>
-</script>
+</template>

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # == EnforcesTwoFactorAuthentication
 #
 # Controller concern to enforce two-factor authentication requirements
@@ -20,13 +22,14 @@ module EnforcesTwoFactorAuthentication
   end
 
   def two_factor_authentication_required?
-    current_application_settings.require_two_factor_authentication? ||
+    Gitlab::CurrentSettings.require_two_factor_authentication? ||
       current_user.try(:require_two_factor_authentication_from_group?)
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def two_factor_authentication_reason(global: -> {}, group: -> {})
     if two_factor_authentication_required?
-      if current_application_settings.require_two_factor_authentication?
+      if Gitlab::CurrentSettings.require_two_factor_authentication?
         global.call
       else
         groups = current_user.expanded_groups_requiring_two_factor_authentication.reorder(name: :asc)
@@ -34,9 +37,10 @@ module EnforcesTwoFactorAuthentication
       end
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def two_factor_grace_period
-    periods = [current_application_settings.two_factor_grace_period]
+    periods = [Gitlab::CurrentSettings.two_factor_grace_period]
     periods << current_user.two_factor_grace_period if current_user.try(:require_two_factor_authentication_from_group?)
     periods.min
   end

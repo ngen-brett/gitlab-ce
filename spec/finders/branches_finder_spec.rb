@@ -46,6 +46,15 @@ describe BranchesFinder do
         expect(result.count).to eq(1)
       end
 
+      it 'filters branches by name ignoring letter case' do
+        branches_finder = described_class.new(repository, { search: 'FiX' })
+
+        result = branches_finder.execute
+
+        expect(result.first.name).to eq('fix')
+        expect(result.count).to eq(1)
+      end
+
       it 'does not find any branch with that name' do
         branches_finder = described_class.new(repository, { search: 'random' })
 
@@ -57,12 +66,23 @@ describe BranchesFinder do
 
     context 'filter and sort' do
       it 'filters branches by name and sorts by recently_updated' do
-        params = { sort: 'updated_desc', search: 'feature' }
+        params = { sort: 'updated_desc', search: 'feat' }
         branches_finder = described_class.new(repository, params)
 
         result = branches_finder.execute
 
         expect(result.first.name).to eq('feature_conflict')
+        expect(result.count).to eq(2)
+      end
+
+      it 'filters branches by name and sorts by recently_updated, with exact matches first' do
+        params = { sort: 'updated_desc', search: 'feature' }
+        branches_finder = described_class.new(repository, params)
+
+        result = branches_finder.execute
+
+        expect(result.first.name).to eq('feature')
+        expect(result.second.name).to eq('feature_conflict')
         expect(result.count).to eq(2)
       end
 
@@ -74,6 +94,26 @@ describe BranchesFinder do
 
         expect(result.first.name).to eq('feature')
         expect(result.count).to eq(2)
+      end
+
+      it 'filters branches by name that begins with' do
+        params = { search: '^feature_' }
+        branches_finder = described_class.new(repository, params)
+
+        result = branches_finder.execute
+
+        expect(result.first.name).to eq('feature_conflict')
+        expect(result.count).to eq(1)
+      end
+
+      it 'filters branches by name that ends with' do
+        params = { search: 'feature$' }
+        branches_finder = described_class.new(repository, params)
+
+        result = branches_finder.execute
+
+        expect(result.first.name).to eq('feature')
+        expect(result.count).to eq(1)
       end
     end
   end

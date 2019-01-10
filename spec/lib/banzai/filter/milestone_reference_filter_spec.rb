@@ -3,7 +3,8 @@ require 'spec_helper'
 describe Banzai::Filter::MilestoneReferenceFilter do
   include FilterSpecHelper
 
-  let(:group) { create(:group, :public) }
+  let(:parent_group) { create(:group, :public) }
+  let(:group) { create(:group, :public, parent: parent_group) }
   let(:project) { create(:project, :public, group: group) }
 
   it 'requires project context' do
@@ -58,7 +59,7 @@ describe Banzai::Filter::MilestoneReferenceFilter do
 
     it 'links with adjacent text' do
       doc = reference_filter("Milestone (#{reference}.)")
-      expect(doc.to_html).to match(%r(\(<a.+>#{milestone.name}</a>\.\)))
+      expect(doc.to_html).to match(%r(\(<a.+>#{milestone.reference_link_text}</a>\.\)))
     end
 
     it 'ignores invalid milestone IIDs' do
@@ -79,12 +80,12 @@ describe Banzai::Filter::MilestoneReferenceFilter do
       doc = reference_filter("See #{reference}")
 
       expect(doc.css('a').first.attr('href')).to eq urls.milestone_url(milestone)
-      expect(doc.text).to eq 'See gfm'
+      expect(doc.text).to eq "See #{milestone.reference_link_text}"
     end
 
     it 'links with adjacent text' do
       doc = reference_filter("Milestone (#{reference}.)")
-      expect(doc.to_html).to match(%r(\(<a.+>#{milestone.name}</a>\.\)))
+      expect(doc.to_html).to match(%r(\(<a.+>#{milestone.reference_link_text}</a>\.\)))
     end
 
     it 'ignores invalid milestone names' do
@@ -105,12 +106,12 @@ describe Banzai::Filter::MilestoneReferenceFilter do
       doc = reference_filter("See #{reference}")
 
       expect(doc.css('a').first.attr('href')).to eq urls.milestone_url(milestone)
-      expect(doc.text).to eq 'See gfm references'
+      expect(doc.text).to eq "See #{milestone.reference_link_text}"
     end
 
     it 'links with adjacent text' do
       doc = reference_filter("Milestone (#{reference}.)")
-      expect(doc.to_html).to match(%r(\(<a.+>#{milestone.name}</a>\.\)))
+      expect(doc.to_html).to match(%r(\(<a.+>#{milestone.reference_link_text}</a>\.\)))
     end
 
     it 'ignores invalid milestone names' do
@@ -200,14 +201,14 @@ describe Banzai::Filter::MilestoneReferenceFilter do
       doc = reference_filter("See (#{reference}.)")
 
       expect(doc.css('a').first.text)
-        .to eq("#{milestone.name} in #{another_project.full_path}")
+        .to eq("#{milestone.reference_link_text} in #{another_project.full_path}")
     end
 
     it 'has valid text' do
       doc = reference_filter("See (#{reference}.)")
 
       expect(doc.text)
-        .to eq("See (#{milestone.name} in #{another_project.full_path}.)")
+        .to eq("See (#{milestone.reference_link_text} in #{another_project.full_path}.)")
     end
 
     it 'escapes the name attribute' do
@@ -216,7 +217,7 @@ describe Banzai::Filter::MilestoneReferenceFilter do
       doc = reference_filter("See #{reference}")
 
       expect(doc.css('a').first.text)
-        .to eq "#{milestone.name} in #{another_project.full_path}"
+        .to eq "#{milestone.reference_link_text} in #{another_project.full_path}"
     end
   end
 
@@ -237,14 +238,14 @@ describe Banzai::Filter::MilestoneReferenceFilter do
       doc = reference_filter("See (#{reference}.)")
 
       expect(doc.css('a').first.text)
-        .to eq("#{milestone.name} in #{another_project.path}")
+        .to eq("#{milestone.reference_link_text} in #{another_project.path}")
     end
 
     it 'has valid text' do
       doc = reference_filter("See (#{reference}.)")
 
       expect(doc.text)
-        .to eq("See (#{milestone.name} in #{another_project.path}.)")
+        .to eq("See (#{milestone.reference_link_text} in #{another_project.path}.)")
     end
 
     it 'escapes the name attribute' do
@@ -253,7 +254,7 @@ describe Banzai::Filter::MilestoneReferenceFilter do
       doc = reference_filter("See #{reference}")
 
       expect(doc.css('a').first.text)
-        .to eq "#{milestone.name} in #{another_project.path}"
+        .to eq "#{milestone.reference_link_text} in #{another_project.path}"
     end
   end
 
@@ -274,14 +275,14 @@ describe Banzai::Filter::MilestoneReferenceFilter do
       doc = reference_filter("See (#{reference}.)")
 
       expect(doc.css('a').first.text)
-        .to eq("#{milestone.name} in #{another_project.path}")
+        .to eq("#{milestone.reference_link_text} in #{another_project.path}")
     end
 
     it 'has valid text' do
       doc = reference_filter("See (#{reference}.)")
 
       expect(doc.text)
-        .to eq("See (#{milestone.name} in #{another_project.path}.)")
+        .to eq("See (#{milestone.reference_link_text} in #{another_project.path}.)")
     end
 
     it 'escapes the name attribute' do
@@ -290,12 +291,11 @@ describe Banzai::Filter::MilestoneReferenceFilter do
       doc = reference_filter("See #{reference}")
 
       expect(doc.css('a').first.text)
-        .to eq "#{milestone.name} in #{another_project.path}"
+        .to eq "#{milestone.reference_link_text} in #{another_project.path}"
     end
   end
 
-  context 'project milestones' do
-    let(:milestone) { create(:milestone, project: project) }
+  shared_context 'project milestones' do
     let(:reference) { milestone.to_reference(format: :iid) }
 
     include_examples 'reference parsing'
@@ -309,8 +309,7 @@ describe Banzai::Filter::MilestoneReferenceFilter do
     it_behaves_like 'cross project shorthand reference'
   end
 
-  context 'group milestones' do
-    let(:milestone) { create(:milestone, group: group) }
+  shared_context 'group milestones' do
     let(:reference) { milestone.to_reference(format: :name) }
 
     include_examples 'reference parsing'
@@ -341,6 +340,89 @@ describe Banzai::Filter::MilestoneReferenceFilter do
       doc = reference_filter("See #{project_reference}#{reference}")
 
       expect(doc.css('a')).to be_empty
+    end
+
+    it 'supports parent group references', :nested_groups do
+      milestone.update!(group: parent_group)
+
+      doc = reference_filter("See #{reference}")
+      expect(doc.css('a').first.text).to eq(milestone.reference_link_text)
+    end
+  end
+
+  context 'group context' do
+    let(:group) { create(:group) }
+    let(:context) { { project: nil, group: group } }
+
+    context 'when project milestone' do
+      let(:milestone) { create(:milestone, project: project) }
+
+      it 'links to a valid reference' do
+        reference = "#{project.full_path}%#{milestone.iid}"
+
+        result = reference_filter("See #{reference}", context)
+
+        expect(result.css('a').first.attr('href')).to eq(urls.milestone_url(milestone))
+      end
+
+      it 'ignores internal references' do
+        exp = act = "See %#{milestone.iid}"
+
+        expect(reference_filter(act, context).to_html).to eq exp
+      end
+    end
+
+    context 'when group milestone' do
+      let(:group_milestone) { create(:milestone, title: 'group_milestone', group: group) }
+
+      context 'for subgroups', :nested_groups do
+        let(:sub_group) { create(:group, parent: group) }
+        let(:sub_group_milestone) { create(:milestone, title: 'sub_group_milestone', group: sub_group) }
+
+        it 'links to a valid reference of subgroup and group milestones' do
+          [group_milestone, sub_group_milestone].each do |milestone|
+            reference = "%#{milestone.title}"
+
+            result = reference_filter("See #{reference}", { project: nil, group: sub_group })
+
+            expect(result.css('a').first.attr('href')).to eq(urls.milestone_url(milestone))
+          end
+        end
+      end
+
+      it 'ignores internal references' do
+        exp = act = "See %#{group_milestone.iid}"
+
+        expect(reference_filter(act, context).to_html).to eq exp
+      end
+    end
+  end
+
+  context 'when milestone is open' do
+    context 'project milestones' do
+      let(:milestone) { create(:milestone, project: project) }
+
+      include_context 'project milestones'
+    end
+
+    context 'group milestones' do
+      let(:milestone) { create(:milestone, group: group) }
+
+      include_context 'group milestones'
+    end
+  end
+
+  context 'when milestone is closed' do
+    context 'project milestones' do
+      let(:milestone) { create(:milestone, :closed, project: project) }
+
+      include_context 'project milestones'
+    end
+
+    context 'group milestones' do
+      let(:milestone) { create(:milestone, :closed, group: group) }
+
+      include_context 'group milestones'
     end
   end
 end

@@ -8,7 +8,7 @@ It allows you, your team, and your collaborators to share
 and discuss proposals before and while implementing them.
 
 GitLab Issues and the GitLab Issue Tracker are available in all
-[GitLab Products](https://about.gitlab.com/products/) as
+[GitLab Products](https://about.gitlab.com/pricing/) as
 part of the [GitLab Workflow](https://about.gitlab.com/2016/10/25/gitlab-workflow-an-overview/).
 
 ## Use cases
@@ -35,7 +35,7 @@ your project public, open to collaboration.
 ### Streamline collaboration
 
 With [Multiple Assignees for Issues](https://docs.gitlab.com/ee/user/project/issues/multiple_assignees_for_issues.html),
-available in [GitLab Enterprise Edition Starter](https://about.gitlab.com/gitlab-ee/)
+available in [GitLab Starter](https://about.gitlab.com/pricing/)
 you can streamline collaboration and allow shared responsibilities to be clearly displayed.
 All assignees are shown across your workflows and receive notifications (as they
 would as single assignees), simplifying communication and ownership.
@@ -64,9 +64,7 @@ You can also [search and filter](../../search/index.md#issues-and-merge-requests
 
 ### Issues per group
 
-View all the issues in a group (that is, all the issues across all projects in that
-group) by navigating to **Group > Issues**. This view also has the open and closed
-issue tabs.
+View issues in all projects in the group, including all projects of all descendant subgroups of the group. Navigate to **Group > Issues** to view these issues. This view also has the open and closed issues tabs.
 
 ![Group Issues list view](img/group_issues_list_view.png)
 
@@ -89,6 +87,10 @@ Learn distinct ways to [close issues](closing_issues.md) in GitLab.
 ## Moving issues
 
 Read through the [documentation on moving issues](moving_issues.md).
+
+## Deleting issues
+
+Read through the [documentation on deleting issues](deleting_issues.md)
 
 ## Create a merge request from an issue
 
@@ -137,8 +139,17 @@ Find GitLab Issue Boards by navigating to your **Project's Dashboard** > **Issue
 Read through the documentation for [Issue Boards](../issue_board.md)
 to find out more about this feature.
 
-With [GitLab Enterprise Edition Starter](https://about.gitlab.com/gitlab-ee/), you can also
+With [GitLab Starter](https://about.gitlab.com/pricing/), you can also
 create various boards per project with [Multiple Issue Boards](https://docs.gitlab.com/ee/user/project/issue_board.html#multiple-issue-boards).
+
+### Import Issues from CSV
+
+From the project-level issues list, you can find the import button near the "Edit issues" button in the upper-right
+side.
+
+![Import CSV button](img/import_csv_button.png)
+
+Learn more about [importing issues from CSV](csv_import.md)
 
 ### External Issue Tracker
 
@@ -149,3 +160,11 @@ or Bugzilla.
 ### Issue's API
 
 Read through the [API documentation](../../../api/issues.md).
+
+### Bulk editing issues
+
+Find out about [bulk editing issues](../../project/bulk_editing.md).
+
+### Similar issues
+
+Find out about [similar issues](similar_issues.md).

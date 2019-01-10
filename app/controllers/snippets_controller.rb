@@ -1,9 +1,14 @@
+# frozen_string_literal: true
+
 class SnippetsController < ApplicationController
   include RendersNotes
   include ToggleAwardEmoji
   include SpammableActions
   include SnippetsActions
   include RendersBlob
+  include PreviewMarkdown
+
+  skip_before_action :verify_authenticity_token, only: [:show], if: :js_request?
 
   before_action :snippet, only: [:show, :edit, :destroy, :update, :raw]
 
@@ -23,9 +28,7 @@ class SnippetsController < ApplicationController
 
   def index
     if params[:username].present?
-      @user = User.find_by(username: params[:username])
-
-      return render_404 unless @user
+      @user = UserFinder.new(params[:username]).find_by_username!
 
       @snippets = SnippetsFinder.new(current_user, author: @user, scope: params[:scope])
         .execute.page(params[:page])
@@ -76,6 +79,14 @@ class SnippetsController < ApplicationController
       format.json do
         render_blob_json(blob)
       end
+
+      format.js do
+        if @snippet.embeddable?
+          render 'shared/snippets/show'
+        else
+          head :not_found
+        end
+      end
     end
   end
 
@@ -84,25 +95,16 @@ class SnippetsController < ApplicationController
 
     @snippet.destroy
 
-    redirect_to snippets_path, status: 302
-  end
-
-  def preview_markdown
-    result = PreviewMarkdownService.new(@project, current_user, params).execute
-
-    render json: {
-      body: view_context.markdown(result[:text], skip_project_check: true),
-      references: {
-        users: result[:users]
-      }
-    }
+    redirect_to snippets_path, status: :found
   end
 
   protected
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def snippet
-    @snippet ||= PersonalSnippet.find_by(id: params[:id])
+    @snippet ||= PersonalSnippet.inc_relations_for_view.find_by(id: params[:id])
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   alias_method :awardable, :snippet
   alias_method :spammable, :snippet

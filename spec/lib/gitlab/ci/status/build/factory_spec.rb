@@ -13,7 +13,7 @@ describe Gitlab::Ci::Status::Build::Factory do
   end
 
   context 'when build is successful' do
-    let(:build) { create(:ci_build, :success) }
+    let(:build) { create(:ci_build, :success, :trace_artifact) }
 
     it 'matches correct core status' do
       expect(factory.core_status).to be_a Gitlab::Ci::Status::Success
@@ -30,7 +30,34 @@ describe Gitlab::Ci::Status::Build::Factory do
 
     it 'fabricates status with correct details' do
       expect(status.text).to eq 'passed'
-      expect(status.icon).to eq 'icon_status_success'
+      expect(status.icon).to eq 'status_success'
+      expect(status.favicon).to eq 'favicon_status_success'
+      expect(status.label).to eq 'passed'
+      expect(status).to have_details
+      expect(status).to have_action
+    end
+  end
+
+  context 'when build is erased' do
+    let(:build) { create(:ci_build, :success, :erased) }
+
+    it 'matches correct core status' do
+      expect(factory.core_status).to be_a Gitlab::Ci::Status::Success
+    end
+
+    it 'matches correct extended statuses' do
+      expect(factory.extended_statuses)
+        .to eq [Gitlab::Ci::Status::Build::Erased,
+                Gitlab::Ci::Status::Build::Retryable]
+    end
+
+    it 'fabricates a retryable build status' do
+      expect(status).to be_a Gitlab::Ci::Status::Build::Retryable
+    end
+
+    it 'fabricates status with correct details' do
+      expect(status.text).to eq 'passed'
+      expect(status.icon).to eq 'status_success'
       expect(status.favicon).to eq 'favicon_status_success'
       expect(status.label).to eq 'passed'
       expect(status).to have_details
@@ -48,25 +75,27 @@ describe Gitlab::Ci::Status::Build::Factory do
 
       it 'matches correct extended statuses' do
         expect(factory.extended_statuses)
-          .to eq [Gitlab::Ci::Status::Build::Retryable]
+          .to eq [Gitlab::Ci::Status::Build::Retryable,
+                  Gitlab::Ci::Status::Build::Failed]
       end
 
-      it 'fabricates a retryable build status' do
-        expect(status).to be_a Gitlab::Ci::Status::Build::Retryable
+      it 'fabricates a failed build status' do
+        expect(status).to be_a Gitlab::Ci::Status::Build::Failed
       end
 
       it 'fabricates status with correct details' do
         expect(status.text).to eq 'failed'
-        expect(status.icon).to eq 'icon_status_failed'
+        expect(status.icon).to eq 'status_failed'
         expect(status.favicon).to eq 'favicon_status_failed'
         expect(status.label).to eq 'failed'
+        expect(status.status_tooltip).to eq 'failed - (unknown failure)'
         expect(status).to have_details
         expect(status).to have_action
       end
     end
 
     context 'when build is allowed to fail' do
-      let(:build) { create(:ci_build, :failed, :allowed_to_fail) }
+      let(:build) { create(:ci_build, :failed, :allowed_to_fail, :trace_artifact) }
 
       it 'matches correct core status' do
         expect(factory.core_status).to be_a Gitlab::Ci::Status::Failed
@@ -75,6 +104,7 @@ describe Gitlab::Ci::Status::Build::Factory do
       it 'matches correct extended statuses' do
         expect(factory.extended_statuses)
           .to eq [Gitlab::Ci::Status::Build::Retryable,
+                  Gitlab::Ci::Status::Build::Failed,
                   Gitlab::Ci::Status::Build::FailedAllowed]
       end
 
@@ -84,7 +114,7 @@ describe Gitlab::Ci::Status::Build::Factory do
 
       it 'fabricates status with correct details' do
         expect(status.text).to eq 'failed'
-        expect(status.icon).to eq 'icon_status_warning'
+        expect(status.icon).to eq 'status_warning'
         expect(status.favicon).to eq 'favicon_status_failed'
         expect(status.label).to eq 'failed (allowed to fail)'
         expect(status).to have_details
@@ -104,7 +134,7 @@ describe Gitlab::Ci::Status::Build::Factory do
 
     it 'matches correct extended statuses' do
       expect(factory.extended_statuses)
-        .to eq [Gitlab::Ci::Status::Build::Retryable]
+        .to eq [Gitlab::Ci::Status::Build::Canceled, Gitlab::Ci::Status::Build::Retryable]
     end
 
     it 'fabricates a retryable build status' do
@@ -113,8 +143,9 @@ describe Gitlab::Ci::Status::Build::Factory do
 
     it 'fabricates status with correct details' do
       expect(status.text).to eq 'canceled'
-      expect(status.icon).to eq 'icon_status_canceled'
+      expect(status.icon).to eq 'status_canceled'
       expect(status.favicon).to eq 'favicon_status_canceled'
+      expect(status.illustration).to include(:image, :size, :title)
       expect(status.label).to eq 'canceled'
       expect(status).to have_details
       expect(status).to have_action
@@ -139,7 +170,7 @@ describe Gitlab::Ci::Status::Build::Factory do
 
     it 'fabricates status with correct details' do
       expect(status.text).to eq 'running'
-      expect(status.icon).to eq 'icon_status_running'
+      expect(status.icon).to eq 'status_running'
       expect(status.favicon).to eq 'favicon_status_running'
       expect(status.label).to eq 'running'
       expect(status).to have_details
@@ -156,7 +187,7 @@ describe Gitlab::Ci::Status::Build::Factory do
 
     it 'matches correct extended statuses' do
       expect(factory.extended_statuses)
-        .to eq [Gitlab::Ci::Status::Build::Cancelable]
+        .to eq [Gitlab::Ci::Status::Build::Pending, Gitlab::Ci::Status::Build::Cancelable]
     end
 
     it 'fabricates a cancelable build status' do
@@ -165,8 +196,9 @@ describe Gitlab::Ci::Status::Build::Factory do
 
     it 'fabricates status with correct details' do
       expect(status.text).to eq 'pending'
-      expect(status.icon).to eq 'icon_status_pending'
+      expect(status.icon).to eq 'status_pending'
       expect(status.favicon).to eq 'favicon_status_pending'
+      expect(status.illustration).to include(:image, :size, :title, :content)
       expect(status.label).to eq 'pending'
       expect(status).to have_details
       expect(status).to have_action
@@ -180,18 +212,19 @@ describe Gitlab::Ci::Status::Build::Factory do
       expect(factory.core_status).to be_a Gitlab::Ci::Status::Skipped
     end
 
-    it 'does not match extended statuses' do
-      expect(factory.extended_statuses).to be_empty
+    it 'matches correct extended statuses' do
+      expect(factory.extended_statuses).to eq [Gitlab::Ci::Status::Build::Skipped]
     end
 
-    it 'fabricates a core skipped status' do
-      expect(status).to be_a Gitlab::Ci::Status::Skipped
+    it 'fabricates a skipped build status' do
+      expect(status).to be_a Gitlab::Ci::Status::Build::Skipped
     end
 
     it 'fabricates status with correct details' do
       expect(status.text).to eq 'skipped'
-      expect(status.icon).to eq 'icon_status_skipped'
+      expect(status.icon).to eq 'status_skipped'
       expect(status.favicon).to eq 'favicon_status_skipped'
+      expect(status.illustration).to include(:image, :size, :title)
       expect(status.label).to eq 'skipped'
       expect(status).to have_details
       expect(status).not_to have_action
@@ -208,7 +241,8 @@ describe Gitlab::Ci::Status::Build::Factory do
 
       it 'matches correct extended statuses' do
         expect(factory.extended_statuses)
-          .to eq [Gitlab::Ci::Status::Build::Play,
+          .to eq [Gitlab::Ci::Status::Build::Manual,
+                  Gitlab::Ci::Status::Build::Play,
                   Gitlab::Ci::Status::Build::Action]
       end
 
@@ -219,8 +253,9 @@ describe Gitlab::Ci::Status::Build::Factory do
       it 'fabricates status with correct details' do
         expect(status.text).to eq 'manual'
         expect(status.group).to eq 'manual'
-        expect(status.icon).to eq 'icon_status_manual'
+        expect(status.icon).to eq 'status_manual'
         expect(status.favicon).to eq 'favicon_status_manual'
+        expect(status.illustration).to include(:image, :size, :title, :content)
         expect(status.label).to include 'manual play action'
         expect(status).to have_details
         expect(status.action_path).to include 'play'
@@ -255,7 +290,8 @@ describe Gitlab::Ci::Status::Build::Factory do
 
       it 'matches correct extended statuses' do
         expect(factory.extended_statuses)
-          .to eq [Gitlab::Ci::Status::Build::Stop,
+          .to eq [Gitlab::Ci::Status::Build::Manual,
+                  Gitlab::Ci::Status::Build::Stop,
                   Gitlab::Ci::Status::Build::Action]
       end
 
@@ -274,12 +310,61 @@ describe Gitlab::Ci::Status::Build::Factory do
         it 'fabricates status with correct details' do
           expect(status.text).to eq 'manual'
           expect(status.group).to eq 'manual'
-          expect(status.icon).to eq 'icon_status_manual'
+          expect(status.icon).to eq 'status_manual'
           expect(status.favicon).to eq 'favicon_status_manual'
           expect(status.label).to eq 'manual stop action (not allowed)'
           expect(status).to have_details
           expect(status).not_to have_action
         end
+      end
+    end
+  end
+
+  context 'when build is a delayed action' do
+    let(:build) { create(:ci_build, :scheduled) }
+
+    it 'matches correct core status' do
+      expect(factory.core_status).to be_a Gitlab::Ci::Status::Scheduled
+    end
+
+    it 'matches correct extended statuses' do
+      expect(factory.extended_statuses)
+        .to eq [Gitlab::Ci::Status::Build::Scheduled,
+                Gitlab::Ci::Status::Build::Unschedule,
+                Gitlab::Ci::Status::Build::Action]
+    end
+
+    it 'fabricates action detailed status' do
+      expect(status).to be_a Gitlab::Ci::Status::Build::Action
+    end
+
+    it 'fabricates status with correct details' do
+      expect(status.text).to eq 'delayed'
+      expect(status.group).to eq 'scheduled'
+      expect(status.icon).to eq 'status_scheduled'
+      expect(status.favicon).to eq 'favicon_status_scheduled'
+      expect(status.illustration).to include(:image, :size, :title, :content)
+      expect(status.label).to include 'unschedule action'
+      expect(status).to have_details
+      expect(status.action_path).to include 'unschedule'
+    end
+
+    context 'when user has ability to play action' do
+      it 'fabricates status that has action' do
+        expect(status).to have_action
+      end
+    end
+
+    context 'when user does not have ability to play action' do
+      before do
+        allow(build.project).to receive(:empty_repo?).and_return(false)
+
+        create(:protected_branch, :no_one_can_push,
+                name: build.ref, project: build.project)
+      end
+
+      it 'fabricates status that has no action' do
+        expect(status).not_to have_action
       end
     end
   end

@@ -45,7 +45,7 @@ has already been created, which creates a link to the license itself.
 ![New file button](img/web_editor_template_dropdown_buttons.png)
 
 >**Note:**
-The **Set up CI** button will not appear on an empty repository. You have to at
+The **Set up CI/CD** button will not appear on an empty repository. You have to at
 least add a file in order for the button to show up.
 
 ## Upload a file
@@ -105,7 +105,7 @@ merge request.
 
 Once you click it, a new branch will be created that diverges from the default
 branch of your project, by default `master`. The branch name will be based on
-the title of the issue and as suffix it will have its ID. Thus, the example
+the title of the issue and as a prefix, it will have its internal ID. Thus, the example
 screenshot above will yield a branch named
 `2-et-cum-et-sed-expedita-repellat-consequatur-ut-assumenda-numquam-rerum`.
 
@@ -176,6 +176,10 @@ appear that is labeled **Start a new merge request with these changes**. After
 you commit the changes you will be taken to a new merge request form.
 
 ![Start a new merge request with these changes](img/web_editor_start_new_merge_request.png)
+
+If you'd prefer _not_ to use your primary email address for commits created
+through the web editor, you can choose to use another of your linked email
+addresses from the **User Settings > Edit Profile** page.
 
 [ce-2808]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/2808
 [issue closing pattern]: ../issues/automatic_issue_closing.md

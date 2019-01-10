@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 require_dependency 'declarative_policy/cache'
 require_dependency 'declarative_policy/condition'
-require_dependency 'declarative_policy/dsl'
+require_dependency 'declarative_policy/delegate_dsl'
+require_dependency 'declarative_policy/policy_dsl'
+require_dependency 'declarative_policy/rule_dsl'
 require_dependency 'declarative_policy/preferred_scope'
 require_dependency 'declarative_policy/rule'
 require_dependency 'declarative_policy/runner'
 require_dependency 'declarative_policy/step'
 
 require_dependency 'declarative_policy/base'
-
-require 'thread'
 
 module DeclarativePolicy
   CLASS_CACHE_MUTEX = Mutex.new
@@ -19,7 +21,13 @@ module DeclarativePolicy
       cache = opts[:cache] || {}
       key = Cache.policy_key(user, subject)
 
-      cache[key] ||= class_for(subject).new(user, subject, opts)
+      cache[key] ||=
+        # to avoid deadlocks in multi-threaded environment when
+        # autoloading is enabled, we allow concurrent loads,
+        # https://gitlab.com/gitlab-org/gitlab-ce/issues/48263
+        ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+          class_for(subject).new(user, subject, opts)
+        end
     end
 
     def class_for(subject)
@@ -30,6 +38,7 @@ module DeclarativePolicy
 
       policy_class = class_for_class(subject.class)
       raise "no policy for #{subject.class.name}" if policy_class.nil?
+
       policy_class
     end
 
@@ -84,6 +93,7 @@ module DeclarativePolicy
 
       while subject.respond_to?(:declarative_policy_delegate)
         raise ArgumentError, "circular delegations" if seen.include?(subject.object_id)
+
         seen << subject.object_id
         subject = subject.declarative_policy_delegate
       end

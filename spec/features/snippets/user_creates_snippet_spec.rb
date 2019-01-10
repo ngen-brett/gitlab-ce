@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-feature 'User creates snippet', :js do
+describe 'User creates snippet', :js do
   include DropzoneHelper
 
   let(:user) { create(:user) }
@@ -14,11 +14,11 @@ feature 'User creates snippet', :js do
     fill_in 'personal_snippet_title', with: 'My Snippet Title'
     fill_in 'personal_snippet_description', with: 'My Snippet **Description**'
     page.within('.file-editor') do
-      find('.ace_editor').native.send_keys 'Hello World!'
+      find('.ace_text-input', visible: false).send_keys 'Hello World!'
     end
   end
 
-  scenario 'Authenticated user creates a snippet' do
+  it 'Authenticated user creates a snippet' do
     fill_form
 
     click_button('Create snippet')
@@ -32,7 +32,7 @@ feature 'User creates snippet', :js do
     expect(page).to have_content('Hello World!')
   end
 
-  scenario 'previews a snippet with file' do
+  it 'previews a snippet with file' do
     fill_in 'personal_snippet_description', with: 'My Snippet'
     dropzone_file Rails.root.join('spec', 'fixtures', 'banana_sample.gif')
     find('.js-md-preview-button').click
@@ -43,12 +43,12 @@ feature 'User creates snippet', :js do
       link = find('a.no-attachment-icon img[alt="banana_sample"]')['src']
       expect(link).to match(%r{/uploads/-/system/temp/\h{32}/banana_sample\.gif\z})
 
-      visit(link)
-      expect(page.status_code).to eq(200)
+      reqs = inspect_requests { visit(link) }
+      expect(reqs.first.status_code).to eq(200)
     end
   end
 
-  scenario 'uploads a file when dragging into textarea' do
+  it 'uploads a file when dragging into textarea' do
     fill_form
 
     dropzone_file Rails.root.join('spec', 'fixtures', 'banana_sample.gif')
@@ -61,11 +61,11 @@ feature 'User creates snippet', :js do
     link = find('a.no-attachment-icon img[alt="banana_sample"]')['src']
     expect(link).to match(%r{/uploads/-/system/personal_snippet/#{Snippet.last.id}/\h{32}/banana_sample\.gif\z})
 
-    visit(link)
-    expect(page.status_code).to eq(200)
+    reqs = inspect_requests { visit(link) }
+    expect(reqs.first.status_code).to eq(200)
   end
 
-  scenario 'validation fails for the first time' do
+  it 'validation fails for the first time' do
     fill_in 'personal_snippet_title', with: 'My Snippet Title'
     click_button('Create snippet')
 
@@ -86,15 +86,15 @@ feature 'User creates snippet', :js do
     link = find('a.no-attachment-icon img[alt="banana_sample"]')['src']
     expect(link).to match(%r{/uploads/-/system/personal_snippet/#{Snippet.last.id}/\h{32}/banana_sample\.gif\z})
 
-    visit(link)
-    expect(page.status_code).to eq(200)
+    reqs = inspect_requests { visit(link) }
+    expect(reqs.first.status_code).to eq(200)
   end
 
-  scenario 'Authenticated user creates a snippet with + in filename' do
+  it 'Authenticated user creates a snippet with + in filename' do
     fill_in 'personal_snippet_title', with: 'My Snippet Title'
     page.within('.file-editor') do
       find(:xpath, "//input[@id='personal_snippet_file_name']").set 'snippet+file+name'
-      find('.ace_editor').native.send_keys 'Hello World!'
+      find('.ace_text-input', visible: false).send_keys 'Hello World!'
     end
 
     click_button 'Create snippet'

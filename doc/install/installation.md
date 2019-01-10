@@ -12,9 +12,8 @@ Since installations from source don't have Runit, Sidekiq can't be terminated an
 
 ## Select Version to Install
 
-Make sure you view [this installation guide](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/doc/install/installation.md) from the tag (version) of GitLab you would like to install.
-In most cases this should be the highest numbered production tag (without rc in it).
-You can select the tag in the version dropdown in the top left corner of GitLab (below the menu bar).
+Make sure you view [this installation guide](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/doc/install/installation.md) from the branch (version) of GitLab you would like to install (e.g., `11-7-stable`).
+You can select the branch in the version dropdown in the top left corner of GitLab (below the menu bar).
 
 If the highest number stable branch is unclear please check the [GitLab Blog](https://about.gitlab.com/blog/) for installation guide links by version.
 
@@ -64,7 +63,7 @@ up-to-date and install it.
 
 Install the required packages (needed to compile Ruby and native extensions to Ruby gems):
 
-    sudo apt-get install -y build-essential zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libre2-dev libreadline-dev libncurses5-dev libffi-dev curl openssh-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev logrotate python-docutils pkg-config cmake
+    sudo apt-get install -y build-essential zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libre2-dev libreadline-dev libncurses5-dev libffi-dev curl openssh-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev logrotate rsync python-docutils pkg-config cmake
 
 Ubuntu 14.04 (Trusty Tahr) doesn't have the `libre2-dev` package available, but
 you can [install re2 manually](https://github.com/google/re2/wiki/Install).
@@ -80,7 +79,7 @@ Make sure you have the right version of Git installed
     # Install Git
     sudo apt-get install -y git-core
 
-    # Make sure Git is version 2.13.0 or higher
+    # Make sure Git is version 2.18.0 or higher
     git --version
 
 Is the system packaged Git too old? Remove it and compile from source.
@@ -93,9 +92,9 @@ Is the system packaged Git too old? Remove it and compile from source.
 
     # Download and compile from source
     cd /tmp
-    curl --remote-name --progress https://www.kernel.org/pub/software/scm/git/git-2.8.4.tar.gz
-    echo '626e319f8a24fc0866167ea5f6bf3e2f38f69d6cb2e59e150f13709ca3ebf301  git-2.8.4.tar.gz' | shasum -a256 -c - && tar -xzf git-2.8.4.tar.gz
-    cd git-2.8.4/
+    curl --remote-name --progress https://www.kernel.org/pub/software/scm/git/git-2.18.0.tar.gz
+    echo '94faf2c0b02a7920b0b46f4961d8e9cad08e81418614102898a55f980fa3e7e4  git-2.18.0.tar.gz' | shasum -a256 -c - && tar -xzf git-2.18.0.tar.gz
+    cd git-2.18.0/
     ./configure
     make prefix=/usr/local all
 
@@ -104,7 +103,7 @@ Is the system packaged Git too old? Remove it and compile from source.
 
     # When editing config/gitlab.yml (Step 5), change the git -> bin_path to /usr/local/bin/git
 
-**Note:** In order to receive mail notifications, make sure to install a mail server. By default, Debian is shipped with exim4 but this [has problems](https://github.com/gitlabhq/gitlabhq/issues/4866#issuecomment-32726573) while Ubuntu does not ship with one. The recommended mail server is postfix and you can install it with:
+**Note:** In order to receive mail notifications, make sure to install a mail server. By default, Debian is shipped with exim4 but this [has problems](https://gitlab.com/gitlab-org/gitlab-ce/issues/12754) while Ubuntu does not ship with one. The recommended mail server is postfix and you can install it with:
 
     sudo apt-get install -y postfix
 
@@ -121,7 +120,7 @@ The use of Ruby version managers such as [RVM], [rbenv] or [chruby] with GitLab
 in production, frequently leads to hard to diagnose problems. For example,
 GitLab Shell is called from OpenSSH, and having a version manager can prevent
 pushing and pulling over SSH. Version managers are not supported and we strongly
-advise everyone to follow the instructions below to use a system Ruby.  
+advise everyone to follow the instructions below to use a system Ruby.
 
 Linux distributions generally have older versions of Ruby available, so these
 instructions are designed to install Ruby from the official source code.
@@ -133,16 +132,17 @@ Remove the old Ruby 1.8 if present:
 Download Ruby and compile it:
 
     mkdir /tmp/ruby && cd /tmp/ruby
-    curl --remote-name --progress https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.3.tar.gz
-    echo '1014ee699071aa2ddd501907d18cbe15399c997d  ruby-2.3.3.tar.gz' | shasum -c - && tar xzf ruby-2.3.3.tar.gz
-    cd ruby-2.3.3
+    curl --remote-name --progress https://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar.gz
+    echo 'f919a9fbcdb7abecd887157b49833663c5c15fda  ruby-2.5.3.tar.gz' | shasum -c - && tar xzf ruby-2.5.3.tar.gz
+    cd ruby-2.5.3
+
     ./configure --disable-install-rdoc
     make
     sudo make install
 
 Then install the Bundler Gem:
 
-    sudo gem install bundler --no-ri --no-rdoc
+    sudo gem install bundler --no-document
 
 ## 3. Go
 
@@ -154,21 +154,22 @@ page](https://golang.org/dl).
     # Remove former Go installation folder
     sudo rm -rf /usr/local/go
 
-    curl --remote-name --progress https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz
-    echo '1862f4c3d3907e59b04a757cfda0ea7aa9ef39274af99a784f5be843c80c6772  go1.8.3.linux-amd64.tar.gz' | shasum -a256 -c - && \
-      sudo tar -C /usr/local -xzf go1.8.3.linux-amd64.tar.gz
+    curl --remote-name --progress https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz
+    echo 'fa1b0e45d3b647c252f51f5e1204aba049cde4af177ef9f2181f43004f901035  go1.10.3.linux-amd64.tar.gz' | shasum -a256 -c - && \
+      sudo tar -C /usr/local -xzf go1.10.3.linux-amd64.tar.gz
     sudo ln -sf /usr/local/go/bin/{go,godoc,gofmt} /usr/local/bin/
-    rm go1.8.3.linux-amd64.tar.gz
+    rm go1.10.3.linux-amd64.tar.gz
 
 ## 4. Node
 
-Since GitLab 8.17, GitLab requires the use of node >= v4.3.0 to compile
-javascript assets, and yarn >= v0.17.0 to manage javascript dependencies.
-In many distros the versions provided by the official package  repositories
-are out of date, so we'll need to install through the following commands:
+Since GitLab 8.17, GitLab requires the use of Node to compile javascript
+assets, and Yarn to manage javascript dependencies. The current minimum
+requirements for these are node >= v6.0.0 and yarn >= v1.2.0. In many distros
+the versions provided by the official package repositories are out of date, so
+we'll need to install through the following commands:
 
-    # install node v7.x
-    curl --location https://deb.nodesource.com/setup_7.x | sudo bash -
+    # install node v8.x
+    curl --location https://deb.nodesource.com/setup_8.x | sudo bash -
     sudo apt-get install -y nodejs
 
     curl --silent --show-error https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
@@ -299,9 +300,9 @@ sudo usermod -aG redis git
 ### Clone the Source
 
     # Clone GitLab repository
-    sudo -u git -H git clone https://gitlab.com/gitlab-org/gitlab-ce.git -b 10-0-stable gitlab
+    sudo -u git -H git clone https://gitlab.com/gitlab-org/gitlab-ce.git -b 11-7-stable gitlab
 
-**Note:** You can change `10-0-stable` to `master` if you want the *bleeding edge* version, but never install master on a production server!
+**Note:** You can change `11-7-stable` to `master` if you want the *bleeding edge* version, but never install master on a production server!
 
 ### Configure It
 
@@ -368,6 +369,9 @@ sudo usermod -aG redis git
     # Enable packfile bitmaps
     sudo -u git -H git config --global repack.writeBitmaps true
 
+    # Enable push options
+    sudo -u git -H git config --global receive.advertisePushOptions true
+
     # Configure Redis connection settings
     sudo -u git -H cp config/resque.yml.example config/resque.yml
 
@@ -427,9 +431,9 @@ GitLab Shell is an SSH access and repository management software developed speci
 
 **Note:** GitLab Shell application startup time can be greatly reduced by disabling RubyGems. This can be done in several manners:
 
-* Export `RUBYOPT=--disable-gems` environment variable for the processes
-* Compile Ruby with `configure --disable-rubygems` to disable RubyGems by default. Not recommened for system-wide Ruby.
-* Omnibus GitLab [replaces the *shebang* line of the `gitlab-shell/bin/*` scripts](https://gitlab.com/gitlab-org/omnibus-gitlab/merge_requests/1707)
+- Export `RUBYOPT=--disable-gems` environment variable for the processes.
+- Compile Ruby with `configure --disable-rubygems` to disable RubyGems by default. Not recommended for system-wide Ruby.
+- Omnibus GitLab [replaces the *shebang* line of the `gitlab-shell/bin/*` scripts](https://gitlab.com/gitlab-org/omnibus-gitlab/merge_requests/1707).
 
 ### Install gitlab-workhorse
 
@@ -439,16 +443,49 @@ which is the recommended location.
 
     sudo -u git -H bundle exec rake "gitlab:workhorse:install[/home/git/gitlab-workhorse]" RAILS_ENV=production
 
-You can specify a different Git repository by providing it as an extra paramter:
+You can specify a different Git repository by providing it as an extra parameter:
 
     sudo -u git -H bundle exec rake "gitlab:workhorse:install[/home/git/gitlab-workhorse,https://example.com/gitlab-workhorse.git]" RAILS_ENV=production
 
+### Install gitlab-pages
+
+GitLab-Pages uses [GNU Make](https://www.gnu.org/software/make/). This step is optional and only needed if you wish to host static sites from within GitLab. The following commands will install GitLab-Pages in `/home/git/gitlab-pages`. For additional setup steps, please consult the [administration guide](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/doc/administration/pages/source.md) for your version of GitLab as the GitLab Pages daemon can be ran several different ways.
+
+    cd /home/git
+    sudo -u git -H git clone https://gitlab.com/gitlab-org/gitlab-pages.git
+    cd gitlab-pages
+    sudo -u git -H git checkout v$(</home/git/gitlab/GITLAB_PAGES_VERSION)
+    sudo -u git -H make
+
+### Install Gitaly
+
+    # Fetch Gitaly source with Git and compile with Go
+    sudo -u git -H bundle exec rake "gitlab:gitaly:install[/home/git/gitaly,/home/git/repositories]" RAILS_ENV=production
+
+You can specify a different Git repository by providing it as an extra parameter:
+
+    sudo -u git -H bundle exec rake "gitlab:gitaly:install[/home/git/gitaly,/home/git/repositories,https://example.com/gitaly.git]" RAILS_ENV=production
+
+Next, make sure gitaly configured:
+
+    # Restrict Gitaly socket access
+    sudo chmod 0700 /home/git/gitlab/tmp/sockets/private
+    sudo chown git /home/git/gitlab/tmp/sockets/private
+
+    # If you are using non-default settings you need to update config.toml
+    cd /home/git/gitaly
+    sudo -u git -H editor config.toml
+
+For more information about configuring Gitaly see
+[doc/administration/gitaly](../administration/gitaly).
 
 ### Initialize Database and Activate Advanced Features
 
     sudo -u git -H bundle exec rake gitlab:setup RAILS_ENV=production
-
     # Type 'yes' to create the database tables.
+
+    # or you can skip the question by adding force=yes
+    sudo -u git -H bundle exec rake gitlab:setup RAILS_ENV=production force=yes
 
     # When done you see 'Administrator account created:'
 
@@ -478,29 +515,7 @@ Make GitLab start on boot:
 
     sudo update-rc.d gitlab defaults 21
 
-### Install Gitaly
-
-    # Fetch Gitaly source with Git and compile with Go
-    sudo -u git -H bundle exec rake "gitlab:gitaly:install[/home/git/gitaly]" RAILS_ENV=production
-
-You can specify a different Git repository by providing it as an extra paramter:
-
-    sudo -u git -H bundle exec rake "gitlab:gitaly:install[/home/git/gitaly,https://example.com/gitaly.git]" RAILS_ENV=production
-
-Next, make sure gitaly configured:
-
-    # Restrict Gitaly socket access
-    sudo chmod 0700 /home/git/gitlab/tmp/sockets/private
-    sudo chown git /home/git/gitlab/tmp/sockets/private
-
-    # If you are using non-default settings you need to update config.toml
-    cd /home/git/gitaly
-    sudo -u git -H editor config.toml
-
-For more information about configuring Gitaly see
-[doc/administration/gitaly](../administration/gitaly).
-
-### Setup Logrotate
+### Set up Logrotate
 
     sudo cp lib/support/logrotate/gitlab /etc/logrotate.d/gitlab
 
@@ -513,8 +528,7 @@ Check if GitLab and its environment are configured correctly:
 
 ### Compile GetText PO files
 
-    sudo -u git -H bundle exec rake gettext:pack RAILS_ENV=production
-    sudo -u git -H bundle exec rake gettext:po_to_json RAILS_ENV=production
+    sudo -u git -H bundle exec rake gettext:compile RAILS_ENV=production
 
 ### Compile Assets
 
@@ -654,7 +668,7 @@ Checkout the [GitLab Runner section](https://about.gitlab.com/gitlab-ci/#gitlab-
 
 ### Adding your Trusted Proxies
 
-If you are using a reverse proxy on an separate machine, you may want to add the
+If you are using a reverse proxy on a separate machine, you may want to add the
 proxy to the trusted proxies list. Otherwise users will appear signed in from the
 proxy's IP address.
 

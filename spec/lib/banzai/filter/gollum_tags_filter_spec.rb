@@ -15,9 +15,13 @@ describe Banzai::Filter::GollumTagsFilter do
 
   context 'linking internal images' do
     it 'creates img tag if image exists' do
-      file = Gollum::File.new(project_wiki.wiki)
-      expect(file).to receive(:path).and_return('images/image.jpg')
-      expect(project_wiki).to receive(:find_file).with('images/image.jpg').and_return(file)
+      gollum_file_double = double('Gollum::File',
+                                  mime_type: 'image/jpeg',
+                                  name: 'images/image.jpg',
+                                  path: 'images/image.jpg',
+                                  raw_data: '')
+      wiki_file = Gitlab::Git::WikiFile.new(gollum_file_double)
+      expect(project_wiki).to receive(:find_file).with('images/image.jpg').and_return(wiki_file)
 
       tag = '[[images/image.jpg]]'
       doc = filter("See #{tag}", project_wiki: project_wiki)
@@ -86,6 +90,12 @@ describe Banzai::Filter::GollumTagsFilter do
 
       expect(doc.at_css('a').text).to eq 'link-text'
       expect(doc.at_css('a')['href']).to eq expected_path
+    end
+
+    it "inside back ticks will be exempt from linkification" do
+      doc = filter('<code>[[link-in-backticks]]</code>', project_wiki: project_wiki)
+
+      expect(doc.at_css('code').text).to eq '[[link-in-backticks]]'
     end
   end
 

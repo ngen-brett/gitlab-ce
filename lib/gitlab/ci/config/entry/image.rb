@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Ci
     class Config
@@ -5,8 +7,8 @@ module Gitlab
         ##
         # Entry that represents a Docker image.
         #
-        class Image < Node
-          include Validatable
+        class Image < ::Gitlab::Config::Entry::Node
+          include ::Gitlab::Config::Entry::Validatable
 
           ALLOWED_KEYS = %i[name entrypoint].freeze
 
@@ -37,6 +39,7 @@ module Gitlab
           def value
             return { name: @config } if string?
             return @config if hash?
+
             {}
           end
         end

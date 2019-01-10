@@ -1,14 +1,74 @@
+.modal-xl {
+  max-width: 98%;
+}
+
+.modal-header {
+  background-color: $modal-body-bg;
+
+  .page-title,
+  .modal-title {
+    .modal-title-with-label span {
+      vertical-align: middle;
+      display: inline-block;
+    }
+
+    .color-label {
+      font-size: $gl-font-size;
+      padding: $gl-vert-padding $label-padding-modal;
+      vertical-align: middle;
+    }
+  }
+
+  // leave enough space for the close icon
+  .modal-title {
+    &.mw-100,
+    &.w-100 {
+      // after upgrading to Bootstrap 4.2 we can use $modal-header-padding-x here
+      // https://github.com/twbs/bootstrap/pull/26976
+      margin-right: -28px;
+      padding-right: 28px;
+    }
+  }
+}
+
 .modal-body {
+  background-color: $modal-body-bg;
+  line-height: $line-height-base;
+  min-height: $modal-body-height;
   position: relative;
-  padding: 15px;
+  padding: #{3 * $grid-size} #{2 * $grid-size};
+  text-align: left;
 
   .form-actions {
-    margin: -$gl-padding + 1;
-    margin-top: 15px;
+    margin: #{2 * $grid-size} #{-2 * $grid-size} #{-2 * $grid-size};
   }
 
   .text-danger {
     font-weight: $gl-font-weight-bold;
+  }
+}
+
+.modal-footer {
+  display: flex;
+  flex-direction: row;
+
+  .btn + .btn {
+    margin-left: $grid-size;
+  }
+
+  @include media-breakpoint-down(xs) {
+    flex-direction: column;
+
+    .btn + .btn {
+      margin-left: 0;
+      margin-top: $grid-size;
+    }
+  }
+
+  @include media-breakpoint-up(sm) {
+    .btn:nth-child(1) {
+      margin-left: auto;
+    }
   }
 }
 
@@ -24,14 +84,58 @@ body.modal-open {
   }
 }
 
-@media (min-width: $screen-md-min) {
-  .modal-dialog {
-    width: 860px;
+.modal {
+  background-color: $black-transparent;
+
+  @include media-breakpoint-up(md) {
+    .modal-dialog {
+      margin: 30px auto;
+    }
   }
 }
 
-@media (min-width: $screen-lg-min) {
-  .modal-full {
-    width: 98%;
+.recaptcha-modal .recaptcha-form {
+  display: inline-block;
+
+  .recaptcha {
+    margin: 0;
+  }
+}
+
+.issues-import-modal,
+.issues-export-modal {
+  .modal-header {
+    justify-content: flex-start;
+
+    .import-export-svg-container {
+      flex-grow: 1;
+      height: 56px;
+      padding: $gl-btn-padding $gl-btn-padding 0;
+
+      > svg {
+        float: right;
+        height: 100%;
+      }
+    }
+  }
+
+  .modal-body {
+    padding: 0;
+
+    .modal-subheader {
+      justify-content: flex-start;
+      align-items: center;
+      border-bottom: 1px solid $modal-border-color;
+      padding: 14px;
+    }
+
+    .modal-text {
+      padding: $gl-padding-24 $gl-padding;
+      min-height: $modal-body-height;
+    }
+  }
+
+  .checkmark {
+    color: $green-400;
   }
 }

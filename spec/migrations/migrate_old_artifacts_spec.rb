@@ -16,20 +16,22 @@ describe MigrateOldArtifacts do
   end
 
   context 'with migratable data' do
-    let(:project1) { create(:project, ci_id: 2) }
-    let(:project2) { create(:project, ci_id: 3) }
-    let(:project3) { create(:project) }
+    set(:project1) { create(:project, ci_id: 2) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+    set(:project2) { create(:project, ci_id: 3) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+    set(:project3) { create(:project) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
 
-    let(:pipeline1) { create(:ci_empty_pipeline, project: project1) }
-    let(:pipeline2) { create(:ci_empty_pipeline, project: project2) }
-    let(:pipeline3) { create(:ci_empty_pipeline, project: project3) }
+    set(:pipeline1) { create(:ci_empty_pipeline, project: project1) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+    set(:pipeline2) { create(:ci_empty_pipeline, project: project2) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+    set(:pipeline3) { create(:ci_empty_pipeline, project: project3) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
 
-    let!(:build_with_legacy_artifacts) { create(:ci_build, pipeline: pipeline1) }
-    let!(:build_without_artifacts) { create(:ci_build, pipeline: pipeline1) }
-    let!(:build2) { create(:ci_build, :artifacts, pipeline: pipeline2) }
-    let!(:build3) { create(:ci_build, :artifacts, pipeline: pipeline3) }
+    let!(:build_with_legacy_artifacts) { create(:ci_build, pipeline: pipeline1) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+    let!(:build_without_artifacts) { create(:ci_build, pipeline: pipeline1) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+    let!(:build2) { create(:ci_build, pipeline: pipeline2) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+    let!(:build3) { create(:ci_build, pipeline: pipeline3) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
 
     before do
+      setup_builds(build2, build3)
+
       store_artifacts_in_legacy_path(build_with_legacy_artifacts)
     end
 
@@ -38,7 +40,7 @@ describe MigrateOldArtifacts do
     end
 
     it "legacy artifacts are set" do
-      expect(build_with_legacy_artifacts.artifacts_file_identifier).not_to be_nil
+      expect(build_with_legacy_artifacts.legacy_artifacts_file_identifier).not_to be_nil
     end
 
     describe '#min_id' do
@@ -64,7 +66,7 @@ describe MigrateOldArtifacts do
         end
 
         it 'all files do have artifacts' do
-          Ci::Build.with_artifacts do |build|
+          Ci::Build.with_artifacts_archive do |build|
             expect(build).to have_artifacts
           end
         end
@@ -74,7 +76,7 @@ describe MigrateOldArtifacts do
         end
       end
 
-      context 'when there are aritfacts in old and new directory' do
+      context 'when there are artifacts in old and new directory' do
         before do
           store_artifacts_in_legacy_path(build2)
 
@@ -112,6 +114,25 @@ describe MigrateOldArtifacts do
         build.created_at.utc.strftime('%Y_%m'),
         build.project.ci_id.to_s,
         build.id.to_s)
+    end
+
+    def new_legacy_path(build)
+      File.join(directory,
+                build.created_at.utc.strftime('%Y_%m'),
+                build.project_id.to_s,
+                build.id.to_s)
+    end
+
+    def setup_builds(*builds)
+      builds.each do |build|
+        FileUtils.mkdir_p(new_legacy_path(build))
+
+        build.update_columns(
+          artifacts_file: 'ci_build_artifacts.zip',
+          artifacts_metadata: 'ci_build_artifacts_metadata.gz')
+
+        build.reload
+      end
     end
   end
 end

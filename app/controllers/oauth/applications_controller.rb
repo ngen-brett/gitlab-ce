@@ -1,13 +1,17 @@
+# frozen_string_literal: true
+
 class Oauth::ApplicationsController < Doorkeeper::ApplicationsController
-  include Gitlab::CurrentSettings
   include Gitlab::GonHelper
+  include Gitlab::Allowable
   include PageLayoutHelper
   include OauthApplications
 
-  before_action :verify_user_oauth_applications_enabled
+  before_action :verify_user_oauth_applications_enabled, except: :index
   before_action :authenticate_user!
   before_action :add_gon_variables
-  before_action :load_scopes, only: [:index, :create, :edit]
+  before_action :load_scopes, only: [:index, :create, :edit, :update]
+
+  helper_method :can?
 
   layout 'profile'
 
@@ -16,12 +20,11 @@ class Oauth::ApplicationsController < Doorkeeper::ApplicationsController
   end
 
   def create
-    @application = Doorkeeper::Application.new(application_params)
+    @application = Applications::CreateService.new(current_user, create_application_params).execute(request)
 
-    @application.owner = current_user
-
-    if @application.save
+    if @application.persisted?
       flash[:notice] = I18n.t(:notice, scope: [:doorkeeper, :flash, :applications, :create])
+
       redirect_to oauth_application_url(@application)
     else
       set_index_vars
@@ -32,7 +35,7 @@ class Oauth::ApplicationsController < Doorkeeper::ApplicationsController
   private
 
   def verify_user_oauth_applications_enabled
-    return if current_application_settings.user_oauth_applications?
+    return if Gitlab::CurrentSettings.user_oauth_applications?
 
     redirect_to profile_path
   end
@@ -54,5 +57,11 @@ class Oauth::ApplicationsController < Doorkeeper::ApplicationsController
 
   rescue_from ActiveRecord::RecordNotFound do |exception|
     render "errors/not_found", layout: "errors", status: 404
+  end
+
+  def create_application_params
+    application_params.tap do |params|
+      params[:owner] = current_user
+    end
   end
 end

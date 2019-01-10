@@ -1,6 +1,5 @@
-/* eslint-disable no-new */
-/* global Flash */
-
+import flash from '../flash';
+import axios from '../lib/utils/axios_utils';
 import ProtectedBranchAccessDropdown from './protected_branch_access_dropdown';
 
 export default class ProtectedBranchEdit {
@@ -30,8 +29,12 @@ export default class ProtectedBranchEdit {
   }
 
   onSelect() {
-    const $allowedToMergeInput = this.$wrap.find(`input[name="${this.$allowedToMergeDropdown.data('fieldName')}"]`);
-    const $allowedToPushInput = this.$wrap.find(`input[name="${this.$allowedToPushDropdown.data('fieldName')}"]`);
+    const $allowedToMergeInput = this.$wrap.find(
+      `input[name="${this.$allowedToMergeDropdown.data('fieldName')}"]`,
+    );
+    const $allowedToPushInput = this.$wrap.find(
+      `input[name="${this.$allowedToPushDropdown.data('fieldName')}"]`,
+    );
 
     // Do not update if one dropdown has not selected any option
     if (!($allowedToMergeInput.length && $allowedToPushInput.length)) return;
@@ -39,29 +42,36 @@ export default class ProtectedBranchEdit {
     this.$allowedToMergeDropdown.disable();
     this.$allowedToPushDropdown.disable();
 
-    $.ajax({
-      type: 'POST',
-      url: this.$wrap.data('url'),
-      dataType: 'json',
-      data: {
-        _method: 'PATCH',
+    axios
+      .patch(this.$wrap.data('url'), {
         protected_branch: {
-          merge_access_levels_attributes: [{
-            id: this.$allowedToMergeDropdown.data('access-level-id'),
-            access_level: $allowedToMergeInput.val(),
-          }],
-          push_access_levels_attributes: [{
-            id: this.$allowedToPushDropdown.data('access-level-id'),
-            access_level: $allowedToPushInput.val(),
-          }],
+          merge_access_levels_attributes: [
+            {
+              id: this.$allowedToMergeDropdown.data('accessLevelId'),
+              access_level: $allowedToMergeInput.val(),
+            },
+          ],
+          push_access_levels_attributes: [
+            {
+              id: this.$allowedToPushDropdown.data('accessLevelId'),
+              access_level: $allowedToPushInput.val(),
+            },
+          ],
         },
-      },
-      error() {
-        new Flash('Failed to update branch!', null, $('.js-protected-branches-list'));
-      },
-    }).always(() => {
-      this.$allowedToMergeDropdown.enable();
-      this.$allowedToPushDropdown.enable();
-    });
+      })
+      .then(() => {
+        this.$allowedToMergeDropdown.enable();
+        this.$allowedToPushDropdown.enable();
+      })
+      .catch(() => {
+        this.$allowedToMergeDropdown.enable();
+        this.$allowedToPushDropdown.enable();
+
+        flash(
+          'Failed to update branch!',
+          'alert',
+          document.querySelector('.js-protected-branches-list'),
+        );
+      });
   }
 }

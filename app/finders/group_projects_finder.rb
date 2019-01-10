@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # GroupProjectsFinder
 #
 # Used to filter Projects  by set of params
@@ -39,25 +41,15 @@ class GroupProjectsFinder < ProjectsFinder
   end
 
   def collection_with_user
-    if group.users.include?(current_user)
-      if only_shared?
-        [shared_projects]
-      elsif only_owned?
-        [owned_projects]
-      else
-        [shared_projects, owned_projects]
-      end
+    if only_shared?
+      [shared_projects.public_or_visible_to_user(current_user)]
+    elsif only_owned?
+      [owned_projects.public_or_visible_to_user(current_user)]
     else
-      if only_shared?
-        [shared_projects.public_or_visible_to_user(current_user)]
-      elsif only_owned?
-        [owned_projects.public_or_visible_to_user(current_user)]
-      else
-        [
-          owned_projects.public_or_visible_to_user(current_user),
-          shared_projects.public_or_visible_to_user(current_user)
-        ]
-      end
+      [
+        owned_projects.public_or_visible_to_user(current_user),
+        shared_projects.public_or_visible_to_user(current_user)
+      ]
     end
   end
 
@@ -87,9 +79,20 @@ class GroupProjectsFinder < ProjectsFinder
     options.fetch(:only_shared, false)
   end
 
-  def owned_projects
-    group.projects
+  # subgroups are supported only for owned projects not for shared
+  def include_subgroups?
+    options.fetch(:include_subgroups, false)
   end
+
+  # rubocop: disable CodeReuse/ActiveRecord
+  def owned_projects
+    if include_subgroups?
+      Project.where(namespace_id: group.self_and_descendants.select(:id))
+    else
+      group.projects
+    end
+  end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def shared_projects
     group.shared_projects

@@ -1,5 +1,11 @@
+# frozen_string_literal: true
+
+##
+# NOTE:
+# We'll move this class to Clusters::Platforms::Kubernetes, which contains exactly the same logic.
+# After we've migrated data, we'll remove KubernetesService. This would happen in a few months.
+# If you're modyfiyng this class, please note that you should update the same change in Clusters::Platforms::Kubernetes.
 class KubernetesService < DeploymentService
-  include Gitlab::CurrentSettings
   include Gitlab::Kubernetes
   include ReactiveCaching
 
@@ -20,12 +26,13 @@ class KubernetesService < DeploymentService
   prop_accessor :ca_pem
 
   with_options presence: true, if: :activated? do
-    validates :api_url, url: true
+    validates :api_url, public_url: true
     validates :token
   end
 
   before_validation :enforce_namespace_to_lower_case
 
+  validate :deprecation_validation, unless: :template?
   validates :namespace,
     allow_blank: true,
     length: 1..63,
@@ -46,7 +53,7 @@ class KubernetesService < DeploymentService
   end
 
   def description
-    'Kubernetes / Openshift integration'
+    'Kubernetes / OpenShift integration'
   end
 
   def help
@@ -89,30 +96,33 @@ class KubernetesService < DeploymentService
 
   # Check we can connect to the Kubernetes API
   def test(*args)
-    kubeclient = build_kubeclient!
+    kubeclient = build_kube_client!
 
-    kubeclient.discover
-    { success: kubeclient.discovered, result: "Checked API discovery endpoint" }
+    kubeclient.core_client.discover
+    { success: kubeclient.core_client.discovered, result: "Checked API discovery endpoint" }
   rescue => err
     { success: false, result: err }
   end
 
-  def predefined_variables
-    config = YAML.dump(kubeconfig)
+  # Project param was added on
+  # https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/22011,
+  # as a way to keep this service compatible with
+  # Clusters::Platforms::Kubernetes, it won't be used on this method
+  # as it's only needed for Clusters::Cluster.
+  def predefined_variables(project:)
+    Gitlab::Ci::Variables::Collection.new.tap do |variables|
+      variables
+        .append(key: 'KUBE_URL', value: api_url)
+        .append(key: 'KUBE_TOKEN', value: token, public: false)
+        .append(key: 'KUBE_NAMESPACE', value: actual_namespace)
+        .append(key: 'KUBECONFIG', value: kubeconfig, public: false, file: true)
 
-    variables = [
-      { key: 'KUBE_URL', value: api_url, public: true },
-      { key: 'KUBE_TOKEN', value: token, public: false },
-      { key: 'KUBE_NAMESPACE', value: actual_namespace, public: true },
-      { key: 'KUBECONFIG', value: config, public: false, file: true }
-    ]
-
-    if ca_pem.present?
-      variables << { key: 'KUBE_CA_PEM', value: ca_pem, public: true }
-      variables << { key: 'KUBE_CA_PEM_FILE', value: ca_pem, public: true, file: true }
+      if ca_pem.present?
+        variables
+          .append(key: 'KUBE_CA_PEM', value: ca_pem)
+          .append(key: 'KUBE_CA_PEM_FILE', value: ca_pem, file: true)
+      end
     end
-
-    variables
   end
 
   # Constructs a list of terminals from the reactive cache
@@ -136,6 +146,22 @@ class KubernetesService < DeploymentService
     { pods: read_pods }
   end
 
+  def kubeclient
+    @kubeclient ||= build_kube_client!
+  end
+
+  def deprecated?
+    !active
+  end
+
+  def deprecation_message
+    content = _("Kubernetes service integration has been deprecated. %{deprecated_message_content} your Kubernetes clusters using the new <a href=\"%{url}\"/>Kubernetes Clusters</a> page") % {
+      deprecated_message_content: deprecated_message_content,
+      url: Gitlab::Routing.url_helpers.project_clusters_path(project)
+    }
+    content.html_safe
+  end
+
   TEMPLATE_PLACEHOLDER = 'Kubernetes namespace'.freeze
 
   private
@@ -153,15 +179,17 @@ class KubernetesService < DeploymentService
   end
 
   def default_namespace
-    "#{project.path}-#{project.id}" if project.present?
+    return unless project
+
+    slug = "#{project.path}-#{project.id}".downcase
+    slug.gsub(/[^-a-z0-9]/, '-').gsub(/^-+/, '')
   end
 
-  def build_kubeclient!(api_path: 'api', api_version: 'v1')
+  def build_kube_client!
     raise "Incomplete settings" unless api_url && actual_namespace && token
 
-    ::Kubeclient::Client.new(
-      join_api_url(api_path),
-      api_version,
+    Gitlab::Kubernetes::KubeClient.new(
+      api_url,
       auth_options: kubeclient_auth_options,
       ssl_options: kubeclient_ssl_options,
       http_proxy_uri: ENV['http_proxy']
@@ -170,11 +198,10 @@ class KubernetesService < DeploymentService
 
   # Returns a hash of all pods in the namespace
   def read_pods
-    kubeclient = build_kubeclient!
+    kubeclient = build_kube_client!
 
     kubeclient.get_pods(namespace: actual_namespace).as_json
-  rescue KubeException => err
-    raise err unless err.error_code == 404
+  rescue Kubeclient::ResourceNotFoundError
     []
   end
 
@@ -193,24 +220,31 @@ class KubernetesService < DeploymentService
     { bearer_token: token }
   end
 
-  def join_api_url(api_path)
-    url = URI.parse(api_url)
-    prefix = url.path.sub(%r{/+\z}, '')
-
-    url.path = [prefix, api_path].join("/")
-
-    url.to_s
-  end
-
   def terminal_auth
     {
       token: token,
       ca_pem: ca_pem,
-      max_session_time: current_application_settings.terminal_max_session_time
+      max_session_time: Gitlab::CurrentSettings.terminal_max_session_time
     }
   end
 
   def enforce_namespace_to_lower_case
     self.namespace = self.namespace&.downcase
+  end
+
+  def deprecation_validation
+    return if active_changed?(from: true, to: false) || (new_record? && !active?)
+
+    if deprecated?
+      errors[:base] << deprecation_message
+    end
+  end
+
+  def deprecated_message_content
+    if active?
+      _("Your Kubernetes cluster information on this page is still editable, but you are advised to disable and reconfigure")
+    else
+      _("Fields on this page are now uneditable, you can configure")
+    end
   end
 end

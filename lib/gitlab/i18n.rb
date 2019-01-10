@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module I18n
     extend self
@@ -5,6 +7,7 @@ module Gitlab
     AVAILABLE_LANGUAGES = {
       'en' => 'English',
       'es' => 'Español',
+      'gl_ES' => 'Galego',
       'de' => 'Deutsch',
       'fr' => 'Français',
       'pt_BR' => 'Português (Brasil)',
@@ -18,7 +21,12 @@ module Gitlab
       'uk' => 'Українська',
       'ja' => '日本語',
       'ko' => '한국어',
-      'nl_NL' => 'Nederlands'
+      'nl_NL' => 'Nederlands',
+      'tr_TR' => 'Türkçe',
+      'id_ID' => 'Bahasa Indonesia',
+      'fil_PH' => 'Filipino',
+      'pl_PL' => 'Polski',
+      'cs_CZ' => 'Čeština'
     }.freeze
 
     def available_locales

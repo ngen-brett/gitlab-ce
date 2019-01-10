@@ -1,13 +1,7 @@
 - breadcrumb_title _("Schedules")
 
-- content_for :page_specific_javascripts do
-  = webpack_bundle_tag 'common_vue'
-  = webpack_bundle_tag 'schedules_index'
-
 - @no_container = true
 - page_title _("Pipeline Schedules")
-
-= render "projects/pipelines/head"
 
 %div{ class: container_class }
   #pipeline-schedules-callout{ data: { docs_url: help_page_path('user/project/pipelines/schedules') } }
@@ -17,12 +11,12 @@
 
     - if can?(current_user, :create_pipeline_schedule, @project)
       .nav-controls
-        = link_to new_project_pipeline_schedule_path(@project), class: 'btn btn-create' do
+        = link_to new_project_pipeline_schedule_path(@project), class: 'btn btn-success' do
           %span= _('New schedule')
 
   - if @schedules.present?
     %ul.content-list
       = render partial: "table"
   - else
-    .light-well
+    .card.bg-light
       .nothing-here-block= _("No schedules")

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'nokogiri'
 
 module MarkupHelper
@@ -53,6 +55,7 @@ module MarkupHelper
       # text, wrapping anything found in the requested link
       fragment.children.each do |node|
         next unless node.text?
+
         node.replace(link_to(node.text, url, html_options))
       end
     end
@@ -69,42 +72,67 @@ module MarkupHelper
   # as Markdown.  HTML tags in the parsed output are not counted toward the
   # +max_chars+ limit.  If the length limit falls within a tag's contents, then
   # the tag contents are truncated without removing the closing tag.
-  def first_line_in_markdown(text, max_chars = nil, options = {})
-    md = markdown(text, options).strip
+  def first_line_in_markdown(object, attribute, max_chars = nil, options = {})
+    md = markdown_field(object, attribute, options)
+    return nil unless md.present?
 
-    truncate_visible(md, max_chars || md.length) if md.present?
+    tags = %w(a gl-emoji b pre code p span)
+    tags << 'img' if options[:allow_images]
+
+    text = truncate_visible(md, max_chars || md.length)
+    text = sanitize(
+      text,
+      tags: tags,
+      attributes: Rails::Html::WhiteListSanitizer.allowed_attributes + ['style', 'data-src', 'data-name', 'data-unicode-version']
+    )
+
+    # since <img> tags are stripped, this can leave empty <a> tags hanging around
+    # (as our markdown wraps images in links)
+    options[:allow_images] ? text : strip_empty_link_tags(text).html_safe
   end
 
   def markdown(text, context = {})
     return '' unless text.present?
 
     context[:project] ||= @project
+    context[:group] ||= @group
+
     html = markdown_unsafe(text, context)
     prepare_for_rendering(html, context)
   end
 
-  def markdown_field(object, field)
+  def markdown_field(object, field, context = {})
     object = object.for_display if object.respond_to?(:for_display)
     redacted_field_html = object.try(:"redacted_#{field}_html")
 
     return '' unless object.present?
     return redacted_field_html if redacted_field_html
 
-    html = Banzai.render_field(object, field)
-    prepare_for_rendering(html, object.banzai_render_context(field))
+    html = Banzai.render_field(object, field, context)
+    context.reverse_merge!(object.banzai_render_context(field)) if object.respond_to?(:banzai_render_context)
+
+    prepare_for_rendering(html, context)
   end
 
   def markup(file_name, text, context = {})
     context[:project] ||= @project
+    context[:markdown_engine] ||= :redcarpet unless commonmark_for_repositories_enabled?
     html = context.delete(:rendered) || markup_unsafe(file_name, text, context)
     prepare_for_rendering(html, context)
   end
 
-  def render_wiki_content(wiki_page)
+  def render_wiki_content(wiki_page, context = {})
     text = wiki_page.content
     return '' unless text.present?
 
-    context = { pipeline: :wiki, project: @project, project_wiki: @project_wiki, page_slug: wiki_page.slug }
+    context.merge!(
+      pipeline: :wiki,
+      project: @project,
+      project_wiki: @project_wiki,
+      page_slug: wiki_page.slug,
+      issuable_state_filter_enabled: true
+    )
+    context[:markdown_engine] ||= :redcarpet unless commonmark_for_repositories_enabled?
 
     html =
       case wiki_page.format
@@ -159,6 +187,10 @@ module MarkupHelper
     end
   end
 
+  def commonmark_for_repositories_enabled?
+    Feature.enabled?(:commonmark_for_repositories, default_enabled: true)
+  end
+
   private
 
   # Return +text+, truncated to +max_chars+ characters, excluding any HTML
@@ -186,6 +218,7 @@ module MarkupHelper
           node.content = node.content.truncate(num_remaining)
           truncated = true
         end
+
         content_length += node.content.length
       end
 
@@ -209,16 +242,26 @@ module MarkupHelper
     end
   end
 
+  def strip_empty_link_tags(text)
+    scrubber = Loofah::Scrubber.new do |node|
+      node.remove if node.name == 'a' && node.content.blank?
+    end
+
+    # Use `Loofah` directly instead of `sanitize`
+    # as we still use the `rails-deprecated_sanitizer` gem
+    Loofah.fragment(text).scrub!(scrubber).to_s
+  end
+
   def markdown_toolbar_button(options = {})
     data = options[:data].merge({ container: 'body' })
     content_tag :button,
       type: 'button',
-      class: 'toolbar-btn js-md has-tooltip hidden-xs',
+      class: 'toolbar-btn js-md has-tooltip',
       tabindex: -1,
       data: data,
       title: options[:title],
       aria: { label: options[:title] } do
-      icon(options[:icon])
+      sprite_icon(options[:icon])
     end
   end
 
@@ -238,7 +281,7 @@ module MarkupHelper
     return '' unless html.present?
 
     context.merge!(
-      current_user:   (current_user if defined?(current_user)),
+      current_user: (current_user if defined?(current_user)),
 
       # RelativeLinkFilter
       commit:         @commit,

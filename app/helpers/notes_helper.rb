@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NotesHelper
   def note_target_fields(note)
     if note.noteable
@@ -6,12 +8,8 @@ module NotesHelper
     end
   end
 
-  def note_editable?(note)
-    Ability.can_edit_note?(current_user, note)
-  end
-
   def note_supports_quick_actions?(note)
-    Notes::QuickActionsService.supported?(note, current_user)
+    Notes::QuickActionsService.supported?(note)
   end
 
   def noteable_json(noteable)
@@ -112,7 +110,7 @@ module NotesHelper
   end
 
   def noteable_note_url(note)
-    Gitlab::UrlBuilder.build(note)
+    Gitlab::UrlBuilder.build(note) if note.id
   end
 
   def form_resources
@@ -130,8 +128,12 @@ module NotesHelper
   end
 
   def can_create_note?
+    issuable = @issue || @merge_request
+
     if @snippet.is_a?(PersonalSnippet)
       can?(current_user, :comment_personal_snippet, @snippet)
+    elsif issuable
+      can?(current_user, :create_note, issuable)
     else
       can?(current_user, :create_note, @project)
     end
@@ -140,14 +142,54 @@ module NotesHelper
   def initial_notes_data(autocomplete)
     {
       notesUrl: notes_url,
-      notesIds: @notes.map(&:id),
+      notesIds: @noteable.notes.pluck(:id), # rubocop: disable CodeReuse/ActiveRecord
       now: Time.now.to_i,
       diffView: diff_view,
-      autocomplete: autocomplete
+      enableGFM: {
+        emojis: true,
+        members: autocomplete,
+        issues: autocomplete,
+        mergeRequests: autocomplete,
+        epics: autocomplete,
+        milestones: autocomplete,
+        labels: autocomplete
+      }
+    }
+  end
+
+  def discussions_path(issuable)
+    if issuable.is_a?(Issue)
+      discussions_project_issue_path(@project, issuable, format: :json)
+    else
+      discussions_project_merge_request_path(@project, issuable, format: :json)
+    end
+  end
+
+  def notes_data(issuable)
+    {
+      discussionsPath: discussions_path(issuable),
+      registerPath: new_session_path(:user, redirect_to_referer: 'yes', anchor: 'register-pane'),
+      newSessionPath: new_session_path(:user, redirect_to_referer: 'yes'),
+      markdownDocsPath: help_page_path('user/markdown'),
+      markdownVersion: issuable.cached_markdown_version,
+      quickActionsDocsPath: help_page_path('user/project/quick_actions'),
+      closePath: close_issuable_path(issuable),
+      reopenPath: reopen_issuable_path(issuable),
+      notesPath: notes_url,
+      totalNotes: issuable.discussions.length,
+      lastFetchedAt: Time.now.to_i
     }
   end
 
   def discussion_resolved_intro(discussion)
     discussion.resolved_by_push? ? 'Automatically resolved' : 'Resolved'
+  end
+
+  def rendered_for_merge_request?
+    params[:from_merge_request].present?
+  end
+
+  def serialize_notes?
+    rendered_for_merge_request? || params['html'].nil?
   end
 end

@@ -1,24 +1,19 @@
+# frozen_string_literal: true
+
 class Projects::ApplicationController < ApplicationController
+  include CookiesHelper
   include RoutableActions
+  include ProjectUnauthorized
+  include ChecksCollaboration
 
   skip_before_action :authenticate_user!
-  before_action :redirect_git_extension
   before_action :project
   before_action :repository
   layout 'project'
 
-  helper_method :repository, :can_collaborate_with_project?
+  helper_method :repository, :can_collaborate_with_project?, :user_access
 
   private
-
-  def redirect_git_extension
-    # Redirect from
-    #   localhost/group/project.git
-    # to
-    #   localhost/group/project
-    #
-    redirect_to url_for(params.merge(format: nil)) if params[:format] == 'git'
-  end
 
   def project
     return @project if @project
@@ -27,25 +22,18 @@ class Projects::ApplicationController < ApplicationController
     path = File.join(params[:namespace_id], params[:project_id] || params[:id])
     auth_proc = ->(project) { !project.pending_delete? }
 
-    @project = find_routable!(Project, path, extra_authorization_proc: auth_proc)
+    @project = find_routable!(Project, path, extra_authorization_proc: auth_proc, not_found_or_authorized_proc: project_unauthorized_proc)
   end
 
   def build_canonical_path(project)
     params[:namespace_id] = project.namespace.to_param
     params[:project_id] = project.to_param
 
-    url_for(params)
+    url_for(safe_params)
   end
 
   def repository
     @repository ||= project.repository
-  end
-
-  def can_collaborate_with_project?(project = nil)
-    project ||= @project
-
-    can?(current_user, :push_code, project) ||
-      (current_user && current_user.already_forked?(project))
   end
 
   def authorize_action!(action)
@@ -77,7 +65,7 @@ class Projects::ApplicationController < ApplicationController
   def require_non_empty_project
     # Be sure to return status code 303 to avoid a double DELETE:
     # http://api.rubyonrails.org/classes/ActionController/Redirecting.html
-    redirect_to project_path(@project), status: 303 if @project.empty_repo?
+    redirect_to project_path(@project), status: :see_other if @project.empty_repo?
   end
 
   def require_branch_head
@@ -90,10 +78,14 @@ class Projects::ApplicationController < ApplicationController
   end
 
   def apply_diff_view_cookie!
-    cookies.permanent[:diff_view] = params.delete(:view) if params[:view].present?
+    set_secure_cookie(:diff_view, params.delete(:view), permanent: true) if params[:view].present?
   end
 
   def require_pages_enabled!
     not_found unless @project.pages_available?
+  end
+
+  def check_issues_available!
+    return render_404 unless @project.feature_available?(:issues, current_user)
   end
 end

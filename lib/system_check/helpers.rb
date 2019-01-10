@@ -1,4 +1,4 @@
-require 'tasks/gitlab/task_helpers'
+# frozen_string_literal: true
 
 module SystemCheck
   module Helpers
@@ -52,7 +52,7 @@ module SystemCheck
       if should_sanitize?
         "#{project.namespace_id.to_s.color(:yellow)}/#{project.id.to_s.color(:yellow)} ... "
       else
-        "#{project.name_with_namespace.color(:yellow)} ... "
+        "#{project.full_name.color(:yellow)} ... "
       end
     end
 

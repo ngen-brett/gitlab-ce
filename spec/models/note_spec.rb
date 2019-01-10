@@ -5,10 +5,10 @@ describe Note do
 
   describe 'associations' do
     it { is_expected.to belong_to(:project) }
-    it { is_expected.to belong_to(:noteable).touch(true) }
+    it { is_expected.to belong_to(:noteable).touch(false) }
     it { is_expected.to belong_to(:author).class_name('User') }
 
-    it { is_expected.to have_many(:todos).dependent(:destroy) }
+    it { is_expected.to have_many(:todos) }
   end
 
   describe 'modules' do
@@ -17,8 +17,6 @@ describe Note do
     it { is_expected.to include_module(Participable) }
     it { is_expected.to include_module(Mentionable) }
     it { is_expected.to include_module(Awardable) }
-
-    it { is_expected.to include_module(Gitlab::CurrentSettings) }
   end
 
   describe 'validation' do
@@ -93,6 +91,23 @@ describe Note do
     it "keeps the commit around" do
       expect(note.project.repository.kept_around?(commit.id)).to be_truthy
     end
+
+    it 'does not generate N+1 queries for participants', :request_store do
+      def retrieve_participants
+        commit.notes_with_associations.map(&:participants).to_a
+      end
+
+      # Project authorization checks are cached, establish a baseline
+      retrieve_participants
+
+      control_count = ActiveRecord::QueryRecorder.new do
+        retrieve_participants
+      end
+
+      create(:note_on_commit, project: note.project, note: 'another note', noteable_id: commit.id)
+
+      expect { retrieve_participants }.not_to exceed_query_limit(control_count)
+    end
   end
 
   describe 'authorization' do
@@ -129,8 +144,8 @@ describe Note do
     describe 'admin' do
       before do
         @p1.project_members.create(user: @u1, access_level: ProjectMember::REPORTER)
-        @p1.project_members.create(user: @u2, access_level: ProjectMember::MASTER)
-        @p2.project_members.create(user: @u3, access_level: ProjectMember::MASTER)
+        @p1.project_members.create(user: @u2, access_level: ProjectMember::MAINTAINER)
+        @p2.project_members.create(user: @u3, access_level: ProjectMember::MAINTAINER)
       end
 
       it { expect(Ability.allowed?(@u1, :admin_note, @p1)).to be_falsey }
@@ -193,41 +208,114 @@ describe Note do
     end
   end
 
+  describe "confidential?" do
+    it "delegates to noteable" do
+      issue_note = build(:note, :on_issue)
+      confidential_note = build(:note, noteable: create(:issue, confidential: true))
+
+      expect(issue_note.confidential?).to be_falsy
+      expect(confidential_note.confidential?).to be_truthy
+    end
+
+    it "is falsey when noteable can't be confidential" do
+      commit_note = build(:note_on_commit)
+      expect(commit_note.confidential?).to be_falsy
+    end
+  end
+
   describe "cross_reference_not_visible_for?" do
     let(:private_user)    { create(:user) }
-    let(:private_project) { create(:project, namespace: private_user.namespace) { |p| p.team << [private_user, :master] } }
+    let(:private_project) { create(:project, namespace: private_user.namespace) { |p| p.add_maintainer(private_user) } }
     let(:private_issue)   { create(:issue, project: private_project) }
 
     let(:ext_proj)  { create(:project, :public) }
     let(:ext_issue) { create(:issue, project: ext_proj) }
 
-    let(:note) do
-      create :note,
-        noteable: ext_issue, project: ext_proj,
-        note: "mentioned in issue #{private_issue.to_reference(ext_proj)}",
-        system: true
+    shared_examples "checks references" do
+      it "returns true" do
+        expect(note.cross_reference_not_visible_for?(ext_issue.author)).to be_truthy
+      end
+
+      it "returns false" do
+        expect(note.cross_reference_not_visible_for?(private_user)).to be_falsy
+      end
+
+      it "returns false if user visible reference count set" do
+        note.user_visible_reference_count = 1
+        note.total_reference_count = 1
+
+        expect(note).not_to receive(:reference_mentionables)
+        expect(note.cross_reference_not_visible_for?(ext_issue.author)).to be_falsy
+      end
+
+      it "returns true if ref count is 0" do
+        note.user_visible_reference_count = 0
+
+        expect(note).not_to receive(:reference_mentionables)
+        expect(note.cross_reference_not_visible_for?(ext_issue.author)).to be_truthy
+      end
     end
 
-    it "returns true" do
-      expect(note.cross_reference_not_visible_for?(ext_issue.author)).to be_truthy
+    context "when there is one reference in note" do
+      let(:note) do
+        create :note,
+          noteable: ext_issue, project: ext_proj,
+          note: "mentioned in issue #{private_issue.to_reference(ext_proj)}",
+          system: true
+      end
+
+      it_behaves_like "checks references"
     end
 
-    it "returns false" do
-      expect(note.cross_reference_not_visible_for?(private_user)).to be_falsy
+    context "when there are two references in note" do
+      let(:note) do
+        create :note,
+          noteable: ext_issue, project: ext_proj,
+          note: "mentioned in issue #{private_issue.to_reference(ext_proj)} and " \
+                "public issue #{ext_issue.to_reference(ext_proj)}",
+          system: true
+      end
+
+      it_behaves_like "checks references"
+
+      it "returns true if user visible reference count set and there is a private reference" do
+        note.user_visible_reference_count = 1
+        note.total_reference_count = 2
+
+        expect(note).not_to receive(:reference_mentionables)
+        expect(note.cross_reference_not_visible_for?(ext_issue.author)).to be_truthy
+      end
+    end
+  end
+
+  describe '#cross_reference?' do
+    it 'falsey for user-generated notes' do
+      note = create(:note, system: false)
+
+      expect(note.cross_reference?).to be_falsy
     end
 
-    it "returns false if user visible reference count set" do
-      note.user_visible_reference_count = 1
+    context 'when the note might contain cross references' do
+      SystemNoteMetadata.new.cross_reference_types.each do |type|
+        let(:note) { create(:note, :system) }
+        let!(:metadata) { create(:system_note_metadata, note: note, action: type) }
 
-      expect(note).not_to receive(:reference_mentionables)
-      expect(note.cross_reference_not_visible_for?(ext_issue.author)).to be_falsy
+        it 'delegates to the cross-reference regex' do
+          expect(note).to receive(:matches_cross_reference_regex?).and_return(false)
+
+          note.cross_reference?
+        end
+      end
     end
 
-    it "returns true if ref count is 0" do
-      note.user_visible_reference_count = 0
+    context 'when the note cannot contain cross references' do
+      let(:commit_note) { build(:note, note: 'mentioned in 1312312313 something else.', system: true) }
+      let(:label_note) { build(:note, note: 'added ~2323232323', system: true) }
 
-      expect(note).not_to receive(:reference_mentionables)
-      expect(note.cross_reference_not_visible_for?(ext_issue.author)).to be_truthy
+      it 'scan for a `mentioned in` prefix' do
+        expect(commit_note.cross_reference?).to be_truthy
+        expect(label_note.cross_reference?).to be_falsy
+      end
     end
   end
 
@@ -314,6 +402,56 @@ describe Note do
         expect(subject[active_diff_note1.line_code].first.id).to eq(active_diff_note1.discussion_id)
         expect(subject[active_diff_note3.line_code].first.id).to eq(active_diff_note3.discussion_id)
       end
+
+      context 'with image discussions' do
+        let(:merge_request2) { create(:merge_request_with_diffs, :with_image_diffs, source_project: project, title: "Added images and changes") }
+        let(:image_path) { "files/images/ee_repo_logo.png" }
+        let(:text_path) { "bar/branch-test.txt" }
+        let!(:image_note) { create(:diff_note_on_merge_request, project: project, noteable: merge_request2, position: image_position) }
+        let!(:text_note) { create(:diff_note_on_merge_request, project: project, noteable: merge_request2, position: text_position) }
+
+        let(:image_position) do
+          Gitlab::Diff::Position.new(
+            old_path: image_path,
+            new_path: image_path,
+            width: 100,
+            height: 100,
+            x: 1,
+            y: 1,
+            position_type: "image",
+            diff_refs: merge_request2.diff_refs
+          )
+        end
+
+        let(:text_position) do
+          Gitlab::Diff::Position.new(
+            old_path: text_path,
+            new_path: text_path,
+            old_line: nil,
+            new_line: 2,
+            position_type: "text",
+            diff_refs: merge_request2.diff_refs
+          )
+        end
+
+        it "groups image discussions by file identifier" do
+          diff_discussion = DiffDiscussion.new([image_note])
+
+          discussions = merge_request2.notes.grouped_diff_discussions
+
+          expect(discussions.size).to eq(2)
+          expect(discussions[image_note.diff_file.new_path]).to include(diff_discussion)
+        end
+
+        it "groups text discussions by line code" do
+          diff_discussion = DiffDiscussion.new([text_note])
+
+          discussions = merge_request2.notes.grouped_diff_discussions
+
+          expect(discussions.size).to eq(2)
+          expect(discussions[text_note.line_code]).to include(diff_discussion)
+        end
+      end
     end
 
     context 'diff discussions for older diff refs' do
@@ -379,7 +517,7 @@ describe Note do
 
   describe '#to_ability_name' do
     it 'returns snippet for a project snippet note' do
-      expect(build(:note_on_project_snippet).to_ability_name).to eq('snippet')
+      expect(build(:note_on_project_snippet).to_ability_name).to eq('project_snippet')
     end
 
     it 'returns personal_snippet for a personal snippet note' do
@@ -675,6 +813,28 @@ describe Note do
     end
   end
 
+  describe '#references' do
+    context 'when part of a discussion' do
+      it 'references all earlier notes in the discussion' do
+        first_note = create(:discussion_note_on_issue)
+        second_note = create(:discussion_note_on_issue, in_reply_to: first_note)
+        third_note = create(:discussion_note_on_issue, in_reply_to: second_note)
+        create(:discussion_note_on_issue, in_reply_to: third_note)
+
+        expect(third_note.references).to eq([first_note.noteable, first_note, second_note])
+      end
+    end
+
+    context 'when not part of a discussion' do
+      subject { create(:note) }
+      let(:note) { create(:note, in_reply_to: subject) }
+
+      it 'returns the noteable' do
+        expect(note.references).to eq([note.noteable])
+      end
+    end
+  end
+
   describe 'expiring ETag cache' do
     let(:note) { build(:note_on_issue) }
 
@@ -694,6 +854,55 @@ describe Note do
       expect_expiration(note)
 
       note.destroy!
+    end
+
+    context 'when issuable etag caching is disabled' do
+      it 'does not store cache key' do
+        allow(note.noteable).to receive(:etag_caching_enabled?).and_return(false)
+
+        expect_any_instance_of(Gitlab::EtagCaching::Store).not_to receive(:touch)
+
+        note.save!
+      end
+    end
+
+    describe '#with_notes_filter' do
+      let!(:comment) { create(:note) }
+      let!(:system_note) { create(:note, system: true) }
+
+      context 'when notes filter is nil' do
+        subject { described_class.with_notes_filter(nil) }
+
+        it { is_expected.to include(comment, system_note) }
+      end
+
+      context 'when notes filter is set to all notes' do
+        subject { described_class.with_notes_filter(UserPreference::NOTES_FILTERS[:all_notes]) }
+
+        it { is_expected.to include(comment, system_note) }
+      end
+
+      context 'when notes filter is set to only comments' do
+        subject { described_class.with_notes_filter(UserPreference::NOTES_FILTERS[:only_comments]) }
+
+        it { is_expected.to include(comment) }
+        it { is_expected.not_to include(system_note) }
+      end
+    end
+  end
+
+  describe '#parent' do
+    it 'returns project for project notes' do
+      project = create(:project)
+      note = create(:note_on_issue, project: project)
+
+      expect(note.parent).to eq(project)
+    end
+
+    it 'returns nil for personal snippet note' do
+      note = create(:note_on_personal_snippet)
+
+      expect(note.parent).to be_nil
     end
   end
 end

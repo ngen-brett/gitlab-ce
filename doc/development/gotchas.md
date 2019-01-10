@@ -8,7 +8,7 @@ might encounter or should avoid during development of GitLab CE and EE.
 Consider the following factory:
 
 ```ruby
-FactoryGirl.define do
+FactoryBot.define do
   factory :label do
     sequence(:title) { |n| "label#{n}" }
   end
@@ -53,7 +53,7 @@ When run, this spec doesn't do what we might expect:
      (compared using ==)
 ```
 
-That's because FactoryGirl sequences are not reseted for each example.
+That's because FactoryBot sequences are not reseted for each example.
 
 Please remember that sequence-generated values exist only to avoid having to
 explicitly set attributes that have a uniqueness constraint when using a factory.
@@ -90,6 +90,56 @@ describe API::Labels do
     expect(json_response.first['name']).to eq('bar')
   end
 end
+```
+
+## Avoid using `expect_any_instance_of` or `allow_any_instance_of` in RSpec
+
+### Why
+
+- Because it is not isolated therefore it might be broken at times.
+- Because it doesn't work whenever the method we want to stub was defined
+  in a prepended module, which is very likely the case in EE. We could see
+  error like this:
+
+    ```
+    1.1) Failure/Error: expect_any_instance_of(ApplicationSetting).to receive_messages(messages)
+         Using `any_instance` to stub a method (elasticsearch_indexing) that has been defined on a prepended module (EE::ApplicationSetting) is not supported.
+    ```
+
+### Alternative: `expect_next_instance_of`
+
+Instead of writing:
+
+```ruby
+# Don't do this:
+expect_any_instance_of(Project).to receive(:add_import_job)
+```
+
+We could write:
+
+```ruby
+# Do this:
+expect_next_instance_of(Project) do |project|
+  expect(project).to receive(:add_import_job)
+end
+```
+
+If we also want to expect the instance was initialized with some particular
+arguments, we could also pass it to `expect_next_instance_of` like:
+
+```ruby
+# Do this:
+expect_next_instance_of(MergeRequests::RefreshService, project, user) do |refresh_service|
+  expect(refresh_service).to receive(:execute).with(oldrev, newrev, ref)
+end
+```
+
+This would expect the following:
+
+```ruby
+# Above expects:
+refresh_service = MergeRequests::RefreshService.new(project, user)
+refresh_service.execute(oldrev, newrev, ref)
 ```
 
 ## Do not `rescue Exception`

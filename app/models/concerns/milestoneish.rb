@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Milestoneish
   def closed_items_count(user)
     memoize_per_user(user, :closed_items_count) do
@@ -40,16 +42,16 @@ module Milestoneish
   def issues_visible_to_user(user)
     memoize_per_user(user, :issues_visible_to_user) do
       IssuesFinder.new(user, issues_finder_params)
-        .execute.preload(:assignees).where(milestone_id: milestoneish_ids)
+        .execute.preload(:assignees).where(milestone_id: milestoneish_id)
     end
   end
 
   def sorted_issues(user)
-    issues_visible_to_user(user).preload_associations.sort('label_priority')
+    issues_visible_to_user(user).preload_associations.sort_by_attribute('label_priority')
   end
 
   def sorted_merge_requests
-    merge_requests.sort('label_priority')
+    merge_requests.sort_by_attribute('label_priority')
   end
 
   def upcoming?
@@ -86,7 +88,21 @@ module Milestoneish
     false
   end
 
-  private
+  def total_issue_time_spent
+    @total_issue_time_spent ||= issues.joins(:timelogs).sum(:time_spent)
+  end
+
+  def human_total_issue_time_spent
+    Gitlab::TimeTrackingFormatter.output(total_issue_time_spent)
+  end
+
+  def total_issue_time_estimate
+    @total_issue_time_estimate ||= issues.sum(:time_estimate)
+  end
+
+  def human_total_issue_time_estimate
+    Gitlab::TimeTrackingFormatter.output(total_issue_time_estimate)
+  end
 
   def count_issues_by_state(user)
     memoize_per_user(user, :count_issues_by_state) do
@@ -94,10 +110,14 @@ module Milestoneish
     end
   end
 
+  private
+
   def memoize_per_user(user, method_name)
-    @memoized ||= {}
-    @memoized[method_name] ||= {}
-    @memoized[method_name][user&.id] ||= yield
+    memoized_users[method_name][user&.id] ||= yield
+  end
+
+  def memoized_users
+    @memoized_users ||= Hash.new { |h, k| h[k] = {} }
   end
 
   # override in a class that includes this module to get a faster query

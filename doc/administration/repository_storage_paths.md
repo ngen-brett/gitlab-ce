@@ -5,36 +5,55 @@
 GitLab allows you to define multiple repository storage paths to distribute the
 storage load between several mount points.
 
->**Notes:**
+> **Notes:**
 >
-- You must have at least one storage path called `default`.
-- The paths are defined in key-value pairs. The key is an arbitrary name you
-  can pick to name the file path.
-- The target directories and any of its subpaths must not be a symlink.
+> - You must have at least one storage path called `default`.
+> - The paths are defined in key-value pairs. The key is an arbitrary name you
+>   can pick to name the file path.
+> - The target directories and any of its subpaths must not be a symlink.
+> - No target directory may be a sub-directory of another; no nesting.
+
+Example: this is OK:
+
+```
+default:
+  path: /mnt/git-storage-1
+storage2:
+  path: /mnt/git-storage-2
+```
+
+This is not OK because it nests storage paths:
+
+```
+default:
+  path: /mnt/git-storage-1
+storage2:
+  path: /mnt/git-storage-1/git-storage-2 # <- NOT OK because of nesting
+```
 
 ## Configure GitLab
 
->**Warning:**
-In order for [backups] to work correctly, the storage path must **not** be a
-mount point and the GitLab user should have correct permissions for the parent
-directory of the path. In Omnibus GitLab this is taken care of automatically,
-but for source installations you should be extra careful.
+> **Warning:**
+> In order for [backups] to work correctly, the storage path must **not** be a
+> mount point and the GitLab user should have correct permissions for the parent
+> directory of the path. In Omnibus GitLab this is taken care of automatically,
+> but for source installations you should be extra careful.
 >
-The thing is that for compatibility reasons `gitlab.yml` has a different
-structure than Omnibus. In `gitlab.yml` you indicate the path for the
-repositories, for example `/home/git/repositories`, while in Omnibus you
-indicate `git_data_dirs`, which for the example above would be `/home/git`.
-Then, Omnibus will create a `repositories` directory under that path to use with
-`gitlab.yml`.
+> The thing is that for compatibility reasons `gitlab.yml` has a different
+> structure than Omnibus. In `gitlab.yml` you indicate the path for the
+> repositories, for example `/home/git/repositories`, while in Omnibus you
+> indicate `git_data_dirs`, which for the example above would be `/home/git`.
+> Then, Omnibus will create a `repositories` directory under that path to use with
+> `gitlab.yml`.
 >
-This little detail matters because while restoring a backup, the current
-contents of  `/home/git/repositories` [are moved to][raketask] `/home/git/repositories.old`,
-so if `/home/git/repositories` is the mount point, then `mv` would be moving
-things between mount points, and bad things could happen. Ideally,
-`/home/git` would be the mount point, so then things would be moving within the
-same mount point. This is guaranteed with Omnibus installations (because they
-don't specify the full repository path but the parent path), but not for source
-installations.
+> This little detail matters because while restoring a backup, the current
+> contents of  `/home/git/repositories` [are moved to][raketask] `/home/git/repositories.old`,
+> so if `/home/git/repositories` is the mount point, then `mv` would be moving
+> things between mount points, and bad things could happen. Ideally,
+> `/home/git` would be the mount point, so then things would be moving within the
+> same mount point. This is guaranteed with Omnibus installations (because they
+> don't specify the full repository path but the parent path), but not for source
+> installations.
 
 ---
 
@@ -96,76 +115,6 @@ be stored via the **Application Settings** in the Admin area.
 
 Beginning with GitLab 8.13.4, multiple paths can be chosen. New projects will be
 randomly placed on one of the selected paths.
-
-## Handling failing repository storage
-
-> [Introduced][ce-11449] in GitLab 9.5.
-
-When GitLab detects access to the repositories storage fails repeatedly, it can
-gracefully prevent attempts to access the storage. This might be useful when
-the repositories are stored somewhere on the network.
-
-The configuration could look as follows:
-
-**For Omnibus installations**
-
-1. Edit `/etc/gitlab/gitlab.rb`:
-
-    ```ruby
-    git_data_dirs({
-      "default" => {
-        "path" => "/mnt/nfs-01/git-data",
-        "failure_count_threshold" => 10,
-        "failure_wait_time" => 30,
-        "failure_reset_time" => 1800,
-        "storage_timeout" => 5
-       }
-    })
-    ```
-
-1. Save the file and [reconfigure GitLab][reconfigure-gitlab] for the changes to take effect.
-
----
-
-**For installations from source**
-
-1. Edit `config/gitlab.yml`:
-
-    ```yaml
-    repositories:
-      storages: # You must have at least a `default` storage path.
-        default:
-          path: /home/git/repositories/
-          failure_count_threshold: 10 # number of failures before stopping attempts
-          failure_wait_time: 30 # Seconds after last access failure before trying again
-          failure_reset_time: 1800 # Time in seconds to expire failures
-          storage_timeout: 5 # Time in seconds to wait before aborting a storage access attempt
-    ```
-
-1. Save the file and [restart GitLab][restart-gitlab] for the changes to take effect.
-
-
-**`failure_count_threshold`:** The number of failures of after which GitLab will
-completely prevent access to the storage. The number of failures can be reset in
-the admin interface: `https://gitlab.example.com/admin/health_check` or using the
-[api](../api/repository_storage_health.md) to allow access to the storage again.
-
-**`failure_wait_time`:** When access to a storage fails. GitLab will prevent
-access to the storage for the time specified here. This allows the filesystem to
-recover without.
-
-**`failure_reset_time`:** The time in seconds GitLab will keep failure
-information. When no failures occur during this time, information about the
-mount is reset.
-
-**`storage_timeout`:** The time in seconds GitLab will try to access storage.
-After this time a timeout error will be raised.
-
-When storage failures occur, this will be visible in the admin interface like this:
-
-![failing storage](img/failing_storage.png)
-
-To allow access to all storages, click the `Reset git storage health information` button.
 
 [ce-4578]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/4578
 [restart-gitlab]: restart_gitlab.md#installations-from-source

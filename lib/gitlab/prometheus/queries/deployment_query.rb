@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Prometheus
     module Queries
       class DeploymentQuery < BaseQuery
+        # rubocop: disable CodeReuse/ActiveRecord
         def query(deployment_id)
           Deployment.find_by(id: deployment_id).try do |deployment|
             environment_slug = deployment.environment.slug
@@ -24,6 +27,12 @@ module Gitlab
               cpu_after: client_query(cpu_avg_query, time: timeframe_end)
             }
           end
+        end
+        # rubocop: enable CodeReuse/ActiveRecord
+
+        def self.transform_reactive_result(result)
+          result[:metrics] = result.delete :data
+          result
         end
       end
     end

@@ -17,27 +17,34 @@ describe API::PipelineSchedules do
         pipeline_schedule.pipelines << build(:ci_pipeline, project: project)
       end
 
+      def create_pipeline_schedules(count)
+        create_list(:ci_pipeline_schedule, count, project: project)
+          .each do |pipeline_schedule|
+          create(:user).tap do |user|
+            project.add_developer(user)
+            pipeline_schedule.update(owner: user)
+          end
+          pipeline_schedule.pipelines << build(:ci_pipeline, project: project)
+        end
+      end
+
       it 'returns list of pipeline_schedules' do
         get api("/projects/#{project.id}/pipeline_schedules", developer)
 
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_gitlab_http_status(:ok)
         expect(response).to include_pagination_headers
         expect(response).to match_response_schema('pipeline_schedules')
       end
 
       it 'avoids N + 1 queries' do
+        # We need at least two users to trigger a preload for that relation.
+        create_pipeline_schedules(1)
+
         control_count = ActiveRecord::QueryRecorder.new do
           get api("/projects/#{project.id}/pipeline_schedules", developer)
         end.count
 
-        create_list(:ci_pipeline_schedule, 10, project: project)
-          .each do |pipeline_schedule|
-          create(:user).tap do |user|
-            project.add_developer(user)
-            pipeline_schedule.update_attributes(owner: user)
-          end
-          pipeline_schedule.pipelines << build(:ci_pipeline, project: project)
-        end
+        create_pipeline_schedules(10)
 
         expect do
           get api("/projects/#{project.id}/pipeline_schedules", developer)
@@ -51,7 +58,7 @@ describe API::PipelineSchedules do
           end
 
           it 'returns matched pipeline schedules' do
-            get api("/projects/#{project.id}/pipeline_schedules", developer), scope: target
+            get api("/projects/#{project.id}/pipeline_schedules", developer), params: { scope: target }
 
             expect(json_response.map { |r| r['active'] }).to all(eq(active?(target)))
           end
@@ -67,7 +74,7 @@ describe API::PipelineSchedules do
       it 'does not return pipeline_schedules list' do
         get api("/projects/#{project.id}/pipeline_schedules", user)
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 
@@ -75,7 +82,7 @@ describe API::PipelineSchedules do
       it 'does not return pipeline_schedules list' do
         get api("/projects/#{project.id}/pipeline_schedules")
 
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_gitlab_http_status(:unauthorized)
       end
     end
   end
@@ -91,14 +98,14 @@ describe API::PipelineSchedules do
       it 'returns pipeline_schedule details' do
         get api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}", developer)
 
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_gitlab_http_status(:ok)
         expect(response).to match_response_schema('pipeline_schedule')
       end
 
       it 'responds with 404 Not Found if requesting non-existing pipeline_schedule' do
         get api("/projects/#{project.id}/pipeline_schedules/-5", developer)
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 
@@ -106,7 +113,7 @@ describe API::PipelineSchedules do
       it 'does not return pipeline_schedules list' do
         get api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}", user)
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 
@@ -118,7 +125,7 @@ describe API::PipelineSchedules do
       it 'does not return pipeline_schedules list' do
         get api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}", user)
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 
@@ -126,7 +133,7 @@ describe API::PipelineSchedules do
       it 'does not return pipeline_schedules list' do
         get api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}")
 
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_gitlab_http_status(:unauthorized)
       end
     end
   end
@@ -139,10 +146,10 @@ describe API::PipelineSchedules do
         it 'creates pipeline_schedule' do
           expect do
             post api("/projects/#{project.id}/pipeline_schedules", developer),
-              params
+              params: params
           end.to change { project.pipeline_schedules.count }.by(1)
 
-          expect(response).to have_http_status(:created)
+          expect(response).to have_gitlab_http_status(:created)
           expect(response).to match_response_schema('pipeline_schedule')
           expect(json_response['description']).to eq(params[:description])
           expect(json_response['ref']).to eq(params[:ref])
@@ -156,16 +163,16 @@ describe API::PipelineSchedules do
         it 'does not create pipeline_schedule' do
           post api("/projects/#{project.id}/pipeline_schedules", developer)
 
-          expect(response).to have_http_status(:bad_request)
+          expect(response).to have_gitlab_http_status(:bad_request)
         end
       end
 
       context 'when cron has validation error' do
         it 'does not create pipeline_schedule' do
           post api("/projects/#{project.id}/pipeline_schedules", developer),
-            params.merge('cron' => 'invalid-cron')
+            params: params.merge('cron' => 'invalid-cron')
 
-          expect(response).to have_http_status(:bad_request)
+          expect(response).to have_gitlab_http_status(:bad_request)
           expect(json_response['message']).to have_key('cron')
         end
       end
@@ -173,17 +180,17 @@ describe API::PipelineSchedules do
 
     context 'authenticated user with invalid permissions' do
       it 'does not create pipeline_schedule' do
-        post api("/projects/#{project.id}/pipeline_schedules", user), params
+        post api("/projects/#{project.id}/pipeline_schedules", user), params: params
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 
     context 'unauthenticated user' do
       it 'does not create pipeline_schedule' do
-        post api("/projects/#{project.id}/pipeline_schedules"), params
+        post api("/projects/#{project.id}/pipeline_schedules"), params: params
 
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_gitlab_http_status(:unauthorized)
       end
     end
   end
@@ -196,9 +203,9 @@ describe API::PipelineSchedules do
     context 'authenticated user with valid permissions' do
       it 'updates cron' do
         put api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}", developer),
-          cron: '1 2 3 4 *'
+          params: { cron: '1 2 3 4 *' }
 
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_gitlab_http_status(:ok)
         expect(response).to match_response_schema('pipeline_schedule')
         expect(json_response['cron']).to eq('1 2 3 4 *')
       end
@@ -206,9 +213,9 @@ describe API::PipelineSchedules do
       context 'when cron has validation error' do
         it 'does not update pipeline_schedule' do
           put api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}", developer),
-            cron: 'invalid-cron'
+            params: { cron: 'invalid-cron' }
 
-          expect(response).to have_http_status(:bad_request)
+          expect(response).to have_gitlab_http_status(:bad_request)
           expect(json_response['message']).to have_key('cron')
         end
       end
@@ -218,7 +225,7 @@ describe API::PipelineSchedules do
       it 'does not update pipeline_schedule' do
         put api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}", user)
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 
@@ -226,7 +233,7 @@ describe API::PipelineSchedules do
       it 'does not update pipeline_schedule' do
         put api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}")
 
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_gitlab_http_status(:unauthorized)
       end
     end
   end
@@ -240,7 +247,7 @@ describe API::PipelineSchedules do
       it 'updates owner' do
         post api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/take_ownership", developer)
 
-        expect(response).to have_http_status(:created)
+        expect(response).to have_gitlab_http_status(:created)
         expect(response).to match_response_schema('pipeline_schedule')
       end
     end
@@ -249,7 +256,7 @@ describe API::PipelineSchedules do
       it 'does not update owner' do
         post api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/take_ownership", user)
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 
@@ -257,49 +264,49 @@ describe API::PipelineSchedules do
       it 'does not update owner' do
         post api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/take_ownership")
 
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_gitlab_http_status(:unauthorized)
       end
     end
   end
 
   describe 'DELETE /projects/:id/pipeline_schedules/:pipeline_schedule_id' do
-    let(:master) { create(:user) }
+    let(:maintainer) { create(:user) }
 
     let!(:pipeline_schedule) do
       create(:ci_pipeline_schedule, project: project, owner: developer)
     end
 
     before do
-      project.add_master(master)
+      project.add_maintainer(maintainer)
     end
 
     context 'authenticated user with valid permissions' do
       it 'deletes pipeline_schedule' do
         expect do
-          delete api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}", master)
+          delete api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}", maintainer)
         end.to change { project.pipeline_schedules.count }.by(-1)
 
-        expect(response).to have_http_status(204)
+        expect(response).to have_gitlab_http_status(204)
       end
 
       it 'responds with 404 Not Found if requesting non-existing pipeline_schedule' do
-        delete api("/projects/#{project.id}/pipeline_schedules/-5", master)
+        delete api("/projects/#{project.id}/pipeline_schedules/-5", maintainer)
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
 
       it_behaves_like '412 response' do
-        let(:request) { api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}", master) }
+        let(:request) { api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}", maintainer) }
       end
     end
 
     context 'authenticated user with invalid permissions' do
-      let!(:pipeline_schedule) { create(:ci_pipeline_schedule, project: project, owner: master) }
+      let!(:pipeline_schedule) { create(:ci_pipeline_schedule, project: project, owner: maintainer) }
 
       it 'does not delete pipeline_schedule' do
         delete api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}", developer)
 
-        expect(response).to have_http_status(:forbidden)
+        expect(response).to have_gitlab_http_status(:forbidden)
       end
     end
 
@@ -307,7 +314,7 @@ describe API::PipelineSchedules do
       it 'does not delete pipeline_schedule' do
         delete api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}")
 
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_gitlab_http_status(:unauthorized)
       end
     end
   end
@@ -324,10 +331,10 @@ describe API::PipelineSchedules do
         it 'creates pipeline_schedule_variable' do
           expect do
             post api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables", developer),
-              params
+              params: params
           end.to change { pipeline_schedule.variables.count }.by(1)
 
-          expect(response).to have_http_status(:created)
+          expect(response).to have_gitlab_http_status(:created)
           expect(response).to match_response_schema('pipeline_schedule_variable')
           expect(json_response['key']).to eq(params[:key])
           expect(json_response['value']).to eq(params[:value])
@@ -338,16 +345,16 @@ describe API::PipelineSchedules do
         it 'does not create pipeline_schedule_variable' do
           post api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables", developer)
 
-          expect(response).to have_http_status(:bad_request)
+          expect(response).to have_gitlab_http_status(:bad_request)
         end
       end
 
       context 'when key has validation error' do
         it 'does not create pipeline_schedule_variable' do
           post api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables", developer),
-            params.merge('key' => '!?!?')
+            params: params.merge('key' => '!?!?')
 
-          expect(response).to have_http_status(:bad_request)
+          expect(response).to have_gitlab_http_status(:bad_request)
           expect(json_response['message']).to have_key('key')
         end
       end
@@ -355,17 +362,17 @@ describe API::PipelineSchedules do
 
     context 'authenticated user with invalid permissions' do
       it 'does not create pipeline_schedule_variable' do
-        post api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables", user), params
+        post api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables", user), params: params
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 
     context 'unauthenticated user' do
       it 'does not create pipeline_schedule_variable' do
-        post api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables"), params
+        post api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables"), params: params
 
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_gitlab_http_status(:unauthorized)
       end
     end
   end
@@ -382,9 +389,9 @@ describe API::PipelineSchedules do
     context 'authenticated user with valid permissions' do
       it 'updates pipeline_schedule_variable' do
         put api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables/#{pipeline_schedule_variable.key}", developer),
-          value: 'updated_value'
+          params: { value: 'updated_value' }
 
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_gitlab_http_status(:ok)
         expect(response).to match_response_schema('pipeline_schedule_variable')
         expect(json_response['value']).to eq('updated_value')
       end
@@ -394,7 +401,7 @@ describe API::PipelineSchedules do
       it 'does not update pipeline_schedule_variable' do
         put api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables/#{pipeline_schedule_variable.key}", user)
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 
@@ -402,13 +409,13 @@ describe API::PipelineSchedules do
       it 'does not update pipeline_schedule_variable' do
         put api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables/#{pipeline_schedule_variable.key}")
 
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_gitlab_http_status(:unauthorized)
       end
     end
   end
 
   describe 'DELETE /projects/:id/pipeline_schedules/:pipeline_schedule_id/variables/:key' do
-    let(:master) { create(:user) }
+    let(:maintainer) { create(:user) }
 
     set(:pipeline_schedule) do
       create(:ci_pipeline_schedule, project: project, owner: developer)
@@ -419,33 +426,33 @@ describe API::PipelineSchedules do
     end
 
     before do
-      project.add_master(master)
+      project.add_maintainer(maintainer)
     end
 
     context 'authenticated user with valid permissions' do
       it 'deletes pipeline_schedule_variable' do
         expect do
-          delete api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables/#{pipeline_schedule_variable.key}", master)
+          delete api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables/#{pipeline_schedule_variable.key}", maintainer)
         end.to change { Ci::PipelineScheduleVariable.count }.by(-1)
 
-        expect(response).to have_http_status(:accepted)
+        expect(response).to have_gitlab_http_status(:accepted)
         expect(response).to match_response_schema('pipeline_schedule_variable')
       end
 
       it 'responds with 404 Not Found if requesting non-existing pipeline_schedule_variable' do
-        delete api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables/____", master)
+        delete api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables/____", maintainer)
 
-        expect(response).to have_http_status(:not_found)
+        expect(response).to have_gitlab_http_status(:not_found)
       end
     end
 
     context 'authenticated user with invalid permissions' do
-      let!(:pipeline_schedule) { create(:ci_pipeline_schedule, project: project, owner: master) }
+      let!(:pipeline_schedule) { create(:ci_pipeline_schedule, project: project, owner: maintainer) }
 
       it 'does not delete pipeline_schedule_variable' do
         delete api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables/#{pipeline_schedule_variable.key}", developer)
 
-        expect(response).to have_http_status(:forbidden)
+        expect(response).to have_gitlab_http_status(:forbidden)
       end
     end
 
@@ -453,7 +460,7 @@ describe API::PipelineSchedules do
       it 'does not delete pipeline_schedule_variable' do
         delete api("/projects/#{project.id}/pipeline_schedules/#{pipeline_schedule.id}/variables/#{pipeline_schedule_variable.key}")
 
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_gitlab_http_status(:unauthorized)
       end
     end
   end

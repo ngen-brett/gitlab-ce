@@ -2,46 +2,12 @@ require 'spec_helper'
 
 describe Notes::QuickActionsService do
   shared_context 'note on noteable' do
-    let(:project) { create(:project) }
-    let(:master) { create(:user).tap { |u| project.team << [u, :master] } }
+    let(:project) { create(:project, :repository) }
+    let(:maintainer) { create(:user).tap { |u| project.add_maintainer(u) } }
     let(:assignee) { create(:user) }
 
     before do
-      project.team << [assignee, :master]
-    end
-  end
-
-  shared_examples 'note on noteable that does not support quick actions' do
-    include_context 'note on noteable'
-
-    before do
-      note.note = note_text
-    end
-
-    describe 'note with only command' do
-      describe '/close, /label, /assign & /milestone' do
-        let(:note_text) { %(/close\n/assign @#{assignee.username}") }
-
-        it 'saves the note and does not alter the note text' do
-          content, command_params = service.extract_commands(note)
-
-          expect(content).to eq note_text
-          expect(command_params).to be_empty
-        end
-      end
-    end
-
-    describe 'note with command & text' do
-      describe '/close, /label, /assign & /milestone' do
-        let(:note_text) { %(HELLO\n/close\n/assign @#{assignee.username}\nWORLD) }
-
-        it 'saves the note and does not alter the note text' do
-          content, command_params = service.extract_commands(note)
-
-          expect(content).to eq note_text
-          expect(command_params).to be_empty
-        end
-      end
+      project.add_maintainer(assignee)
     end
   end
 
@@ -147,16 +113,16 @@ describe Notes::QuickActionsService do
       expect(described_class.noteable_update_service(note)).to eq(Issues::UpdateService)
     end
 
-    it 'returns Issues::UpdateService for a note on a merge request' do
+    it 'returns MergeRequests::UpdateService for a note on a merge request' do
       note = create(:note_on_merge_request, project: project)
 
       expect(described_class.noteable_update_service(note)).to eq(MergeRequests::UpdateService)
     end
 
-    it 'returns nil for a note on a commit' do
+    it 'returns Commits::TagService for a note on a commit' do
       note = create(:note_on_commit, project: project)
 
-      expect(described_class.noteable_update_service(note)).to be_nil
+      expect(described_class.noteable_update_service(note)).to eq(Commits::TagService)
     end
   end
 
@@ -165,31 +131,17 @@ describe Notes::QuickActionsService do
 
     let(:note) { create(:note_on_issue, project: project) }
 
-    context 'with no current_user' do
-      it 'returns false' do
-        expect(described_class.supported?(note, nil)).to be_falsy
-      end
-    end
-
-    context 'when current_user cannot update the noteable' do
-      it 'returns false' do
-        user = create(:user)
-
-        expect(described_class.supported?(note, user)).to be_falsy
-      end
-    end
-
-    context 'when current_user can update the noteable' do
+    context 'with a note on an issue' do
       it 'returns true' do
-        expect(described_class.supported?(note, master)).to be_truthy
+        expect(described_class.supported?(note)).to be_truthy
       end
+    end
 
-      context 'with a note on a commit' do
-        let(:note) { create(:note_on_commit, project: project) }
+    context 'with a note on a commit' do
+      let(:note) { create(:note_on_commit, project: project) }
 
-        it 'returns false' do
-          expect(described_class.supported?(note, nil)).to be_falsy
-        end
+      it 'returns false' do
+        expect(described_class.supported?(note)).to be_truthy
       end
     end
   end
@@ -198,17 +150,17 @@ describe Notes::QuickActionsService do
     include_context 'note on noteable'
 
     it 'delegates to the class method' do
-      service = described_class.new(project, master)
+      service = described_class.new(project, maintainer)
       note = create(:note_on_issue, project: project)
 
-      expect(described_class).to receive(:supported?).with(note, master)
+      expect(described_class).to receive(:supported?).with(note)
 
       service.supported?(note)
     end
   end
 
   describe '#execute' do
-    let(:service) { described_class.new(project, master) }
+    let(:service) { described_class.new(project, maintainer) }
 
     it_behaves_like 'note on noteable that supports quick actions' do
       let(:note) { build(:note_on_issue, project: project) }
@@ -217,28 +169,24 @@ describe Notes::QuickActionsService do
     it_behaves_like 'note on noteable that supports quick actions' do
       let(:note) { build(:note_on_merge_request, project: project) }
     end
-
-    it_behaves_like 'note on noteable that does not support quick actions' do
-      let(:note) { build(:note_on_commit, project: project) }
-    end
   end
 
   context 'CE restriction for issue assignees' do
     describe '/assign' do
       let(:project) { create(:project) }
-      let(:master) { create(:user).tap { |u| project.team << [u, :master] } }
+      let(:maintainer) { create(:user).tap { |u| project.add_maintainer(u) } }
       let(:assignee) { create(:user) }
-      let(:master) { create(:user) }
-      let(:service) { described_class.new(project, master) }
+      let(:maintainer) { create(:user) }
+      let(:service) { described_class.new(project, maintainer) }
       let(:note) { create(:note_on_issue, note: note_text, project: project) }
 
       let(:note_text) do
-        %(/assign @#{assignee.username} @#{master.username}\n")
+        %(/assign @#{assignee.username} @#{maintainer.username}\n")
       end
 
       before do
-        project.team << [master, :master]
-        project.team << [assignee, :master]
+        project.add_maintainer(maintainer)
+        project.add_maintainer(assignee)
       end
 
       it 'adds only one assignee from the list' do

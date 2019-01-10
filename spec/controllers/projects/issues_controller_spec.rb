@@ -1,4 +1,4 @@
-require('spec_helper')
+require 'spec_helper'
 
 describe Projects::IssuesController do
   let(:project) { create(:project) }
@@ -18,17 +18,17 @@ describe Projects::IssuesController do
           project.issues_enabled = false
           project.save!
 
-          get :index, namespace_id: project.namespace, project_id: project
+          get :index, params: { namespace_id: project.namespace, project_id: project }
 
-          expect(response).to have_http_status(404)
+          expect(response).to have_gitlab_http_status(404)
         end
       end
 
       context 'when GitLab issues enabled' do
         it 'renders the "index" template' do
-          get :index, namespace_id: project.namespace, project_id: project
+          get :index, params: { namespace_id: project.namespace, project_id: project }
 
-          expect(response).to have_http_status(200)
+          expect(response).to have_gitlab_http_status(200)
           expect(response).to render_template(:index)
         end
       end
@@ -37,19 +37,21 @@ describe Projects::IssuesController do
     context 'internal issue tracker' do
       before do
         sign_in(user)
-        project.team << [user, :developer]
+        project.add_developer(user)
       end
 
       it_behaves_like "issuables list meta-data", :issue
 
-      it "returns index" do
-        get :index, namespace_id: project.namespace, project_id: project
+      it_behaves_like 'set sort order from user preference'
 
-        expect(response).to have_http_status(200)
+      it "returns index" do
+        get :index, params: { namespace_id: project.namespace, project_id: project }
+
+        expect(response).to have_gitlab_http_status(200)
       end
 
       it "returns 301 if request path doesn't match project path" do
-        get :index, namespace_id: project.namespace, project_id: project.path.upcase
+        get :index, params: { namespace_id: project.namespace, project_id: project.path.upcase }
 
         expect(response).to redirect_to(project_issues_path(project))
       end
@@ -58,8 +60,8 @@ describe Projects::IssuesController do
         project.issues_enabled = false
         project.save!
 
-        get :index, namespace_id: project.namespace, project_id: project
-        expect(response).to have_http_status(404)
+        get :index, params: { namespace_id: project.namespace, project_id: project }
+        expect(response).to have_gitlab_http_status(404)
       end
     end
 
@@ -69,45 +71,65 @@ describe Projects::IssuesController do
 
       before do
         sign_in(user)
-        project.team << [user, :developer]
+        project.add_developer(user)
         allow(Kaminari.config).to receive(:default_per_page).and_return(1)
       end
 
       it 'redirects to last_page if page number is larger than number of pages' do
         get :index,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          page: (last_page + 1).to_param
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            page: (last_page + 1).to_param
+          }
 
         expect(response).to redirect_to(namespace_project_issues_path(page: last_page, state: controller.params[:state], scope: controller.params[:scope]))
       end
 
       it 'redirects to specified page' do
         get :index,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          page: last_page.to_param
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            page: last_page.to_param
+          }
 
         expect(assigns(:issues).current_page).to eq(last_page)
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
       end
 
       it 'does not redirect to external sites when provided a host field' do
         external_host = "www.example.com"
         get :index,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          page: (last_page + 1).to_param,
-          host: external_host
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            page: (last_page + 1).to_param,
+            host: external_host
+          }
 
         expect(response).to redirect_to(namespace_project_issues_path(page: last_page, state: controller.params[:state], scope: controller.params[:scope]))
+      end
+
+      it 'does not use pagination if disabled' do
+        allow(controller).to receive(:pagination_disabled?).and_return(true)
+
+        get :index,
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            page: (last_page + 1).to_param
+          }
+
+        expect(response).to have_gitlab_http_status(200)
+        expect(assigns(:issues).size).to eq(2)
       end
     end
   end
 
   describe 'GET #new' do
     it 'redirects to signin if not logged in' do
-      get :new, namespace_id: project.namespace, project_id: project
+      get :new, params: { namespace_id: project.namespace, project_id: project }
 
       expect(flash[:notice]).to eq 'Please sign in to create the new issue.'
       expect(response).to redirect_to(new_user_session_path)
@@ -116,21 +138,21 @@ describe Projects::IssuesController do
     context 'internal issue tracker' do
       before do
         sign_in(user)
-        project.team << [user, :developer]
+        project.add_developer(user)
       end
 
       it 'builds a new issue' do
-        get :new, namespace_id: project.namespace, project_id: project
+        get :new, params: { namespace_id: project.namespace, project_id: project }
 
         expect(assigns(:issue)).to be_a_new(Issue)
       end
 
       it 'fills in an issue for a merge request' do
         project_with_repository = create(:project, :repository)
-        project_with_repository.team << [user, :developer]
+        project_with_repository.add_developer(user)
         mr = create(:merge_request_with_diff_notes, source_project: project_with_repository)
 
-        get :new, namespace_id: project_with_repository.namespace, project_id: project_with_repository, merge_request_to_resolve_discussions_of: mr.iid
+        get :new, params: { namespace_id: project_with_repository.namespace, project_id: project_with_repository, merge_request_to_resolve_discussions_of: mr.iid }
 
         expect(assigns(:issue).title).not_to be_empty
         expect(assigns(:issue).description).not_to be_empty
@@ -139,7 +161,7 @@ describe Projects::IssuesController do
       it 'fills in an issue for a discussion' do
         note = create(:note_on_merge_request, project: project)
 
-        get :new, namespace_id: project.namespace.path, project_id: project, merge_request_to_resolve_discussions_of: note.noteable.iid, discussion_to_resolve: note.discussion_id
+        get :new, params: { namespace_id: project.namespace.path, project_id: project, merge_request_to_resolve_discussions_of: note.noteable.iid, discussion_to_resolve: note.discussion_id }
 
         expect(assigns(:issue).title).not_to be_empty
         expect(assigns(:issue).description).not_to be_empty
@@ -153,7 +175,7 @@ describe Projects::IssuesController do
 
       before do
         sign_in(user)
-        project.team << [user, :developer]
+        project.add_developer(user)
 
         external = double
         allow(project).to receive(:external_issue_tracker).and_return(external)
@@ -164,17 +186,17 @@ describe Projects::IssuesController do
           project.issues_enabled = false
           project.save!
 
-          get :new, namespace_id: project.namespace, project_id: project
+          get :new, params: { namespace_id: project.namespace, project_id: project }
 
-          expect(response).to have_http_status(404)
+          expect(response).to have_gitlab_http_status(404)
         end
       end
 
       context 'when GitLab issues enabled' do
         it 'renders the "new" template' do
-          get :new, namespace_id: project.namespace, project_id: project
+          get :new, params: { namespace_id: project.namespace, project_id: project }
 
-          expect(response).to have_http_status(200)
+          expect(response).to have_gitlab_http_status(200)
           expect(response).to render_template(:new)
         end
       end
@@ -184,12 +206,12 @@ describe Projects::IssuesController do
   describe 'Redirect after sign in' do
     context 'with an AJAX request' do
       it 'does not store the visited URL' do
-        xhr :get,
-          :show,
+        get :show, params: {
           format: :json,
           namespace_id: project.namespace,
           project_id: project,
           id: issue.iid
+        }, xhr: true
 
         expect(session['user_return_to']).to be_blank
       end
@@ -198,167 +220,13 @@ describe Projects::IssuesController do
     context 'without an AJAX request' do
       it 'stores the visited URL' do
         get :show,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          id: issue.iid
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            id: issue.iid
+          }
 
         expect(session['user_return_to']).to eq("/#{project.namespace.to_param}/#{project.to_param}/issues/#{issue.iid}")
-      end
-    end
-  end
-
-  describe 'PUT #update' do
-    before do
-      sign_in(user)
-      project.team << [user, :developer]
-    end
-
-    it_behaves_like 'update invalid issuable', Issue
-
-    context 'changing the assignee' do
-      it 'limits the attributes exposed on the assignee' do
-        assignee = create(:user)
-        project.add_developer(assignee)
-
-        put :update,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          id: issue.iid,
-          issue: { assignee_ids: [assignee.id] },
-          format: :json
-        body = JSON.parse(response.body)
-
-        expect(body['assignees'].first.keys)
-          .to match_array(%w(id name username avatar_url state web_url))
-      end
-    end
-
-    context 'Akismet is enabled' do
-      let(:project) { create(:project_empty_repo, :public) }
-
-      before do
-        stub_application_setting(recaptcha_enabled: true)
-        allow_any_instance_of(SpamService).to receive(:check_for_spam?).and_return(true)
-      end
-
-      context 'when an issue is not identified as spam' do
-        before do
-          allow_any_instance_of(described_class).to receive(:verify_recaptcha).and_return(false)
-          allow_any_instance_of(AkismetService).to receive(:spam?).and_return(false)
-        end
-
-        it 'normally updates the issue' do
-          expect { update_issue(title: 'Foo') }.to change { issue.reload.title }.to('Foo')
-        end
-      end
-
-      context 'when an issue is identified as spam' do
-        before do
-          allow_any_instance_of(AkismetService).to receive(:spam?).and_return(true)
-        end
-
-        context 'when captcha is not verified' do
-          def update_spam_issue
-            update_issue(title: 'Spam Title', description: 'Spam lives here')
-          end
-
-          before do
-            allow_any_instance_of(described_class).to receive(:verify_recaptcha).and_return(false)
-          end
-
-          it 'rejects an issue recognized as a spam' do
-            expect(Gitlab::Recaptcha).to receive(:load_configurations!).and_return(true)
-            expect { update_spam_issue }.not_to change { issue.reload.title }
-          end
-
-          it 'rejects an issue recognized as a spam when recaptcha disabled' do
-            stub_application_setting(recaptcha_enabled: false)
-
-            expect { update_spam_issue }.not_to change { issue.reload.title }
-          end
-
-          it 'creates a spam log' do
-            update_spam_issue
-
-            spam_logs = SpamLog.all
-
-            expect(spam_logs.count).to eq(1)
-            expect(spam_logs.first.title).to eq('Spam Title')
-            expect(spam_logs.first.recaptcha_verified).to be_falsey
-          end
-
-          context 'as HTML' do
-            it 'renders verify template' do
-              update_spam_issue
-
-              expect(response).to render_template(:verify)
-            end
-          end
-
-          context 'as JSON' do
-            before do
-              update_issue({ title: 'Spam Title', description: 'Spam lives here' }, format: :json)
-            end
-
-            it 'renders json errors' do
-              expect(json_response)
-                .to eql("errors" => ["Your issue has been recognized as spam. Please, change the content or solve the reCAPTCHA to proceed."])
-            end
-
-            it 'returns 422 status' do
-              expect(response).to have_http_status(422)
-            end
-          end
-        end
-
-        context 'when captcha is verified' do
-          let(:spammy_title) { 'Whatever' }
-          let!(:spam_logs) { create_list(:spam_log, 2, user: user, title: spammy_title) }
-
-          def update_verified_issue
-            update_issue({ title: spammy_title },
-                         { spam_log_id: spam_logs.last.id,
-                           recaptcha_verification: true })
-          end
-
-          before do
-            allow_any_instance_of(described_class).to receive(:verify_recaptcha)
-              .and_return(true)
-          end
-
-          it 'redirect to issue page' do
-            update_verified_issue
-
-            expect(response)
-              .to redirect_to(project_issue_path(project, issue))
-          end
-
-          it 'accepts an issue after recaptcha is verified' do
-            expect { update_verified_issue }.to change { issue.reload.title }.to(spammy_title)
-          end
-
-          it 'marks spam log as recaptcha_verified' do
-            expect { update_verified_issue }.to change { SpamLog.last.recaptcha_verified }.from(false).to(true)
-          end
-
-          it 'does not mark spam log as recaptcha_verified when it does not belong to current_user' do
-            spam_log = create(:spam_log)
-
-            expect { update_issue(spam_log_id: spam_log.id, recaptcha_verification: true) }
-              .not_to change { SpamLog.last.recaptcha_verified }
-          end
-        end
-      end
-
-      def update_issue(issue_params = {}, additional_params = {})
-        params = {
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          id: issue.iid,
-          issue: issue_params
-        }.merge(additional_params)
-
-        put :update, params
       end
     end
   end
@@ -380,7 +248,7 @@ describe Projects::IssuesController do
         it 'moves issue to another project' do
           move_issue
 
-          expect(response).to have_http_status :ok
+          expect(response).to have_gitlab_http_status :ok
           expect(another_project.issues).not_to be_empty
         end
       end
@@ -389,17 +257,124 @@ describe Projects::IssuesController do
         it 'responds with 404' do
           move_issue
 
-          expect(response).to have_http_status :not_found
+          expect(response).to have_gitlab_http_status :not_found
         end
       end
 
       def move_issue
         post :move,
-          format: :json,
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            id: issue.iid,
+            move_to_project_id: another_project.id
+          },
+          format: :json
+      end
+    end
+  end
+
+  describe 'PUT #update' do
+    subject do
+      put :update,
+        params: {
+          namespace_id: project.namespace,
+          project_id: project,
+          id: issue.to_param,
+          issue: { title: 'New title' }
+        },
+        format: :json
+    end
+
+    before do
+      sign_in(user)
+    end
+
+    context 'when user has access to update issue' do
+      before do
+        project.add_developer(user)
+      end
+
+      it 'updates the issue' do
+        subject
+
+        expect(response).to have_http_status(:ok)
+        expect(issue.reload.title).to eq('New title')
+      end
+
+      context 'when Akismet is enabled and the issue is identified as spam' do
+        before do
+          stub_application_setting(recaptcha_enabled: true)
+          allow_any_instance_of(SpamService).to receive(:check_for_spam?).and_return(true)
+          allow_any_instance_of(AkismetService).to receive(:spam?).and_return(true)
+        end
+
+        it 'renders json with recaptcha_html' do
+          subject
+
+          expect(JSON.parse(response.body)).to have_key('recaptcha_html')
+        end
+      end
+    end
+
+    context 'when user does not have access to update issue' do
+      before do
+        project.add_guest(user)
+      end
+
+      it 'responds with 404' do
+        subject
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
+  describe 'GET #realtime_changes' do
+    def go(id:)
+      get :realtime_changes,
+        params: {
           namespace_id: project.namespace.to_param,
           project_id: project,
-          id: issue.iid,
-          move_to_project_id: another_project.id
+          id: id
+        }
+    end
+
+    context 'when an issue was edited' do
+      before do
+        project.add_developer(user)
+
+        issue.update!(last_edited_by: user, last_edited_at: issue.created_at + 1.minute)
+
+        sign_in(user)
+      end
+
+      it 'returns last edited time' do
+        go(id: issue.iid)
+
+        data = JSON.parse(response.body)
+
+        expect(data).to include('updated_at')
+        expect(data['updated_at']).to eq(issue.last_edited_at.to_time.iso8601)
+      end
+    end
+
+    context 'when an issue was edited by a deleted user' do
+      let(:deleted_user) { create(:user) }
+
+      before do
+        project.add_developer(user)
+
+        issue.update!(last_edited_by: deleted_user, last_edited_at: Time.now)
+
+        deleted_user.destroy
+        sign_in(user)
+      end
+
+      it 'returns 200' do
+        go(id: issue.iid)
+
+        expect(response).to have_gitlab_http_status(200)
       end
     end
   end
@@ -432,7 +407,7 @@ describe Projects::IssuesController do
 
       it 'does not list confidential issues for project members with guest role' do
         sign_in(member)
-        project.team << [member, :guest]
+        project.add_guest(member)
 
         get_issues
 
@@ -457,7 +432,7 @@ describe Projects::IssuesController do
 
       it 'lists confidential issues for project members' do
         sign_in(member)
-        project.team << [member, :developer]
+        project.add_developer(member)
 
         get_issues
 
@@ -475,8 +450,10 @@ describe Projects::IssuesController do
 
       def get_issues
         get :index,
-          namespace_id: project.namespace.to_param,
-          project_id: project
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project
+          }
       end
     end
 
@@ -485,51 +462,190 @@ describe Projects::IssuesController do
         sign_out(:user)
         go(id: unescaped_parameter_value.to_param)
 
-        expect(response).to have_http_status :not_found
+        expect(response).to have_gitlab_http_status :not_found
       end
 
       it 'returns 404 for non project members' do
         sign_in(non_member)
         go(id: unescaped_parameter_value.to_param)
 
-        expect(response).to have_http_status :not_found
+        expect(response).to have_gitlab_http_status :not_found
       end
 
       it 'returns 404 for project members with guest role' do
         sign_in(member)
-        project.team << [member, :guest]
+        project.add_guest(member)
         go(id: unescaped_parameter_value.to_param)
 
-        expect(response).to have_http_status :not_found
+        expect(response).to have_gitlab_http_status :not_found
       end
 
       it "returns #{http_status[:success]} for author" do
         sign_in(author)
         go(id: unescaped_parameter_value.to_param)
 
-        expect(response).to have_http_status http_status[:success]
+        expect(response).to have_gitlab_http_status http_status[:success]
       end
 
       it "returns #{http_status[:success]} for assignee" do
         sign_in(assignee)
         go(id: request_forgery_timing_attack.to_param)
 
-        expect(response).to have_http_status http_status[:success]
+        expect(response).to have_gitlab_http_status http_status[:success]
       end
 
       it "returns #{http_status[:success]} for project members" do
         sign_in(member)
-        project.team << [member, :developer]
+        project.add_developer(member)
         go(id: unescaped_parameter_value.to_param)
 
-        expect(response).to have_http_status http_status[:success]
+        expect(response).to have_gitlab_http_status http_status[:success]
       end
 
       it "returns #{http_status[:success]} for admin" do
         sign_in(admin)
         go(id: unescaped_parameter_value.to_param)
 
-        expect(response).to have_http_status http_status[:success]
+        expect(response).to have_gitlab_http_status http_status[:success]
+      end
+    end
+
+    describe 'PUT #update' do
+      def update_issue(issue_params: {}, additional_params: {}, id: nil)
+        id ||= issue.iid
+        params = {
+          namespace_id: project.namespace.to_param,
+          project_id: project,
+          id: id,
+          issue: { title: 'New title' }.merge(issue_params),
+          format: :json
+        }.merge(additional_params)
+
+        put :update, params: params
+      end
+
+      def go(id:)
+        update_issue(id: id)
+      end
+
+      before do
+        sign_in(user)
+        project.add_developer(user)
+      end
+
+      it_behaves_like 'restricted action', success: 200
+      it_behaves_like 'update invalid issuable', Issue
+
+      context 'changing the assignee' do
+        it 'limits the attributes exposed on the assignee' do
+          assignee = create(:user)
+          project.add_developer(assignee)
+
+          update_issue(issue_params: { assignee_ids: [assignee.id] })
+
+          body = JSON.parse(response.body)
+
+          expect(body['assignees'].first.keys)
+            .to match_array(%w(id name username avatar_url state web_url))
+        end
+      end
+
+      context 'Akismet is enabled' do
+        before do
+          project.update!(visibility_level: Gitlab::VisibilityLevel::PUBLIC)
+          stub_application_setting(recaptcha_enabled: true)
+          allow_any_instance_of(SpamService).to receive(:check_for_spam?).and_return(true)
+        end
+
+        context 'when an issue is not identified as spam' do
+          before do
+            allow_any_instance_of(described_class).to receive(:verify_recaptcha).and_return(false)
+            allow_any_instance_of(AkismetService).to receive(:spam?).and_return(false)
+          end
+
+          it 'normally updates the issue' do
+            expect { update_issue(issue_params: { title: 'Foo' }) }.to change { issue.reload.title }.to('Foo')
+          end
+        end
+
+        context 'when an issue is identified as spam' do
+          before do
+            allow_any_instance_of(AkismetService).to receive(:spam?).and_return(true)
+          end
+
+          context 'when captcha is not verified' do
+            before do
+              allow_any_instance_of(described_class).to receive(:verify_recaptcha).and_return(false)
+            end
+
+            it 'rejects an issue recognized as a spam' do
+              expect { update_issue }.not_to change { issue.reload.title }
+            end
+
+            it 'rejects an issue recognized as a spam when recaptcha disabled' do
+              stub_application_setting(recaptcha_enabled: false)
+
+              expect { update_issue }.not_to change { issue.reload.title }
+            end
+
+            it 'creates a spam log' do
+              update_issue(issue_params: { title: 'Spam title' })
+
+              spam_logs = SpamLog.all
+
+              expect(spam_logs.count).to eq(1)
+              expect(spam_logs.first.title).to eq('Spam title')
+              expect(spam_logs.first.recaptcha_verified).to be_falsey
+            end
+
+            it 'renders recaptcha_html json response' do
+              update_issue
+
+              expect(json_response).to have_key('recaptcha_html')
+            end
+
+            it 'returns 200 status' do
+              update_issue
+
+              expect(response).to have_gitlab_http_status(200)
+            end
+          end
+
+          context 'when captcha is verified' do
+            let(:spammy_title) { 'Whatever' }
+            let!(:spam_logs) { create_list(:spam_log, 2, user: user, title: spammy_title) }
+
+            def update_verified_issue
+              update_issue(
+                issue_params: { title: spammy_title },
+                additional_params: { spam_log_id: spam_logs.last.id, recaptcha_verification: true })
+            end
+
+            before do
+              allow_any_instance_of(described_class).to receive(:verify_recaptcha)
+                .and_return(true)
+            end
+
+            it 'returns 200 status' do
+              expect(response).to have_gitlab_http_status(200)
+            end
+
+            it 'accepts an issue after recaptcha is verified' do
+              expect { update_verified_issue }.to change { issue.reload.title }.to(spammy_title)
+            end
+
+            it 'marks spam log as recaptcha_verified' do
+              expect { update_verified_issue }.to change { SpamLog.last.recaptcha_verified }.from(false).to(true)
+            end
+
+            it 'does not mark spam log as recaptcha_verified when it does not belong to current_user' do
+              spam_log = create(:spam_log)
+
+              expect { update_issue(issue_params: { spam_log_id: spam_log.id, recaptcha_verification: true }) }
+                .not_to change { SpamLog.last.recaptcha_verified }
+            end
+          end
+        end
       end
     end
 
@@ -538,9 +654,23 @@ describe Projects::IssuesController do
 
       def go(id:)
         get :show,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          id: id
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            id: id
+          }
+      end
+
+      it 'avoids (most) N+1s loading labels', :request_store do
+        label = create(:label, project: project).to_reference
+        labels = create_list(:label, 10, project: project).map(&:to_reference)
+        issue = create(:issue, project: project, description: 'Test issue')
+
+        control_count = ActiveRecord::QueryRecorder.new { issue.update(description: [issue.description, label].join(' ')) }.count
+
+        # Follow-up to get rid of this `2 * label.count` requirement: https://gitlab.com/gitlab-org/gitlab-ce/issues/52230
+        expect { issue.update(description: [issue.description, labels].join(' ')) }
+          .not_to exceed_query_limit(control_count + 2 * labels.count)
       end
     end
 
@@ -549,28 +679,11 @@ describe Projects::IssuesController do
 
       def go(id:)
         get :realtime_changes,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          id: id
-      end
-
-      context 'when an issue was edited by a deleted user' do
-        let(:deleted_user) { create(:user) }
-
-        before do
-          project.team << [user, :developer]
-
-          issue.update!(last_edited_by: deleted_user, last_edited_at: Time.now)
-
-          deleted_user.destroy
-          sign_in(user)
-        end
-
-        it 'returns 200' do
-          go(id: issue.iid)
-
-          expect(response).to have_http_status(200)
-        end
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            id: id
+          }
       end
     end
 
@@ -579,9 +692,11 @@ describe Projects::IssuesController do
 
       def go(id:)
         get :edit,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          id: id
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            id: id
+          }
       end
     end
 
@@ -590,10 +705,12 @@ describe Projects::IssuesController do
 
       def go(id:)
         put :update,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          id: id,
-          issue: { title: 'New title' }
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            id: id,
+            issue: { title: 'New title' }
+          }
       end
     end
   end
@@ -602,9 +719,9 @@ describe Projects::IssuesController do
     def post_new_issue(issue_attrs = {}, additional_params = {})
       sign_in(user)
       project = create(:project, :public)
-      project.team << [user, :developer]
+      project.add_developer(user)
 
-      post :create, {
+      post :create, params: {
         namespace_id: project.namespace.to_param,
         project_id: project,
         issue: { title: 'Title', description: 'Description' }.merge(issue_attrs)
@@ -619,7 +736,7 @@ describe Projects::IssuesController do
       let(:project) { merge_request.source_project }
 
       before do
-        project.team << [user, :master]
+        project.add_maintainer(user)
         sign_in user
       end
 
@@ -628,7 +745,7 @@ describe Projects::IssuesController do
       end
 
       def post_issue(issue_params, other_params: {})
-        post :create, { namespace_id: project.namespace.to_param, project_id: project, issue: issue_params, merge_request_to_resolve_discussions_of: merge_request.iid }.merge(other_params)
+        post :create, params: { namespace_id: project.namespace.to_param, project_id: project, issue: issue_params, merge_request_to_resolve_discussions_of: merge_request.iid }.merge(other_params)
       end
 
       it 'creates an issue for the project' do
@@ -793,9 +910,9 @@ describe Projects::IssuesController do
       def post_spam
         admin = create(:admin)
         create(:user_agent_detail, subject: issue)
-        project.team << [admin, :master]
+        project.add_maintainer(admin)
         sign_in(admin)
-        post :mark_as_spam, {
+        post :mark_as_spam, params: {
           namespace_id: project.namespace,
           project_id: project,
           id: issue.iid
@@ -816,8 +933,8 @@ describe Projects::IssuesController do
       end
 
       it "rejects a developer to destroy an issue" do
-        delete :destroy, namespace_id: project.namespace, project_id: project, id: issue.iid
-        expect(response).to have_http_status(404)
+        delete :destroy, params: { namespace_id: project.namespace, project_id: project, id: issue.iid }
+        expect(response).to have_gitlab_http_status(404)
       end
     end
 
@@ -831,16 +948,16 @@ describe Projects::IssuesController do
       end
 
       it "deletes the issue" do
-        delete :destroy, namespace_id: project.namespace, project_id: project, id: issue.iid
+        delete :destroy, params: { namespace_id: project.namespace, project_id: project, id: issue.iid }
 
-        expect(response).to have_http_status(302)
+        expect(response).to have_gitlab_http_status(302)
         expect(controller).to set_flash[:notice].to(/The issue was successfully deleted\./)
       end
 
       it 'delegates the update of the todos count cache to TodoService' do
-        expect_any_instance_of(TodoService).to receive(:destroy_issue).with(issue, owner).once
+        expect_any_instance_of(TodoService).to receive(:destroy_target).with(issue).once
 
-        delete :destroy, namespace_id: project.namespace, project_id: project, id: issue.iid
+        delete :destroy, params: { namespace_id: project.namespace, project_id: project, id: issue.iid }
       end
     end
   end
@@ -853,16 +970,20 @@ describe Projects::IssuesController do
 
     it "toggles the award emoji" do
       expect do
-        post(:toggle_award_emoji, namespace_id: project.namespace,
-                                  project_id: project, id: issue.iid, name: "thumbsup")
+        post(:toggle_award_emoji, params: {
+                                    namespace_id: project.namespace,
+                                    project_id: project,
+                                    id: issue.iid,
+                                    name: "thumbsup"
+                                  })
       end.to change { issue.award_emoji.count }.by(1)
 
-      expect(response).to have_http_status(200)
+      expect(response).to have_gitlab_http_status(200)
     end
   end
 
   describe 'POST create_merge_request' do
-    let(:project) { create(:project, :repository) }
+    let(:project) { create(:project, :repository, :public) }
 
     before do
       project.add_developer(user)
@@ -879,57 +1000,208 @@ describe Projects::IssuesController do
       expect(response).to match_response_schema('merge_request')
     end
 
+    it 'is not available when the project is archived' do
+      project.update!(archived: true)
+
+      create_merge_request
+
+      expect(response).to have_gitlab_http_status(404)
+    end
+
+    it 'is not available for users who cannot create merge requests' do
+      sign_in(create(:user))
+
+      create_merge_request
+
+      expect(response).to have_gitlab_http_status(404)
+    end
+
     def create_merge_request
-      post :create_merge_request, namespace_id: project.namespace.to_param,
-                                  project_id: project.to_param,
-                                  id: issue.to_param,
+      post :create_merge_request, params: {
+                                    namespace_id: project.namespace.to_param,
+                                    project_id: project.to_param,
+                                    id: issue.to_param
+                                  },
                                   format: :json
+    end
+  end
+
+  describe 'POST #import_csv' do
+    let(:project) { create(:project, :public) }
+    let(:file) { fixture_file_upload('spec/fixtures/csv_comma.csv') }
+
+    context 'feature disabled' do
+      it 'returns 404' do
+        sign_in(user)
+        project.add_maintainer(user)
+
+        stub_feature_flags(issues_import_csv: false)
+
+        import_csv
+
+        expect(response).to have_gitlab_http_status :not_found
+      end
+    end
+
+    context 'unauthorized' do
+      it 'returns 404 for guests' do
+        sign_out(:user)
+
+        import_csv
+
+        expect(response).to have_gitlab_http_status :not_found
+      end
+
+      it 'returns 404 for project members with reporter role' do
+        sign_in(user)
+        project.add_reporter(user)
+
+        import_csv
+
+        expect(response).to have_gitlab_http_status :not_found
+      end
+    end
+
+    context 'authorized' do
+      before do
+        sign_in(user)
+        project.add_developer(user)
+      end
+
+      it "returns 302 for project members with developer role" do
+        import_csv
+
+        expect(flash[:notice]).to include('Your issues are being imported')
+        expect(response).to redirect_to(project_issues_path(project))
+      end
+
+      it "shows error when upload fails" do
+        allow_any_instance_of(UploadService).to receive(:execute).and_return(nil)
+
+        import_csv
+
+        expect(flash[:alert]).to include('File upload error.')
+        expect(response).to redirect_to(project_issues_path(project))
+      end
+    end
+
+    def import_csv
+      post :import_csv, namespace_id: project.namespace.to_param,
+                        project_id: project.to_param,
+                        file: file
     end
   end
 
   describe 'GET #discussions' do
     let!(:discussion) { create(:discussion_note_on_issue, noteable: issue, project: issue.project) }
-
-    before do
-      project.add_developer(user)
-      sign_in(user)
-    end
-
-    it 'returns discussion json' do
-      get :discussions, namespace_id: project.namespace, project_id: project, id: issue.iid
-
-      expect(JSON.parse(response.body).first.keys).to match_array(%w[id reply_id expanded notes individual_note])
-    end
-
-    context 'with cross-reference system note', :request_store do
-      let(:new_issue) { create(:issue) }
-      let(:cross_reference) { "mentioned in #{new_issue.to_reference(issue.project)}" }
-
+    context 'when authenticated' do
       before do
-        create(:discussion_note_on_issue, :system, noteable: issue, project: issue.project, note: cross_reference)
+        project.add_developer(user)
+        sign_in(user)
       end
 
-      it 'filters notes that the user should not see' do
-        get :discussions, namespace_id: project.namespace, project_id: project, id: issue.iid
+      it 'returns discussion json' do
+        get :discussions, params: { namespace_id: project.namespace, project_id: project, id: issue.iid }
 
-        expect(JSON.parse(response.body).count).to eq(1)
+        expect(json_response.first.keys).to match_array(%w[id reply_id expanded notes diff_discussion discussion_path individual_note resolvable resolved resolved_at resolved_by resolved_by_push commit_id for_commit project_id])
       end
 
-      it 'does not result in N+1 queries' do
-        # Instantiate the controller variables to ensure QueryRecorder has an accurate base count
-        get :discussions, namespace_id: project.namespace, project_id: project, id: issue.iid
+      it 'renders the author status html if there is a status' do
+        create(:user_status, user: discussion.author)
 
-        RequestStore.clear!
+        get :discussions, params: { namespace_id: project.namespace, project_id: project, id: issue.iid }
 
-        control_count = ActiveRecord::QueryRecorder.new do
-          get :discussions, namespace_id: project.namespace, project_id: project, id: issue.iid
-        end.count
+        note_json = json_response.first['notes'].first
 
-        RequestStore.clear!
+        expect(note_json['author']['status_tooltip_html']).to be_present
+      end
 
-        create_list(:discussion_note_on_issue, 2, :system, noteable: issue, project: issue.project, note: cross_reference)
+      it 'does not cause an extra query for the status' do
+        control = ActiveRecord::QueryRecorder.new do
+          get :discussions, params: { namespace_id: project.namespace, project_id: project, id: issue.iid }
+        end
 
-        expect { get :discussions, namespace_id: project.namespace, project_id: project, id: issue.iid }.not_to exceed_query_limit(control_count)
+        create(:user_status, user: discussion.author)
+        second_discussion = create(:discussion_note_on_issue, noteable: issue, project: issue.project, author: create(:user))
+        create(:user_status, user: second_discussion.author)
+
+        expect { get :discussions, params: { namespace_id: project.namespace, project_id: project, id: issue.iid } }
+          .not_to exceed_query_limit(control)
+      end
+
+      context 'when user is setting notes filters' do
+        let(:issuable) { issue }
+        let!(:discussion_note) { create(:discussion_note_on_issue, :system, noteable: issuable, project: project) }
+
+        it_behaves_like 'issuable notes filter'
+      end
+
+      context 'with cross-reference system note', :request_store do
+        let(:new_issue) { create(:issue) }
+        let(:cross_reference) { "mentioned in #{new_issue.to_reference(issue.project)}" }
+
+        before do
+          create(:discussion_note_on_issue, :system, noteable: issue, project: issue.project, note: cross_reference)
+        end
+
+        it 'filters notes that the user should not see' do
+          get :discussions, params: { namespace_id: project.namespace, project_id: project, id: issue.iid }
+
+          expect(JSON.parse(response.body).count).to eq(1)
+        end
+
+        it 'does not result in N+1 queries' do
+          # Instantiate the controller variables to ensure QueryRecorder has an accurate base count
+          get :discussions, params: { namespace_id: project.namespace, project_id: project, id: issue.iid }
+
+          RequestStore.clear!
+
+          control_count = ActiveRecord::QueryRecorder.new do
+            get :discussions, params: { namespace_id: project.namespace, project_id: project, id: issue.iid }
+          end.count
+
+          RequestStore.clear!
+
+          create_list(:discussion_note_on_issue, 2, :system, noteable: issue, project: issue.project, note: cross_reference)
+
+          expect { get :discussions, params: { namespace_id: project.namespace, project_id: project, id: issue.iid } }.not_to exceed_query_limit(control_count)
+        end
+      end
+    end
+  end
+
+  context 'private project with token authentication' do
+    let(:private_project) { create(:project, :private) }
+
+    it_behaves_like 'authenticates sessionless user', :index, :atom do
+      before do
+        default_params.merge!(project_id: private_project, namespace_id: private_project.namespace)
+
+        private_project.add_maintainer(user)
+      end
+    end
+
+    it_behaves_like 'authenticates sessionless user', :calendar, :ics do
+      before do
+        default_params.merge!(project_id: private_project, namespace_id: private_project.namespace)
+
+        private_project.add_maintainer(user)
+      end
+    end
+  end
+
+  context 'public project with token authentication' do
+    let(:public_project) { create(:project, :public) }
+
+    it_behaves_like 'authenticates sessionless user', :index, :atom, public: true do
+      before do
+        default_params.merge!(project_id: public_project, namespace_id: public_project.namespace)
+      end
+    end
+
+    it_behaves_like 'authenticates sessionless user', :calendar, :ics, public: true do
+      before do
+        default_params.merge!(project_id: public_project, namespace_id: public_project.namespace)
       end
     end
   end

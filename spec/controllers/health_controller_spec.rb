@@ -4,7 +4,7 @@ describe HealthController do
   include StubENV
 
   let(:json_response) { JSON.parse(response.body) }
-  let(:token) { current_application_settings.health_check_access_token }
+  let(:token) { Gitlab::CurrentSettings.health_check_access_token }
   let(:whitelisted_ip) { '127.0.0.1' }
   let(:not_whitelisted_ip) { '127.0.0.2' }
 
@@ -18,7 +18,7 @@ describe HealthController do
     shared_context 'endpoint responding with readiness data' do
       let(:request_params) { {} }
 
-      subject { get :readiness, request_params }
+      subject { get :readiness, params: request_params }
 
       it 'responds with readiness checks data' do
         subject
@@ -27,8 +27,7 @@ describe HealthController do
         expect(json_response['cache_check']['status']).to eq('ok')
         expect(json_response['queues_check']['status']).to eq('ok')
         expect(json_response['shared_state_check']['status']).to eq('ok')
-        expect(json_response['fs_shards_check']['status']).to eq('ok')
-        expect(json_response['fs_shards_check']['labels']['shard']).to eq('default')
+        expect(json_response['gitaly_check']['status']).to eq('ok')
       end
     end
 
@@ -80,7 +79,6 @@ describe HealthController do
         expect(json_response['cache_check']['status']).to eq('ok')
         expect(json_response['queues_check']['status']).to eq('ok')
         expect(json_response['shared_state_check']['status']).to eq('ok')
-        expect(json_response['fs_shards_check']['status']).to eq('ok')
       end
     end
 
@@ -114,7 +112,7 @@ describe HealthController do
 
         context 'token passed as URL param' do
           it_behaves_like 'endpoint responding with liveness data' do
-            subject { get :liveness, token: token }
+            subject { get :liveness, params: { token: token } }
           end
         end
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Projects::LabelsController < Projects::ApplicationController
   include ToggleSubscriptionAction
 
@@ -39,7 +41,7 @@ class Projects::LabelsController < Projects::ApplicationController
     else
       respond_to do |format|
         format.html { render :new }
-        format.json { render json: { message: @label.errors.messages }, status: 400 }
+        format.json { render json: { message: @label.errors.messages }, status: :bad_request }
       end
     end
   end
@@ -90,6 +92,7 @@ class Projects::LabelsController < Projects::ApplicationController
     end
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def set_priorities
     Label.transaction do
       available_labels_ids = @available_labels.where(id: params[:label_ids]).pluck(:id)
@@ -105,18 +108,22 @@ class Projects::LabelsController < Projects::ApplicationController
       format.json { render json: { message: 'success' } }
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def promote
     promote_service = Labels::PromoteService.new(@project, @current_user)
 
     begin
       return render_404 unless promote_service.execute(@label)
+
+      flash[:notice] = flash_notice_for(@label, @project.group)
       respond_to do |format|
         format.html do
-          redirect_to(project_labels_path(@project),
-                      notice: 'Label was promoted to a Group Label')
+          redirect_to(project_labels_path(@project), status: :see_other)
         end
-        format.js
+        format.json do
+          render json: { url: project_labels_path(@project) }
+        end
       end
     rescue ActiveRecord::RecordInvalid => e
       Gitlab::AppLogger.error "Failed to promote label \"#{@label.title}\" to group label"
@@ -130,6 +137,10 @@ class Projects::LabelsController < Projects::ApplicationController
         format.js
       end
     end
+  end
+
+  def flash_notice_for(label, group)
+    ''.html_safe + "#{label.title} promoted to " + view_context.link_to('<u>group label</u>'.html_safe, group_labels_path(group)) + '.'
   end
 
   protected
@@ -147,7 +158,17 @@ class Projects::LabelsController < Projects::ApplicationController
   end
 
   def find_labels
-    @available_labels ||= LabelsFinder.new(current_user, project_id: @project.id).execute
+    @available_labels ||=
+      LabelsFinder.new(current_user,
+                       project_id: @project.id,
+                       include_ancestor_groups: params[:include_ancestor_groups],
+                       search: params[:search],
+                       subscribed: params[:subscribed],
+                       sort: sort).execute
+  end
+
+  def sort
+    @sort ||= params[:sort] || 'name_asc'
   end
 
   def authorize_admin_labels!

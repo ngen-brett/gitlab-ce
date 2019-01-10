@@ -1,8 +1,10 @@
 <script>
 import Timeago from 'timeago.js';
 import _ from 'underscore';
-import userAvatarLink from '../../vue_shared/components/user_avatar/user_avatar_link.vue';
-import '../../lib/utils/text_utility';
+import { GlTooltipDirective } from '@gitlab/ui';
+import UserAvatarLink from '~/vue_shared/components/user_avatar/user_avatar_link.vue';
+import { humanize } from '~/lib/utils/text_utility';
+import Icon from '~/vue_shared/components/icon.vue';
 import ActionsComponent from './environment_actions.vue';
 import ExternalUrlComponent from './environment_external_url.vue';
 import StopComponent from './environment_stop.vue';
@@ -11,9 +13,11 @@ import TerminalButtonComponent from './environment_terminal_button.vue';
 import MonitoringButtonComponent from './environment_monitoring.vue';
 import CommitComponent from '../../vue_shared/components/commit.vue';
 import eventHub from '../event_hub';
+import { convertObjectPropsToCamelCase } from '~/lib/utils/common_utils';
+import { CLUSTER_TYPE } from '~/clusters/constants';
 
 /**
- * Envrionment Item Component
+ * Environment Item Component
  *
  * Renders a table row for each environment.
  */
@@ -21,14 +25,19 @@ const timeagoInstance = new Timeago();
 
 export default {
   components: {
-    userAvatarLink,
-    'commit-component': CommitComponent,
-    'actions-component': ActionsComponent,
-    'external-url-component': ExternalUrlComponent,
-    'stop-component': StopComponent,
-    'rollback-component': RollbackComponent,
-    'terminal-button-component': TerminalButtonComponent,
-    'monitoring-button-component': MonitoringButtonComponent,
+    UserAvatarLink,
+    CommitComponent,
+    Icon,
+    ActionsComponent,
+    ExternalUrlComponent,
+    StopComponent,
+    RollbackComponent,
+    TerminalButtonComponent,
+    MonitoringButtonComponent,
+  },
+
+  directives: {
+    GlTooltip: GlTooltipDirective,
   },
 
   props: {
@@ -53,41 +62,45 @@ export default {
 
   computed: {
     /**
-     * Verifies if `last_deployment` key exists in the current Envrionment.
+     * Verifies if `last_deployment` key exists in the current Environment.
      * This key is required to render most of the html - this method works has
      * an helper.
      *
      * @returns {Boolean}
      */
     hasLastDeploymentKey() {
-      if (this.model &&
-        this.model.last_deployment &&
-        !_.isEmpty(this.model.last_deployment)) {
+      if (this.model && this.model.last_deployment && !_.isEmpty(this.model.last_deployment)) {
         return true;
       }
       return false;
     },
 
     /**
-     * Verifies is the given environment has manual actions.
-     * Used to verify if we should render them or nor.
-     *
-     * @returns {Boolean|Undefined}
-     */
-    hasManualActions() {
-      return this.model &&
-        this.model.last_deployment &&
-        this.model.last_deployment.manual_actions &&
-        this.model.last_deployment.manual_actions.length > 0;
-    },
-
-    /**
-     * Returns the value of the `stop_action?` key provided in the response.
+     * Checkes whether the environment is protected.
+     * (`is_protected` currently only set in EE)
      *
      * @returns {Boolean}
      */
-    hasStopAction() {
-      return this.model && this.model['stop_action?'];
+    isProtected() {
+      return this.model && this.model.is_protected;
+    },
+
+    /**
+     * Hide group cluster features which are not currently implemented.
+     *
+     * @returns {Boolean}
+     */
+    disableGroupClusterFeatures() {
+      return this.model && this.model.cluster_type === CLUSTER_TYPE.GROUP;
+    },
+
+    /**
+     * Returns whether the environment can be stopped.
+     *
+     * @returns {Boolean}
+     */
+    canStopEnvironment() {
+      return this.model && this.model.can_stop;
     },
 
     /**
@@ -97,10 +110,13 @@ export default {
      * @returns {Boolean|Undefined}
      */
     canRetry() {
-      return this.model &&
+      return (
+        this.model &&
         this.hasLastDeploymentKey &&
         this.model.last_deployment &&
-        this.model.last_deployment.deployable;
+        this.model.last_deployment.deployable &&
+        this.model.last_deployment.deployable.retry_path
+      );
     },
 
     /**
@@ -109,10 +125,12 @@ export default {
      * @returns {Boolean|Undefined}
      */
     canShowDate() {
-      return this.model &&
+      return (
+        this.model &&
         this.model.last_deployment &&
         this.model.last_deployment.deployable &&
-        this.model.last_deployment.deployable !== undefined;
+        this.model.last_deployment.deployable !== undefined
+      );
     },
 
     /**
@@ -121,32 +139,31 @@ export default {
      * @returns {String}
      */
     createdDate() {
-      if (this.model &&
+      if (
+        this.model &&
         this.model.last_deployment &&
         this.model.last_deployment.deployable &&
-        this.model.last_deployment.deployable.created_at) {
+        this.model.last_deployment.deployable.created_at
+      ) {
         return timeagoInstance.format(this.model.last_deployment.deployable.created_at);
       }
       return '';
     },
 
-    /**
-     * Returns the manual actions with the name parsed.
-     *
-     * @returns {Array.<Object>|Undefined}
-     */
-    manualActions() {
-      if (this.hasManualActions) {
-        return this.model.last_deployment.manual_actions.map((action) => {
-          const parsedAction = {
-            name: gl.text.humanize(action.name),
-            play_path: action.play_path,
-            playable: action.playable,
-          };
-          return parsedAction;
-        });
+    actions() {
+      if (!this.model || !this.model.last_deployment || !this.canCreateDeployment) {
+        return [];
       }
-      return [];
+
+      const { manualActions, scheduledActions } = convertObjectPropsToCamelCase(
+        this.model.last_deployment,
+        { deep: true },
+      );
+      const combinedActions = (manualActions || []).concat(scheduledActions || []);
+      return combinedActions.map(action => ({
+        ...action,
+        name: humanize(action.name),
+      }));
     },
 
     /**
@@ -155,10 +172,12 @@ export default {
      * @returns {String}
      */
     userImageAltDescription() {
-      if (this.model &&
+      if (
+        this.model &&
         this.model.last_deployment &&
         this.model.last_deployment.user &&
-        this.model.last_deployment.user.username) {
+        this.model.last_deployment.user.username
+      ) {
         return `${this.model.last_deployment.user.username}'s avatar'`;
       }
       return '';
@@ -170,9 +189,7 @@ export default {
      * @returns {String|Undefined}
      */
     commitTag() {
-      if (this.model &&
-        this.model.last_deployment &&
-        this.model.last_deployment.tag) {
+      if (this.model && this.model.last_deployment && this.model.last_deployment.tag) {
         return this.model.last_deployment.tag;
       }
       return undefined;
@@ -184,9 +201,7 @@ export default {
      * @returns {Object|Undefined}
      */
     commitRef() {
-      if (this.model &&
-        this.model.last_deployment &&
-        this.model.last_deployment.ref) {
+      if (this.model && this.model.last_deployment && this.model.last_deployment.ref) {
         return this.model.last_deployment.ref;
       }
       return undefined;
@@ -198,10 +213,12 @@ export default {
      * @returns {String|Undefined}
      */
     commitUrl() {
-      if (this.model &&
+      if (
+        this.model &&
         this.model.last_deployment &&
         this.model.last_deployment.commit &&
-        this.model.last_deployment.commit.commit_path) {
+        this.model.last_deployment.commit.commit_path
+      ) {
         return this.model.last_deployment.commit.commit_path;
       }
       return undefined;
@@ -213,10 +230,12 @@ export default {
      * @returns {String|Undefined}
      */
     commitShortSha() {
-      if (this.model &&
+      if (
+        this.model &&
         this.model.last_deployment &&
         this.model.last_deployment.commit &&
-        this.model.last_deployment.commit.short_id) {
+        this.model.last_deployment.commit.short_id
+      ) {
         return this.model.last_deployment.commit.short_id;
       }
       return undefined;
@@ -228,10 +247,12 @@ export default {
      * @returns {String|Undefined}
      */
     commitTitle() {
-      if (this.model &&
+      if (
+        this.model &&
         this.model.last_deployment &&
         this.model.last_deployment.commit &&
-        this.model.last_deployment.commit.title) {
+        this.model.last_deployment.commit.title
+      ) {
         return this.model.last_deployment.commit.title;
       }
       return undefined;
@@ -243,10 +264,12 @@ export default {
      * @returns {Object|Undefined}
      */
     commitAuthor() {
-      if (this.model &&
+      if (
+        this.model &&
         this.model.last_deployment &&
         this.model.last_deployment.commit &&
-        this.model.last_deployment.commit.author) {
+        this.model.last_deployment.commit.author
+      ) {
         return this.model.last_deployment.commit.author;
       }
 
@@ -259,10 +282,12 @@ export default {
      * @returns {String|Undefined}
      */
     retryUrl() {
-      if (this.model &&
+      if (
+        this.model &&
         this.model.last_deployment &&
         this.model.last_deployment.deployable &&
-        this.model.last_deployment.deployable.retry_path) {
+        this.model.last_deployment.deployable.retry_path
+      ) {
         return this.model.last_deployment.deployable.retry_path;
       }
       return undefined;
@@ -274,8 +299,7 @@ export default {
      * @returns {Boolean|Undefined}
      */
     isLastDeployment() {
-      return this.model && this.model.last_deployment &&
-        this.model.last_deployment['last?'];
+      return this.model && this.model.last_deployment && this.model.last_deployment['last?'];
     },
 
     /**
@@ -284,10 +308,9 @@ export default {
      * @returns {String}
      */
     buildName() {
-      if (this.model &&
-        this.model.last_deployment &&
-        this.model.last_deployment.deployable) {
-        return `${this.model.last_deployment.deployable.name} #${this.model.last_deployment.deployable.id}`;
+      if (this.model && this.model.last_deployment && this.model.last_deployment.deployable) {
+        const { deployable } = this.model.last_deployment;
+        return `${deployable.name} #${deployable.id}`;
       }
       return '';
     },
@@ -298,9 +321,7 @@ export default {
      * @returns {String}
      */
     deploymentInternalId() {
-      if (this.model &&
-        this.model.last_deployment &&
-        this.model.last_deployment.iid) {
+      if (this.model && this.model.last_deployment && this.model.last_deployment.iid) {
         return `#${this.model.last_deployment.iid}`;
       }
       return '';
@@ -312,9 +333,11 @@ export default {
      * @returns {Boolean}
      */
     deploymentHasUser() {
-      return this.model &&
+      return (
+        this.model &&
         !_.isEmpty(this.model.last_deployment) &&
-        !_.isEmpty(this.model.last_deployment.user);
+        !_.isEmpty(this.model.last_deployment.user)
+      );
     },
 
     /**
@@ -324,9 +347,11 @@ export default {
      * @returns {Object}
      */
     deploymentUser() {
-      if (this.model &&
+      if (
+        this.model &&
         !_.isEmpty(this.model.last_deployment) &&
-        !_.isEmpty(this.model.last_deployment.user)) {
+        !_.isEmpty(this.model.last_deployment.user)
+      ) {
         return this.model.last_deployment.user;
       }
       return {};
@@ -340,9 +365,11 @@ export default {
      * @returns {Boolean}
      */
     shouldRenderBuildName() {
-      return !this.model.isFolder &&
+      return (
+        !this.model.isFolder &&
         !_.isEmpty(this.model.last_deployment) &&
-        !_.isEmpty(this.model.last_deployment.deployable);
+        !_.isEmpty(this.model.last_deployment.deployable)
+      );
     },
 
     /**
@@ -351,10 +378,12 @@ export default {
      * @return {String}
      */
     buildPath() {
-      if (this.model &&
+      if (
+        this.model &&
         this.model.last_deployment &&
         this.model.last_deployment.deployable &&
-        this.model.last_deployment.deployable.build_path) {
+        this.model.last_deployment.deployable.build_path
+      ) {
         return this.model.last_deployment.deployable.build_path;
       }
 
@@ -382,9 +411,11 @@ export default {
      * @returns {Boolean}
      */
     shouldRenderDeploymentID() {
-      return !this.model.isFolder &&
+      return (
+        !this.model.isFolder &&
         !_.isEmpty(this.model.last_deployment) &&
-        this.model.last_deployment.iid !== undefined;
+        this.model.last_deployment.iid !== undefined
+      );
     },
 
     environmentPath() {
@@ -404,11 +435,17 @@ export default {
     },
 
     displayEnvironmentActions() {
-      return this.hasManualActions ||
-             this.externalURL ||
-             this.monitoringUrl ||
-             this.hasStopAction ||
-             this.canRetry;
+      return (
+        this.actions.length > 0 ||
+        this.externalURL ||
+        this.monitoringUrl ||
+        this.canStopEnvironment ||
+        this.canRetry
+      );
+    },
+
+    folderIconName() {
+      return this.model.isOpen ? 'chevron-down' : 'chevron-right';
     },
   },
 
@@ -421,158 +458,115 @@ export default {
 </script>
 <template>
   <div
-    :class="{ 'js-child-row environment-child-row': model.isChildren, 'folder-row': model.isFolder, 'gl-responsive-table-row': !model.isFolder }"
-    role="row">
-    <div class="table-section section-10" role="gridcell">
-      <div
-        v-if="!model.isFolder"
-        class="table-mobile-header"
-        role="rowheader">
-        Environment
+    :class="{
+      'js-child-row environment-child-row': model.isChildren,
+      'folder-row': model.isFolder,
+    }"
+    class="gl-responsive-table-row"
+    role="row"
+  >
+    <div
+      v-gl-tooltip
+      :title="model.name"
+      class="table-section section-wrap section-15 text-truncate"
+      role="gridcell"
+    >
+      <div v-if="!model.isFolder" class="table-mobile-header" role="rowheader">
+        {{ s__('Environments|Environment') }}
       </div>
-      <a
-        v-if="!model.isFolder"
-        class="environment-name flex-truncate-parent table-mobile-content"
-        :href="environmentPath">
-        <span class="flex-truncate-child">{{model.name}}</span>
-      </a>
-      <span
-        v-else
-        class="folder-name"
-        @click="onClickFolder"
-        role="button">
+      <span v-if="!model.isFolder" class="environment-name table-mobile-content">
+        <a class="qa-environment-link" :href="environmentPath"> {{ model.name }} </a>
+      </span>
+      <span v-else class="folder-name" role="button" @click="onClickFolder">
+        <icon :name="folderIconName" class="folder-icon" />
 
-        <span class="folder-icon">
-          <i
-            v-show="model.isOpen"
-            class="fa fa-caret-down"
-            aria-hidden="true" />
-          <i
-            v-show="!model.isOpen"
-            class="fa fa-caret-right"
-            aria-hidden="true"/>
-        </span>
+        <icon name="folder" class="folder-icon" />
 
-        <span class="folder-icon">
-          <i
-            class="fa fa-folder"
-            aria-hidden="true" />
-        </span>
+        <span> {{ model.folderName }} </span>
 
-        <span>
-          {{model.folderName}}
-        </span>
-
-        <span class="badge">
-          {{model.size}}
-        </span>
+        <span class="badge badge-pill"> {{ model.size }} </span>
       </span>
     </div>
 
-    <div class="table-section section-10 deployment-column hidden-xs hidden-sm" role="gridcell">
-      <span v-if="shouldRenderDeploymentID">
-        {{deploymentInternalId}}
-      </span>
+    <div
+      class="table-section section-10 deployment-column d-none d-sm-none d-md-block"
+      role="gridcell"
+    >
+      <span v-if="shouldRenderDeploymentID"> {{ deploymentInternalId }} </span>
 
       <span v-if="!model.isFolder && deploymentHasUser">
         by
         <user-avatar-link
-          class="js-deploy-user-container"
           :link-href="deploymentUser.web_url"
           :img-src="deploymentUser.avatar_url"
           :img-alt="userImageAltDescription"
           :tooltip-text="deploymentUser.username"
+          class="js-deploy-user-container"
         />
       </span>
     </div>
 
-    <div class="table-section section-15 hidden-xs hidden-sm" role="gridcell">
-      <a
-        v-if="shouldRenderBuildName"
-        class="build-link flex-truncate-parent"
-        :href="buildPath">
-        <span class="flex-truncate-child">{{buildName}}</span>
+    <div class="table-section section-15 d-none d-sm-none d-md-block" role="gridcell">
+      <a v-if="shouldRenderBuildName" :href="buildPath" class="build-link flex-truncate-parent">
+        <span class="flex-truncate-child">{{ buildName }}</span>
       </a>
     </div>
 
-    <div class="table-section section-25" role="gridcell">
-      <div
-        v-if="!model.isFolder"
-        role="rowheader"
-        class="table-mobile-header">
-        Commit
-      </div>
-      <div
-        v-if="!model.isFolder && hasLastDeploymentKey"
-        class="js-commit-component table-mobile-content">
+    <div v-if="!model.isFolder" class="table-section section-20" role="gridcell">
+      <div role="rowheader" class="table-mobile-header">{{ s__('Environments|Commit') }}</div>
+      <div v-if="hasLastDeploymentKey" class="js-commit-component table-mobile-content">
         <commit-component
           :tag="commitTag"
           :commit-ref="commitRef"
           :commit-url="commitUrl"
           :short-sha="commitShortSha"
           :title="commitTitle"
-          :author="commitAuthor"/>
+          :author="commitAuthor"
+        />
       </div>
-      <div
-        v-if="!model.isFolder && !hasLastDeploymentKey"
-        class="commit-title table-mobile-content">
-        No deployments yet
+      <div v-if="!hasLastDeploymentKey" class="commit-title table-mobile-content">
+        {{ s__('Environments|No deployments yet') }}
       </div>
     </div>
 
-    <div class="table-section section-10" role="gridcell">
-      <div
-        v-if="!model.isFolder"
-        role="rowheader"
-        class="table-mobile-header">
-        Updated
-      </div>
-      <span
-        v-if="!model.isFolder && canShowDate"
-        class="environment-created-date-timeago table-mobile-content">
-        {{createdDate}}
+    <div v-if="!model.isFolder" class="table-section section-10" role="gridcell">
+      <div role="rowheader" class="table-mobile-header">{{ s__('Environments|Updated') }}</div>
+      <span v-if="canShowDate" class="environment-created-date-timeago table-mobile-content">
+        {{ createdDate }}
       </span>
     </div>
 
     <div
       v-if="!model.isFolder && displayEnvironmentActions"
       class="table-section section-30 table-button-footer"
-      role="gridcell">
-
-      <div
-        class="btn-group table-action-buttons"
-        role="group">
-
-        <actions-component
-          v-if="hasManualActions && canCreateDeployment"
-          :actions="manualActions"
-          />
-
+      role="gridcell"
+    >
+      <div class="btn-group table-action-buttons" role="group">
         <external-url-component
           v-if="externalURL && canReadEnvironment"
           :external-url="externalURL"
-          />
+        />
 
         <monitoring-button-component
           v-if="monitoringUrl && canReadEnvironment"
           :monitoring-url="monitoringUrl"
-          />
+        />
+
+        <actions-component v-if="actions.length > 0" :actions="actions" />
 
         <terminal-button-component
           v-if="model && model.terminal_path"
           :terminal-path="model.terminal_path"
-          />
-
-        <stop-component
-          v-if="hasStopAction && canCreateDeployment"
-          :stop-url="model.stop_path"
-          />
+          :disabled="disableGroupClusterFeatures"
+        />
 
         <rollback-component
           v-if="canRetry && canCreateDeployment"
           :is-last-deployment="isLastDeployment"
           :retry-url="retryUrl"
-          />
+        />
+
+        <stop-component v-if="canStopEnvironment" :environment="model" />
       </div>
     </div>
   </div>

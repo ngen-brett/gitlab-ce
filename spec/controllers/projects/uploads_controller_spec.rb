@@ -1,247 +1,40 @@
-require('spec_helper')
+require 'spec_helper'
 
 describe Projects::UploadsController do
-  let(:project) { create(:project) }
-  let(:user)    { create(:user) }
-  let(:jpg)     { fixture_file_upload(Rails.root + 'spec/fixtures/rails_sample.jpg', 'image/jpg') }
-  let(:txt)     { fixture_file_upload(Rails.root + 'spec/fixtures/doc_sample.txt', 'text/plain') }
+  include WorkhorseHelpers
 
-  describe "POST #create" do
-    before do
-      sign_in(user)
-      project.team << [user, :developer]
-    end
+  let(:model) { create(:project, :public) }
+  let(:params) do
+    { namespace_id: model.namespace.to_param, project_id: model }
+  end
 
-    context "without params['file']" do
-      it "returns an error" do
-        post :create,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          format: :json
-        expect(response).to have_http_status(422)
-      end
-    end
+  it_behaves_like 'handle uploads'
 
-    context 'with valid image' do
-      before do
-        post :create,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          file: jpg,
-          format: :json
-      end
+  context 'when the URL the old style, without /-/system' do
+    it 'responds with a redirect to the login page' do
+      get :show, params: { namespace_id: 'project', project_id: 'avatar', filename: 'foo.png', secret: 'bar' }
 
-      it 'returns a content with original filename, new link, and correct type.' do
-        expect(response.body).to match '\"alt\":\"rails_sample\"'
-        expect(response.body).to match "\"url\":\"/uploads"
-      end
-
-      # NOTE: This is as close as we're getting to an Integration test for this
-      # behavior. We're avoiding a proper Feature test because those should be
-      # testing things entirely user-facing, which the Upload model is very much
-      # not.
-      it 'creates a corresponding Upload record' do
-        upload = Upload.last
-
-        aggregate_failures do
-          expect(upload).to exist
-          expect(upload.model).to eq project
-        end
-      end
-    end
-
-    context 'with valid non-image file' do
-      before do
-        post :create,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          file: txt,
-          format: :json
-      end
-
-      it 'returns a content with original filename, new link, and correct type.' do
-        expect(response.body).to match '\"alt\":\"doc_sample.txt\"'
-        expect(response.body).to match "\"url\":\"/uploads"
-      end
+      expect(response).to redirect_to(new_user_session_path)
     end
   end
 
-  describe "GET #show" do
-    let(:go) do
-      get :show,
-        namespace_id: project.namespace.to_param,
-        project_id:   project,
-        secret:       "123456",
-        filename:     "image.jpg"
+  context "when exception occurs" do
+    before do
+      allow(FileUploader).to receive(:workhorse_authorize).and_raise(SocketError.new)
+      sign_in(create(:user))
     end
 
-    context "when the project is public" do
-      before do
-        project.update_attribute(:visibility_level, Project::PUBLIC)
-      end
+    it "responds with status internal_server_error" do
+      post_authorize
 
-      context "when not signed in" do
-        context "when the file exists" do
-          before do
-            allow_any_instance_of(FileUploader).to receive(:file).and_return(jpg)
-            allow(jpg).to receive(:exists?).and_return(true)
-          end
-
-          it "responds with status 200" do
-            go
-
-            expect(response).to have_http_status(200)
-          end
-        end
-
-        context "when the file doesn't exist" do
-          it "responds with status 404" do
-            go
-
-            expect(response).to have_http_status(404)
-          end
-        end
-      end
-
-      context "when signed in" do
-        before do
-          sign_in(user)
-        end
-
-        context "when the file exists" do
-          before do
-            allow_any_instance_of(FileUploader).to receive(:file).and_return(jpg)
-            allow(jpg).to receive(:exists?).and_return(true)
-          end
-
-          it "responds with status 200" do
-            go
-
-            expect(response).to have_http_status(200)
-          end
-        end
-
-        context "when the file doesn't exist" do
-          it "responds with status 404" do
-            go
-
-            expect(response).to have_http_status(404)
-          end
-        end
-      end
+      expect(response).to have_gitlab_http_status(500)
+      expect(response.body).to eq('Error uploading file')
     end
+  end
 
-    context "when the project is private" do
-      before do
-        project.update_attribute(:visibility_level, Project::PRIVATE)
-      end
+  def post_authorize(verified: true)
+    request.headers.merge!(workhorse_internal_api_request_header) if verified
 
-      context "when not signed in" do
-        context "when the file exists" do
-          before do
-            allow_any_instance_of(FileUploader).to receive(:file).and_return(jpg)
-            allow(jpg).to receive(:exists?).and_return(true)
-          end
-
-          context "when the file is an image" do
-            before do
-              allow_any_instance_of(FileUploader).to receive(:image?).and_return(true)
-            end
-
-            it "responds with status 200" do
-              go
-
-              expect(response).to have_http_status(200)
-            end
-          end
-
-          context "when the file is not an image" do
-            it "redirects to the sign in page" do
-              go
-
-              expect(response).to redirect_to(new_user_session_path)
-            end
-          end
-        end
-
-        context "when the file doesn't exist" do
-          it "redirects to the sign in page" do
-            go
-
-            expect(response).to redirect_to(new_user_session_path)
-          end
-        end
-      end
-
-      context "when signed in" do
-        before do
-          sign_in(user)
-        end
-
-        context "when the user has access to the project" do
-          before do
-            project.team << [user, :master]
-          end
-
-          context "when the file exists" do
-            before do
-              allow_any_instance_of(FileUploader).to receive(:file).and_return(jpg)
-              allow(jpg).to receive(:exists?).and_return(true)
-            end
-
-            it "responds with status 200" do
-              go
-
-              expect(response).to have_http_status(200)
-            end
-          end
-
-          context "when the file doesn't exist" do
-            it "responds with status 404" do
-              go
-
-              expect(response).to have_http_status(404)
-            end
-          end
-        end
-
-        context "when the user doesn't have access to the project" do
-          context "when the file exists" do
-            before do
-              allow_any_instance_of(FileUploader).to receive(:file).and_return(jpg)
-              allow(jpg).to receive(:exists?).and_return(true)
-            end
-
-            context "when the file is an image" do
-              before do
-                allow_any_instance_of(FileUploader).to receive(:image?).and_return(true)
-              end
-
-              it "responds with status 200" do
-                go
-
-                expect(response).to have_http_status(200)
-              end
-            end
-
-            context "when the file is not an image" do
-              it "responds with status 404" do
-                go
-
-                expect(response).to have_http_status(404)
-              end
-            end
-          end
-
-          context "when the file doesn't exist" do
-            it "responds with status 404" do
-              go
-
-              expect(response).to have_http_status(404)
-            end
-          end
-        end
-      end
-    end
+    post :authorize, params: { namespace_id: model.namespace, project_id: model.path }, format: :json
   end
 end

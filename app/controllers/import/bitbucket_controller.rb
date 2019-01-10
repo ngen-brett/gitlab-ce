@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Import::BitbucketController < Import::BaseController
   before_action :verify_bitbucket_import_enabled
   before_action :bitbucket_auth, except: :callback
@@ -16,45 +18,51 @@ class Import::BitbucketController < Import::BaseController
     redirect_to status_import_bitbucket_url
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def status
     bitbucket_client = Bitbucket::Client.new(credentials)
     repos = bitbucket_client.repos
 
     @repos, @incompatible_repos = repos.partition { |repo| repo.valid? }
 
-    @already_added_projects = current_user.created_projects.where(import_type: 'bitbucket')
+    @already_added_projects = find_already_added_projects('bitbucket')
     already_added_projects_names = @already_added_projects.pluck(:import_source)
 
     @repos.to_a.reject! { |repo| already_added_projects_names.include?(repo.full_name) }
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def jobs
-    render json: current_user.created_projects
-                             .where(import_type: 'bitbucket')
-                             .to_json(only: [:id, :import_status])
+    render json: find_jobs('bitbucket')
   end
 
   def create
     bitbucket_client = Bitbucket::Client.new(credentials)
 
-    @repo_id = params[:repo_id].to_s
-    name = @repo_id.gsub('___', '/')
+    repo_id = params[:repo_id].to_s
+    name = repo_id.gsub('___', '/')
     repo = bitbucket_client.repo(name)
-    @project_name = params[:new_name].presence || repo.name
+    project_name = params[:new_name].presence || repo.name
 
     repo_owner = repo.owner
     repo_owner = current_user.username if repo_owner == bitbucket_client.user.username
     namespace_path = params[:new_namespace].presence || repo_owner
+    target_namespace = find_or_create_namespace(namespace_path, current_user)
 
-    @target_namespace = find_or_create_namespace(namespace_path, current_user)
-
-    if current_user.can?(:create_projects, @target_namespace)
+    if current_user.can?(:create_projects, target_namespace)
       # The token in a session can be expired, we need to get most recent one because
       # Bitbucket::Connection class refreshes it.
       session[:bitbucket_token] = bitbucket_client.connection.token
-      @project = Gitlab::BitbucketImport::ProjectCreator.new(repo, @project_name, @target_namespace, current_user, credentials).execute
+
+      project = Gitlab::BitbucketImport::ProjectCreator.new(repo, project_name, target_namespace, current_user, credentials).execute
+
+      if project.persisted?
+        render json: ProjectSerializer.new.represent(project)
+      else
+        render json: { errors: project_save_error(project) }, status: :unprocessable_entity
+      end
     else
-      render 'unauthorized'
+      render json: { errors: 'This namespace has already been taken! Please choose another one.' }, status: :unprocessable_entity
     end
   end
 
@@ -65,7 +73,7 @@ class Import::BitbucketController < Import::BaseController
   end
 
   def provider
-    Gitlab::OAuth::Provider.config_for('bitbucket')
+    Gitlab::Auth::OAuth::Provider.config_for('bitbucket')
   end
 
   def options

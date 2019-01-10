@@ -1,13 +1,16 @@
-/* global Flash */
-
 import Vue from 'vue';
-import PipelinesMediator from './pipeline_details_mediatior';
+import Flash from '~/flash';
+import Translate from '~/vue_shared/translate';
+import { __ } from '~/locale';
+import PipelinesMediator from './pipeline_details_mediator';
 import pipelineGraph from './components/graph/graph_component.vue';
 import pipelineHeader from './components/header_component.vue';
 import eventHub from './event_hub';
 
-document.addEventListener('DOMContentLoaded', () => {
-  const dataset = document.querySelector('.js-pipeline-details-vue').dataset;
+Vue.use(Translate);
+
+export default () => {
+  const { dataset } = document.querySelector('.js-pipeline-details-vue');
 
   const mediator = new PipelinesMediator({ endpoint: dataset.endpoint });
 
@@ -16,19 +19,31 @@ document.addEventListener('DOMContentLoaded', () => {
   // eslint-disable-next-line
   new Vue({
     el: '#js-pipeline-graph-vue',
+    components: {
+      pipelineGraph,
+    },
     data() {
       return {
         mediator,
       };
     },
-    components: {
-      pipelineGraph,
+    methods: {
+      requestRefreshPipelineGraph() {
+        // When an action is clicked
+        // (wether in the dropdown or in the main nodes, we refresh the big graph)
+        this.mediator
+          .refreshPipeline()
+          .catch(() => Flash(__('An error occurred while making the request.')));
+      },
     },
     render(createElement) {
       return createElement('pipeline-graph', {
         props: {
           isLoading: this.mediator.state.isLoading,
           pipeline: this.mediator.store.state.pipeline,
+        },
+        on: {
+          refreshPipelineGraph: this.requestRefreshPipelineGraph,
         },
       });
     },
@@ -37,13 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // eslint-disable-next-line
   new Vue({
     el: '#js-pipeline-header-vue',
+    components: {
+      pipelineHeader,
+    },
     data() {
       return {
         mediator,
       };
-    },
-    components: {
-      pipelineHeader,
     },
     created() {
       eventHub.$on('headerPostAction', this.postAction);
@@ -53,9 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     methods: {
       postAction(action) {
-        this.mediator.service.postAction(action.path)
+        this.mediator.service
+          .postAction(action.path)
           .then(() => this.mediator.refreshPipeline())
-          .catch(() => new Flash('An error occurred while making the request.'));
+          .catch(() => Flash(__('An error occurred while making the request.')));
       },
     },
     render(createElement) {
@@ -67,4 +83,4 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     },
   });
-});
+};

@@ -1,16 +1,19 @@
+# frozen_string_literal: true
+
 module MergeRequests
   class UpdateService < MergeRequests::BaseService
     def execute(merge_request)
       # We don't allow change of source/target projects and source branch
       # after merge request was created
-      params.except!(:source_project_id)
-      params.except!(:target_project_id)
-      params.except!(:source_branch)
+      params.delete(:source_project_id)
+      params.delete(:target_project_id)
+      params.delete(:source_branch)
 
       merge_from_quick_action(merge_request) if params[:merge]
 
       if merge_request.closed_without_fork?
-        params.except!(:target_branch, :force_remove_source_branch)
+        params.delete(:target_branch)
+        params.delete(:force_remove_source_branch)
       end
 
       if params[:force_remove_source_branch].present?
@@ -21,9 +24,11 @@ module MergeRequests
       update(merge_request)
     end
 
+    # rubocop:disable Metrics/AbcSize
     def handle_changes(merge_request, options)
-      old_labels = options[:old_labels] || []
-      old_mentioned_users = options[:old_mentioned_users] || []
+      old_associations = options.fetch(:old_associations, {})
+      old_labels = old_associations.fetch(:labels, [])
+      old_mentioned_users = old_associations.fetch(:mentioned_users, [])
 
       if has_changes?(merge_request, old_labels: old_labels)
         todo_service.mark_pending_todos_as_done(merge_request, current_user)
@@ -40,13 +45,14 @@ module MergeRequests
                                   merge_request.target_branch)
       end
 
-      if merge_request.previous_changes.include?('milestone_id')
-        create_milestone_note(merge_request)
-      end
-
       if merge_request.previous_changes.include?('assignee_id')
+        reassigned_merge_request_args = [merge_request, current_user]
+
+        old_assignee_id = merge_request.previous_changes['assignee_id'].first
+        reassigned_merge_request_args << User.find(old_assignee_id) if old_assignee_id
+
         create_assignee_note(merge_request)
-        notification_service.reassigned_merge_request(merge_request, current_user)
+        notification_service.async.reassigned_merge_request(*reassigned_merge_request_args)
         todo_service.reassigned_merge_request(merge_request, current_user)
       end
 
@@ -55,9 +61,11 @@ module MergeRequests
         merge_request.mark_as_unchecked
       end
 
+      handle_milestone_change(merge_request)
+
       added_labels = merge_request.labels - old_labels
       if added_labels.present?
-        notification_service.relabeled_merge_request(
+        notification_service.async.relabeled_merge_request(
           merge_request,
           added_labels,
           current_user
@@ -66,13 +74,14 @@ module MergeRequests
 
       added_mentions = merge_request.mentioned_users - old_mentioned_users
       if added_mentions.present?
-        notification_service.new_mentions_in_merge_request(
+        notification_service.async.new_mentions_in_merge_request(
           merge_request,
           added_mentions,
           current_user
         )
       end
     end
+    # rubocop:enable Metrics/AbcSize
 
     def merge_from_quick_action(merge_request)
       last_diff_sha = params.delete(:merge)
@@ -101,15 +110,22 @@ module MergeRequests
 
     private
 
-    def handle_wip_event(merge_request)
-      if wip_event = params.delete(:wip_event)
-        # We update the title that is provided in the params or we use the mr title
-        title = params[:title] || merge_request.title
-        params[:title] = case wip_event
-                         when 'wip' then MergeRequest.wip_title(title)
-                         when 'unwip' then MergeRequest.wipless_title(title)
-                         end
+    def handle_milestone_change(merge_request)
+      return if skip_milestone_email
+
+      return unless merge_request.previous_changes.include?('milestone_id')
+
+      if merge_request.milestone.nil?
+        notification_service.async.removed_milestone_merge_request(merge_request, current_user)
+      else
+        notification_service.async.changed_milestone_merge_request(merge_request, merge_request.milestone, current_user)
       end
+    end
+
+    def create_branch_change_note(issuable, branch_type, old_branch, new_branch)
+      SystemNoteService.change_branch(
+        issuable, issuable.project, current_user, branch_type,
+        old_branch, new_branch)
     end
   end
 end

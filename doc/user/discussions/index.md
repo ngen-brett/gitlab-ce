@@ -11,17 +11,21 @@ You can leave a comment in the following places:
 - commit diffs
 
 The comment area supports [Markdown] and [quick actions]. One can edit their
-own comment at any time, and anyone with [Master access level][permissions] or
+own comment at any time, and anyone with [Maintainer access level][permissions] or
 higher can also edit a comment made by someone else.
+
+You could also reply to the notification email in order to reply to a comment,
+provided that [Reply by email] is configured by your GitLab admin. This also
+supports [Markdown] and [quick actions] as if replied from the web.
 
 Apart from the standard comments, you also have the option to create a comment
 in the form of a resolvable or threaded discussion.
 
 ## Resolvable discussions
 
->**Notes:**
-- The main feature was [introduced][ce-5022] in GitLab 8.11.
-- Resolvable discussions can be added only to merge request diffs.
+> **Notes:**
+> - The main feature was [introduced][ce-5022] in GitLab 8.11.
+> - Resolvable discussions can be added only to merge request diffs.
 
 Discussion resolution helps keep track of progress during planning or code review.
 Resolving comments prevents you from forgetting to address feedback and lets you
@@ -31,6 +35,43 @@ hide discussions that are no longer relevant.
 
 Comments and discussions can be resolved by anyone with at least Developer
 access to the project or the author of the merge request.
+
+### Commit discussions in the context of a merge request
+
+> [Introduced][ce-31847] in GitLab 10.3.
+
+For reviewers with commit-based workflow, it may be useful to add discussions to
+specific commit diffs in the context of a merge request. These discussions will
+persist through a commit ID change when:
+
+- force-pushing after a rebase
+- amending a commit
+
+To create a commit diff discussion:
+
+1. Navigate to the merge request **Commits** tab. A list of commits that
+   constitute the merge request will be shown.
+
+    ![Merge request commits tab](img/merge_request_commits_tab.png)
+
+1. Navigate to a specific commit, click on the **Changes** tab (where you
+   will only be presented diffs from the selected commit), and leave a comment.
+
+    ![Commit diff discussion in merge request context](img/commit_comment_mr_context.png)
+
+1. Any discussions created this way will be shown in the merge request's
+   **Discussions** tab and are resolvable.
+
+    ![Merge request Discussions tab](img/commit_comment_mr_discussions_tab.png)
+
+Discussions created this way will only appear in the original merge request
+and not when navigating to that commit under your project's
+**Repository > Commits** page.
+
+TIP: **Tip:**
+When a link of a commit reference is found in a discussion inside a merge
+request, it will be automatically converted to a link in the context of the
+current merge request.
 
 ### Jumping between unresolved discussions
 
@@ -133,6 +174,15 @@ From now on, any discussions on a diff will be resolved by default if a push
 makes that diff section outdated. Discussions on lines that don't change and
 top-level resolvable discussions are not automatically resolved.
 
+## Commit discussions
+
+You can add comments and discussion threads to a particular commit under your
+project's **Repository > Commits**.
+
+CAUTION: **Attention:**
+Discussions created this way will be lost if the commit ID changes after a
+force push.
+
 ## Threaded discussions
 
 > [Introduced][ce-7527] in GitLab 9.1.
@@ -153,12 +203,150 @@ comments in greater detail.
 
 ![Discussion comment](img/discussion_comment.png)
 
+## Image discussions
+
+> [Introduced][ce-14061] in GitLab 10.1.
+
+Sometimes a discussion is revolved around an image. With image discussions,
+you can easily target a specific coordinate of an image and start a discussion
+around it. Image discussions are available in merge requests and commit detail views.
+
+To start an image discussion, hover your mouse over the image. Your mouse pointer
+should convert into an icon, indicating that the image is available for commenting.
+Simply click anywhere on the image to create a new discussion.
+
+![Start image discussion](img/start_image_discussion.gif)
+
+After you click on the image, a comment form will be displayed that would be the start
+of your discussion. Once you save your comment, you will see a new badge displayed on
+top of your image. This badge represents your discussion.
+
+>**Note:**
+This discussion badge is typically associated with a number that is only used as a visual
+reference for each discussion. In the merge request discussion tab,
+this badge will be indicated with a comment icon since each discussion will render a new
+image section.
+
+Image discussions also work on diffs that replace an existing image. In this diff view
+mode, you can toggle the different view modes and still see the discussion point badges.
+
+| 2-up | Swipe | Onion Skin |
+| :-----------: | :----------: | :----------: |
+| ![2-up view](img/two_up_view.png) | ![swipe view](img/swipe_view.png) | ![onion skin view](img/onion_skin_view.png) |
+
+Image discussions also work well with resolvable discussions. Resolved discussions
+on diffs (not on the merge request discussion tab) will appear collapsed on page
+load and will have a corresponding badge counter to match the counter on the image.
+
+![Image resolved discussion](img/image_resolved_discussion.png)
+
+## Lock discussions
+
+> [Introduced][ce-14531] in GitLab 10.1.
+
+For large projects with many contributors, it may be useful to stop discussions
+in issues or merge requests in these scenarios:
+
+- The project maintainer has already resolved the discussion and it is not helpful
+for continued feedback. The project maintainer has already directed new conversation
+to newer issues or merge requests.
+- The people participating in the discussion are trolling, abusive, or otherwise
+being unproductive.
+
+In these cases, a user with Maintainer permissions or higher in the project can lock (and unlock)
+an issue or a merge request, using the "Lock" section in the sidebar:
+
+| Unlock | Lock |
+| :-----------: | :----------: |
+| ![Turn off discussion lock](img/turn_off_lock.png) | ![Turn on discussion lock](img/turn_on_lock.png) |
+
+System notes indicate locking and unlocking.
+
+![Discussion lock system notes](img/discussion_lock_system_notes.png)
+
+In a locked issue or merge request, only team members can add new comments and
+edit existing comments. Non-team members are restricted from adding or editing comments.
+
+| Team member | Non-team member |
+| :-----------: | :----------: |
+| ![Comment form member](img/lock_form_member.png) | ![Comment form non-member](img/lock_form_non_member.png) |
+
+Additionally locked issues can not be reopened.
+
+## Filtering notes
+
+> [Introduced](https://gitlab.com/gitlab-org/gitlab-ce/issues/26723) in GitLab 11.5. 
+
+For issues with many comments like activity notes and user comments, sometimes 
+finding useful information can be hard. There is a way to filter comments from single notes and discussions for merge requests and issues.  
+
+From a merge request's **Discussion** tab, or from an issue overview, find the filter's dropdown menu on the right side of the page, from which you can choose one of the following options:
+
+- **Show all activity**: displays all user comments and system notes
+(issue updates, mentions from other issues, changes to the description, etc).
+- **Show comments only**: only displays user comments in the list.
+- **Show history only**: only displays activity notes. 
+
+![Notes filters dropdown options](img/index_notes_filters.png)
+
+Once you select one of the filters in a given issue or MR, GitLab will save
+your preference, so that it will persist when you visit the same page again
+from any device you're logged into.
+
+## Suggest Changes
+
+> [Introduced](https://gitlab.com/gitlab-org/gitlab-ce/issues/18008) in GitLab 11.6.
+
+As a reviewer, you're able to suggest code changes with a simple 
+markdown syntax in Merge Request Diff discussions. Then, the
+Merge Request author (or other users with appropriate 
+[permission](../permissions.md)) is able to apply these
+suggestions with a click, which will generate a commit in 
+the Merge Request authored by the user that applied them.
+
+1. Choose a line of code to be changed, add a new comment, then click
+on the **Insert suggestion** icon in the toolbar:
+
+    ![Add a new comment](img/insert_suggestion.png)
+    
+    > **Note:**
+    The suggestion will only affect the commented line. Multi-line
+    suggestions are currently not supported. Will be introduced by 
+    [#53310](https://gitlab.com/gitlab-org/gitlab-ce/issues/53310).
+
+1. In the comment, add your suggestion to the pre-populated code block:
+
+    ![Add a suggestion into a code block tagged properly](img/make_suggestion.png)
+
+1. Click **Comment**.
+
+    The suggestions in the comment can be applied by the merge request author
+    directly from the merge request:
+
+    ![Apply suggestions](img/suggestion.png)
+
+    > **Note:**
+    Discussions are _not_ automatically resolved. Will be introduced by 
+    [#54405](https://gitlab.com/gitlab-org/gitlab-ce/issues/54405).
+    
+Once the author applies a suggestion, it will be marked with the **Applied** label,
+and GitLab will create a new commit with the message `Apply suggestion to <file-name>`
+and push the suggested change directly into the codebase in the merge request's branch.
+[Developer permission](../permissions.md) is required to do so.
+
+> **Note:**
+Custom commit messages will be introduced by
+[#54404](https://gitlab.com/gitlab-org/gitlab-ce/issues/54404).
+
 [ce-5022]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/5022
 [ce-7125]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/7125
 [ce-7527]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/7527
 [ce-7180]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/7180
 [ce-8266]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/8266
 [ce-14053]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/14053
+[ce-14061]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/14061
+[ce-14531]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/14531
+[ce-31847]: https://gitlab.com/gitlab-org/gitlab-ce/issues/31847
 [resolve-discussion-button]: img/resolve_discussion_button.png
 [resolve-comment-button]: img/resolve_comment_button.png
 [discussion-view]: img/discussion_view.png
@@ -166,3 +354,4 @@ comments in greater detail.
 [markdown]: ../markdown.md
 [quick actions]: ../project/quick_actions.md
 [permissions]: ../permissions.md
+[Reply by email]: ../../administration/reply_by_email.md

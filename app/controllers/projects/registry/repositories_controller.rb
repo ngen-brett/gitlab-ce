@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Projects
   module Registry
     class RepositoriesController < ::Projects::Registry::ApplicationController
@@ -6,17 +8,22 @@ module Projects
 
       def index
         @images = project.container_repositories
+
+        respond_to do |format|
+          format.html
+          format.json do
+            render json: ContainerRepositoriesSerializer
+              .new(project: project, current_user: current_user)
+              .represent(@images)
+          end
+        end
       end
 
       def destroy
-        if image.destroy
-          redirect_to project_container_registry_index_path(@project),
-                      status: 302,
-                      notice: 'Image repository has been removed successfully!'
-        else
-          redirect_to project_container_registry_index_path(@project),
-                      status: 302,
-                      alert: 'Failed to remove image repository!'
+        DeleteContainerRepositoryWorker.perform_async(current_user.id, image.id)
+
+        respond_to do |format|
+          format.json { head :no_content }
         end
       end
 
@@ -32,10 +39,10 @@ module Projects
       # Needed to maintain a backwards compatibility.
       #
       def ensure_root_container_repository!
-        ContainerRegistry::Path.new(@project.full_path).tap do |path|
+        ::ContainerRegistry::Path.new(@project.full_path).tap do |path|
           break if path.has_repository?
 
-          ContainerRepository.build_from_path(path).tap do |repository|
+          ::ContainerRepository.build_from_path(path).tap do |repository|
             repository.save! if repository.has_tags?
           end
         end

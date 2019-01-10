@@ -1,31 +1,20 @@
 // Limit MR description for side-by-side diff view
 .fixed-width-container {
-  max-width: $limited-layout-width - ($gl-padding * 2);
-  margin-left: auto;
-  margin-right: auto;
+  @include fixed-width-container;
 }
 
-.is-confidential {
-  color: $orange-600;
-  background-color: $orange-50;
+.issuable-warning-icon {
+  background-color: $orange-100;
   border-radius: $border-radius-default;
-  padding: 5px;
-  margin: 0 3px 0 -4px;
-}
+  width: $issuable-warning-size;
+  height: $issuable-warning-size;
+  text-align: center;
+  margin-right: $issuable-warning-icon-margin;
+  line-height: $gl-line-height-24;
 
-.is-not-confidential {
-  border-radius: $border-radius-default;
-  padding: 5px;
-  margin: 0 3px 0 -4px;
-}
-
-.confidentiality {
-  .is-not-confidential {
-    margin: auto;
-  }
-
-  .is-confidential {
-    margin: auto;
+  .icon {
+    fill: $orange-600;
+    vertical-align: text-bottom;
   }
 }
 
@@ -33,7 +22,6 @@
   .detail-page-header,
   .page-content-header,
   .commit-box,
-  .info-well,
   .commit-ci-menu,
   .files-changed-inner,
   .limited-header-width,
@@ -55,12 +43,6 @@
       @extend .fixed-width-container;
     }
   }
-
-  .diffs {
-    .mr-version-controls {
-      @extend .fixed-width-container;
-    }
-  }
 }
 
 .issuable-details {
@@ -70,10 +52,23 @@
     }
   }
 
+  .title-container {
+    display: flex;
+  }
+
   .title {
     padding: 0;
-    margin-bottom: 16px;
-    border-bottom: none;
+    margin-bottom: $gl-padding;
+    border-bottom: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .btn-edit {
+    margin-left: auto;
+    height: $gl-padding * 2;
   }
 
   // Border around images in issue and MR descriptions.
@@ -99,28 +94,57 @@
 
 .issuable-show-labels {
   a {
-    margin-right: 5px;
     margin-bottom: 5px;
+    margin-right: 5px;
     display: inline-block;
 
     .color-label {
-      padding: 6px 10px;
+      padding: 4px $grid-size;
       border-radius: $label-border-radius;
+    }
+
+    &:hover .color-label {
+      text-decoration: underline;
     }
   }
 
   &.has-labels {
+    // this font size is a fix to
+    // prevent unintended spacing between labels
+    // which shows up when rendering markup has white-space
+    // characters present.
+    // see: https://css-tricks.com/fighting-the-space-between-inline-block-elements/#article-header-id-3
+    font-size: 0;
     margin-bottom: -5px;
   }
 }
 
 .right-sidebar {
-  a,
-  .btn-link {
+  position: fixed;
+  top: $header-height;
+  bottom: 0;
+  right: 0;
+  transition: width $sidebar-transition-duration;
+  background: $gray-light;
+  z-index: 200;
+  overflow: hidden;
+
+  a:not(.btn) {
     color: inherit;
+
+    &:hover {
+      color: $blue-800;
+
+      .avatar {
+        border-color: rgba($gray-normal, .2);
+      }
+
+    }
+
   }
 
   .btn-link {
+    color: inherit;
     outline: none;
   }
 
@@ -134,7 +158,7 @@
     border-bottom: 1px solid $border-gray-normal;
     // This prevents the mess when resizing the sidebar
     // of elements repositioning themselves..
-    width: $gutter_inner_width;
+    width: $gutter-inner-width;
     // --
 
     &.issuable-sidebar-header {
@@ -143,11 +167,7 @@
     }
 
     &:last-child {
-      border: none;
-    }
-
-    span {
-      display: inline-block;
+      border: 0;
     }
 
     .select2-container span {
@@ -159,7 +179,32 @@
       padding-left: 10px;
 
       &:hover {
-        color: $gray-darkest;
+        color: $gl-text-color;
+      }
+
+      &:hover,
+      &:focus {
+        text-decoration: none;
+      }
+    }
+
+    &.assignee {
+      .author-link {
+        display: block;
+        padding-left: 42px;
+        position: relative;
+
+        &:hover {
+          .author {
+            text-decoration: underline;
+          }
+        }
+
+        .avatar {
+          left: 0;
+          position: absolute;
+          top: 0;
+        }
       }
     }
   }
@@ -177,11 +222,18 @@
       margin-left: 0;
     }
 
+    a.edit-link:not([href]):hover {
+      color: rgba($gray-normal, .2);
+    }
+
+    .lock-edit, // uses same style, different js behaviour
     .edit-link {
+      @extend .btn-blank;
       color: $gl-text-color;
 
-      &:not([href]):hover {
-        color: rgba($avatar-border, .2);
+      &:hover {
+        text-decoration: underline;
+        color: $blue-800;
       }
     }
   }
@@ -216,21 +268,10 @@
   .btn-clipboard:hover {
     color: $gl-text-color;
   }
-}
-
-.right-sidebar {
-  position: absolute;
-  top: $new-navbar-height;
-  bottom: 0;
-  right: 0;
-  transition: width .3s;
-  background: $gray-light;
-  z-index: 200;
-  overflow: hidden;
 
   .issuable-sidebar {
     width: calc(100% + 100px);
-    height: calc(100% - #{$new-navbar-height});
+    height: 100%;
     overflow-y: scroll;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -241,7 +282,7 @@
   }
 
   &.right-sidebar-expanded {
-    width: $gutter_width;
+    width: $gutter-width;
 
     .value {
       line-height: 1;
@@ -274,8 +315,13 @@
       font-weight: $gl-font-weight-normal;
     }
 
-    .no-value {
+    .no-value,
+    .btn-secondary-hover-link {
       color: $gl-text-color-secondary;
+    }
+
+    .btn-secondary-hover-link:hover {
+      color: $blue-600;
     }
 
     .sidebar-collapsed-icon {
@@ -285,6 +331,7 @@
     .gutter-toggle {
       margin-top: 7px;
       border-left: 1px solid $border-gray-normal;
+      text-align: center;
     }
 
     .title .gutter-toggle {
@@ -318,18 +365,26 @@
     /* Extra small devices (phones, less than 768px) */
     display: none;
     /* Small devices (tablets, 768px and up) */
-    @media (min-width: $screen-sm-min) {
+    @include media-breakpoint-up(sm) {
       display: block;
     }
 
-    width: $gutter_collapsed_width;
+    width: $gutter-collapsed-width;
     padding: 0;
 
     .block {
-      width: $gutter_collapsed_width - 2px;
+      width: $gutter-collapsed-width - 2px;
       padding: 15px 0 0;
-      border-bottom: none;
+      border-bottom: 0;
       overflow: hidden;
+
+      &:hover {
+        background-color: $sidebar-block-hover-color;
+      }
+
+      &.issuable-sidebar-header {
+        padding-top: 0;
+      }
     }
 
     .participants {
@@ -342,8 +397,17 @@
 
     .gutter-toggle {
       width: 100%;
+      height: $sidebar-toggle-height;
       margin-left: 0;
-      padding-left: 25px;
+      padding-left: 0;
+      border-bottom: 1px solid $border-gray-dark;
+    }
+
+    a.gutter-toggle {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
     }
 
     .sidebar-collapsed-icon {
@@ -351,13 +415,13 @@
       width: 100%;
       text-align: center;
       margin-bottom: 10px;
-      color: $issuable-sidebar-color;
+      color: $gl-text-color-secondary;
 
       svg {
-        fill: $issuable-sidebar-color;
+        fill: $gl-text-color-secondary;
       }
 
-      &:hover,
+      &:hover:not(.disabled),
       &:hover .todo-undone {
         color: $gl-text-color;
 
@@ -376,7 +440,8 @@
       }
 
       .todo-undone {
-        color: $gl-link-color;
+        color: $blue-600;
+        fill: $blue-600;
       }
 
       .author {
@@ -384,16 +449,16 @@
       }
 
       .avatar-counter:hover {
-        color: $issuable-sidebar-color;
-        border-color: $issuable-sidebar-color;
+        color: $gl-text-color-secondary;
+        border-color: $gl-text-color-secondary;
       }
 
       .btn-clipboard {
-        border: none;
-        color: $issuable-sidebar-color;
+        border: 0;
+        background: transparent;
+        color: $gl-text-color-secondary;
 
         &:hover {
-          background: transparent;
           color: $gl-text-color;
         }
       }
@@ -413,6 +478,15 @@
     .sidebar-collapsed-user {
       padding-bottom: 0;
       margin-bottom: 10px;
+
+      .author-link {
+        padding-left: 0;
+
+        .avatar {
+          position: static;
+          margin: 0;
+        }
+      }
     }
 
     .issuable-header-btn {
@@ -450,27 +524,11 @@
       }
     }
 
-    .milestone-title span {
+    .milestone-title span,
+    .collapse-truncated-title {
       @include str-truncated(100%);
       display: block;
       margin: 0 4px;
-    }
-  }
-
-  a {
-    &:hover {
-      color: $md-link-color;
-      text-decoration: none;
-
-      .avatar {
-        border-color: rgba($avatar-border, .2);
-      }
-    }
-  }
-
-  .dropdown-content {
-    a:hover {
-      color: inherit;
     }
   }
 
@@ -481,19 +539,25 @@
 
   .dropdown-menu {
     width: 100%;
+
+    /*
+     * Overwrite hover style for dropdown items, so that they are not blue
+     * This should be removed during dev of https://gitlab.com/gitlab-org/gitlab-ce/issues/44040
+     */
+    li a {
+      &:hover,
+      &:active,
+      &:focus,
+      &.is-focused {
+        @include dropdown-item-hover;
+      }
+    }
+
   }
 }
 
 .with-performance-bar .right-sidebar {
-  top: $new-navbar-height + $performance-bar-height;
-
-  .issuable-sidebar {
-    height: calc(100% - #{$new-navbar-height} - #{$performance-bar-height});
-  }
-}
-
-.sidebar-move-issue-dropdown {
-  @include new-style-dropdown;
+  top: $header-height + $performance-bar-height;
 }
 
 .sidebar-move-issue-confirmation-button {
@@ -524,13 +588,15 @@
   margin: 16px 0 0;
   font-size: 85%;
 
-  .author_link {
+  .author-link {
     color: $gray-darkest;
   }
 }
 
 .participants-list {
-  margin: -5px;
+  display: flex;
+  flex-wrap: wrap;
+  margin: -7px;
 }
 
 
@@ -541,13 +607,13 @@
 
 .participants-author {
   display: inline-block;
-  padding: 5px;
+  padding: 7px;
 
   &:nth-of-type(7n) {
     padding-right: 0;
   }
 
-  .author_link {
+  .author-link {
     display: block;
   }
 
@@ -592,59 +658,45 @@
 }
 
 .issuable-form-padding-top {
-  @media (min-width: $screen-sm-min) {
+  @include media-breakpoint-up(sm) {
     padding-top: 7px;
   }
 }
 
 .issuable-status-box {
-  float: none;
-  display: inline-block;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-top: 0;
+  padding-left: 9px;
+  padding-right: 9px;
 
-  @media (max-width: $screen-xs-max) {
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-}
-
-.issuable-header {
-  position: relative;
-  padding-left: 45px;
-  padding-right: 45px;
-  line-height: 35px;
-
-  @media (min-width: $screen-sm-min) {
-    float: left;
-    padding-left: 0;
-    padding-right: 0;
-  }
-}
-
-.issuable-actions {
-  @include new-style-dropdown;
-
-  padding-top: 10px;
-
-  @media (min-width: $screen-sm-min) {
-    float: right;
-    padding-top: 0;
+  @include media-breakpoint-up(sm) {
+    display: inline-block;
+    height: auto;
+    align-self: center;
   }
 }
 
 .issuable-gutter-toggle {
-  @media (max-width: $screen-sm-max) {
-    position: absolute;
-    top: 0;
-    right: 0;
+  @include media-breakpoint-down(sm) {
+    margin-left: $btn-side-margin;
   }
 }
 
 .issuable-meta {
+  flex: 1;
   display: inline-block;
-  line-height: 18px;
   font-size: 14px;
+  align-self: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .user-status-emoji {
+    margin-left: $gl-padding-4;
+    margin-right: 0;
+  }
 }
 
 .js-issuable-selector-wrap {
@@ -652,7 +704,7 @@
     width: 100%;
   }
 
-  @media (max-width: $screen-sm-max) {
+  @include media-breakpoint-down(sm) {
     margin-bottom: $gl-padding;
   }
 }
@@ -665,15 +717,19 @@
       display: flex;
     }
 
-    .issue-info-container {
+    .issuable-info-container {
       -webkit-flex: 1;
       flex: 1;
       display: flex;
       padding-right: $gl-padding;
 
-      .issue-main-info {
+      .issuable-main-info {
         flex: 1 auto;
         margin-right: 10px;
+
+        .issue-weight-icon {
+          vertical-align: sub;
+        }
       }
 
       .issuable-meta {
@@ -693,7 +749,7 @@
         }
       }
 
-      @media(max-width: $screen-xs-max) {
+      @include media-breakpoint-down(xs) {
         .issuable-meta {
           .controls li {
             margin-right: 0;
@@ -707,7 +763,7 @@
       margin-bottom: 10px;
       min-width: 15px;
 
-      .selected_issue {
+      .selected-issuable {
         vertical-align: text-top;
       }
     }
@@ -728,7 +784,7 @@
       }
     }
 
-    @media(max-width: $screen-md-max) {
+    @media(max-width: map-get($grid-breakpoints, lg)-1) {
       .task-status,
       .issuable-due-date,
       .project-ref-path {
@@ -739,7 +795,7 @@
 }
 
 .issuable-list li,
-.issue-info-container .controls {
+.issuable-info-container .controls {
   .avatar-counter {
     display: inline-block;
     vertical-align: middle;
@@ -765,7 +821,7 @@
     svg {
       width: 16px;
       height: 16px;
-      fill: $issuable-sidebar-color;
+      fill: $gl-text-color-secondary;
     }
 
     &:hover svg {
@@ -779,33 +835,11 @@
   }
 
   .compare-meter {
-    &.within_estimate {
-      .meter-fill {
-        background: $gl-primary;
-      }
-    }
-
     &.over_estimate {
-      .meter-fill {
-        background: $red-500;
-      }
-
       .time-remaining,
       .compare-value.spent {
         color: $red-500;
       }
-    }
-  }
-
-  .meter-container {
-    background: $border-gray-light;
-    border-radius: 3px;
-
-    .meter-fill {
-      max-width: 100%;
-      height: 5px;
-      border-radius: 3px;
-      background: $gl-primary;
     }
   }
 
@@ -888,5 +922,57 @@
 
   .dropdown-toggle > .icon {
     margin: 0 3px;
+  }
+}
+
+.right-sidebar-collapsed {
+  .sidebar-grouped-item {
+    .sidebar-collapsed-icon {
+      margin-bottom: 0;
+    }
+
+    .sidebar-collapsed-divider {
+      line-height: 5px;
+      font-size: 12px;
+      color: $theme-gray-700;
+
+      + .sidebar-collapsed-icon {
+        padding-top: 0;
+      }
+    }
+  }
+}
+
+.issuable-suggestions svg {
+  vertical-align: sub;
+}
+
+.suggestion-item a {
+  color: initial;
+}
+
+.suggestion-confidential {
+  color: $orange-600;
+}
+
+.suggestion-state-open {
+  color: $green-500;
+}
+
+.suggestion-state-closed {
+  color: $blue-500;
+}
+
+.suggestion-help-hover {
+  cursor: help;
+}
+
+.suggestion-footer {
+  font-size: 12px;
+  line-height: 15px;
+
+  .avatar {
+    margin-top: -3px;
+    border: 0;
   }
 }

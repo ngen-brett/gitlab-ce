@@ -6,11 +6,11 @@ describe ::Gitlab::RepoPath do
 
     context 'a repository storage path' do
       it 'parses a full repository path' do
-        expect(described_class.parse(project.repository.path)).to eq([project, false, nil])
+        expect(described_class.parse(project.repository.full_path)).to eq([project, false, nil])
       end
 
       it 'parses a full wiki path' do
-        expect(described_class.parse(project.wiki.repository.path)).to eq([project, true, nil])
+        expect(described_class.parse(project.wiki.repository.full_path)).to eq([project, true, nil])
       end
     end
 
@@ -42,25 +42,6 @@ describe ::Gitlab::RepoPath do
           expect(described_class.parse('/' + redirect.path + '.git')).to eq([project, false, 'foo/bar'])
         end
       end
-    end
-  end
-
-  describe '.strip_storage_path' do
-    before do
-      allow(Gitlab.config.repositories).to receive(:storages).and_return({
-        'storage1' => { 'path' => '/foo' },
-        'storage2' => { 'path' => '/bar' }
-      })
-    end
-
-    it 'strips the storage path' do
-      expect(described_class.strip_storage_path('/bar/foo/qux/baz.git')).to eq('foo/qux/baz.git')
-    end
-
-    it 'raises NotFoundError if no storage matches the path' do
-      expect { described_class.strip_storage_path('/doesnotexist/foo.git') }.to raise_error(
-        described_class::NotFoundError
-      )
     end
   end
 

@@ -14,17 +14,17 @@ describe API::Services do
       include_context service
 
       it "updates #{service} settings" do
-        put api("/projects/#{project.id}/services/#{dashed_service}", user), service_attrs
+        put api("/projects/#{project.id}/services/#{dashed_service}", user), params: service_attrs
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
 
         current_service = project.services.first
         event = current_service.event_names.empty? ? "foo" : current_service.event_names.first
         state = current_service[event] || false
 
-        put api("/projects/#{project.id}/services/#{dashed_service}?#{event}=#{!state}", user), service_attrs
+        put api("/projects/#{project.id}/services/#{dashed_service}?#{event}=#{!state}", user), params: service_attrs
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
         expect(project.services.first[event]).not_to eq(state) unless event == "foo"
       end
 
@@ -44,7 +44,7 @@ describe API::Services do
           expected_code = 400
         end
 
-        put api("/projects/#{project.id}/services/#{dashed_service}", user), attrs
+        put api("/projects/#{project.id}/services/#{dashed_service}", user), params: attrs
 
         expect(response.status).to eq(expected_code)
       end
@@ -53,10 +53,14 @@ describe API::Services do
     describe "DELETE /projects/:id/services/#{service.dasherize}" do
       include_context service
 
+      before do
+        initialize_service(service)
+      end
+
       it "deletes #{service}" do
         delete api("/projects/#{project.id}/services/#{dashed_service}", user)
 
-        expect(response).to have_http_status(204)
+        expect(response).to have_gitlab_http_status(204)
         project.send(service_method).reload
         expect(project.send(service_method).activated?).to be_falsey
       end
@@ -67,35 +71,33 @@ describe API::Services do
 
       # inject some properties into the service
       before do
-        service_object = project.find_or_initialize_service(service)
-        service_object.properties = service_attrs
-        service_object.save
+        initialize_service(service)
       end
 
       it 'returns authentication error when unauthenticated' do
         get api("/projects/#{project.id}/services/#{dashed_service}")
-        expect(response).to have_http_status(401)
+        expect(response).to have_gitlab_http_status(401)
       end
 
       it "returns all properties of service #{service} when authenticated as admin" do
         get api("/projects/#{project.id}/services/#{dashed_service}", admin)
 
-        expect(response).to have_http_status(200)
-        expect(json_response['properties'].keys.map(&:to_sym)).to match_array(service_attrs_list.map)
+        expect(response).to have_gitlab_http_status(200)
+        expect(json_response['properties'].keys).to match_array(service_instance.api_field_names)
       end
 
       it "returns properties of service #{service} other than passwords when authenticated as project owner" do
         get api("/projects/#{project.id}/services/#{dashed_service}", user)
 
-        expect(response).to have_http_status(200)
-        expect(json_response['properties'].keys.map(&:to_sym)).to match_array(service_attrs_list_without_passwords)
+        expect(response).to have_gitlab_http_status(200)
+        expect(json_response['properties'].keys).to match_array(service_instance.api_field_names)
       end
 
       it "returns error when authenticated but not a project owner" do
-        project.team << [user2, :developer]
+        project.add_developer(user2)
         get api("/projects/#{project.id}/services/#{dashed_service}", user2)
 
-        expect(response).to have_http_status(403)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
   end
@@ -108,7 +110,7 @@ describe API::Services do
         it 'returns a not found message' do
           post api("/projects/#{project.id}/services/idonotexist/trigger")
 
-          expect(response).to have_http_status(404)
+          expect(response).to have_gitlab_http_status(404)
           expect(json_response["error"]).to eq("404 Not Found")
         end
       end
@@ -125,9 +127,9 @@ describe API::Services do
           end
 
           it 'when the service is inactive' do
-            post api("/projects/#{project.id}/services/#{service_name}/trigger"), params
+            post api("/projects/#{project.id}/services/#{service_name}/trigger"), params: params
 
-            expect(response).to have_http_status(404)
+            expect(response).to have_gitlab_http_status(404)
           end
         end
 
@@ -140,17 +142,17 @@ describe API::Services do
           end
 
           it 'returns status 200' do
-            post api("/projects/#{project.id}/services/#{service_name}/trigger"), params
+            post api("/projects/#{project.id}/services/#{service_name}/trigger"), params: params
 
-            expect(response).to have_http_status(200)
+            expect(response).to have_gitlab_http_status(200)
           end
         end
 
         context 'when the project can not be found' do
           it 'returns a generic 404' do
-            post api("/projects/404/services/#{service_name}/trigger"), params
+            post api("/projects/404/services/#{service_name}/trigger"), params: params
 
-            expect(response).to have_http_status(404)
+            expect(response).to have_gitlab_http_status(404)
             expect(json_response["message"]).to eq("404 Service Not Found")
           end
         end
@@ -168,11 +170,32 @@ describe API::Services do
       end
 
       it 'returns status 200' do
-        post api("/projects/#{project.id}/services/#{service_name}/trigger"), token: 'token', text: 'help'
+        post api("/projects/#{project.id}/services/#{service_name}/trigger"), params: { token: 'token', text: 'help' }
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
         expect(json_response['response_type']).to eq("ephemeral")
       end
+    end
+  end
+
+  describe 'Mattermost service' do
+    let(:service_name) { 'mattermost' }
+    let(:params) do
+      { webhook: 'https://hook.example.com', username: 'username' }
+    end
+
+    before do
+      project.create_mattermost_service(
+        active: true,
+        properties: params
+      )
+    end
+
+    it 'accepts a username for update' do
+      put api("/projects/#{project.id}/services/mattermost", user), params: params.merge(username: 'new_username')
+
+      expect(response).to have_gitlab_http_status(200)
+      expect(json_response['properties']['username']).to eq('new_username')
     end
   end
 end

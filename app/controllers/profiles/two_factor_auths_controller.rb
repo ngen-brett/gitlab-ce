@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Profiles::TwoFactorAuthsController < Profiles::ApplicationController
   skip_before_action :check_two_factor_requirement
 
@@ -10,7 +12,7 @@ class Profiles::TwoFactorAuthsController < Profiles::ApplicationController
       current_user.otp_grace_period_started_at = Time.current
     end
 
-    Users::UpdateService.new(current_user).execute!
+    Users::UpdateService.new(current_user, user: current_user).execute!
 
     if two_factor_authentication_required? && !current_user.two_factor_enabled?
       two_factor_authentication_reason(
@@ -30,7 +32,7 @@ class Profiles::TwoFactorAuthsController < Profiles::ApplicationController
 
       unless two_factor_grace_period_expired?
         grace_period_deadline = current_user.otp_grace_period_started_at + two_factor_grace_period.hours
-        flash.now[:alert] << " You need to do this before #{l(grace_period_deadline)}."
+        flash.now[:alert] = flash.now[:alert] + " You need to do this before #{l(grace_period_deadline)}."
       end
     end
 
@@ -41,7 +43,7 @@ class Profiles::TwoFactorAuthsController < Profiles::ApplicationController
 
   def create
     if current_user.validate_and_consume_otp!(params[:pin_code])
-      Users::UpdateService.new(current_user, otp_required_for_login: true).execute! do |user|
+      Users::UpdateService.new(current_user, user: current_user, otp_required_for_login: true).execute! do |user|
         @codes = user.generate_otp_backup_codes!
       end
 
@@ -70,7 +72,7 @@ class Profiles::TwoFactorAuthsController < Profiles::ApplicationController
   end
 
   def codes
-    Users::UpdateService.new(current_user).execute! do |user|
+    Users::UpdateService.new(current_user, user: current_user).execute! do |user|
       @codes = user.generate_otp_backup_codes!
     end
   end
@@ -78,7 +80,7 @@ class Profiles::TwoFactorAuthsController < Profiles::ApplicationController
   def destroy
     current_user.disable_two_factor!
 
-    redirect_to profile_account_path, status: 302
+    redirect_to profile_account_path, status: :found
   end
 
   def skip

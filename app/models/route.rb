@@ -1,4 +1,8 @@
+# frozen_string_literal: true
+
 class Route < ActiveRecord::Base
+  include CaseSensitivity
+
   belongs_to :source, polymorphic: true # rubocop:disable Cop/PolymorphicAssociations
 
   validates :source, presence: true
@@ -8,6 +12,7 @@ class Route < ActiveRecord::Base
     presence: true,
     uniqueness: { case_sensitive: false }
 
+  before_validation :delete_conflicting_orphaned_routes
   after_create :delete_conflicting_redirects
   after_update :delete_conflicting_redirects, if: :path_changed?
   after_update :create_redirect_for_old_path
@@ -61,5 +66,14 @@ class Route < ActiveRecord::Base
 
   def create_redirect_for_old_path
     create_redirect(path_was) if path_changed?
+  end
+
+  def delete_conflicting_orphaned_routes
+    conflicting = self.class.iwhere(path: path)
+    conflicting_orphaned_routes = conflicting.select do |route|
+      route.source.nil?
+    end
+
+    conflicting_orphaned_routes.each(&:destroy)
   end
 end

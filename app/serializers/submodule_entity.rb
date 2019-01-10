@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SubmoduleEntity < Grape::Entity
   include RequestAwareEntity
 
@@ -7,7 +9,7 @@ class SubmoduleEntity < Grape::Entity
     'archive'
   end
 
-  expose :project_url do |blob|
+  expose :url do |blob|
     submodule_links(blob, request).first
   end
 

@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Sherlock
     # Rack middleware used for tracking request metrics.
     class Middleware
-      CONTENT_TYPES = /text\/html|application\/json/i
+      CONTENT_TYPES = %r{text/html|application/json}i
 
       IGNORE_PATHS = %r{^/sherlock}
 

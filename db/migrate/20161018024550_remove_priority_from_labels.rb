@@ -1,4 +1,5 @@
-class RemovePriorityFromLabels < ActiveRecord::Migration
+# rubocop:disable Migration/RemoveColumn
+class RemovePriorityFromLabels < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
 
   DOWNTIME = true

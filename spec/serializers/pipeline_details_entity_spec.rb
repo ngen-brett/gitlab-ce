@@ -29,7 +29,7 @@ describe PipelineDetailsEntity do
         expect(subject[:details])
           .to include :duration, :finished_at
         expect(subject[:details])
-          .to include :stages, :artifacts, :manual_actions
+          .to include :stages, :artifacts, :manual_actions, :scheduled_actions
         expect(subject[:details][:status]).to include :icon, :favicon, :text, :label
       end
 
@@ -107,7 +107,7 @@ describe PipelineDetailsEntity do
       it 'contains stages' do
         expect(subject).to include(:details)
         expect(subject[:details]).to include(:stages)
-        expect(subject[:details][:stages].first).to include(name: 'external')
+        expect(subject[:details][:stages].first).to include(name: 'test')
       end
     end
 

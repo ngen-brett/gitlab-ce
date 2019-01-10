@@ -1,3 +1,7 @@
+---
+comments: false
+---
+
 # Configure your environment
 
 ----------
@@ -12,10 +16,10 @@
 
 - **Linux**
   ```bash
-    sudo yum install git-all
+  sudo yum install git-all
   ```
   ```bash
-    sudo apt-get install git-all
+  sudo apt-get install git-all
   ```
 
 ----------

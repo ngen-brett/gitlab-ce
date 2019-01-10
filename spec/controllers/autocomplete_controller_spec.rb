@@ -15,7 +15,7 @@ describe AutocompleteController do
 
       describe 'GET #users with project ID' do
         before do
-          get(:users, project_id: project.id)
+          get(:users, params: { project_id: project.id })
         end
 
         it 'returns the project members' do
@@ -27,10 +27,10 @@ describe AutocompleteController do
 
       describe 'GET #users with unknown project' do
         before do
-          get(:users, project_id: 'unknown')
+          get(:users, params: { project_id: 'unknown' })
         end
 
-        it { expect(response).to have_http_status(404) }
+        it { expect(response).to have_gitlab_http_status(404) }
       end
     end
 
@@ -44,7 +44,7 @@ describe AutocompleteController do
 
       describe 'GET #users with group ID' do
         before do
-          get(:users, group_id: group.id)
+          get(:users, params: { group_id: group.id })
         end
 
         it 'returns the group members' do
@@ -56,10 +56,10 @@ describe AutocompleteController do
 
       describe 'GET #users with unknown group ID' do
         before do
-          get(:users, group_id: 'unknown')
+          get(:users, params: { group_id: 'unknown' })
         end
 
-        it { expect(response).to have_http_status(404) }
+        it { expect(response).to have_gitlab_http_status(404) }
       end
     end
 
@@ -72,7 +72,7 @@ describe AutocompleteController do
 
       describe 'GET #users with project ID' do
         before do
-          get(:users, project_id: project.id, current_user: true)
+          get(:users, params: { project_id: project.id, current_user: true })
         end
 
         it 'returns the project members and non-members' do
@@ -100,7 +100,7 @@ describe AutocompleteController do
         user1 = create(:user, username: 'user1', name: 'Ian')
 
         sign_in(user)
-        get(:users, search: 'user')
+        get(:users, params: { search: 'user' })
 
         response_usernames = json_response.map { |user| user['username']  }
 
@@ -109,15 +109,17 @@ describe AutocompleteController do
     end
 
     context 'limited users per page' do
-      let(:per_page) { 2 }
-
       before do
+        25.times do
+          create(:user)
+        end
+
         sign_in(user)
-        get(:users, per_page: per_page)
+        get(:users)
       end
 
       it { expect(json_response).to be_kind_of(Array) }
-      it { expect(json_response.size).to eq(per_page) }
+      it { expect(json_response.size).to eq(20) }
     end
 
     context 'unauthenticated user' do
@@ -126,7 +128,7 @@ describe AutocompleteController do
       describe 'GET #users with public project' do
         before do
           public_project.add_guest(user)
-          get(:users, project_id: public_project.id)
+          get(:users, params: { project_id: public_project.id })
         end
 
         it { expect(json_response).to be_kind_of(Array) }
@@ -135,27 +137,27 @@ describe AutocompleteController do
 
       describe 'GET #users with project' do
         before do
-          get(:users, project_id: project.id)
+          get(:users, params: { project_id: project.id })
         end
 
-        it { expect(response).to have_http_status(404) }
+        it { expect(response).to have_gitlab_http_status(404) }
       end
 
       describe 'GET #users with unknown project' do
         before do
-          get(:users, project_id: 'unknown')
+          get(:users, params: { project_id: 'unknown' })
         end
 
-        it { expect(response).to have_http_status(404) }
+        it { expect(response).to have_gitlab_http_status(404) }
       end
 
       describe 'GET #users with inaccessible group' do
         before do
           project.add_guest(user)
-          get(:users, group_id: user.namespace.id)
+          get(:users, params: { group_id: user.namespace.id })
         end
 
-        it { expect(response).to have_http_status(404) }
+        it { expect(response).to have_gitlab_http_status(404) }
       end
 
       describe 'GET #users with no project' do
@@ -169,7 +171,7 @@ describe AutocompleteController do
 
       describe 'GET #users with todo filter' do
         it 'gives an array of users' do
-          get :users, todo_filter: true
+          get :users, params: { todo_filter: true }
 
           expect(response.status).to eq 200
           expect(json_response).to be_kind_of(Array)
@@ -184,13 +186,13 @@ describe AutocompleteController do
         end
 
         it 'includes the author' do
-          get(:users, author_id: non_member.id)
+          get(:users, params: { author_id: non_member.id })
 
           expect(json_response.first["username"]).to eq non_member.username
         end
 
         it 'rejects non existent user ids' do
-          get(:users, author_id: 99999)
+          get(:users, params: { author_id: 99999 })
 
           expect(json_response.collect { |u| u['id'] }).not_to include(99999)
         end
@@ -198,7 +200,7 @@ describe AutocompleteController do
 
       context 'without authenticating' do
         it 'returns empty result' do
-          get(:users, author_id: non_member.id)
+          get(:users, params: { author_id: non_member.id })
 
           expect(json_response).to be_empty
         end
@@ -211,7 +213,7 @@ describe AutocompleteController do
       end
 
       it 'skips the user IDs passed' do
-        get(:users, skip_users: [user, user2].map(&:id))
+        get(:users, params: { skip_users: [user, user2].map(&:id) })
 
         response_user_ids = json_response.map { |user| user['id'] }
 
@@ -226,17 +228,17 @@ describe AutocompleteController do
 
     before do
       sign_in(user)
-      project.add_master(user)
+      project.add_maintainer(user)
     end
 
     context 'authorized projects' do
       before do
-        authorized_project.add_master(user)
+        authorized_project.add_maintainer(user)
       end
 
       describe 'GET #projects with project ID' do
         before do
-          get(:projects, project_id: project.id)
+          get(:projects, params: { project_id: project.id })
         end
 
         it 'returns projects' do
@@ -244,20 +246,20 @@ describe AutocompleteController do
           expect(json_response.size).to eq(1)
 
           expect(json_response.first['id']).to eq authorized_project.id
-          expect(json_response.first['name_with_namespace']).to eq authorized_project.name_with_namespace
+          expect(json_response.first['name_with_namespace']).to eq authorized_project.full_name
         end
       end
     end
 
     context 'authorized projects and search' do
       before do
-        authorized_project.add_master(user)
-        authorized_search_project.add_master(user)
+        authorized_project.add_maintainer(user)
+        authorized_search_project.add_maintainer(user)
       end
 
       describe 'GET #projects with project ID and search' do
         before do
-          get(:projects, project_id: project.id, search: 'rugged')
+          get(:projects, params: { project_id: project.id, search: 'rugged' })
         end
 
         it 'returns projects' do
@@ -265,31 +267,28 @@ describe AutocompleteController do
           expect(json_response.size).to eq(1)
 
           expect(json_response.first['id']).to eq authorized_search_project.id
-          expect(json_response.first['name_with_namespace']).to eq authorized_search_project.name_with_namespace
+          expect(json_response.first['name_with_namespace']).to eq authorized_search_project.full_name
         end
       end
     end
 
     context 'authorized projects apply limit' do
       before do
-        authorized_project2 = create(:project)
-        authorized_project3 = create(:project)
+        allow(Kaminari.config).to receive(:default_per_page).and_return(2)
 
-        authorized_project.add_master(user)
-        authorized_project2.add_master(user)
-        authorized_project3.add_master(user)
-
-        stub_const 'MoveToProjectFinder::PAGE_SIZE', 2
+        create_list(:project, 2) do |project|
+          project.add_maintainer(user)
+        end
       end
 
       describe 'GET #projects with project ID' do
         before do
-          get(:projects, project_id: project.id)
+          get(:projects, params: { project_id: project.id })
         end
 
         it 'returns projects' do
           expect(json_response).to be_kind_of(Array)
-          expect(json_response.size).to eq 2 # Of a total of 3
+          expect(json_response.size).to eq(Kaminari.config.default_per_page)
         end
       end
     end
@@ -299,14 +298,14 @@ describe AutocompleteController do
         authorized_project2 = create(:project)
         authorized_project3 = create(:project)
 
-        authorized_project.add_master(user)
-        authorized_project2.add_master(user)
-        authorized_project3.add_master(user)
+        authorized_project.add_maintainer(user)
+        authorized_project2.add_maintainer(user)
+        authorized_project3.add_maintainer(user)
       end
 
       describe 'GET #projects with project ID and offset_id' do
         before do
-          get(:projects, project_id: project.id, offset_id: authorized_project.id)
+          get(:projects, params: { project_id: project.id, offset_id: authorized_project.id })
         end
 
         it 'returns projects' do
@@ -325,7 +324,7 @@ describe AutocompleteController do
 
       describe 'GET #projects with project ID' do
         before do
-          get(:projects, project_id: project.id)
+          get(:projects, params: { project_id: project.id })
         end
 
         it 'returns no projects' do

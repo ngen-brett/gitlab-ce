@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :environment, class: Environment do
     sequence(:name) { |n| "environment#{n}" }
 
@@ -22,6 +22,7 @@ FactoryGirl.define do
                                        pipeline: pipeline)
 
         deployment = create(:deployment,
+                            :success,
                             environment: environment,
                             project: environment.project,
                             deployable: deployable,

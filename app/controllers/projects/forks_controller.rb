@@ -1,11 +1,15 @@
+# frozen_string_literal: true
+
 class Projects::ForksController < Projects::ApplicationController
   include ContinueParams
 
   # Authorize
+  before_action :whitelist_query_limiting, only: [:create]
   before_action :require_non_empty_project
   before_action :authorize_download_code!
   before_action :authenticate_user!, only: [:new, :create]
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def index
     base_query = project.forks.includes(:creator)
 
@@ -26,12 +30,14 @@ class Projects::ForksController < Projects::ApplicationController
       end
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def new
     @namespaces = current_user.manageable_namespaces
     @namespaces.delete(@project.namespace)
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def create
     namespace = Namespace.find(params[:namespace_key])
 
@@ -53,5 +59,10 @@ class Projects::ForksController < Projects::ApplicationController
     else
       render :error
     end
+  end
+  # rubocop: enable CodeReuse/ActiveRecord
+
+  def whitelist_query_limiting
+    Gitlab::QueryLimiting.whitelist('https://gitlab.com/gitlab-org/gitlab-ce/issues/42335')
   end
 end

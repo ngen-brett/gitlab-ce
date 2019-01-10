@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-feature 'Admin Groups' do
+describe 'Admin Groups' do
   include Select2Helper
 
   let(:internal) { Gitlab::VisibilityLevel::INTERNAL }
@@ -31,6 +31,7 @@ feature 'Admin Groups' do
       path_component = 'gitlab'
       group_name = 'GitLab group name'
       group_description = 'Description of group for GitLab'
+
       fill_in 'group_path', with: path_component
       fill_in 'group_name', with: group_name
       fill_in 'group_description', with: group_description
@@ -46,24 +47,44 @@ feature 'Admin Groups' do
       expect(li_texts).to match group_description
     end
 
-    scenario 'shows the visibility level radio populated with the default value' do
+    it 'shows the visibility level radio populated with the default value' do
       visit new_admin_group_path
 
       expect_selected_visibility(internal)
     end
 
-    scenario 'when entered in group path, it auto filled the group name', js: true do
+    it 'when entered in group name, it auto filled the group path', :js do
       visit admin_groups_path
       click_link "New group"
-      group_path = 'gitlab'
+      group_name = 'gitlab'
+      fill_in 'group_name', with: group_name
+      path_field = find('input#group_path')
+      expect(path_field.value).to eq group_name
+    end
+
+    it 'auto populates the group path with the group name', :js do
+      visit admin_groups_path
+      click_link "New group"
+      group_name = 'my gitlab project'
+      fill_in 'group_name', with: group_name
+      path_field = find('input#group_path')
+      expect(path_field.value).to eq 'my-gitlab-project'
+    end
+
+    it 'when entering in group path, group name does not change anymore', :js do
+      visit admin_groups_path
+      click_link "New group"
+      group_path = 'my-gitlab-project'
+      group_name = 'My modified gitlab project'
       fill_in 'group_path', with: group_path
-      name_field = find('input#group_name')
-      expect(name_field.value).to eq group_path
+      fill_in 'group_name', with: group_name
+      path_field = find('input#group_path')
+      expect(path_field.value).to eq 'my-gitlab-project'
     end
   end
 
   describe 'show a group' do
-    scenario 'shows the group' do
+    it 'shows the group' do
       group = create(:group, :private)
 
       visit admin_group_path(group)
@@ -73,7 +94,7 @@ feature 'Admin Groups' do
   end
 
   describe 'group edit' do
-    scenario 'shows the visibility level radio populated with the group visibility_level value' do
+    it 'shows the visibility level radio populated with the group visibility_level value' do
       group = create(:group, :private)
 
       visit admin_group_edit_path(group)
@@ -81,7 +102,7 @@ feature 'Admin Groups' do
       expect_selected_visibility(group.visibility_level)
     end
 
-    scenario 'edit group path does not change group name', js: true do
+    it 'edit group path does not change group name', :js do
       group = create(:group, :private)
 
       visit admin_group_edit_path(group)
@@ -93,7 +114,7 @@ feature 'Admin Groups' do
     end
   end
 
-  describe 'add user into a group', js: true do
+  describe 'add user into a group', :js do
     shared_context 'adds user into a group' do
       it do
         visit admin_group_path(group)
@@ -124,7 +145,7 @@ feature 'Admin Groups' do
       group.add_user(:user, Gitlab::Access::OWNER)
     end
 
-    it 'adds admin a to a group as developer', js: true do
+    it 'adds admin a to a group as developer', :js do
       visit group_group_members_path(group)
 
       page.within '.users-group-form' do
@@ -141,7 +162,7 @@ feature 'Admin Groups' do
     end
   end
 
-  describe 'admin remove himself from a group', js: true do
+  describe 'admin remove himself from a group', :js do
     it 'removes admin from the group' do
       group.add_user(current_user, Gitlab::Access::DEVELOPER)
 
@@ -152,7 +173,7 @@ feature 'Admin Groups' do
         expect(page).to have_content('Developer')
       end
 
-      find(:css, 'li', text: current_user.name).find(:css, 'a.btn-remove').click
+      accept_confirm { find(:css, 'li', text: current_user.name).find(:css, 'a.btn-remove').click }
 
       visit group_group_members_path(group)
 
@@ -167,13 +188,13 @@ feature 'Admin Groups' do
     it 'renders shared project' do
       empty_project = create(:project)
       empty_project.project_group_links.create!(
-        group_access: Gitlab::Access::MASTER,
+        group_access: Gitlab::Access::MAINTAINER,
         group: group
       )
 
       visit admin_group_path(group)
 
-      expect(page).to have_content(empty_project.name_with_namespace)
+      expect(page).to have_content(empty_project.full_name)
       expect(page).to have_content('Projects shared with')
     end
   end

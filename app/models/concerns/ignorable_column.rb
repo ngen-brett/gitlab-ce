@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Module that can be included into a model to make it easier to ignore database
 # columns.
 #
@@ -12,7 +14,7 @@
 module IgnorableColumn
   extend ActiveSupport::Concern
 
-  module ClassMethods
+  class_methods do
     def columns
       super.reject { |column| ignored_columns.include?(column.name) }
     end
@@ -21,8 +23,8 @@ module IgnorableColumn
       @ignored_columns ||= Set.new
     end
 
-    def ignore_column(name)
-      ignored_columns << name.to_s
+    def ignore_column(*names)
+      ignored_columns.merge(names.map(&:to_s))
     end
   end
 end

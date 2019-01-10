@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # A non-diff discussion on an issue, merge request, commit, or snippet, consisting of `DiscussionNote` notes.
 #
 # A discussion of this type can be resolvable.
@@ -11,10 +13,15 @@ class Discussion
             :author,
 
             :noteable,
+            :commit_id,
             :for_commit?,
             :for_merge_request?,
 
             to: :first_note
+
+  def project_id
+    project&.id
+  end
 
   def self.build(notes, context_noteable = nil)
     notes.first.discussion_class(context_noteable).new(notes, context_noteable)
@@ -64,6 +71,10 @@ class Discussion
   def initialize(notes, context_noteable = nil)
     @notes = notes
     @context_noteable = context_noteable
+  end
+
+  def on_image?
+    false
   end
 
   def ==(other)

@@ -5,7 +5,7 @@ describe Auth::ContainerRegistryAuthenticationService do
   let(:current_user) { nil }
   let(:current_params) { {} }
   let(:rsa_key) { OpenSSL::PKey::RSA.generate(512) }
-  let(:payload) { JWT.decode(subject[:token], rsa_key).first }
+  let(:payload) { JWT.decode(subject[:token], rsa_key, true, { algorithm: 'RS256' }).first }
 
   let(:authentication_abilities) do
     [:read_container_image, :create_container_image, :admin_container_image]
@@ -19,6 +19,11 @@ describe Auth::ContainerRegistryAuthenticationService do
   before do
     allow(Gitlab.config.registry).to receive_messages(enabled: true, issuer: 'rspec', key: nil)
     allow_any_instance_of(JSONWebToken::RSAToken).to receive(:key).and_return(rsa_key)
+  end
+
+  shared_examples 'an authenticated' do
+    it { is_expected.to include(:token) }
+    it { expect(payload).to include('access') }
   end
 
   shared_examples 'a valid token' do
@@ -43,6 +48,21 @@ describe Auth::ContainerRegistryAuthenticationService do
     end
   end
 
+  shared_examples 'a browsable' do
+    let(:access) do
+      [{ 'type' => 'registry',
+         'name' => 'catalog',
+         'actions' => ['*'] }]
+    end
+
+    it_behaves_like 'a valid token'
+    it_behaves_like 'not a container repository factory'
+
+    it 'has the correct scope' do
+      expect(payload).to include('access' => access)
+    end
+  end
+
   shared_examples 'an accessible' do
     let(:access) do
       [{ 'type' => 'repository',
@@ -51,7 +71,10 @@ describe Auth::ContainerRegistryAuthenticationService do
     end
 
     it_behaves_like 'a valid token'
-    it { expect(payload).to include('access' => access) }
+
+    it 'has the correct scope' do
+      expect(payload).to include('access' => access)
+    end
   end
 
   shared_examples 'an inaccessible' do
@@ -117,6 +140,17 @@ describe Auth::ContainerRegistryAuthenticationService do
   context 'user authorization' do
     let(:current_user) { create(:user) }
 
+    context 'for registry catalog' do
+      let(:current_params) do
+        { scopes: ["registry:catalog:*"] }
+      end
+
+      context 'disallow browsing for users without GitLab admin rights' do
+        it_behaves_like 'an inaccessible'
+        it_behaves_like 'not a container repository factory'
+      end
+    end
+
     context 'for private project' do
       let(:project) { create(:project) }
 
@@ -130,7 +164,7 @@ describe Auth::ContainerRegistryAuthenticationService do
         end
 
         let(:current_params) do
-          { scope: "repository:#{project.full_path}:push" }
+          { scopes: ["repository:#{project.full_path}:push"] }
         end
 
         it_behaves_like 'a pushable'
@@ -143,7 +177,7 @@ describe Auth::ContainerRegistryAuthenticationService do
         end
 
         let(:current_params) do
-          { scope: "repository:#{project.path_with_namespace}:*" }
+          { scopes: ["repository:#{project.full_path}:*"] }
         end
 
         it_behaves_like 'an inaccessible'
@@ -157,7 +191,7 @@ describe Auth::ContainerRegistryAuthenticationService do
 
         context 'when pulling from root level repository' do
           let(:current_params) do
-            { scope: "repository:#{project.full_path}:pull" }
+            { scopes: ["repository:#{project.full_path}:pull"] }
           end
 
           it_behaves_like 'a pullable'
@@ -171,7 +205,7 @@ describe Auth::ContainerRegistryAuthenticationService do
         end
 
         let(:current_params) do
-          { scope: "repository:#{project.path_with_namespace}:*" }
+          { scopes: ["repository:#{project.full_path}:*"] }
         end
 
         it_behaves_like 'an inaccessible'
@@ -184,7 +218,7 @@ describe Auth::ContainerRegistryAuthenticationService do
         end
 
         let(:current_params) do
-          { scope: "repository:#{project.full_path}:push,pull" }
+          { scopes: ["repository:#{project.full_path}:push,pull"] }
         end
 
         it_behaves_like 'a pullable'
@@ -197,7 +231,7 @@ describe Auth::ContainerRegistryAuthenticationService do
         end
 
         let(:current_params) do
-          { scope: "repository:#{project.full_path}:pull,push" }
+          { scopes: ["repository:#{project.full_path}:pull,push"] }
         end
 
         it_behaves_like 'an inaccessible'
@@ -210,7 +244,7 @@ describe Auth::ContainerRegistryAuthenticationService do
         end
 
         let(:current_params) do
-          { scope: "repository:#{project.path_with_namespace}:*" }
+          { scopes: ["repository:#{project.full_path}:*"] }
         end
 
         it_behaves_like 'an inaccessible'
@@ -223,7 +257,7 @@ describe Auth::ContainerRegistryAuthenticationService do
 
       context 'allow anyone to pull images' do
         let(:current_params) do
-          { scope: "repository:#{project.full_path}:pull" }
+          { scopes: ["repository:#{project.full_path}:pull"] }
         end
 
         it_behaves_like 'a pullable'
@@ -232,7 +266,7 @@ describe Auth::ContainerRegistryAuthenticationService do
 
       context 'disallow anyone to push images' do
         let(:current_params) do
-          { scope: "repository:#{project.full_path}:push" }
+          { scopes: ["repository:#{project.full_path}:push"] }
         end
 
         it_behaves_like 'an inaccessible'
@@ -241,7 +275,7 @@ describe Auth::ContainerRegistryAuthenticationService do
 
       context 'disallow anyone to delete images' do
         let(:current_params) do
-          { scope: "repository:#{project.path_with_namespace}:*" }
+          { scopes: ["repository:#{project.full_path}:*"] }
         end
 
         it_behaves_like 'an inaccessible'
@@ -250,7 +284,7 @@ describe Auth::ContainerRegistryAuthenticationService do
 
       context 'when repository name is invalid' do
         let(:current_params) do
-          { scope: 'repository:invalid:push' }
+          { scopes: ['repository:invalid:push'] }
         end
 
         it_behaves_like 'an inaccessible'
@@ -264,7 +298,7 @@ describe Auth::ContainerRegistryAuthenticationService do
       context 'for internal user' do
         context 'allow anyone to pull images' do
           let(:current_params) do
-            { scope: "repository:#{project.full_path}:pull" }
+            { scopes: ["repository:#{project.full_path}:pull"] }
           end
 
           it_behaves_like 'a pullable'
@@ -273,7 +307,7 @@ describe Auth::ContainerRegistryAuthenticationService do
 
         context 'disallow anyone to push images' do
           let(:current_params) do
-            { scope: "repository:#{project.full_path}:push" }
+            { scopes: ["repository:#{project.full_path}:push"] }
           end
 
           it_behaves_like 'an inaccessible'
@@ -282,7 +316,7 @@ describe Auth::ContainerRegistryAuthenticationService do
 
         context 'disallow anyone to delete images' do
           let(:current_params) do
-            { scope: "repository:#{project.path_with_namespace}:*" }
+            { scopes: ["repository:#{project.full_path}:*"] }
           end
 
           it_behaves_like 'an inaccessible'
@@ -294,7 +328,7 @@ describe Auth::ContainerRegistryAuthenticationService do
         context 'disallow anyone to pull or push images' do
           let(:current_user) { create(:user, external: true) }
           let(:current_params) do
-            { scope: "repository:#{project.path_with_namespace}:pull,push" }
+            { scopes: ["repository:#{project.full_path}:pull,push"] }
           end
 
           it_behaves_like 'an inaccessible'
@@ -304,7 +338,7 @@ describe Auth::ContainerRegistryAuthenticationService do
         context 'disallow anyone to delete images' do
           let(:current_user) { create(:user, external: true) }
           let(:current_params) do
-            { scope: "repository:#{project.path_with_namespace}:*" }
+            { scopes: ["repository:#{project.full_path}:*"] }
           end
 
           it_behaves_like 'an inaccessible'
@@ -314,7 +348,7 @@ describe Auth::ContainerRegistryAuthenticationService do
     end
   end
 
-  context 'delete authorized as master' do
+  context 'delete authorized as maintainer' do
     let(:current_project) { create(:project) }
     let(:current_user) { create(:user) }
 
@@ -323,14 +357,14 @@ describe Auth::ContainerRegistryAuthenticationService do
     end
 
     before do
-      current_project.add_master(current_user)
+      current_project.add_maintainer(current_user)
     end
 
     it_behaves_like 'a valid token'
 
     context 'allow to delete images' do
       let(:current_params) do
-        { scope: "repository:#{current_project.path_with_namespace}:*" }
+        { scopes: ["repository:#{current_project.full_path}:*"] }
       end
 
       it_behaves_like 'a deletable' do
@@ -351,11 +385,19 @@ describe Auth::ContainerRegistryAuthenticationService do
       current_project.add_developer(current_user)
     end
 
+    context 'allow to use offline_token' do
+      let(:current_params) do
+        { offline_token: true }
+      end
+
+      it_behaves_like 'an authenticated'
+    end
+
     it_behaves_like 'a valid token'
 
     context 'allow to pull and push images' do
       let(:current_params) do
-        { scope: "repository:#{current_project.full_path}:pull,push" }
+        { scopes: ["repository:#{current_project.full_path}:pull,push"] }
       end
 
       it_behaves_like 'a pullable and pushable' do
@@ -369,7 +411,7 @@ describe Auth::ContainerRegistryAuthenticationService do
 
     context 'disallow to delete images' do
       let(:current_params) do
-        { scope: "repository:#{current_project.path_with_namespace}:*" }
+        { scopes: ["repository:#{current_project.full_path}:*"] }
       end
 
       it_behaves_like 'an inaccessible' do
@@ -380,7 +422,7 @@ describe Auth::ContainerRegistryAuthenticationService do
     context 'for other projects' do
       context 'when pulling' do
         let(:current_params) do
-          { scope: "repository:#{project.full_path}:pull" }
+          { scopes: ["repository:#{project.full_path}:pull"] }
         end
 
         context 'allow for public' do
@@ -447,7 +489,7 @@ describe Auth::ContainerRegistryAuthenticationService do
 
       context 'when pushing' do
         let(:current_params) do
-          { scope: "repository:#{project.full_path}:push" }
+          { scopes: ["repository:#{project.full_path}:push"] }
         end
 
         context 'disallow for all' do
@@ -481,12 +523,74 @@ describe Auth::ContainerRegistryAuthenticationService do
 
       context 'disallow when pulling' do
         let(:current_params) do
-          { scope: "repository:#{project.full_path}:pull" }
+          { scopes: ["repository:#{project.full_path}:pull"] }
         end
 
         it_behaves_like 'an inaccessible'
         it_behaves_like 'not a container repository factory'
       end
+    end
+  end
+
+  context 'registry catalog browsing authorized as admin' do
+    let(:current_user) { create(:user, :admin) }
+    let(:project) { create(:project, :public) }
+
+    let(:current_params) do
+      { scopes: ["registry:catalog:*"] }
+    end
+
+    it_behaves_like 'a browsable'
+  end
+
+  context 'support for multiple scopes' do
+    let(:internal_project) { create(:project, :internal) }
+    let(:private_project) { create(:project, :private) }
+
+    let(:current_params) do
+      {
+        scopes: [
+          "repository:#{internal_project.full_path}:pull",
+          "repository:#{private_project.full_path}:pull"
+        ]
+      }
+    end
+
+    context 'user has access to all projects' do
+      let(:current_user) { create(:user, :admin) }
+
+      it_behaves_like 'a browsable' do
+        let(:access) do
+          [
+            { 'type' => 'repository',
+              'name' => internal_project.full_path,
+              'actions' => ['pull'] },
+            { 'type' => 'repository',
+              'name' => private_project.full_path,
+              'actions' => ['pull'] }
+          ]
+        end
+      end
+    end
+
+    context 'user only has access to internal project' do
+      let(:current_user) { create(:user) }
+
+      it_behaves_like 'a browsable' do
+        let(:access) do
+          [
+            { 'type' => 'repository',
+              'name' => internal_project.full_path,
+              'actions' => ['pull'] }
+          ]
+        end
+      end
+    end
+
+    context 'anonymous access is rejected' do
+      let(:current_user) { nil }
+
+      it_behaves_like 'a forbidden'
     end
   end
 
@@ -498,7 +602,7 @@ describe Auth::ContainerRegistryAuthenticationService do
 
     context 'for invalid scope' do
       let(:current_params) do
-        { scope: 'invalid:aa:bb' }
+        { scopes: ['invalid:aa:bb'] }
       end
 
       it_behaves_like 'a forbidden'
@@ -509,7 +613,7 @@ describe Auth::ContainerRegistryAuthenticationService do
       let(:project) { create(:project, :private) }
 
       let(:current_params) do
-        { scope: "repository:#{project.full_path}:pull" }
+        { scopes: ["repository:#{project.full_path}:pull"] }
       end
 
       it_behaves_like 'a forbidden'
@@ -520,7 +624,7 @@ describe Auth::ContainerRegistryAuthenticationService do
 
       context 'when pulling and pushing' do
         let(:current_params) do
-          { scope: "repository:#{project.full_path}:pull,push" }
+          { scopes: ["repository:#{project.full_path}:pull,push"] }
         end
 
         it_behaves_like 'a pullable'
@@ -529,11 +633,178 @@ describe Auth::ContainerRegistryAuthenticationService do
 
       context 'when pushing' do
         let(:current_params) do
-          { scope: "repository:#{project.full_path}:push" }
+          { scopes: ["repository:#{project.full_path}:push"] }
         end
 
         it_behaves_like 'a forbidden'
         it_behaves_like 'not a container repository factory'
+      end
+    end
+
+    context 'for registry catalog' do
+      let(:current_params) do
+        { scopes: ["registry:catalog:*"] }
+      end
+
+      it_behaves_like 'a forbidden'
+      it_behaves_like 'not a container repository factory'
+    end
+  end
+
+  context 'for deploy tokens' do
+    let(:current_params) do
+      { scopes: ["repository:#{project.full_path}:pull"] }
+    end
+
+    context 'when deploy token has read_registry as a scope' do
+      let(:current_user) { create(:deploy_token, projects: [project]) }
+
+      context 'for public project' do
+        let(:project) { create(:project, :public) }
+
+        context 'when pulling' do
+          it_behaves_like 'a pullable'
+        end
+
+        context 'when pushing' do
+          let(:current_params) do
+            { scopes: ["repository:#{project.full_path}:push"] }
+          end
+
+          it_behaves_like 'an inaccessible'
+        end
+      end
+
+      context 'for internal project' do
+        let(:project) { create(:project, :internal) }
+
+        context 'when pulling' do
+          it_behaves_like 'a pullable'
+        end
+
+        context 'when pushing' do
+          let(:current_params) do
+            { scopes: ["repository:#{project.full_path}:push"] }
+          end
+
+          it_behaves_like 'an inaccessible'
+        end
+      end
+
+      context 'for private project' do
+        let(:project) { create(:project, :private) }
+
+        context 'when pulling' do
+          it_behaves_like 'a pullable'
+        end
+
+        context 'when pushing' do
+          let(:current_params) do
+            { scopes: ["repository:#{project.full_path}:push"] }
+          end
+
+          it_behaves_like 'an inaccessible'
+        end
+      end
+    end
+
+    context 'when deploy token does not have read_registry scope' do
+      let(:current_user) { create(:deploy_token, projects: [project], read_registry: false) }
+
+      context 'for public project' do
+        let(:project) { create(:project, :public) }
+
+        context 'when pulling' do
+          it_behaves_like 'a pullable'
+        end
+      end
+
+      context 'for internal project' do
+        let(:project) { create(:project, :internal) }
+
+        context 'when pulling' do
+          it_behaves_like 'an inaccessible'
+        end
+      end
+
+      context 'for private project' do
+        let(:project) { create(:project, :internal) }
+
+        context 'when pulling' do
+          it_behaves_like 'an inaccessible'
+        end
+      end
+    end
+
+    context 'when deploy token is not related to the project' do
+      let(:current_user) { create(:deploy_token, read_registry: false) }
+
+      context 'for public project' do
+        let(:project) { create(:project, :public) }
+
+        context 'when pulling' do
+          it_behaves_like 'a pullable'
+        end
+      end
+
+      context 'for internal project' do
+        let(:project) { create(:project, :internal) }
+
+        context 'when pulling' do
+          it_behaves_like 'an inaccessible'
+        end
+      end
+
+      context 'for private project' do
+        let(:project) { create(:project, :internal) }
+
+        context 'when pulling' do
+          it_behaves_like 'an inaccessible'
+        end
+      end
+    end
+
+    context 'when deploy token has been revoked' do
+      let(:current_user) { create(:deploy_token, :revoked, projects: [project]) }
+
+      context 'for public project' do
+        let(:project) { create(:project, :public) }
+
+        it_behaves_like 'a pullable'
+      end
+
+      context 'for internal project' do
+        let(:project) { create(:project, :internal) }
+
+        it_behaves_like 'an inaccessible'
+      end
+
+      context 'for private project' do
+        let(:project) { create(:project, :internal) }
+
+        it_behaves_like 'an inaccessible'
+      end
+    end
+  end
+
+  context 'user authorization' do
+    let(:current_user) { create(:user) }
+
+    context 'with multiple scopes' do
+      let(:project) { create(:project) }
+      let(:project2) { create }
+
+      context 'allow developer to push images' do
+        before do
+          project.add_developer(current_user)
+        end
+
+        let(:current_params) do
+          { scopes: ["repository:#{project.full_path}:push"] }
+        end
+
+        it_behaves_like 'a pushable'
+        it_behaves_like 'container repository factory'
       end
     end
   end

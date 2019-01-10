@@ -1,8 +1,22 @@
+# frozen_string_literal: true
+
 module API
   class DeployKeys < Grape::API
     include PaginationParams
 
     before { authenticate! }
+
+    helpers do
+      def add_deploy_keys_project(project, attrs = {})
+        project.deploy_keys_projects.create(attrs)
+      end
+
+      # rubocop: disable CodeReuse/ActiveRecord
+      def find_by_deploy_key(project, key_id)
+        project.deploy_keys_projects.find_by!(deploy_key: key_id)
+      end
+      # rubocop: enable CodeReuse/ActiveRecord
+    end
 
     desc 'Return all deploy keys'
     params do
@@ -17,64 +31,77 @@ module API
     params do
       requires :id, type: String, desc: 'The ID of the project'
     end
-    resource :projects, requirements: API::PROJECT_ENDPOINT_REQUIREMENTS do
+    resource :projects, requirements: API::NAMESPACE_OR_PROJECT_REQUIREMENTS do
       before { authorize_admin_project }
 
       desc "Get a specific project's deploy keys" do
-        success Entities::SSHKey
+        success Entities::DeployKeysProject
       end
       params do
         use :pagination
       end
+      # rubocop: disable CodeReuse/ActiveRecord
       get ":id/deploy_keys" do
-        present paginate(user_project.deploy_keys), with: Entities::SSHKey
+        keys = user_project.deploy_keys_projects.preload(:deploy_key)
+
+        present paginate(keys), with: Entities::DeployKeysProject
       end
+      # rubocop: enable CodeReuse/ActiveRecord
 
       desc 'Get single deploy key' do
-        success Entities::SSHKey
+        success Entities::DeployKeysProject
       end
       params do
         requires :key_id, type: Integer, desc: 'The ID of the deploy key'
       end
       get ":id/deploy_keys/:key_id" do
-        key = user_project.deploy_keys.find params[:key_id]
-        present key, with: Entities::SSHKey
+        key = find_by_deploy_key(user_project, params[:key_id])
+
+        present key, with: Entities::DeployKeysProject
       end
 
-      desc 'Add new deploy key to currently authenticated user' do
-        success Entities::SSHKey
+      desc 'Add new deploy key to a project' do
+        success Entities::DeployKeysProject
       end
       params do
         requires :key, type: String, desc: 'The new deploy key'
         requires :title, type: String, desc: 'The name of the deploy key'
         optional :can_push, type: Boolean, desc: "Can deploy key push to the project's repository"
       end
+      # rubocop: disable CodeReuse/ActiveRecord
       post ":id/deploy_keys" do
         params[:key].strip!
 
         # Check for an existing key joined to this project
-        key = user_project.deploy_keys.find_by(key: params[:key])
-        if key
-          present key, with: Entities::SSHKey
+        deploy_key_project = user_project.deploy_keys_projects
+                          .joins(:deploy_key)
+                          .find_by(keys: { key: params[:key] })
+
+        if deploy_key_project
+          present deploy_key_project, with: Entities::DeployKeysProject
           break
         end
 
         # Check for available deploy keys in other projects
         key = current_user.accessible_deploy_keys.find_by(key: params[:key])
         if key
-          user_project.deploy_keys << key
-          present key, with: Entities::SSHKey
+          deploy_key_project = add_deploy_keys_project(user_project, deploy_key: key, can_push: !!params[:can_push])
+
+          present deploy_key_project, with: Entities::DeployKeysProject
           break
         end
 
         # Create a new deploy key
-        key = DeployKey.new(declared_params(include_missing: false))
-        if key.valid? && user_project.deploy_keys << key
-          present key, with: Entities::SSHKey
+        deploy_key_attributes = declared_params.except(:can_push).merge(user: current_user)
+        deploy_key_project = add_deploy_keys_project(user_project, deploy_key_attributes: deploy_key_attributes, can_push: !!params[:can_push])
+
+        if deploy_key_project.valid?
+          present deploy_key_project, with: Entities::DeployKeysProject
         else
-          render_validation_error!(key)
+          render_validation_error!(deploy_key_project)
         end
       end
+      # rubocop: enable CodeReuse/ActiveRecord
 
       desc 'Update an existing deploy key for a project' do
         success Entities::SSHKey
@@ -86,14 +113,21 @@ module API
         at_least_one_of :title, :can_push
       end
       put ":id/deploy_keys/:key_id" do
-        key = DeployKey.find(params.delete(:key_id))
+        deploy_keys_project = find_by_deploy_key(user_project, params[:key_id])
 
-        authorize!(:update_deploy_key, key)
+        authorize!(:update_deploy_key, deploy_keys_project.deploy_key)
 
-        if key.update_attributes(declared_params(include_missing: false))
-          present key, with: Entities::SSHKey
+        can_push = params[:can_push].nil? ? deploy_keys_project.can_push : params[:can_push]
+        title = params[:title] || deploy_keys_project.deploy_key.title
+
+        result = deploy_keys_project.update(can_push: can_push,
+                                            deploy_key_attributes: { id: params[:key_id],
+                                                                     title: title })
+
+        if result
+          present deploy_keys_project, with: Entities::DeployKeysProject
         else
-          render_validation_error!(key)
+          render_validation_error!(deploy_keys_project)
         end
       end
 
@@ -121,12 +155,14 @@ module API
       params do
         requires :key_id, type: Integer, desc: 'The ID of the deploy key'
       end
+      # rubocop: disable CodeReuse/ActiveRecord
       delete ":id/deploy_keys/:key_id" do
-        key = user_project.deploy_keys_projects.find_by(deploy_key_id: params[:key_id])
-        not_found!('Deploy Key') unless key
+        deploy_key_project = user_project.deploy_keys_projects.find_by(deploy_key_id: params[:key_id])
+        not_found!('Deploy Key') unless deploy_key_project
 
-        destroy_conditionally!(key)
+        destroy_conditionally!(deploy_key_project)
       end
+      # rubocop: enable CodeReuse/ActiveRecord
     end
   end
 end

@@ -16,14 +16,23 @@ describe Import::GithubController do
 
       get :new
     end
+
+    it "prompts for an access token if GitHub not configured" do
+      allow(controller).to receive(:github_import_configured?).and_return(false)
+      expect(controller).not_to receive(:go_to_provider_for_permissions)
+
+      get :new
+
+      expect(response).to have_http_status(200)
+    end
   end
 
   describe "GET callback" do
     it "updates access token" do
       token = "asdasd12345"
-      allow_any_instance_of(Gitlab::GithubImport::Client)
+      allow_any_instance_of(Gitlab::LegacyGithubImport::Client)
         .to receive(:get_token).and_return(token)
-      allow_any_instance_of(Gitlab::GithubImport::Client)
+      allow_any_instance_of(Gitlab::LegacyGithubImport::Client)
         .to receive(:github_options).and_return({})
       stub_omniauth_provider('github')
 

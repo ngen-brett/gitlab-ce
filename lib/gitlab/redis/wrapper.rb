@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file should only be used by sub-classes, not directly by any clients of the sub-classes
 # please require all dependencies below:
 require 'active_support/core_ext/hash/keys'
@@ -24,6 +26,7 @@ module Gitlab
             # the pool will be used in a multi-threaded context
             size += Sidekiq.options[:concurrency]
           end
+
           size
         end
 
@@ -104,6 +107,7 @@ module Gitlab
             db_numbers = queries["db"] if queries.key?("db")
             config[:db] = db_numbers[0].to_i if db_numbers.any?
           end
+
           config
         else
           redis_hash = ::Redis::Store::Factory.extract_host_options_from_uri(redis_url)

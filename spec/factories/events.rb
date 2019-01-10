@@ -1,7 +1,7 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :event do
     project
-    author factory: :user
+    author(factory: :user) { project.creator }
     action Event::JOINED
 
     trait(:created)   { action Event::CREATED }
@@ -24,7 +24,7 @@ FactoryGirl.define do
 
   factory :push_event, class: PushEvent do
     project factory: :project_empty_repo
-    author factory: :user
+    author(factory: :user) { project.creator }
     action Event::PUSHED
   end
 

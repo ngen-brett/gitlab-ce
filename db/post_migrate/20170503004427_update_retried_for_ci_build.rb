@@ -1,4 +1,5 @@
-class UpdateRetriedForCiBuild < ActiveRecord::Migration
+# rubocop:disable Migration/UpdateLargeTable
+class UpdateRetriedForCiBuild < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
 
   DOWNTIME = false
@@ -6,12 +7,12 @@ class UpdateRetriedForCiBuild < ActiveRecord::Migration
   disable_ddl_transaction!
 
   def up
-    disable_statement_timeout
-
     if Gitlab::Database.mysql?
       up_mysql
     else
-      up_postgres
+      disable_statement_timeout do
+        up_postgres
+      end
     end
   end
 

@@ -9,19 +9,19 @@
     float: right;
     margin-right: 0;
 
-    @media (max-width: $screen-xs-max) {
+    @include media-breakpoint-down(xs) {
       float: none;
     }
   }
 }
 
 .filters-section {
-  @media (max-width: $screen-xs-max) {
+  @include media-breakpoint-down(xs) {
     display: inline-block;
   }
 }
 
-@media (min-width: $screen-sm-min) {
+@include media-breakpoint-up(sm) {
   .filter-item:not(:last-child) {
     margin-right: 6px;
   }
@@ -37,7 +37,7 @@
   }
 }
 
-@media (max-width: $screen-xs-max) {
+@include media-breakpoint-down(xs) {
   .filter-item {
     display: block;
     margin: 0 0 10px;
@@ -50,12 +50,10 @@
 }
 
 .filtered-search-wrapper {
-  @include new-style-dropdown;
-
   display: -webkit-flex;
   display: flex;
 
-  @media (max-width: $screen-xs-min) {
+  @include media-breakpoint-down(xs) {
     -webkit-flex-direction: column;
     flex-direction: column;
   }
@@ -65,7 +63,7 @@
     display: flex;
     flex: 1;
     -webkit-flex: 1;
-    padding-left: 30px;
+    padding-left: 12px;
     position: relative;
     margin-bottom: 0;
   }
@@ -94,8 +92,8 @@
   display: -webkit-flex;
   display: flex;
   flex-shrink: 0;
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 4px;
+  margin-bottom: 4px;
 
   .selectable {
     display: -webkit-flex;
@@ -165,16 +163,6 @@
   }
 }
 
-.droplab-dropdown li.filtered-search-token {
-  padding: 0;
-
-  &:hover,
-  &:focus {
-    background-color: inherit;
-    color: inherit;
-  }
-}
-
 .filtered-search-term {
   .name {
     background-color: inherit;
@@ -205,7 +193,7 @@
   border: 1px solid $border-color;
   background-color: $white-light;
 
-  @media (max-width: $screen-xs-min) {
+  @include media-breakpoint-down(xs) {
     -webkit-flex: 1 1 auto;
     flex: 1 1 auto;
     margin-bottom: 10px;
@@ -217,12 +205,8 @@
 
   &.focus,
   &.focus:hover {
-    border-color: $dropdown-input-focus-border;
-    box-shadow: 0 0 4px $search-input-focus-shadow-color;
-  }
-
-  &.focus .fa-filter {
-    color: $common-gray-dark;
+    border-color: $blue-300;
+    box-shadow: 0 0 4px $dropdown-input-focus-shadow;
   }
 
   gl-emoji {
@@ -232,15 +216,18 @@
     vertical-align: inherit;
 
     img {
-      height: 18px;
-      width: 18px;
+      height: $default-icon-size;
+      width: $default-icon-size;
     }
   }
 
   .form-control {
     position: relative;
     min-width: 200px;
-    padding: 5px 25px 6px 0;
+    padding-right: 25px;
+    padding-left: 0;
+    height: $input-height;
+    line-height: inherit;
     border-color: transparent;
 
     &:focus,
@@ -251,13 +238,6 @@
     }
   }
 
-  .fa-filter {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    color: $gray-darkest;
-  }
-
   .fa-times {
     right: 10px;
     color: $gray-darkest;
@@ -266,7 +246,7 @@
   .clear-search {
     width: 35px;
     background-color: $white-light;
-    border: none;
+    border: 0;
     outline: none;
     z-index: 1;
 
@@ -279,21 +259,15 @@
 .filtered-search-box-input-container {
   flex: 1;
   position: relative;
-  // Fix PhantomJS not supporting `flex: 1;` properly.
-  // This is important because it can change the expected `e.target` when clicking things in tests.
-  // See https://gitlab.com/gitlab-org/gitlab-ce/blob/b54acba8b732688c59fe2f38510c469dc86ee499/spec/features/issues/filtered_search/visual_tokens_spec.rb#L61
-  // - With `width: 100%`: `e.target` = `.tokens-container`, https://i.imgur.com/jGq7wbx.png
-  // - Without `width: 100%`: `e.target` = `.filtered-search`, https://i.imgur.com/cNI2CyT.png
-  width: 100%;
   min-width: 0;
 }
 
 .filtered-search-input-dropdown-menu {
-  max-height: 260px;
+  max-height: $dropdown-max-height;
   max-width: 280px;
   overflow: auto;
 
-  @media (max-width: $screen-xs-min) {
+  @include media-breakpoint-down(xs) {
     width: auto;
     left: 0;
     right: 0;
@@ -320,19 +294,15 @@
   &:hover,
   &:focus {
     color: $gl-text-color;
-    border-color: $dropdown-input-focus-border;
+    border-color: $blue-300;
     outline: none;
-
-    svg {
-      fill: $gl-text-color;
-    }
   }
 
   svg {
     height: 14px;
     width: 14px;
-    fill: $gl-text-color-secondary;
     vertical-align: middle;
+    margin-bottom: 4px;
   }
 
   .dropdown-toggle-text {
@@ -349,7 +319,7 @@
 .filtered-search-history-dropdown {
   width: 40%;
 
-  @media (max-width: $screen-xs-min) {
+  @include media-breakpoint-down(xs) {
     left: 0;
     right: 0;
     max-width: none;
@@ -358,21 +328,12 @@
 
 .filtered-search-history-dropdown-content {
   max-height: none;
-}
 
-.filtered-search-history-dropdown-item,
-.filtered-search-history-clear-button {
-  @include dropdown-link;
-
-  overflow: hidden;
-  width: 100%;
-  margin: 0.5em 0;
-
-  background-color: transparent;
-  border: 0;
-  text-align: left;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  .filtered-search-history-dropdown-item,
+  .filtered-search-history-clear-button {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
 }
 
 .filtered-search-history-dropdown-token {
@@ -396,56 +357,36 @@
   }
 }
 
-@media (max-width: $screen-xs-max) {
+@include media-breakpoint-down(xs) {
   .issues-details-filters {
     padding: 0 0 10px;
     background-color: $white-light;
     border-top: 0;
   }
+
+  .filter-dropdown-container {
+    .dropdown {
+      margin-left: 0;
+    }
+  }
 }
 
-@media (max-width: $screen-xs) {
+@include media-breakpoint-down(sm) {
   .filter-dropdown-container {
     .dropdown-toggle,
     .dropdown,
     .dropdown-menu {
       width: 100%;
     }
-
-    .dropdown {
-      margin-left: 0;
-    }
-
-    .fa-chevron-down {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-    }
-  }
-}
-
-%filter-dropdown-item-btn-hover {
-  text-decoration: none;
-  outline: 0;
-
-  .avatar {
-    border-color: $white-light;
   }
 }
 
 .droplab-dropdown .dropdown-menu .filter-dropdown-item {
   .btn {
-    border: none;
-    width: 100%;
-    text-align: left;
-    padding: 8px 16px;
     text-overflow: ellipsis;
-    overflow: hidden;
-    border-radius: 0;
 
-    .fa {
-      width: 15px;
-      line-height: $line-height-base;
+    svg {
+      margin-right: $gl-padding-8;
     }
 
     .dropdown-label-box {
@@ -454,11 +395,7 @@
       border-width: 1px;
       width: 17px;
       height: 17px;
-    }
-
-    &:hover,
-    &:focus {
-      @extend %filter-dropdown-item-btn-hover;
+      top: 0;
     }
   }
 
@@ -482,15 +419,7 @@
   }
 }
 
-.filter-dropdown-item.droplab-item-active .btn {
-  @extend %filter-dropdown-item-btn-hover;
-}
-
 .filter-dropdown-loading {
   padding: 8px 16px;
   text-align: center;
-}
-
-.issues-details-filters {
-  @include new-style-dropdown;
 }

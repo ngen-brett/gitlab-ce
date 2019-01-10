@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module Issues
   class BaseService < ::IssuableBaseService
-    def hook_data(issue, action)
-      issue_data = issue.to_hook_data(current_user)
-      issue_url = Gitlab::UrlBuilder.build(issue)
-      issue_data[:object_attributes].merge!(url: issue_url, action: action)
-      issue_data
+    def hook_data(issue, action, old_associations: {})
+      hook_data = issue.to_hook_data(current_user, old_associations: old_associations)
+      hook_data[:object_attributes][:action] = action
+
+      hook_data
     end
 
     def reopen_service
@@ -22,18 +24,20 @@ module Issues
         issue, issue.project, current_user, old_assignees)
     end
 
-    def execute_hooks(issue, action = 'open')
-      issue_data  = hook_data(issue, action)
+    def execute_hooks(issue, action = 'open', old_associations: {})
+      issue_data  = hook_data(issue, action, old_associations: old_associations)
       hooks_scope = issue.confidential? ? :confidential_issue_hooks : :issue_hooks
       issue.project.execute_hooks(issue_data, hooks_scope)
       issue.project.execute_services(issue_data, hooks_scope)
     end
 
+    # rubocop: disable CodeReuse/ActiveRecord
     def filter_assignee(issuable)
       return if params[:assignee_ids].blank?
 
-      # The number of assignees is limited by one for GitLab CE
-      params[:assignee_ids] = params[:assignee_ids][0, 1]
+      unless issuable.allows_multiple_assignees?
+        params[:assignee_ids] = params[:assignee_ids].take(1)
+      end
 
       assignee_ids = params[:assignee_ids].select { |assignee_id| assignee_can_read?(issuable, assignee_id) }
 
@@ -44,6 +48,11 @@ module Issues
       else
         params.delete(:assignee_ids)
       end
+    end
+    # rubocop: enable CodeReuse/ActiveRecord
+
+    def update_project_counter_caches?(issue)
+      super || issue.confidential_changed?
     end
   end
 end

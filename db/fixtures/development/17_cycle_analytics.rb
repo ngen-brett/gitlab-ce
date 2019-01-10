@@ -1,25 +1,11 @@
 require './spec/support/sidekiq'
-require './spec/support/test_env'
+require './spec/support/helpers/test_env'
 
 class Gitlab::Seeder::CycleAnalytics
   def initialize(project, perf: false)
     @project = project
-    @user = User.order(:id).last
+    @user = User.admins.first
     @issue_count = perf ? 1000 : 5
-    stub_git_pre_receive!
-  end
-
-  # The GitLab API needn't be running for the fixtures to be
-  # created. Since we're performing a number of git actions
-  # here (like creating a branch or committing a file), we need
-  # to disable the `pre_receive` hook in order to remove this
-  # dependency on the GitLab API.
-  def stub_git_pre_receive!
-    Gitlab::Git::HooksService.class_eval do
-      def run_hook(name)
-        [true, '']
-      end
-    end
   end
 
   def seed_metrics!
@@ -77,39 +63,41 @@ class Gitlab::Seeder::CycleAnalytics
   end
 
   def seed!
-    Sidekiq::Testing.inline! do
-      issues = create_issues
-      puts '.'
+    Sidekiq::Worker.skipping_transaction_check do
+      Sidekiq::Testing.inline! do
+        issues = create_issues
+        puts '.'
 
-      # Stage 1
-      Timecop.travel 5.days.from_now
-      add_milestones_and_list_labels(issues)
-      print '.'
+        # Stage 1
+        Timecop.travel 5.days.from_now
+        add_milestones_and_list_labels(issues)
+        print '.'
 
-      # Stage 2
-      Timecop.travel 5.days.from_now
-      branches = mention_in_commits(issues)
-      print '.'
+        # Stage 2
+        Timecop.travel 5.days.from_now
+        branches = mention_in_commits(issues)
+        print '.'
 
-      # Stage 3
-      Timecop.travel 5.days.from_now
-      merge_requests = create_merge_requests_closing_issues(issues, branches)
-      print '.'
+        # Stage 3
+        Timecop.travel 5.days.from_now
+        merge_requests = create_merge_requests_closing_issues(issues, branches)
+        print '.'
 
-      # Stage 4
-      Timecop.travel 5.days.from_now
-      run_builds(merge_requests)
-      print '.'
+        # Stage 4
+        Timecop.travel 5.days.from_now
+        run_builds(merge_requests)
+        print '.'
 
-      # Stage 5
-      Timecop.travel 5.days.from_now
-      merge_merge_requests(merge_requests)
-      print '.'
+        # Stage 5
+        Timecop.travel 5.days.from_now
+        merge_merge_requests(merge_requests)
+        print '.'
 
-      # Stage 6 / 7
-      Timecop.travel 5.days.from_now
-      deploy_to_production(merge_requests)
-      print '.'
+        # Stage 6 / 7
+        Timecop.travel 5.days.from_now
+        deploy_to_production(merge_requests)
+        print '.'
+      end
     end
 
     print '.'
@@ -123,7 +111,7 @@ class Gitlab::Seeder::CycleAnalytics
         title: "Cycle Analytics: #{FFaker::Lorem.sentence(6)}",
         description: FFaker::Lorem.sentence,
         state: 'opened',
-        assignee: @project.team.users.sample
+        assignees: [@project.team.users.sample]
       }
 
       Issues::CreateService.new(@project, @project.team.users.sample, issue_params).execute
@@ -138,8 +126,8 @@ class Gitlab::Seeder::CycleAnalytics
         issue.update(milestone: @project.milestones.sample)
       else
         label_name = "#{FFaker::Product.brand}-#{FFaker::Product.brand}-#{rand(1000)}"
-        list_label = FactoryGirl.create(:label, title: label_name, project: issue.project)
-        FactoryGirl.create(:list, board: FactoryGirl.create(:board, project: issue.project), label: list_label)
+        list_label = FactoryBot.create(:label, title: label_name, project: issue.project)
+        FactoryBot.create(:list, board: FactoryBot.create(:board, project: issue.project), label: list_label)
         issue.update(labels: [list_label])
       end
 
@@ -155,7 +143,7 @@ class Gitlab::Seeder::CycleAnalytics
 
       issue.project.repository.add_branch(@user, branch_name, 'master')
 
-      commit_sha = issue.project.repository.create_file(@user, filename, "content", message: "Commit for ##{issue.iid}", branch_name: branch_name)
+      commit_sha = issue.project.repository.create_file(@user, filename, "content", message: "Commit for #{issue.to_reference}", branch_name: branch_name)
       issue.project.repository.commit(commit_sha)
 
       GitPushService.new(issue.project,
@@ -192,11 +180,8 @@ class Gitlab::Seeder::CycleAnalytics
                                               ref: "refs/heads/#{merge_request.source_branch}")
       pipeline = service.execute(:push, ignore_skip_ci: true, save_on_errors: false)
 
-      pipeline.run!
-      Timecop.travel rand(1..6).hours.from_now
-      pipeline.succeed!
-
-      PipelineMetricsWorker.new.perform(pipeline.id)
+      pipeline.builds.map(&:run!)
+      pipeline.update_status
     end
   end
 
@@ -210,11 +195,14 @@ class Gitlab::Seeder::CycleAnalytics
 
   def deploy_to_production(merge_requests)
     merge_requests.each do |merge_request|
+      next unless merge_request.head_pipeline
+
       Timecop.travel 12.hours.from_now
 
       job = merge_request.head_pipeline.builds.where.not(environment: nil).last
 
-      CreateDeploymentService.new(job).execute
+      job.success!
+      pipeline.update_status
     end
   end
 end
@@ -223,7 +211,14 @@ Gitlab::Seeder.quiet do
   flag = 'SEED_CYCLE_ANALYTICS'
 
   if ENV[flag]
-    Project.all.each do |project|
+    Project.find_each do |project|
+      # This seed naively assumes that every project has a repository, and every
+      # repository has a `master` branch, which may be the case for a pristine
+      # GDK seed, but is almost never true for a GDK that's actually had
+      # development performed on it.
+      next unless project.repository_exists?
+      next unless project.repository.commit('master')
+
       seeder = Gitlab::Seeder::CycleAnalytics.new(project)
       seeder.seed!
     end

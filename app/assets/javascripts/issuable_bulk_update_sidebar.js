@@ -1,10 +1,11 @@
 /* eslint-disable class-methods-use-this, no-new */
-/* global LabelsSelect */
-/* global MilestoneSelect */
-/* global IssueStatusSelect */
-/* global SubscriptionSelect */
 
+import $ from 'jquery';
 import IssuableBulkUpdateActions from './issuable_bulk_update_actions';
+import MilestoneSelect from './milestone_select';
+import issueStatusSelect from './issue_status_select';
+import subscriptionSelect from './subscription_select';
+import LabelsSelect from './labels_select';
 
 const HIDDEN_CLASS = 'hidden';
 const DISABLED_CONTENT_CLASS = 'disabled-content';
@@ -20,7 +21,7 @@ export default class IssuableBulkUpdateSidebar {
   }
 
   initDomElements() {
-    this.$page = $('.page-with-sidebar');
+    this.$page = $('.layout-page');
     this.$sidebar = $('.right-sidebar');
     this.$sidebarInnerContainer = this.$sidebar.find('.issuable-sidebar');
     this.$bulkEditCancelBtn = $('.js-bulk-update-menu-hide');
@@ -29,7 +30,7 @@ export default class IssuableBulkUpdateSidebar {
     this.$otherFilters = $('.issues-other-filters');
     this.$checkAllContainer = $('.check-all-holder');
     this.$issueChecks = $('.issue-check');
-    this.$issuesList = $('.selected_issue');
+    this.$issuesList = $('.selected-issuable');
     this.$issuableIdsInput = $('#update_issuable_ids');
   }
 
@@ -45,8 +46,8 @@ export default class IssuableBulkUpdateSidebar {
   initDropdowns() {
     new LabelsSelect();
     new MilestoneSelect();
-    new IssueStatusSelect();
-    new SubscriptionSelect();
+    issueStatusSelect();
+    subscriptionSelect();
   }
 
   setupBulkUpdateActions() {
@@ -54,7 +55,7 @@ export default class IssuableBulkUpdateSidebar {
   }
 
   updateFormState() {
-    const noCheckedIssues = !$('.selected_issue:checked').length;
+    const noCheckedIssues = !$('.selected-issuable:checked').length;
 
     this.toggleSubmitButtonDisabled(noCheckedIssues);
     this.updateSelectedIssuableIds();
@@ -122,7 +123,7 @@ export default class IssuableBulkUpdateSidebar {
   }
 
   static getCheckedIssueIds() {
-    const $checkedIssues = $('.selected_issue:checked');
+    const $checkedIssues = $('.selected-issuable:checked');
 
     if ($checkedIssues.length > 0) {
       return $.map($checkedIssues, value => $(value).data('id'));

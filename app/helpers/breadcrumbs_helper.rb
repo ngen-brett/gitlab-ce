@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module BreadcrumbsHelper
   def add_to_breadcrumbs(text, link)
     @breadcrumbs_extra_links ||= []
@@ -10,11 +12,7 @@ module BreadcrumbsHelper
   def breadcrumb_title_link
     return @breadcrumb_link if @breadcrumb_link
 
-    if controller.available_action?(:index)
-      url_for(action: "index")
-    else
-      request.path
-    end
+    request.path
   end
 
   def breadcrumb_title(title)
@@ -25,7 +23,7 @@ module BreadcrumbsHelper
 
   def breadcrumb_list_item(link)
     content_tag "li" do
-      link + icon("angle-right", class: "breadcrumbs-list-angle")
+      link + sprite_icon("angle-right", size: 8, css_class: "breadcrumbs-list-angle")
     end
   end
 

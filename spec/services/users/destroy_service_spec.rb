@@ -15,11 +15,13 @@ describe Users::DestroyService do
 
         expect { user_data['email'].to eq(user.email) }
         expect { User.find(user.id) }.to raise_error(ActiveRecord::RecordNotFound)
-        expect { Namespace.with_deleted.find(namespace.id) }.to raise_error(ActiveRecord::RecordNotFound)
+        expect { Namespace.find(namespace.id) }.to raise_error(ActiveRecord::RecordNotFound)
       end
 
       it 'will delete the project' do
-        expect_any_instance_of(Projects::DestroyService).to receive(:execute).once
+        expect_next_instance_of(Projects::DestroyService) do |destroy_service|
+          expect(destroy_service).to receive(:execute).once.and_return(true)
+        end
 
         service.execute(user)
       end
@@ -32,7 +34,9 @@ describe Users::DestroyService do
       end
 
       it 'destroys a project in pending_delete' do
-        expect_any_instance_of(Projects::DestroyService).to receive(:execute).once
+        expect_next_instance_of(Projects::DestroyService) do |destroy_service|
+          expect(destroy_service).to receive(:execute).once.and_return(true)
+        end
 
         service.execute(user)
 
@@ -168,24 +172,54 @@ describe Users::DestroyService do
     end
 
     describe "user personal's repository removal" do
-      before do
-        Sidekiq::Testing.inline! { service.execute(user) }
-      end
+      context 'storages' do
+        before do
+          perform_enqueued_jobs { service.execute(user) }
+        end
 
-      context 'legacy storage' do
-        let!(:project) { create(:project, :empty_repo, namespace: user.namespace) }
+        context 'legacy storage' do
+          let!(:project) { create(:project, :empty_repo, :legacy_storage, namespace: user.namespace) }
 
-        it 'removes repository' do
-          expect(gitlab_shell.exists?(project.repository_storage_path, "#{project.disk_path}.git")).to be_falsey
+          it 'removes repository' do
+            expect(gitlab_shell.exists?(project.repository_storage, "#{project.disk_path}.git")).to be_falsey
+          end
+        end
+
+        context 'hashed storage' do
+          let!(:project) { create(:project, :empty_repo, namespace: user.namespace) }
+
+          it 'removes repository' do
+            expect(gitlab_shell.exists?(project.repository_storage, "#{project.disk_path}.git")).to be_falsey
+          end
         end
       end
 
-      context 'hashed storage' do
-        let!(:project) { create(:project, :empty_repo, :hashed, namespace: user.namespace) }
+      context 'repository removal status is taken into account' do
+        it 'raises exception' do
+          expect_next_instance_of(::Projects::DestroyService) do |destroy_service|
+            expect(destroy_service).to receive(:execute).and_return(false)
+          end
 
-        it 'removes repository' do
-          expect(gitlab_shell.exists?(project.repository_storage_path, "#{project.disk_path}.git")).to be_falsey
+          expect { service.execute(user) }
+            .to raise_error(Users::DestroyService::DestroyError, "Project #{project.id} can't be deleted" )
         end
+      end
+    end
+
+    describe "calls the before/after callbacks" do
+      it 'of project_members' do
+        expect_any_instance_of(ProjectMember).to receive(:run_callbacks).with(:destroy).once
+
+        service.execute(user)
+      end
+
+      it 'of group_members' do
+        group_member = create(:group_member)
+        group_member.group.group_members.create(user: user, access_level: 40)
+
+        expect_any_instance_of(GroupMember).to receive(:run_callbacks).with(:destroy).once
+
+        service.execute(user)
       end
     end
   end

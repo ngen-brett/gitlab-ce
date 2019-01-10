@@ -43,7 +43,7 @@ describe GenericCommitStatus do
 
     context 'when user has ability to see datails' do
       before do
-        project.team << [user, :developer]
+        project.add_developer(user)
       end
 
       it 'details path points to an external URL' do
@@ -77,5 +77,11 @@ describe GenericCommitStatus do
 
       it { is_expected.not_to be_nil }
     end
+  end
+
+  describe '#present' do
+    subject { generic_commit_status.present }
+
+    it { is_expected.to be_a(GenericCommitStatusPresenter) }
   end
 end

@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 # Worker for updating any project specific caches.
 class ProjectCacheWorker
-  include Sidekiq::Worker
-  include DedicatedSidekiqQueue
+  include ApplicationWorker
 
   LEASE_TIMEOUT = 15.minutes.to_i
 
@@ -11,6 +12,7 @@ class ProjectCacheWorker
   #         CHANGELOG.
   # statistics - An Array containing columns from ProjectStatistics to
   #              refresh, if empty all columns will be refreshed
+  # rubocop: disable CodeReuse/ActiveRecord
   def perform(project_id, files = [], statistics = [])
     project = Project.find_by(id: project_id)
 
@@ -19,7 +21,10 @@ class ProjectCacheWorker
     update_statistics(project, statistics.map(&:to_sym))
 
     project.repository.refresh_method_caches(files.map(&:to_sym))
+
+    project.cleanup
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def update_statistics(project, statistics = [])
     return unless try_obtain_lease_for(project.id, :update_statistics)

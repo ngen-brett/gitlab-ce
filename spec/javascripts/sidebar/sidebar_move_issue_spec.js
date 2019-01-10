@@ -1,3 +1,5 @@
+import $ from 'jquery';
+import _ from 'underscore';
 import Vue from 'vue';
 import SidebarMediator from '~/sidebar/sidebar_mediator';
 import SidebarStore from '~/sidebar/stores/sidebar_store';
@@ -5,14 +7,16 @@ import SidebarService from '~/sidebar/services/sidebar_service';
 import SidebarMoveIssue from '~/sidebar/lib/sidebar_move_issue';
 import Mock from './mock_data';
 
-describe('SidebarMoveIssue', () => {
+describe('SidebarMoveIssue', function() {
   beforeEach(() => {
     Vue.http.interceptors.push(Mock.sidebarMockInterceptor);
     this.mediator = new SidebarMediator(Mock.mediator);
     this.$content = $(`
       <div class="dropdown">
         <div class="js-toggle"></div>
-        <div class="dropdown-content"></div>
+        <div class="dropdown-menu">
+          <div class="dropdown-content"></div>
+        </div>
         <div class="js-confirm-button"></div>
       </div>
     `);
@@ -67,6 +71,17 @@ describe('SidebarMoveIssue', () => {
 
       expect($.fn.glDropdown).toHaveBeenCalled();
     });
+
+    it('escapes html from project name', done => {
+      this.$toggleButton.dropdown('toggle');
+
+      setTimeout(() => {
+        expect(this.$content.find('.js-move-issue-dropdown-item')[1].innerHTML.trim()).toEqual(
+          '&lt;img src=x onerror=alert(document.domain)&gt; foo / bar',
+        );
+        done();
+      });
+    });
   });
 
   describe('onConfirmClicked', () => {
@@ -77,11 +92,11 @@ describe('SidebarMoveIssue', () => {
       this.sidebarMoveIssue.onConfirmClicked();
 
       expect(this.mediator.moveIssue).toHaveBeenCalled();
-      expect(this.$confirmButton.attr('disabled')).toBe('disabled');
+      expect(this.$confirmButton.prop('disabled')).toBeTruthy();
       expect(this.$confirmButton.hasClass('is-loading')).toBe(true);
     });
 
-    it('should remove loading state from confirm button on failure', (done) => {
+    it('should remove loading state from confirm button on failure', done => {
       spyOn(window, 'Flash');
       spyOn(this.mediator, 'moveIssue').and.returnValue(Promise.reject());
       this.mediator.setMoveToProjectId(7);
@@ -92,7 +107,7 @@ describe('SidebarMoveIssue', () => {
       // Wait for the move issue request to fail
       setTimeout(() => {
         expect(window.Flash).toHaveBeenCalled();
-        expect(this.$confirmButton.attr('disabled')).toBe(undefined);
+        expect(this.$confirmButton.prop('disabled')).toBeFalsy();
         expect(this.$confirmButton.hasClass('is-loading')).toBe(false);
         done();
       });
@@ -108,7 +123,7 @@ describe('SidebarMoveIssue', () => {
     });
   });
 
-  it('should set moveToProjectId on dropdown item "No project" click', (done) => {
+  it('should set moveToProjectId on dropdown item "No project" click', done => {
     spyOn(this.mediator, 'setMoveToProjectId');
 
     // Open the dropdown
@@ -116,15 +131,18 @@ describe('SidebarMoveIssue', () => {
 
     // Wait for the autocomplete request to finish
     setTimeout(() => {
-      this.$content.find('.js-move-issue-dropdown-item').eq(0).trigger('click');
+      this.$content
+        .find('.js-move-issue-dropdown-item')
+        .eq(0)
+        .trigger('click');
 
       expect(this.mediator.setMoveToProjectId).toHaveBeenCalledWith(0);
-      expect(this.$confirmButton.attr('disabled')).toBe('disabled');
+      expect(this.$confirmButton.prop('disabled')).toBeTruthy();
       done();
     }, 0);
   });
 
-  it('should set moveToProjectId on dropdown item click', (done) => {
+  it('should set moveToProjectId on dropdown item click', done => {
     spyOn(this.mediator, 'setMoveToProjectId');
 
     // Open the dropdown
@@ -132,7 +150,10 @@ describe('SidebarMoveIssue', () => {
 
     // Wait for the autocomplete request to finish
     setTimeout(() => {
-      this.$content.find('.js-move-issue-dropdown-item').eq(1).trigger('click');
+      this.$content
+        .find('.js-move-issue-dropdown-item')
+        .eq(1)
+        .trigger('click');
 
       expect(this.mediator.setMoveToProjectId).toHaveBeenCalledWith(20);
       expect(this.$confirmButton.attr('disabled')).toBe(undefined);

@@ -1,4 +1,8 @@
+# frozen_string_literal: true
+
 class EnvironmentSerializer < BaseSerializer
+  include WithPagination
+
   Item = Struct.new(:name, :size, :latest)
 
   entity EnvironmentEntity
@@ -7,16 +11,8 @@ class EnvironmentSerializer < BaseSerializer
     tap { @itemize = true }
   end
 
-  def with_pagination(request, response)
-    tap { @paginator = Gitlab::Serializer::Pagination.new(request, response) }
-  end
-
   def itemized?
     @itemize
-  end
-
-  def paginated?
-    @paginator.present?
   end
 
   def represent(resource, opts = {})
@@ -27,14 +23,13 @@ class EnvironmentSerializer < BaseSerializer
           latest: super(item.latest, opts) }
       end
     else
-      resource = @paginator.paginate(resource) if paginated?
-
       super(resource, opts)
     end
   end
 
   private
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def itemize(resource)
     items = resource.order('folder ASC')
       .group('COALESCE(environment_type, name)')
@@ -52,4 +47,5 @@ class EnvironmentSerializer < BaseSerializer
       Item.new(item.folder, item.size, environments[item.last_id])
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 end

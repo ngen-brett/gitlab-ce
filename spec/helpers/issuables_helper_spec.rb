@@ -21,13 +21,41 @@ describe IssuablesHelper do
     end
   end
 
-  describe '#issuable_labels_tooltip' do
-    it 'returns label text' do
-      expect(issuable_labels_tooltip([label])).to eq(label.title)
+  describe '#group_dropdown_label' do
+    let(:group)  { create(:group) }
+    let(:default) { 'default label' }
+
+    it 'returns default group label when group_id is nil' do
+      expect(group_dropdown_label(nil, default)).to eq('default label')
     end
 
-    it 'returns label text' do
-      expect(issuable_labels_tooltip([label, label2], limit: 1)).to eq("#{label.title}, and 1 more")
+    it 'returns "any group" when group_id is 0' do
+      expect(group_dropdown_label('0', default)).to eq('Any group')
+    end
+
+    it 'returns group full path when a group was found for the provided id' do
+      expect(group_dropdown_label(group.id, default)).to eq(group.full_name)
+    end
+
+    it 'returns default label when a group was not found for the provided id' do
+      expect(group_dropdown_label(9999, default)).to eq('default label')
+    end
+  end
+
+  describe '#issuable_labels_tooltip' do
+    let(:label_entity) { LabelEntity.represent(label).as_json }
+    let(:label2_entity) { LabelEntity.represent(label2).as_json }
+
+    it 'returns label text with no labels' do
+      expect(issuable_labels_tooltip([])).to eq("Labels")
+    end
+
+    it 'returns label text with labels within max limit' do
+      expect(issuable_labels_tooltip([label_entity])).to eq(label[:title])
+    end
+
+    it 'returns label text with labels exceeding max limit' do
+      expect(issuable_labels_tooltip([label_entity, label2_entity], limit: 1)).to eq("#{label[:title]}, and 1 more")
     end
   end
 
@@ -40,23 +68,23 @@ describe IssuablesHelper do
       end
 
       it 'returns "Open" when state is :opened' do
-        expect(helper.issuables_state_counter_text(:issues, :opened))
-          .to eq('<span>Open</span> <span class="badge">42</span>')
+        expect(helper.issuables_state_counter_text(:issues, :opened, true))
+          .to eq('<span>Open</span> <span class="badge badge-pill">42</span>')
       end
 
       it 'returns "Closed" when state is :closed' do
-        expect(helper.issuables_state_counter_text(:issues, :closed))
-          .to eq('<span>Closed</span> <span class="badge">42</span>')
+        expect(helper.issuables_state_counter_text(:issues, :closed, true))
+          .to eq('<span>Closed</span> <span class="badge badge-pill">42</span>')
       end
 
       it 'returns "Merged" when state is :merged' do
-        expect(helper.issuables_state_counter_text(:merge_requests, :merged))
-          .to eq('<span>Merged</span> <span class="badge">42</span>')
+        expect(helper.issuables_state_counter_text(:merge_requests, :merged, true))
+          .to eq('<span>Merged</span> <span class="badge badge-pill">42</span>')
       end
 
       it 'returns "All" when state is :all' do
-        expect(helper.issuables_state_counter_text(:merge_requests, :all))
-          .to eq('<span>All</span> <span class="badge">42</span>')
+        expect(helper.issuables_state_counter_text(:merge_requests, :all, true))
+          .to eq('<span>All</span> <span class="badge badge-pill">42</span>')
       end
     end
   end
@@ -101,34 +129,13 @@ describe IssuablesHelper do
     end
   end
 
-  describe '#issuable_filter_present?' do
-    it 'returns true when any key is present' do
-      allow(helper).to receive(:params).and_return(
-        ActionController::Parameters.new(milestone_title: 'Velit consectetur asperiores natus delectus.',
-                                         project_id: 'gitlabhq',
-                                         scope: 'all')
-      )
-
-      expect(helper.issuable_filter_present?).to be_truthy
-    end
-
-    it 'returns false when no key is present' do
-      allow(helper).to receive(:params).and_return(
-        ActionController::Parameters.new(project_id: 'gitlabhq',
-                                         scope: 'all')
-      )
-
-      expect(helper.issuable_filter_present?).to be_falsey
-    end
-  end
-
   describe '#updated_at_by' do
     let(:user) { create(:user) }
     let(:unedited_issuable) { create(:issue) }
-    let(:edited_issuable) { create(:issue, last_edited_by: user, created_at: 3.days.ago, updated_at: 2.days.ago, last_edited_at: 2.days.ago) }
+    let(:edited_issuable) { create(:issue, last_edited_by: user, created_at: 3.days.ago, updated_at: 1.day.ago, last_edited_at: 2.days.ago) }
     let(:edited_updated_at_by) do
       {
-        updatedAt: edited_issuable.updated_at.to_time.iso8601,
+        updatedAt: edited_issuable.last_edited_at.to_time.iso8601,
         updatedBy: {
           name: user.name,
           path: user_path(user)
@@ -142,7 +149,7 @@ describe IssuablesHelper do
     context 'when updated by a deleted user' do
       let(:edited_updated_at_by) do
         {
-          updatedAt: edited_issuable.updated_at.to_time.iso8601,
+          updatedAt: edited_issuable.last_edited_at.to_time.iso8601,
           updatedBy: {
             name: User.ghost.name,
             path: user_path(User.ghost)
@@ -157,6 +164,40 @@ describe IssuablesHelper do
       it 'returns "Ghost user" as edited_by' do
         expect(helper.updated_at_by(edited_issuable.reload)).to eq(edited_updated_at_by)
       end
+    end
+  end
+
+  describe '#issuable_initial_data' do
+    let(:user) { create(:user) }
+
+    before do
+      allow(helper).to receive(:current_user).and_return(user)
+      allow(helper).to receive(:can?).and_return(true)
+    end
+
+    it 'returns the correct json for an issue' do
+      issue = create(:issue, author: user, description: 'issue text')
+      @project = issue.project
+
+      expected_data = {
+        endpoint: "/#{@project.full_path}/issues/#{issue.iid}",
+        updateEndpoint: "/#{@project.full_path}/issues/#{issue.iid}.json",
+        canUpdate: true,
+        canDestroy: true,
+        issuableRef: "##{issue.iid}",
+        markdownPreviewPath: "/#{@project.full_path}/preview_markdown",
+        markdownDocsPath: '/help/user/markdown',
+        markdownVersion: CacheMarkdownField::CACHE_COMMONMARK_VERSION,
+        issuableTemplates: [],
+        projectPath: @project.path,
+        projectNamespace: @project.namespace.path,
+        initialTitleHtml: issue.title,
+        initialTitleText: issue.title,
+        initialDescriptionHtml: '<p dir="auto">issue text</p>',
+        initialDescriptionText: 'issue text',
+        initialTaskStatus: '0 of 0 tasks completed'
+      }
+      expect(helper.issuable_initial_data(issue)).to eq(expected_data)
     end
   end
 end

@@ -1,78 +1,104 @@
-/* eslint-disable space-before-function-paren, no-var, one-var, one-var-declaration-per-line, object-shorthand, comma-dangle, no-return-assign, new-cap, max-len */
-/* global Dropzone */
-/* global Mousetrap */
-
+import $ from 'jquery';
+import Dropzone from 'dropzone';
+import Mousetrap from 'mousetrap';
 import ZenMode from '~/zen_mode';
 
-(function() {
-  var enterZen, escapeKeydown, exitZen;
+describe('ZenMode', () => {
+  let zen;
+  let dropzoneForElementSpy;
+  const fixtureName = 'snippets/show.html.raw';
 
-  describe('ZenMode', function() {
-    var fixtureName = 'merge_requests/merge_request_with_comment.html.raw';
-    preloadFixtures(fixtureName);
-    beforeEach(function() {
-      loadFixtures(fixtureName);
-      spyOn(Dropzone, 'forElement').and.callFake(function() {
-        return {
-          enable: function() {
-            return true;
-          }
-        };
-      // Stub Dropzone.forElement(...).enable()
-      });
-      this.zen = new ZenMode();
-      // Set this manually because we can't actually scroll the window
-      return this.zen.scroll_position = 456;
+  preloadFixtures(fixtureName);
+
+  function enterZen() {
+    $('.notes-form .js-zen-enter').click();
+  }
+
+  function exitZen() {
+    $('.notes-form .js-zen-leave').click();
+  }
+
+  function escapeKeydown() {
+    $('.notes-form textarea').trigger(
+      $.Event('keydown', {
+        keyCode: 27,
+      }),
+    );
+  }
+
+  beforeEach(() => {
+    loadFixtures(fixtureName);
+
+    dropzoneForElementSpy = spyOn(Dropzone, 'forElement').and.callFake(() => ({
+      enable: () => true,
+    }));
+    zen = new ZenMode();
+
+    // Set this manually because we can't actually scroll the window
+    zen.scroll_position = 456;
+  });
+
+  describe('enabling dropzone', () => {
+    beforeEach(() => {
+      enterZen();
     });
-    describe('on enter', function() {
-      it('pauses Mousetrap', function() {
-        spyOn(Mousetrap, 'pause');
-        enterZen();
-        return expect(Mousetrap.pause).toHaveBeenCalled();
-      });
-      return it('removes textarea styling', function() {
-        $('.notes-form textarea').attr('style', 'height: 400px');
-        enterZen();
-        return expect($('.notes-form textarea')).not.toHaveAttr('style');
-      });
+
+    it('should not call dropzone if element is not dropzone valid', () => {
+      $('.div-dropzone').addClass('js-invalid-dropzone');
+      exitZen();
+
+      expect(dropzoneForElementSpy.calls.count()).toEqual(0);
     });
-    describe('in use', function() {
-      beforeEach(function() {
-        return enterZen();
-      });
-      return it('exits on Escape', function() {
-        escapeKeydown();
-        return expect($('.notes-form .zen-backdrop')).not.toHaveClass('fullscreen');
-      });
-    });
-    return describe('on exit', function() {
-      beforeEach(function() {
-        return enterZen();
-      });
-      it('unpauses Mousetrap', function() {
-        spyOn(Mousetrap, 'unpause');
-        exitZen();
-        return expect(Mousetrap.unpause).toHaveBeenCalled();
-      });
-      return it('restores the scroll position', function() {
-        spyOn(this.zen, 'scrollTo');
-        exitZen();
-        return expect(this.zen.scrollTo).toHaveBeenCalled();
-      });
+
+    it('should call dropzone if element is dropzone valid', () => {
+      $('.div-dropzone').removeClass('js-invalid-dropzone');
+      exitZen();
+
+      expect(dropzoneForElementSpy.calls.count()).toEqual(2);
     });
   });
 
-  enterZen = function() {
-    return $('.notes-form .js-zen-enter').click();
-  };
+  describe('on enter', () => {
+    it('pauses Mousetrap', () => {
+      const mouseTrapPauseSpy = spyOn(Mousetrap, 'pause');
+      enterZen();
 
-  exitZen = function() {
-    return $('.notes-form .js-zen-leave').click();
-  };
+      expect(mouseTrapPauseSpy).toHaveBeenCalled();
+    });
 
-  escapeKeydown = function() {
-    return $('.notes-form textarea').trigger($.Event('keydown', {
-      keyCode: 27
-    }));
-  };
-}).call(window);
+    it('removes textarea styling', () => {
+      $('.notes-form textarea').attr('style', 'height: 400px');
+      enterZen();
+
+      expect($('.notes-form textarea')).not.toHaveAttr('style');
+    });
+  });
+
+  describe('in use', () => {
+    beforeEach(enterZen);
+
+    it('exits on Escape', () => {
+      escapeKeydown();
+
+      expect($('.notes-form .zen-backdrop')).not.toHaveClass('fullscreen');
+    });
+  });
+
+  describe('on exit', () => {
+    beforeEach(enterZen);
+
+    it('unpauses Mousetrap', () => {
+      const mouseTrapUnpauseSpy = spyOn(Mousetrap, 'unpause');
+      exitZen();
+
+      expect(mouseTrapUnpauseSpy).toHaveBeenCalled();
+    });
+
+    it('restores the scroll position', () => {
+      spyOn(zen, 'scrollTo');
+      exitZen();
+
+      expect(zen.scrollTo).toHaveBeenCalled();
+    });
+  });
+});

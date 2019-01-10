@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 class ProjectDestroyWorker
-  include Sidekiq::Worker
-  include DedicatedSidekiqQueue
+  include ApplicationWorker
   include ExceptionBacktrace
 
   def perform(project_id, user_id, params)

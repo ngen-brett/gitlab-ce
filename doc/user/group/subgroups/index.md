@@ -1,9 +1,8 @@
 # Subgroups
 
->**Notes:**
-- [Introduced][ce-2772] in GitLab 9.0.
-- Not available when using MySQL as external database (support removed in
-  GitLab 9.3 [due to performance reasons][issue]).
+NOTE: **Note:**
+[Introduced][ce-2772] in GitLab 9.0. Not available when using MySQL as external
+database (support removed in GitLab 9.3 [due to performance reasons][issue]).
 
 With subgroups (aka nested groups or hierarchical groups) you can have
 up to 20 levels of nested groups, which among other things can help you to:
@@ -22,8 +21,8 @@ Nested groups are only supported when you use PostgreSQL. Supporting nested
 groups on MySQL in an efficient way is not possible due to MySQL's limitations.
 See the following links for more information:
 
-* <https://gitlab.com/gitlab-org/gitlab-ce/issues/30472>
-* <https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/10885>
+- <https://gitlab.com/gitlab-org/gitlab-ce/issues/30472>
+- <https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/10885>
 
 ## Overview
 
@@ -55,7 +54,7 @@ first group being the name of the distro and subsequent groups split like:
 Another example of GitLab as a company would be the following:
 
 - Organization Group - GitLab
-  - Category Subroup - Marketing
+  - Category Subgroup - Marketing
       - (project) Design
       - (project) General
   - Category Subgroup - Software
@@ -79,18 +78,19 @@ structure.
 
 ## Creating a subgroup
 
->**Notes:**
-- You need to be an Owner of a group in order to be able to create
-  a subgroup. For more information check the [permissions table][permissions].
-- For a list of words that are not allowed to be used as group names see the
-  [reserved names][reserved].
-- Users can always create subgroups if they are explicitly added as an Owner to
-  a parent group even if group creation is disabled by an administrator in their
-  settings.
+NOTE: **Note:**
+You need to be an Owner of a group in order to be able to create a subgroup. For
+more information check the [permissions table][permissions].
+For a list of words that are not allowed to be used as group names see the
+[reserved names][reserved].
+Users can always create subgroups if they are explicitly added as an Owner to
+a parent group even if group creation is disabled by an administrator in their
+settings.
 
 To create a subgroup:
 
-1. In the group's dashboard go to the **Subgroups** page and click **New subgroup**.
+1. In the group's dashboard expand the **New project** split button, select
+   **New subgroup** and click the **New subgroup** button.
 
     ![Subgroups page](img/create_subgroup_button.png)
 
@@ -135,17 +135,20 @@ From the image above, we can deduct the following things:
 
 ### Overriding the ancestor group membership
 
->**Note:**
+NOTE: **Note:**
 You need to be an Owner of a group in order to be able to add members to it.
 
+NOTE: **Note:**
+A user's permissions in a subgroup cannot be lower than in any of its ancestor groups.
+Therefore, you cannot reduce a user's permissions in a subgroup with respect to its ancestor groups.
+
 To override a user's membership of an ancestor group (the first group they were
-added to), simply add the user in the new subgroup again, but with different
-permissions.
+added to), add the user to the new subgroup again with a higher set of permissions.
 
 For example, if User0 was first added to group `group-1/group-1-1` with Developer
 permissions, then they will inherit those permissions in every other subgroup
-of `group-1/group-1-1`. To give them Master access to `group-1/group-1-1/group1-1-1`,
-you would add them again in that group as Master. Removing them from that group,
+of `group-1/group-1-1`. To give them Maintainer access to `group-1/group-1-1/group1-1-1`,
+you would add them again in that group as Maintainer. Removing them from that group,
 the permissions will fallback to those of the ancestor group.
 
 ## Mentioning subgroups
@@ -164,7 +167,6 @@ Here's a list of what you can't do with subgroups:
 - [GitLab Pages](../../project/pages/index.md) are not currently working for
   projects hosted under a subgroup. That means that only projects hosted under
   the first parent group will work.
-- Group level labels don't work in subgroups / sub projects
 - It is not possible to share a project with a group that's an ancestor of
   the group the project is in. That means you can only share as you walk down
   the hierarchy. For example, `group/subgroup01/project` **cannot** be shared

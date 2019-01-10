@@ -1,7 +1,7 @@
 # See http://doc.gitlab.com/ce/development/migration_style_guide.html
 # for more information on how to write migrations for GitLab.
 
-class RenameUsersWithRenamedNamespace < ActiveRecord::Migration
+class RenameUsersWithRenamedNamespace < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
 
   DOWNTIME = false
@@ -31,6 +31,7 @@ class RenameUsersWithRenamedNamespace < ActiveRecord::Migration
       predicate = namespaces[:owner_id].eq(users[:id])
                     .and(namespaces[:type].eq(nil))
                     .and(users[:username].matches(path))
+
       update_sql = if Gitlab::Database.postgresql?
                      "UPDATE users SET username = namespaces.path "\
                      "FROM namespaces WHERE #{predicate.to_sql}"

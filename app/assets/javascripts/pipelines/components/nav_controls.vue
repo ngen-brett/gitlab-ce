@@ -1,54 +1,67 @@
 <script>
+import { GlLink, GlButton } from '@gitlab/ui';
+import LoadingButton from '../../vue_shared/components/loading_button.vue';
+
 export default {
   name: 'PipelineNavControls',
+  components: {
+    LoadingButton,
+    GlLink,
+    GlButton,
+  },
   props: {
     newPipelinePath: {
       type: String,
-      required: true,
+      required: false,
+      default: null,
     },
 
-    hasCiEnabled: {
-      type: Boolean,
-      required: true,
-    },
-
-    helpPagePath: {
+    resetCachePath: {
       type: String,
-      required: true,
+      required: false,
+      default: null,
     },
 
     ciLintPath: {
       type: String,
-      required: true,
+      required: false,
+      default: null,
     },
 
-    canCreatePipeline: {
+    isResetCacheButtonLoading: {
       type: Boolean,
-      required: true,
+      required: false,
+      default: false,
+    },
+  },
+  methods: {
+    onClickResetCache() {
+      this.$emit('resetRunnersCache', this.resetCachePath);
     },
   },
 };
 </script>
 <template>
   <div class="nav-controls">
-    <a
-      v-if="canCreatePipeline"
+    <gl-button
+      v-if="newPipelinePath"
       :href="newPipelinePath"
-      class="btn btn-create">
-      Run Pipeline
-    </a>
+      variant="success"
+      class="js-run-pipeline"
+    >
+      {{ s__('Pipelines|Run Pipeline') }}
+    </gl-button>
 
-    <a
-      v-if="!hasCiEnabled"
-      :href="helpPagePath"
-      class="btn btn-info">
-      Get started with Pipelines
-    </a>
+    <loading-button
+      v-if="resetCachePath"
+      :loading="isResetCacheButtonLoading"
+      :label="s__('Pipelines|Clear Runner Caches')"
+      class="js-clear-cache"
+      @click="onClickResetCache"
+    />
 
-    <a
-      :href="ciLintPath"
-      class="btn btn-default">
-      CI Lint
-    </a>
+    <gl-button v-if="ciLintPath" :href="ciLintPath" class="js-ci-lint">
+      {{ s__('Pipelines|CI Lint') }}
+    </gl-button>
   </div>
 </template>

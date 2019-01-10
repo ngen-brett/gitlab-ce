@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe Gitlab::Git::Tree, seed_helper: true do
+describe Gitlab::Git::Tree, :seed_helper do
   let(:repository) { Gitlab::Git::Repository.new('default', TEST_REPO_PATH, '') }
 
   context :repo do
@@ -80,22 +80,8 @@ describe Gitlab::Git::Tree, seed_helper: true do
   end
 
   describe '#where' do
-    context 'with gitaly disabled' do
-      before do
-        allow(Gitlab::GitalyClient).to receive(:feature_enabled?).and_return(false)
-      end
-
-      it 'calls #tree_entries_from_rugged' do
-        expect(described_class).to receive(:tree_entries_from_rugged)
-
-        described_class.where(repository, SeedRepo::Commit::ID, '/')
-      end
-    end
-
-    it 'gets the tree entries from GitalyClient' do
-      expect_any_instance_of(Gitlab::GitalyClient::CommitService).to receive(:tree_entries)
-
-      described_class.where(repository, SeedRepo::Commit::ID, '/')
+    it 'returns an empty array when called with an invalid ref' do
+      expect(described_class.where(repository, 'foobar-does-not-exist')).to eq([])
     end
   end
 end

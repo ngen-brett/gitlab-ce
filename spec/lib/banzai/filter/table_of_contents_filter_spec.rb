@@ -65,6 +65,13 @@ describe Banzai::Filter::TableOfContentsFilter do
         expect(doc.css('h2 a').first.attr('href')).to eq '#one-1'
       end
 
+      it 'prepends a prefix to digits-only ids' do
+        doc = filter(header(1, "123") + header(2, "1.0"))
+
+        expect(doc.css('h1 a').first.attr('href')).to eq '#anchor-123'
+        expect(doc.css('h2 a').first.attr('href')).to eq '#anchor-10'
+      end
+
       it 'supports Unicode' do
         doc = filter(header(1, '한글'))
         expect(doc.css('h1 a').first.attr('id')).to eq 'user-content-한글'
@@ -130,6 +137,15 @@ describe Banzai::Filter::TableOfContentsFilter do
 
         # Header 2-1
         expect(items[5].ancestors).to include(items[4])
+      end
+    end
+
+    context 'header text contains escaped content' do
+      let(:content) { '&lt;img src="x" onerror="alert(42)"&gt;' }
+      let(:results) { result(header(1, content)) }
+
+      it 'outputs escaped content' do
+        expect(doc.inner_html).to include(content)
       end
     end
   end

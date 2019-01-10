@@ -28,7 +28,7 @@ module RuboCop
         ].freeze
 
         def_node_matcher :add_column?, <<~PATTERN
-          (send nil :add_column $...)
+          (send nil? :add_column $...)
         PATTERN
 
         def on_send(node)
@@ -54,14 +54,14 @@ module RuboCop
                       NULL_OFFENSE
                     end
 
-          add_offense(node, :expression, format(offense, table)) if offense
+          add_offense(node, location: :expression, message: format(offense, table)) if offense
         end
 
         def no_default?(opts)
           return true unless opts
 
           each_hash_node_pair(opts) do |key, value|
-            return value == 'nil' if key == :default
+            break value == 'nil' if key == :default
           end
         end
 
@@ -69,7 +69,7 @@ module RuboCop
           return true unless opts
 
           each_hash_node_pair(opts) do |key, value|
-            return value != 'false' if key == :null
+            break value != 'false' if key == :null
           end
         end
 

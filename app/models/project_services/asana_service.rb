@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'asana'
 
 class AsanaService < Service
@@ -63,12 +65,12 @@ http://app.asana.com/-/account_api'
     # check the branch restriction is poplulated and branch is not included
     branch = Gitlab::Git.ref_name(data[:ref])
     branch_restriction = restrict_to_branch.to_s
-    if branch_restriction.length > 0 && branch_restriction.index(branch).nil?
+    if branch_restriction.present? && branch_restriction.index(branch).nil?
       return
     end
 
     user = data[:user_name]
-    project_name = project.name_with_namespace
+    project_name = project.full_name
 
     data[:commits].each do |commit|
       push_msg = "#{user} pushed to branch #{branch} of #{project_name} ( #{commit[:url]} ):"
@@ -84,7 +86,7 @@ http://app.asana.com/-/account_api'
     # - fix/ed/es/ing
     # - close/s/d
     # - closing
-    issue_finder = /(fix\w*|clos[ei]\w*+)?\W*(?:https:\/\/app\.asana\.com\/\d+\/\d+\/(\d+)|#(\d+))/i
+    issue_finder = %r{(fix\w*|clos[ei]\w*+)?\W*(?:https://app\.asana\.com/\d+/\d+/(\d+)|#(\d+))}i
 
     message.scan(issue_finder).each do |tuple|
       # tuple will be
@@ -99,7 +101,7 @@ http://app.asana.com/-/account_api'
           task.update(completed: true)
         end
       rescue => e
-        Rails.logger.error(e.message)
+        log_error(e.message)
         next
       end
     end

@@ -1,6 +1,6 @@
 # See http://doc.gitlab.com/ce/development/migration_style_guide.html
 # for more information on how to write migrations for GitLab.
-class MovePersonalSnippetsFiles < ActiveRecord::Migration
+class MovePersonalSnippetsFiles < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
   disable_ddl_transaction!
 
@@ -32,6 +32,7 @@ class MovePersonalSnippetsFiles < ActiveRecord::Migration
       file_name = upload['path'].split('/')[1]
 
       next unless move_file(upload['model_id'], secret, file_name)
+
       update_markdown(upload['model_id'], secret, file_name, upload['description'])
     end
   end

@@ -1,5 +1,9 @@
+# frozen_string_literal: true
+
+# rubocop:disable Rails/ActiveRecordAliases
 class WikiPage
   PageChangedError = Class.new(StandardError)
+  PageRenameError = Class.new(StandardError)
 
   include ActiveModel::Validations
   include ActiveModel::Conversion
@@ -47,18 +51,18 @@ class WikiPage
   validates :title, presence: true
   validates :content, presence: true
 
-  # The Gitlab ProjectWiki instance.
+  # The GitLab ProjectWiki instance.
   attr_reader :wiki
 
-  # The raw Gollum::Page instance.
+  # The raw Gitlab::Git::WikiPage instance.
   attr_reader :page
 
   # The attributes Hash used for storing and validating
-  # new Page values before writing to the Gollum repository.
+  # new Page values before writing to the raw repository.
   attr_accessor :attributes
 
   def hook_attrs
-    attributes
+    Gitlab::HookData::WikiPageBuilder.new(self).build
   end
 
   def initialize(wiki, page = nil, persisted = false)
@@ -75,11 +79,17 @@ class WikiPage
     if @attributes[:slug].present?
       @attributes[:slug]
     else
-      wiki.wiki.preview_page(title, '', format).url_path
+      wiki.wiki.preview_slug(title, format)
     end
   end
 
   alias_method :to_param, :slug
+
+  def human_title
+    return 'Home' if title == 'home'
+
+    title
+  end
 
   # The formatted title of this page.
   def title
@@ -102,12 +112,12 @@ class WikiPage
 
   # The hierarchy of the directory this page is contained in.
   def directory
-    wiki.page_title_and_dir(slug).last
+    wiki.page_title_and_dir(slug)&.last.to_s
   end
 
   # The processed/formatted content of this page.
   def formatted_content
-    @attributes[:formatted_content] ||= @page&.formatted_data
+    @attributes[:formatted_content] ||= @wiki.page_formatted_data(@page)
   end
 
   # The markup format for the page.
@@ -120,38 +130,39 @@ class WikiPage
     version.try(:message)
   end
 
-  # The Gitlab Commit instance for this page.
+  # The GitLab Commit instance for this page.
   def version
     return nil unless persisted?
 
     @version ||= @page.version
   end
 
-  # Returns an array of Gitlab Commit instances.
-  def versions
+  def versions(options = {})
     return [] unless persisted?
 
-    @page.versions
+    wiki.wiki.page_versions(@page.path, options)
   end
 
-  def commit
-    versions.first
+  def count_versions
+    return [] unless persisted?
+
+    wiki.wiki.count_page_versions(@page.path)
+  end
+
+  def last_version
+    @last_version ||= versions(limit: 1).first
   end
 
   def last_commit_sha
-    commit&.sha
-  end
-
-  # Returns the Date that this latest version was
-  # created on.
-  def created_at
-    @page.version.date
+    last_version&.sha
   end
 
   # Returns boolean True or False if this instance
   # is an old version of the page.
   def historical?
-    @page.historical? && versions.first.sha != version.sha
+    return false unless last_commit_sha && version
+
+    @page.historical? && last_commit_sha != version.sha
   end
 
   # Returns boolean True or False if this instance
@@ -169,7 +180,7 @@ class WikiPage
   # Creates a new Wiki Page.
   #
   # attr - Hash of attributes to set on the new page.
-  #       :title   - The title for the new page.
+  #       :title   - The title (optionally including dir) for the new page.
   #       :content - The raw markup content.
   #       :format  - Optional symbol representing the
   #                  content format. Can be any type
@@ -181,10 +192,10 @@ class WikiPage
   # Returns the String SHA1 of the newly created page
   # or False if the save was unsuccessful.
   def create(attrs = {})
-    @attributes.merge!(attrs)
+    update_attributes(attrs)
 
     save(page_details: title) do
-      wiki.create_page(title, content, format, message)
+      wiki.create_page(title, content, format, attrs[:message])
     end
   end
 
@@ -196,24 +207,29 @@ class WikiPage
   #                           See ProjectWiki::MARKUPS Hash for available formats.
   #        :message         - Optional commit message to set on the new version.
   #        :last_commit_sha - Optional last commit sha to validate the page unchanged.
-  #        :title           - The Title to replace existing title
+  #        :title           - The Title (optionally including dir) to replace existing title
   #
   # Returns the String SHA1 of the newly created page
   # or False if the save was unsuccessful.
   def update(attrs = {})
     last_commit_sha = attrs.delete(:last_commit_sha)
+
     if last_commit_sha && last_commit_sha != self.last_commit_sha
-      raise PageChangedError.new("You are attempting to update a page that has changed since you started editing it.")
+      raise PageChangedError
     end
 
-    attrs.slice!(:content, :format, :message, :title)
-    @attributes.merge!(attrs)
-    page_details =
-      if title.present? && @page.title != title
-        title
-      else
-        @page.url_path
+    update_attributes(attrs)
+
+    if title_changed?
+      page_details = title
+
+      if wiki.find_page(page_details).present?
+        @attributes[:title] = @page.url_path
+        raise PageRenameError
       end
+    else
+      page_details = @page.url_path
+    end
 
     save(page_details: page_details) do
       wiki.update_page(
@@ -247,7 +263,43 @@ class WikiPage
     page.version.to_s
   end
 
+  def title_changed?
+    title.present? && self.class.unhyphenize(@page.url_path) != title
+  end
+
+  # Updates the current @attributes hash by merging a hash of params
+  def update_attributes(attrs)
+    attrs[:title] = process_title(attrs[:title]) if attrs[:title].present?
+
+    attrs.slice!(:content, :format, :message, :title)
+
+    @attributes.merge!(attrs)
+  end
+
   private
+
+  # Process and format the title based on the user input.
+  def process_title(title)
+    return if title.blank?
+
+    title = deep_title_squish(title)
+    current_dirname = File.dirname(title)
+
+    if @page.present?
+      return title[1..-1] if current_dirname == '/'
+      return File.join([directory.presence, title].compact) if current_dirname == '.'
+    end
+
+    title
+  end
+
+  # This method squishes all the filename
+  # i.e: '   foo   /  bar  / page_name' => 'foo/bar/page_name'
+  def deep_title_squish(title)
+    components = title.split(File::SEPARATOR).map(&:squish)
+
+    File.join(components)
+  end
 
   def set_attributes
     attributes[:slug] = @page.url_path
@@ -264,8 +316,8 @@ class WikiPage
     end
 
     page_title, page_dir = wiki.page_title_and_dir(page_details)
-    gollum_wiki = wiki.wiki
-    @page = gollum_wiki.paged(page_title, page_dir)
+    gitlab_git_wiki = wiki.wiki
+    @page = gitlab_git_wiki.page(title: page_title, dir: page_dir)
 
     set_attributes
     @persisted = errors.blank?

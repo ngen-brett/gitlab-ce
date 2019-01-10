@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Sherlock
     class Query
       attr_reader :id, :query, :started_at, :finished_at, :backtrace
 
       # SQL identifiers that should be prefixed with newlines.
-      PREFIX_NEWLINE = /
+      PREFIX_NEWLINE = %r{
         \s+(FROM
           |(LEFT|RIGHT)?INNER\s+JOIN
           |(LEFT|RIGHT)?OUTER\s+JOIN
@@ -13,7 +15,7 @@ module Gitlab
           |GROUP\s+BY
           |ORDER\s+BY
           |LIMIT
-          |OFFSET)\s+/ix # Vim indent breaks when this is on a newline :<
+          |OFFSET)\s+}ix # Vim indent breaks when this is on a newline :<
 
       # Creates a new Query using a String and a separate Array of bindings.
       #
@@ -48,7 +50,7 @@ module Gitlab
         end
 
         unless @query.end_with?(';')
-          @query += ';'
+          @query = "#{@query};"
         end
       end
 

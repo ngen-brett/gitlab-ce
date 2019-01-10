@@ -1,8 +1,9 @@
 import Timeago from 'timeago.js';
-import { getStateKey } from '../dependencies';
+import getStateKey from './ee_switch_get_state_key';
+import { stateKey } from './state_maps';
+import { formatDate } from '../../lib/utils/datetime_utility';
 
 export default class MergeRequestStore {
-
   constructor(data) {
     this.sha = data.diff_head_sha;
     this.gitlabLogo = data.gitlabLogo;
@@ -10,20 +11,38 @@ export default class MergeRequestStore {
     this.setData(data);
   }
 
-  setData(data) {
+  setData(data, isRebased) {
+    if (isRebased) {
+      this.sha = data.diff_head_sha;
+    }
+
     const currentUser = data.current_user;
     const pipelineStatus = data.pipeline ? data.pipeline.details.status : null;
 
+    this.squash = data.squash;
+    this.squashBeforeMergeHelpPath =
+      this.squashBeforeMergeHelpPath || data.squash_before_merge_help_path;
+    this.troubleshootingDocsPath = this.troubleshootingDocsPath || data.troubleshooting_docs_path;
+    this.enableSquashBeforeMerge = this.enableSquashBeforeMerge || true;
+
+    this.iid = data.iid;
     this.title = data.title;
     this.targetBranch = data.target_branch;
     this.sourceBranch = data.source_branch;
+    this.sourceBranchProtected = data.source_branch_protected;
+    this.conflictsDocsPath = data.conflicts_docs_path;
     this.mergeStatus = data.merge_status;
     this.commitMessage = data.merge_commit_message;
+    this.shortMergeCommitSha = data.short_merge_commit_sha;
+    this.mergeCommitSha = data.merge_commit_sha;
     this.commitMessageWithDescription = data.merge_commit_message_with_description;
     this.commitsCount = data.commits_count;
     this.divergedCommitsCount = data.diverged_commits_count;
     this.pipeline = data.pipeline || {};
+    this.mergePipeline = data.merge_pipeline || {};
     this.deployments = this.deployments || data.deployments || [];
+    this.postMergeDeployments = this.postMergeDeployments || [];
+    this.initRebase(data);
 
     if (data.issues_links) {
       const links = data.issues_links;
@@ -37,11 +56,8 @@ export default class MergeRequestStore {
     }
 
     this.updatedAt = data.updated_at;
-    this.mergedAt = MergeRequestStore.getEventDate(data.merge_event);
-    this.closedAt = MergeRequestStore.getEventDate(data.closed_event);
-    this.mergedBy = MergeRequestStore.getAuthorObject(data.merge_event);
-    this.closedBy = MergeRequestStore.getAuthorObject(data.closed_event);
-    this.setToMWPSBy = MergeRequestStore.getAuthorObject({ author: data.merge_user || {} });
+    this.metrics = MergeRequestStore.buildMetrics(data.metrics);
+    this.setToMWPSBy = MergeRequestStore.formatUserObject(data.merge_user || {});
     this.mergeUserId = data.merge_user_id;
     this.currentUserId = gon.current_user_id;
     this.sourceBranchPath = data.source_branch_path;
@@ -57,6 +73,8 @@ export default class MergeRequestStore {
     this.onlyAllowMergeIfPipelineSucceeds = data.only_allow_merge_if_pipeline_succeeds || false;
     this.mergeWhenPipelineSucceeds = data.merge_when_pipeline_succeeds || false;
     this.mergePath = data.merge_path;
+    this.ffOnlyEnabled = data.ff_only_enabled;
+    this.shouldBeRebased = !!data.should_be_rebased;
     this.statusPath = data.status_path;
     this.emailPatchesPath = data.email_patches_path;
     this.plainDiffPath = data.plain_diff_path;
@@ -64,6 +82,7 @@ export default class MergeRequestStore {
     this.createIssueToResolveDiscussionsPath = data.create_issue_to_resolve_discussions_path;
     this.mergeCheckPath = data.merge_check_path;
     this.mergeActionsContentPath = data.commit_change_content_path;
+    this.mergeCommitPath = data.merge_commit_path;
     this.isRemovingSourceBranch = this.isRemovingSourceBranch || false;
     this.isOpen = data.state === 'opened';
     this.hasMergeableDiscussionsState = data.mergeable_discussions_state === false;
@@ -71,9 +90,13 @@ export default class MergeRequestStore {
     this.canMerge = !!data.merge_path;
     this.canCreateIssue = currentUser.can_create_issue || false;
     this.canCancelAutomaticMerge = !!data.cancel_merge_when_pipeline_succeeds_path;
-    this.hasSHAChanged = this.sha !== data.diff_head_sha;
+    this.isSHAMismatch = this.sha !== data.diff_head_sha;
     this.canBeMerged = data.can_be_merged || false;
+    this.isMergeAllowed = data.mergeable || false;
     this.mergeOngoing = data.merge_ongoing;
+    this.allowCollaboration = data.allow_collaboration;
+    this.targetProjectFullPath = data.target_project_full_path;
+    this.sourceProjectFullPath = data.source_project_full_path;
 
     // Cherry-pick and Revert actions related
     this.canCherryPickInCurrentMR = currentUser.can_cherry_pick_on_current_merge_request || false;
@@ -86,12 +109,15 @@ export default class MergeRequestStore {
     this.hasCI = data.has_ci;
     this.ciStatus = data.ci_status;
     this.isPipelineFailed = this.ciStatus === 'failed' || this.ciStatus === 'canceled';
-    this.isPipelinePassing = this.ciStatus === 'success' || this.ciStatus === 'success_with_warnings';
+    this.isPipelinePassing =
+      this.ciStatus === 'success' || this.ciStatus === 'success_with_warnings';
     this.isPipelineSkipped = this.ciStatus === 'skipped';
     this.pipelineDetailedStatus = pipelineStatus;
     this.isPipelineActive = data.pipeline ? data.pipeline.active : false;
     this.isPipelineBlocked = pipelineStatus ? pipelineStatus.group === 'manual' : false;
     this.ciStatusFaviconPath = pipelineStatus ? pipelineStatus.favicon : null;
+
+    this.testResultsPath = data.test_reports_path;
 
     this.setState(data);
   }
@@ -118,27 +144,56 @@ export default class MergeRequestStore {
     }
   }
 
-  static getAuthorObject(event) {
-    if (!event) {
+  get isNothingToMergeState() {
+    return this.state === stateKey.nothingToMerge;
+  }
+
+  get isMergedState() {
+    return this.state === stateKey.merged;
+  }
+
+  initRebase(data) {
+    this.canPushToSourceBranch = data.can_push_to_source_branch;
+    this.rebaseInProgress = data.rebase_in_progress;
+    this.approvalsLeft = !data.approved;
+    this.rebasePath = data.rebase_path;
+  }
+
+  static buildMetrics(metrics) {
+    if (!metrics) {
       return {};
     }
 
     return {
-      name: event.author.name || '',
-      username: event.author.username || '',
-      webUrl: event.author.web_url || '',
-      avatarUrl: event.author.avatar_url || '',
+      mergedBy: MergeRequestStore.formatUserObject(metrics.merged_by),
+      closedBy: MergeRequestStore.formatUserObject(metrics.closed_by),
+      mergedAt: formatDate(metrics.merged_at),
+      closedAt: formatDate(metrics.closed_at),
+      readableMergedAt: MergeRequestStore.getReadableDate(metrics.merged_at),
+      readableClosedAt: MergeRequestStore.getReadableDate(metrics.closed_at),
     };
   }
 
-  static getEventDate(event) {
-    const timeagoInstance = new Timeago();
+  static formatUserObject(user) {
+    if (!user) {
+      return {};
+    }
 
-    if (!event) {
+    return {
+      name: user.name || '',
+      username: user.username || '',
+      webUrl: user.web_url || '',
+      avatarUrl: user.avatar_url || '',
+    };
+  }
+
+  static getReadableDate(date) {
+    if (!date) {
       return '';
     }
 
-    return timeagoInstance.format(event.updated_at);
-  }
+    const timeagoInstance = new Timeago();
 
+    return timeagoInstance.format(date);
+  }
 }

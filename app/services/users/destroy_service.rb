@@ -1,5 +1,9 @@
+# frozen_string_literal: true
+
 module Users
   class DestroyService
+    DestroyError = Class.new(StandardError)
+
     attr_accessor :current_user
 
     def initialize(current_user)
@@ -31,6 +35,11 @@ module Users
         return user
       end
 
+      # Calling all before/after_destroy hooks for the user because
+      # there is no dependent: destroy in the relationship. And the removal
+      # is done by a foreign_key. Otherwise they won't be called
+      user.members.find_each { |member| member.run_callbacks(:destroy) }
+
       user.solo_owned_groups.each do |group|
         Groups::DestroyService.new(group, current_user).execute
       end
@@ -39,16 +48,17 @@ module Users
       namespace.prepare_for_destroy
 
       user.personal_projects.each do |project|
-        # Skip repository removal because we remove directory with namespace
-        # that contain all this repositories
-        ::Projects::DestroyService.new(project, current_user, skip_repo: project.legacy_storage?).execute
+        success = ::Projects::DestroyService.new(project, current_user).execute
+        raise DestroyError, "Project #{project.id} can't be deleted" unless success
       end
+
+      yield(user) if block_given?
 
       MigrateToGhostUserService.new(user).execute unless options[:hard_delete]
 
       # Destroy the namespace after destroying the user since certain methods may depend on the namespace existing
       user_data = user.destroy
-      namespace.really_destroy!
+      namespace.destroy
 
       user_data
     end

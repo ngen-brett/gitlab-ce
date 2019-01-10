@@ -1,14 +1,19 @@
-import '../lib/utils/url_utility';
+import $ from 'jquery';
+import { getParameterValues } from '../lib/utils/url_utility';
+import projectNew from './project_new';
 
-const bindEvents = () => {
-  const path = gl.utils.getParameterValues('path')[0];
+export default () => {
+  const pathParam = getParameterValues('path')[0];
+  const nameParam = getParameterValues('name')[0];
+  const $projectPath = $('.js-path-name');
+  const $projectName = $('.js-project-name');
 
-  // get the path url and append it in the inputS
-  $('.js-path-name').val(path);
-};
+  // get the path url and append it in the input
+  $projectPath.val(pathParam);
 
-document.addEventListener('DOMContentLoaded', bindEvents);
+  // get the project name from the URL and set it as input value
+  $projectName.val(nameParam);
 
-export default {
-  bindEvents,
+  // generate slug when project name changes
+  $projectName.keyup(() => projectNew.onProjectNameChange($projectName, $projectPath));
 };

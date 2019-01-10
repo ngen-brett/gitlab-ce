@@ -1,46 +1,50 @@
+# frozen_string_literal: true
+
 class RepositoryImportWorker
-  ImportError = Class.new(StandardError)
-
-  include Sidekiq::Worker
-  include DedicatedSidekiqQueue
+  include ApplicationWorker
   include ExceptionBacktrace
-
-  sidekiq_options status_expiration: StuckImportJobsWorker::IMPORT_JOBS_EXPIRATION
+  include ProjectStartImport
+  include ProjectImportOptions
 
   def perform(project_id)
-    project = Project.find(project_id)
+    @project = Project.find(project_id)
 
-    return unless start_import(project)
+    return unless start_import
 
-    Gitlab::Metrics.add_event(:import_repository,
-                              import_url: project.import_url,
-                              path: project.full_path)
+    Gitlab::Metrics.add_event(:import_repository)
 
-    result = Projects::ImportService.new(project, project.creator).execute
-    raise ImportError, result[:message] if result[:status] == :error
+    service = Projects::ImportService.new(project, project.creator)
+    result = service.execute
 
-    project.repository.after_import
-    project.import_finish
-  rescue ImportError => ex
-    fail_import(project, ex.message)
-    raise
-  rescue => ex
-    return unless project
+    # Some importers may perform their work asynchronously. In this case it's up
+    # to those importers to mark the import process as complete.
+    return if service.async?
 
-    fail_import(project, ex.message)
-    raise ImportError, "#{ex.class} #{ex.message}"
+    if result[:status] == :error
+      fail_import(result[:message]) if template_import?
+
+      raise result[:message]
+    end
+
+    project.after_import
   end
 
   private
 
-  def start_import(project)
-    return true if project.import_start
+  attr_reader :project
+
+  def start_import
+    return true if start(project.import_state)
 
     Rails.logger.info("Project #{project.full_path} was in inconsistent state (#{project.import_status}) while importing.")
     false
   end
 
-  def fail_import(project, message)
-    project.mark_import_as_failed(message)
+  def fail_import(message)
+    project.import_state.mark_as_failed(message)
+  end
+
+  def template_import?
+    project.gitlab_project_import?
   end
 end

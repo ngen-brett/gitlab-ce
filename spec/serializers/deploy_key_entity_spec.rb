@@ -21,18 +21,21 @@ describe DeployKeyEntity do
         user_id: deploy_key.user_id,
         title: deploy_key.title,
         fingerprint: deploy_key.fingerprint,
-        can_push: deploy_key.can_push,
         destroyed_when_orphaned: true,
         almost_orphaned: false,
         created_at: deploy_key.created_at,
         updated_at: deploy_key.updated_at,
         can_edit: false,
-        projects: [
+        deploy_keys_projects: [
           {
-            id: project.id,
-            name: project.name,
-            full_path: project_path(project),
-            full_name: project.full_name
+            can_push: false,
+            project:
+            {
+              id: project.id,
+              name: project.name,
+              full_path: project_path(project),
+              full_name: project.full_name
+            }
           }
         ]
       }
@@ -41,9 +44,9 @@ describe DeployKeyEntity do
     it { expect(entity.as_json).to eq(expected_result) }
   end
 
-  describe 'returns can_edit true if user is a master of project' do
+  describe 'returns can_edit true if user is a maintainer of project' do
     before do
-      project.add_master(user)
+      project.add_maintainer(user)
     end
 
     it { expect(entity.as_json).to include(can_edit: true) }

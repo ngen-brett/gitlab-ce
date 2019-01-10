@@ -14,9 +14,13 @@ GET /projects/:id/repository/commits
 | `ref_name` | string | no | The name of a repository branch or tag or if not given the default branch |
 | `since` | string | no | Only commits after or on this date will be returned in ISO 8601 format YYYY-MM-DDTHH:MM:SSZ |
 | `until` | string | no | Only commits before or on this date will be returned in ISO 8601 format YYYY-MM-DDTHH:MM:SSZ |
+| `path` | string | no | The file path |
+| `all` | boolean | no | Retrieve every commit from the repository |
+| `with_stats` | boolean | no | Stats about each commit will be added to the response |
+
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/repository/commits"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/repository/commits"
 ```
 
 Example response:
@@ -75,15 +79,18 @@ POST /projects/:id/repository/commits
 | `actions[]` | array | yes | An array of action hashes to commit as a batch. See the next table for what attributes it can take. |
 | `author_email` | string | no | Specify the commit author's email address |
 | `author_name` | string | no | Specify the commit author's name |
+| `stats` | boolean | no | Include commit stats. Default is true |
 
 
 | `actions[]` Attribute | Type | Required | Description |
 | --------------------- | ---- | -------- | ----------- |
-| `action` | string | yes | The action to perform, `create`, `delete`, `move`, `update` |
+| `action` | string | yes | The action to perform, `create`, `delete`, `move`, `update`, `chmod`|
 | `file_path` | string | yes | Full path to the file. Ex. `lib/class.rb` |
-| `previous_path` | string | no | Original full path to the file being moved. Ex. `lib/class1.rb` |
-| `content` | string | no | File content, required for all except `delete`. Optional for `move` |
+| `previous_path` | string | no | Original full path to the file being moved. Ex. `lib/class1.rb`. Only considered for `move` action. |
+| `content` | string | no | File content, required for all except `delete`, `chmod`, and `move`. Move actions that do not specify `content` will preserve the existing file content, and any other value of `content` will overwrite the file content. |
 | `encoding` | string | no | `text` or `base64`. `text` is default. |
+| `last_commit_id` | string | no | Last known file commit id. Will be only considered in update, move and delete actions. |
+| `execute_filemode` | boolean | no | When `true/false` enables/disables the execute flag on the file. Only considered for `chmod` action. |
 
 ```bash
 PAYLOAD=$(cat << 'JSON'
@@ -110,12 +117,17 @@ PAYLOAD=$(cat << 'JSON'
       "action": "update",
       "file_path": "foo/bar5",
       "content": "new content"
+    },
+    {
+      "action": "chmod",
+      "file_path": "foo/bar5",
+      "execute_filemode": true
     }
   ]
 }
 JSON
 )
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" --header "Content-Type: application/json" --data "$PAYLOAD" https://gitlab.example.com/api/v4/projects/1/repository/commits
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" --header "Content-Type: application/json" --data "$PAYLOAD" https://gitlab.example.com/api/v4/projects/1/repository/commits
 ```
 
 Example response:
@@ -158,9 +170,10 @@ Parameters:
 | --------- | ---- | -------- | ----------- |
 | `id`      | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
 | `sha` | string | yes | The commit hash or name of a repository branch or tag |
+| `stats` | boolean | no | Include commit stats. Default is true |
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/repository/commits/master
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/repository/commits/master
 ```
 
 Example response:
@@ -181,6 +194,12 @@ Example response:
   "parent_ids": [
     "ae1d9fb46aa2b07ee9836d49862ec4e2c46fbbba"
   ],
+  "last_pipeline" : {
+    "id": 8,
+    "ref": "master",
+    "sha": "2dc6aa325a317eda67812f05600bdf0fcdc70ab0"
+    "status": "created"
+  }
   "stats": {
     "additions": 15,
     "deletions": 10,
@@ -188,6 +207,41 @@ Example response:
   },
   "status": "running"
 }
+```
+
+## Get references a commit is pushed to
+
+> [Introduced][ce-15026] in GitLab 10.6
+
+Get all references (from branches or tags) a commit is pushed to.
+The pagination parameters `page` and `per_page` can be used to restrict the list of references.
+
+```
+GET /projects/:id/repository/commits/:sha/refs
+```
+
+Parameters:
+
+| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `id`      | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+| `sha` | string | yes | The commit hash  |
+| `type` | string | no | The scope of commits. Possible values `branch`, `tag`, `all`. Default is `all`.  |
+
+```bash
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/repository/commits/5937ac0a7beb003549fc5fd26fc247adbce4a52e/refs?type=all"
+```
+
+Example response:
+
+```json
+[
+  {"type": "branch", "name": "'test'"},
+  {"type": "branch", "name": "add-balsamiq-file"},
+  {"type": "branch", "name": "wip"},
+  {"type": "tag", "name": "v1.1.0"}
+ ]
+
 ```
 
 ## Cherry pick a commit
@@ -209,7 +263,7 @@ Parameters:
 | `branch` | string | yes | The name of the branch  |
 
 ```bash
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" --form "branch=master" "https://gitlab.example.com/api/v4/projects/5/repository/commits/master/cherry_pick"
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" --form "branch=master" "https://gitlab.example.com/api/v4/projects/5/repository/commits/master/cherry_pick"
 ```
 
 Example response:
@@ -234,6 +288,47 @@ Example response:
 }
 ```
 
+## Revert a commit
+
+> [Introduced][ce-22919] in GitLab 11.5.
+
+Reverts a commit in a given branch.
+
+```
+POST /projects/:id/repository/commits/:sha/revert
+```
+
+Parameters:
+
+| Attribute | Type           | Required | Description                                                                     |
+| --------- | ----           | -------- | -----------                                                                     |
+| `id`      | integer/string | yes      | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
+| `sha`     | string         | yes      | Commit SHA to revert                                                            |
+| `branch`  | string         | yes      | Target branch name                                                              |
+
+```bash
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" --form "branch=master" "https://gitlab.example.com/api/v4/projects/5/repository/commits/a738f717824ff53aebad8b090c1b79a14f2bd9e8/revert"
+```
+
+Example response:
+
+```json
+{
+  "id":"8b090c1b79a14f2bd9e8a738f717824ff53aebad",
+  "short_id": "8b090c1b",
+  "title":"Revert \"Feature added\"",
+  "created_at":"2018-11-08T15:55:26.000Z",
+  "parent_ids":["a738f717824ff53aebad8b090c1b79a14f2bd9e8"],
+  "message":"Revert \"Feature added\"\n\nThis reverts commit a738f717824ff53aebad8b090c1b79a14f2bd9e8",
+  "author_name":"Administrator",
+  "author_email":"admin@example.com",
+  "authored_date":"2018-11-08T15:55:26.000Z",
+  "committer_name":"Administrator",
+  "committer_email":"admin@example.com",
+  "committed_date":"2018-11-08T15:55:26.000Z"
+}
+```
+
 ## Get the diff of a commit
 
 Get the diff of a commit in a project.
@@ -250,7 +345,7 @@ Parameters:
 | `sha` | string | yes | The commit hash or name of a repository branch or tag |
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/repository/commits/master/diff"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/repository/commits/master/diff"
 ```
 
 Example response:
@@ -286,7 +381,7 @@ Parameters:
 | `sha` | string | yes | The commit hash or name of a repository branch or tag |
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/repository/commits/master/comments"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/repository/commits/master/comments"
 ```
 
 Example response:
@@ -339,7 +434,7 @@ POST /projects/:id/repository/commits/:sha/comments
 | `line_type` | string  | no  | The line type. Takes `new` or `old` as arguments |
 
 ```bash
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" --form "note=Nice picture man\!" --form "path=dudeism.md" --form "line=11" --form "line_type=new" https://gitlab.example.com/api/v4/projects/17/repository/commits/18f3e63d05582537db6d183d9d557be09e1f90c8/comments
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" --form "note=Nice picture man\!" --form "path=dudeism.md" --form "line=11" --form "line_type=new" https://gitlab.example.com/api/v4/projects/17/repository/commits/18f3e63d05582537db6d183d9d557be09e1f90c8/comments
 ```
 
 Example response:
@@ -366,9 +461,10 @@ Example response:
 
 Since GitLab 8.1, this is the new commit status API.
 
-### Get the status of a commit
+### List the statuses of a commit
 
-Get the statuses of a commit in a project.
+List the statuses of a commit in a project.
+The pagination parameters `page` and `per_page` can be used to restrict the list of references.
 
 ```
 GET /projects/:id/repository/commits/:sha/statuses
@@ -384,7 +480,7 @@ GET /projects/:id/repository/commits/:sha/statuses
 | `all`     | boolean | no  | Return all statuses, not only the latest ones
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/17/repository/commits/18f3e63d05582537db6d183d9d557be09e1f90c8/statuses
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/17/repository/commits/18f3e63d05582537db6d183d9d557be09e1f90c8/statuses
 ```
 
 Example response:
@@ -416,7 +512,7 @@ Example response:
    },
    {
       "started_at" : null,
-      "name" : "flay",
+      "name" : "test",
       "allow_failure" : false,
       "status" : "pending",
       "created_at" : "2016-01-19T08:40:25.832Z",
@@ -460,7 +556,7 @@ POST /projects/:id/statuses/:sha
 | `coverage` | float  | no    | The total code coverage
 
 ```bash
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/17/statuses/18f3e63d05582537db6d183d9d557be09e1f90c8?state=success"
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/17/statuses/18f3e63d05582537db6d183d9d557be09e1f90c8?state=success"
 ```
 
 Example response:
@@ -490,5 +586,78 @@ Example response:
 }
 ```
 
+## List Merge Requests associated with a commit
+
+> [Introduced][ce-18004] in GitLab 10.7.
+
+Get a list of Merge Requests related to the specified commit.
+
+```
+GET /projects/:id/repository/commits/:sha/merge_requests
+```
+
+| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `id`      | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+| `sha`     | string  | yes   | The commit SHA
+
+
+```bash
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/repository/commits/af5b13261899fb2c0db30abdd0af8b07cb44fdc5/merge_requests"
+```
+
+Example response:
+
+```json
+[
+   {
+      "id":45,
+      "iid":1,
+      "project_id":35,
+      "title":"Add new file",
+      "description":"",
+      "state":"opened",
+      "created_at":"2018-03-26T17:26:30.916Z",
+      "updated_at":"2018-03-26T17:26:30.916Z",
+      "target_branch":"master",
+      "source_branch":"test-branch",
+      "upvotes":0,
+      "downvotes":0,
+      "author" : {
+        "web_url" : "https://gitlab.example.com/thedude",
+        "name" : "Jeff Lebowski",
+        "avatar_url" : "https://gitlab.example.com/uploads/user/avatar/28/The-Big-Lebowski-400-400.png",
+        "username" : "thedude",
+        "state" : "active",
+        "id" : 28
+      },
+      "assignee":null,
+      "source_project_id":35,
+      "target_project_id":35,
+      "labels":[ ],
+      "work_in_progress":false,
+      "milestone":null,
+      "merge_when_pipeline_succeeds":false,
+      "merge_status":"can_be_merged",
+      "sha":"af5b13261899fb2c0db30abdd0af8b07cb44fdc5",
+      "merge_commit_sha":null,
+      "user_notes_count":0,
+      "discussion_locked":null,
+      "should_remove_source_branch":null,
+      "force_remove_source_branch":false,
+      "web_url":"http://https://gitlab.example.com/root/test-project/merge_requests/1",
+      "time_stats":{
+         "time_estimate":0,
+         "total_time_spent":0,
+         "human_time_estimate":null,
+         "human_total_time_spent":null
+      }
+   }
+]
+```
+
 [ce-6096]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/6096 "Multi-file commit"
 [ce-8047]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/8047
+[ce-15026]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/15026
+[ce-18004]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/18004
+[ce-22919]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/22919

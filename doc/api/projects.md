@@ -7,19 +7,33 @@ This is determined by the `visibility` field in the project.
 
 Values for the project visibility level are:
 
-* `private`:
+- `private`:
   Project access must be granted explicitly for each user.
 
-* `internal`:
+- `internal`:
   The project can be cloned by any logged in user.
 
-* `public`:
+- `public`:
   The project can be cloned without any authentication.
+
+## Project merge method
+
+There are currently three options for `merge_method` to choose from:
+
+- `merge`:
+  A merge commit is created for every merge, and merging is allowed as long as there are no conflicts.
+
+- `rebase_merge`:
+  A merge commit is created for every merge, but merging is only allowed if fast-forward merge is possible.
+  This way you could make sure that if this merge request would build, after merging to target branch it would also build.
+
+- `ff`:
+  No merge commits are created and all merges are fast-forwarded, which means that merging is only allowed if the branch could be fast-forwarded.
 
 ## List all projects
 
 Get a list of all visible projects across GitLab for the authenticated user.
-When accessed without authentication, only public projects are returned.
+When accessed without authentication, only public projects with "simple" fields are returned.
 
 ```
 GET /projects
@@ -32,13 +46,52 @@ GET /projects
 | `order_by` | string | no | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, or `last_activity_at` fields. Default is `created_at` |
 | `sort` | string | no | Return projects sorted in `asc` or `desc` order. Default is `desc` |
 | `search` | string | no | Return list of projects matching the search criteria |
-| `simple` | boolean | no | Return only the ID, URL, name, and path of each project |
-| `owned` | boolean | no | Limit by projects owned by the current user |
+| `simple` | boolean | no | Return only limited fields for each project. This is a no-op without authentication as then _only_ simple fields are returned. |
+| `owned` | boolean | no | Limit by projects explicitly owned by the current user |
 | `membership` | boolean | no | Limit by projects that the current user is a member of |
 | `starred` | boolean | no | Limit by projects starred by the current user |
 | `statistics` | boolean | no | Include project statistics |
+| `with_custom_attributes` | boolean | no | Include [custom attributes](custom_attributes.md) in response (admins only) |
 | `with_issues_enabled` | boolean | no | Limit by enabled issues feature |
 | `with_merge_requests_enabled` | boolean | no | Limit by enabled merge requests feature |
+| `wiki_checksum_failed` | boolean | no | Limit projects where the wiki checksum calculation has failed _([Introduced][ee-6137] in [GitLab Premium][eep] 11.2)_ |
+| `repository_checksum_failed` | boolean | no | Limit projects where the repository checksum calculation has failed _([Introduced][ee-6137] in [GitLab Premium][eep] 11.2)_ |
+| `min_access_level` | integer | no | Limit by current user minimal [access level](members.md) |
+
+When `simple=true` or the user is unauthenticated this returns something like:
+
+```json
+[
+  {
+    "id": 4,
+    "description": null,
+    "default_branch": "master",
+    "ssh_url_to_repo": "git@example.com:diaspora/diaspora-client.git",
+    "http_url_to_repo": "http://example.com/diaspora/diaspora-client.git",
+    "web_url": "http://example.com/diaspora/diaspora-client",
+    "readme_url": "http://example.com/diaspora/diaspora-client/blob/master/README.md",
+    "tag_list": [
+      "example",
+      "disapora client"
+    ],
+    "name": "Diaspora Client",
+    "name_with_namespace": "Diaspora / Diaspora Client",
+    "path": "diaspora-client",
+    "path_with_namespace": "diaspora/diaspora-client",
+    "created_at": "2013-09-30T13:46:02Z",
+    "last_activity_at": "2013-09-30T13:46:02Z",
+    "forks_count": 0,
+    "avatar_url": "http://example.com/uploads/project/avatar/4/uploads/avatar.png",
+    "star_count": 0,
+  },
+  {
+    "id": 6,
+    "description": null,
+    "default_branch": "master",
+...
+```
+
+When the user is authenticated and `simple` is not set this returns something like:
 
 ```json
 [
@@ -50,6 +103,7 @@ GET /projects
     "ssh_url_to_repo": "git@example.com:diaspora/diaspora-client.git",
     "http_url_to_repo": "http://example.com/diaspora/diaspora-client.git",
     "web_url": "http://example.com/diaspora/diaspora-client",
+    "readme_url": "http://example.com/diaspora/diaspora-client/blob/master/README.md",
     "tag_list": [
       "example",
       "disapora client"
@@ -93,6 +147,7 @@ GET /projects
     "only_allow_merge_if_pipeline_succeeds": false,
     "only_allow_merge_if_all_discussions_are_resolved": false,
     "request_access_enabled": false,
+    "merge_method": "merge",
     "statistics": {
       "commit_count": 37,
       "storage_size": 1038090,
@@ -118,6 +173,7 @@ GET /projects
     "ssh_url_to_repo": "git@example.com:brightbox/puppet.git",
     "http_url_to_repo": "http://example.com/brightbox/puppet.git",
     "web_url": "http://example.com/brightbox/puppet",
+    "readme_url": "http://example.com/brightbox/puppet/blob/master/README.md",
     "tag_list": [
       "example",
       "puppet"
@@ -172,6 +228,7 @@ GET /projects
     "only_allow_merge_if_pipeline_succeeds": false,
     "only_allow_merge_if_all_discussions_are_resolved": false,
     "request_access_enabled": false,
+    "merge_method": "merge",
     "statistics": {
       "commit_count": 12,
       "storage_size": 2066080,
@@ -192,10 +249,15 @@ GET /projects
 ]
 ```
 
+You can filter by [custom attributes](custom_attributes.md) with:
+
+```
+GET /projects?custom_attributes[key]=value&custom_attributes[other_key]=other_value
+```
+
 ## List user projects
 
-Get a list of visible projects for the given user. When accessed without
-authentication, only public projects are returned.
+Get a list of visible projects owned by the given user. When accessed without authentication, only public projects are returned.
 
 ```
 GET /users/:user_id/projects
@@ -209,13 +271,15 @@ GET /users/:user_id/projects
 | `order_by` | string | no | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, or `last_activity_at` fields. Default is `created_at` |
 | `sort` | string | no | Return projects sorted in `asc` or `desc` order. Default is `desc` |
 | `search` | string | no | Return list of projects matching the search criteria |
-| `simple` | boolean | no | Return only the ID, URL, name, and path of each project |
-| `owned` | boolean | no | Limit by projects owned by the current user |
+| `simple` | boolean | no | Return only limited fields for each project. This is a no-op without authentication as then _only_ simple fields are returned. |
+| `owned` | boolean | no | Limit by projects explicitly owned by the current user |
 | `membership` | boolean | no | Limit by projects that the current user is a member of |
 | `starred` | boolean | no | Limit by projects starred by the current user |
 | `statistics` | boolean | no | Include project statistics |
+| `with_custom_attributes` | boolean | no | Include [custom attributes](custom_attributes.md) in response (admins only) |
 | `with_issues_enabled` | boolean | no | Limit by enabled issues feature |
 | `with_merge_requests_enabled` | boolean | no | Limit by enabled merge requests feature |
+| `min_access_level` | integer | no | Limit by current user minimal [access level](members.md) |
 
 ```json
 [
@@ -227,6 +291,7 @@ GET /users/:user_id/projects
     "ssh_url_to_repo": "git@example.com:diaspora/diaspora-client.git",
     "http_url_to_repo": "http://example.com/diaspora/diaspora-client.git",
     "web_url": "http://example.com/diaspora/diaspora-client",
+    "readme_url": "http://example.com/diaspora/diaspora-client/blob/master/README.md",
     "tag_list": [
       "example",
       "disapora client"
@@ -270,6 +335,7 @@ GET /users/:user_id/projects
     "only_allow_merge_if_pipeline_succeeds": false,
     "only_allow_merge_if_all_discussions_are_resolved": false,
     "request_access_enabled": false,
+    "merge_method": "merge",
     "statistics": {
       "commit_count": 37,
       "storage_size": 1038090,
@@ -295,6 +361,7 @@ GET /users/:user_id/projects
     "ssh_url_to_repo": "git@example.com:brightbox/puppet.git",
     "http_url_to_repo": "http://example.com/brightbox/puppet.git",
     "web_url": "http://example.com/brightbox/puppet",
+    "readme_url": "http://example.com/brightbox/puppet/blob/master/README.md",
     "tag_list": [
       "example",
       "puppet"
@@ -349,6 +416,7 @@ GET /users/:user_id/projects
     "only_allow_merge_if_pipeline_succeeds": false,
     "only_allow_merge_if_all_discussions_are_resolved": false,
     "request_access_enabled": false,
+    "merge_method": "merge",
     "statistics": {
       "commit_count": 12,
       "storage_size": 2066080,
@@ -382,6 +450,8 @@ GET /projects/:id
 | --------- | ---- | -------- | ----------- |
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 | `statistics` | boolean | no | Include project statistics |
+| `license` | boolean | no | Include project license data |
+| `with_custom_attributes` | boolean | no | Include [custom attributes](custom_attributes.md) in response (admins only) |
 
 ```json
 {
@@ -392,6 +462,7 @@ GET /projects/:id
   "ssh_url_to_repo": "git@example.com:diaspora/diaspora-project-site.git",
   "http_url_to_repo": "http://example.com/diaspora/diaspora-project-site.git",
   "web_url": "http://example.com/diaspora/diaspora-project-site",
+  "readme_url": "http://example.com/diaspora/diaspora-project-site/blob/master/README.md",
   "tag_list": [
     "example",
     "disapora project"
@@ -437,6 +508,14 @@ GET /projects/:id
   },
   "archived": false,
   "avatar_url": "http://example.com/uploads/project/avatar/3/uploads/avatar.png",
+  "license_url": "http://example.com/diaspora/diaspora-client/blob/master/LICENSE",
+  "license": {
+    "key": "lgpl-3.0",
+    "name": "GNU Lesser General Public License v3.0",
+    "nickname": "GNU LGPLv3",
+    "html_url": "http://choosealicense.com/licenses/lgpl-3.0/",
+    "source_url": "http://www.gnu.org/licenses/lgpl-3.0.txt"
+  },
   "shared_runners_enabled": true,
   "forks_count": 0,
   "star_count": 0,
@@ -458,6 +537,7 @@ GET /projects/:id
   "only_allow_merge_if_all_discussions_are_resolved": false,
   "printing_merge_requests_link_enabled": true,
   "request_access_enabled": false,
+  "merge_method": "merge",
   "statistics": {
     "commit_count": 37,
     "storage_size": 1038090,
@@ -474,6 +554,55 @@ GET /projects/:id
     "events": "http://example.com/api/v4/projects/1/events",
     "members": "http://example.com/api/v4/projects/1/members"
   }
+}
+```
+
+If the project is a fork, and you provide a valid token to authenticate, the
+`forked_from_project` field will appear in the response.
+
+```json
+{
+   "id":3,
+
+   ...
+
+   "forked_from_project":{
+      "id":13083,
+      "description":"GitLab Community Edition",
+      "name":"GitLab Community Edition",
+      "name_with_namespace":"GitLab.org / GitLab Community Edition",
+      "path":"gitlab-ce",
+      "path_with_namespace":"gitlab-org/gitlab-ce",
+      "created_at":"2013-09-26T06:02:36.000Z",
+      "default_branch":"master",
+      "tag_list":[],
+      "ssh_url_to_repo":"git@gitlab.com:gitlab-org/gitlab-ce.git",
+      "http_url_to_repo":"https://gitlab.com/gitlab-org/gitlab-ce.git",
+      "web_url":"https://gitlab.com/gitlab-org/gitlab-ce",
+      "avatar_url":"https://assets.gitlab-static.net/uploads/-/system/project/avatar/13083/logo-extra-whitespace.png",
+      "license_url": "https://gitlab.com/gitlab-org/gitlab-ce/blob/master/LICENSE",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "nickname": null,
+        "html_url": "http://choosealicense.com/licenses/mit/",
+        "source_url": "https://opensource.org/licenses/MIT",
+      },
+      "star_count":3812,
+      "forks_count":3561,
+      "last_activity_at":"2018-01-02T11:40:26.570Z",
+      "namespace": {
+            "id": 72,
+            "name": "GitLab.org",
+            "path": "gitlab-org",
+            "kind": "group",
+            "full_path": "gitlab-org",
+            "parent_id": null
+      }
+   }
+
+   ...
+
 }
 ```
 
@@ -538,15 +667,17 @@ POST /projects
 | `shared_runners_enabled` | boolean | no | Enable shared runners for this project |
 | `visibility` | string | no | See [project visibility level](#project-visibility-level) |
 | `import_url` | string | no | URL to import repository from |
-| `public_jobs` | boolean | no | If `true`, jobs can be viewed by non-project-members |
+| `public_builds` | boolean | no | If `true`, jobs can be viewed by non-project-members |
 | `only_allow_merge_if_pipeline_succeeds` | boolean | no | Set whether merge requests can only be merged with successful jobs |
 | `only_allow_merge_if_all_discussions_are_resolved` | boolean | no | Set whether merge requests can only be merged when all the discussions are resolved |
+| `merge_method` | string | no | Set the merge method used |
 | `lfs_enabled` | boolean | no | Enable LFS |
 | `request_access_enabled` | boolean | no | Allow users to request member access |
 | `tag_list`    | array   | no       | The list of tags for a project; put array of tags, that should be finally assigned to a project |
 | `avatar`    | mixed   | no      | Image file for avatar of the project                |
 | `printing_merge_request_link_enabled` | boolean | no | Show link to create/view merge request when pushing from the command line |
 | `ci_config_path` | string | no | The path to CI config file |
+| `initialize_with_readme` | boolean | no | `false` by default |
 
 ## Create project for user
 
@@ -574,9 +705,10 @@ POST /projects/user/:user_id
 | `shared_runners_enabled` | boolean | no | Enable shared runners for this project |
 | `visibility` | string | no | See [project visibility level](#project-visibility-level) |
 | `import_url` | string | no | URL to import repository from |
-| `public_jobs` | boolean | no | If `true`, jobs can be viewed by non-project-members |
+| `public_builds` | boolean | no | If `true`, jobs can be viewed by non-project-members |
 | `only_allow_merge_if_pipeline_succeeds` | boolean | no | Set whether merge requests can only be merged with successful jobs |
 | `only_allow_merge_if_all_discussions_are_resolved` | boolean | no | Set whether merge requests can only be merged when all the discussions are resolved |
+| `merge_method` | string | no | Set the merge method used |
 | `lfs_enabled` | boolean | no | Enable LFS |
 | `request_access_enabled` | boolean | no | Allow users to request member access |
 | `tag_list`    | array   | no       | The list of tags for a project; put array of tags, that should be finally assigned to a project |
@@ -595,7 +727,7 @@ PUT /projects/:id
 | Attribute | Type | Required | Description |
 | --------- | ---- | -------- | ----------- |
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
-| `name` | string | yes | The name of the project |
+| `name` | string | no | The name of the project |
 | `path` | string | no | Custom repository name for the project. By default generated based on name |
 | `default_branch` | string | no | `master` by default |
 | `description` | string | no | Short project description |
@@ -609,9 +741,10 @@ PUT /projects/:id
 | `shared_runners_enabled` | boolean | no | Enable shared runners for this project |
 | `visibility` | string | no | See [project visibility level](#project-visibility-level) |
 | `import_url` | string | no | URL to import repository from |
-| `public_jobs` | boolean | no | If `true`, jobs can be viewed by non-project-members |
+| `public_builds` | boolean | no | If `true`, jobs can be viewed by non-project-members |
 | `only_allow_merge_if_pipeline_succeeds` | boolean | no | Set whether merge requests can only be merged with successful jobs |
 | `only_allow_merge_if_all_discussions_are_resolved` | boolean | no | Set whether merge requests can only be merged when all the discussions are resolved |
+| `merge_method` | string | no | Set the merge method used |
 | `lfs_enabled` | boolean | no | Enable LFS |
 | `request_access_enabled` | boolean | no | Allow users to request member access |
 | `tag_list`    | array   | no       | The list of tags for a project; put array of tags, that should be finally assigned to a project |
@@ -653,16 +786,18 @@ GET /projects/:id/forks
 | `order_by` | string | no | Return projects ordered by `id`, `name`, `path`, `created_at`, `updated_at`, or `last_activity_at` fields. Default is `created_at` |
 | `sort` | string | no | Return projects sorted in `asc` or `desc` order. Default is `desc` |
 | `search` | string | no | Return list of projects matching the search criteria |
-| `simple` | boolean | no | Return only the ID, URL, name, and path of each project |
-| `owned` | boolean | no | Limit by projects owned by the current user |
+| `simple` | boolean | no | Return only limited fields for each project. This is a no-op without authentication as then _only_ simple fields are returned. |
+| `owned` | boolean | no | Limit by projects explicitly owned by the current user |
 | `membership` | boolean | no | Limit by projects that the current user is a member of |
 | `starred` | boolean | no | Limit by projects starred by the current user |
 | `statistics` | boolean | no | Include project statistics |
+| `with_custom_attributes` | boolean | no | Include [custom attributes](custom_attributes.md) in response (admins only) |
 | `with_issues_enabled` | boolean | no | Limit by enabled issues feature |
 | `with_merge_requests_enabled` | boolean | no | Limit by enabled merge requests feature |
+| `min_access_level` | integer | no | Limit by current user minimal [access level](members.md) |
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/forks"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/forks"
 ```
 
 Example responses:
@@ -677,6 +812,7 @@ Example responses:
     "ssh_url_to_repo": "git@example.com:diaspora/diaspora-project-site.git",
     "http_url_to_repo": "http://example.com/diaspora/diaspora-project-site.git",
     "web_url": "http://example.com/diaspora/diaspora-project-site",
+    "readme_url": "http://example.com/diaspora/diaspora-project-site/blob/master/README.md",
     "tag_list": [
       "example",
       "disapora project"
@@ -714,6 +850,7 @@ Example responses:
     "only_allow_merge_if_pipeline_succeeds": false,
     "only_allow_merge_if_all_discussions_are_resolved": false,
     "request_access_enabled": false,
+    "merge_method": "merge",
     "_links": {
       "self": "http://example.com/api/v4/projects",
       "issues": "http://example.com/api/v4/projects/1/issues",
@@ -740,7 +877,7 @@ POST /projects/:id/star
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 
 ```bash
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/star"
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/star"
 ```
 
 Example response:
@@ -754,6 +891,7 @@ Example response:
   "ssh_url_to_repo": "git@example.com:diaspora/diaspora-project-site.git",
   "http_url_to_repo": "http://example.com/diaspora/diaspora-project-site.git",
   "web_url": "http://example.com/diaspora/diaspora-project-site",
+  "readme_url": "http://example.com/diaspora/diaspora-project-site/blob/master/README.md",
   "tag_list": [
     "example",
     "disapora project"
@@ -783,6 +921,14 @@ Example response:
   "import_status": "none",
   "archived": true,
   "avatar_url": "http://example.com/uploads/project/avatar/3/uploads/avatar.png",
+  "license_url": "http://example.com/diaspora/diaspora-client/blob/master/LICENSE",
+  "license": {
+    "key": "lgpl-3.0",
+    "name": "GNU Lesser General Public License v3.0",
+    "nickname": "GNU LGPLv3",
+    "html_url": "http://choosealicense.com/licenses/lgpl-3.0/",
+    "source_url": "http://www.gnu.org/licenses/lgpl-3.0.txt"
+  },
   "shared_runners_enabled": true,
   "forks_count": 0,
   "star_count": 1,
@@ -791,6 +937,7 @@ Example response:
   "only_allow_merge_if_pipeline_succeeds": false,
   "only_allow_merge_if_all_discussions_are_resolved": false,
   "request_access_enabled": false,
+  "merge_method": "merge",
   "_links": {
     "self": "http://example.com/api/v4/projects",
     "issues": "http://example.com/api/v4/projects/1/issues",
@@ -816,7 +963,7 @@ POST /projects/:id/unstar
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 
 ```bash
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/unstar"
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/unstar"
 ```
 
 Example response:
@@ -830,6 +977,7 @@ Example response:
   "ssh_url_to_repo": "git@example.com:diaspora/diaspora-project-site.git",
   "http_url_to_repo": "http://example.com/diaspora/diaspora-project-site.git",
   "web_url": "http://example.com/diaspora/diaspora-project-site",
+  "readme_url": "http://example.com/diaspora/diaspora-project-site/blob/master/README.md",
   "tag_list": [
     "example",
     "disapora project"
@@ -859,6 +1007,14 @@ Example response:
   "import_status": "none",
   "archived": true,
   "avatar_url": "http://example.com/uploads/project/avatar/3/uploads/avatar.png",
+  "license_url": "http://example.com/diaspora/diaspora-client/blob/master/LICENSE",
+  "license": {
+    "key": "lgpl-3.0",
+    "name": "GNU Lesser General Public License v3.0",
+    "nickname": "GNU LGPLv3",
+    "html_url": "http://choosealicense.com/licenses/lgpl-3.0/",
+    "source_url": "http://www.gnu.org/licenses/lgpl-3.0.txt"
+  },
   "shared_runners_enabled": true,
   "forks_count": 0,
   "star_count": 0,
@@ -867,6 +1023,7 @@ Example response:
   "only_allow_merge_if_pipeline_succeeds": false,
   "only_allow_merge_if_all_discussions_are_resolved": false,
   "request_access_enabled": false,
+  "merge_method": "merge",
   "_links": {
     "self": "http://example.com/api/v4/projects",
     "issues": "http://example.com/api/v4/projects/1/issues",
@@ -876,6 +1033,29 @@ Example response:
     "events": "http://example.com/api/v4/projects/1/events",
     "members": "http://example.com/api/v4/projects/1/members"
   }
+}
+```
+
+## Languages
+
+Get languages used in a project with percentage value.
+
+```
+GET /projects/:id/languages
+```
+
+```bash
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/languages"
+```
+
+Example response:
+
+```json
+{
+  "Ruby": 66.69,
+  "JavaScript": 22.98,
+  "HTML": 7.91,
+  "CoffeeScript": 2.42
 }
 ```
 
@@ -893,7 +1073,7 @@ POST /projects/:id/archive
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 
 ```bash
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/archive"
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/archive"
 ```
 
 Example response:
@@ -907,6 +1087,7 @@ Example response:
   "ssh_url_to_repo": "git@example.com:diaspora/diaspora-project-site.git",
   "http_url_to_repo": "http://example.com/diaspora/diaspora-project-site.git",
   "web_url": "http://example.com/diaspora/diaspora-project-site",
+  "readme_url": "http://example.com/diaspora/diaspora-project-site/blob/master/README.md",
   "tag_list": [
     "example",
     "disapora project"
@@ -952,6 +1133,14 @@ Example response:
   },
   "archived": true,
   "avatar_url": "http://example.com/uploads/project/avatar/3/uploads/avatar.png",
+  "license_url": "http://example.com/diaspora/diaspora-client/blob/master/LICENSE",
+  "license": {
+    "key": "lgpl-3.0",
+    "name": "GNU Lesser General Public License v3.0",
+    "nickname": "GNU LGPLv3",
+    "html_url": "http://choosealicense.com/licenses/lgpl-3.0/",
+    "source_url": "http://www.gnu.org/licenses/lgpl-3.0.txt"
+  },
   "shared_runners_enabled": true,
   "forks_count": 0,
   "star_count": 0,
@@ -961,6 +1150,7 @@ Example response:
   "only_allow_merge_if_pipeline_succeeds": false,
   "only_allow_merge_if_all_discussions_are_resolved": false,
   "request_access_enabled": false,
+  "merge_method": "merge",
   "_links": {
     "self": "http://example.com/api/v4/projects",
     "issues": "http://example.com/api/v4/projects/1/issues",
@@ -976,7 +1166,7 @@ Example response:
 ## Unarchive a project
 
 Unarchives the project if the user is either admin or the project owner of this project. This action is
-idempotent, thus unarchiving an non-archived project will not change the project.
+idempotent, thus unarchiving a non-archived project will not change the project.
 
 ```
 POST /projects/:id/unarchive
@@ -987,7 +1177,7 @@ POST /projects/:id/unarchive
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 
 ```bash
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/unarchive"
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/unarchive"
 ```
 
 Example response:
@@ -1001,6 +1191,7 @@ Example response:
   "ssh_url_to_repo": "git@example.com:diaspora/diaspora-project-site.git",
   "http_url_to_repo": "http://example.com/diaspora/diaspora-project-site.git",
   "web_url": "http://example.com/diaspora/diaspora-project-site",
+  "readme_url": "http://example.com/diaspora/diaspora-project-site/blob/master/README.md",
   "tag_list": [
     "example",
     "disapora project"
@@ -1046,6 +1237,14 @@ Example response:
   },
   "archived": false,
   "avatar_url": "http://example.com/uploads/project/avatar/3/uploads/avatar.png",
+  "license_url": "http://example.com/diaspora/diaspora-client/blob/master/LICENSE",
+  "license": {
+    "key": "lgpl-3.0",
+    "name": "GNU Lesser General Public License v3.0",
+    "nickname": "GNU LGPLv3",
+    "html_url": "http://choosealicense.com/licenses/lgpl-3.0/",
+    "source_url": "http://www.gnu.org/licenses/lgpl-3.0.txt"
+  },
   "shared_runners_enabled": true,
   "forks_count": 0,
   "star_count": 0,
@@ -1055,6 +1254,7 @@ Example response:
   "only_allow_merge_if_pipeline_succeeds": false,
   "only_allow_merge_if_all_discussions_are_resolved": false,
   "request_access_enabled": false,
+  "merge_method": "merge",
   "_links": {
     "self": "http://example.com/api/v4/projects",
     "issues": "http://example.com/api/v4/projects/1/issues",
@@ -1098,7 +1298,7 @@ The `file=` parameter must point to a file on your filesystem and be preceded
 by `@`. For example:
 
 ```bash
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" --form "file=@dk.png" https://gitlab.example.com/api/v3/projects/5/uploads
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" --form "file=@dk.png" https://gitlab.example.com/api/v4/projects/5/uploads
 ```
 
 Returned object:
@@ -1127,7 +1327,7 @@ POST /projects/:id/share
 | --------- | ---- | -------- | ----------- |
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 | `group_id` | integer | yes | The ID of the group to share with |
-| `group_access` | integer | yes | The permissions level to grant the group |
+| `group_access` | integer | yes | The [permissions level](members.md) to grant the group |
 | `expires_at` | string | no | Share expiration date in ISO 8601 format: 2016-09-26 |
 
 ## Delete a shared project link within a group
@@ -1144,7 +1344,7 @@ DELETE /projects/:id/share/:group_id
 | `group_id` | integer | yes | The ID of the group |
 
 ```bash
-curl --request DELETE --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects/5/share/17
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/share/17
 ```
 
 ## Hooks
@@ -1183,7 +1383,9 @@ GET /projects/:id/hooks/:hook_id
   "url": "http://example.com/hook",
   "project_id": 3,
   "push_events": true,
+  "push_events_branch_filter": "",
   "issues_events": true,
+  "confidential_issues_events": true,
   "merge_requests_events": true,
   "tag_push_events": true,
   "note_events": true,
@@ -1208,13 +1410,15 @@ POST /projects/:id/hooks
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 | `url` | string | yes | The hook URL |
 | `push_events` | boolean | no | Trigger hook on push events |
+| `push_events_branch_filter` | string | no | Trigger hook on push events for matching branches only |
 | `issues_events` | boolean | no | Trigger hook on issues events |
+| `confidential_issues_events` | boolean | no | Trigger hook on confidential issues events |
 | `merge_requests_events` | boolean | no | Trigger hook on merge requests events |
 | `tag_push_events` | boolean | no | Trigger hook on tag push events |
 | `note_events` | boolean | no | Trigger hook on note events |
 | `job_events` | boolean | no | Trigger hook on job events |
 | `pipeline_events` | boolean | no | Trigger hook on pipeline events |
-| `wiki_events` | boolean | no | Trigger hook on wiki events |
+| `wiki_page_events` | boolean | no | Trigger hook on wiki events |
 | `enable_ssl_verification` | boolean | no | Do SSL verification when triggering the hook |
 | `token` | string | no | Secret token to validate received payloads; this will not be returned in the response |
 
@@ -1232,7 +1436,9 @@ PUT /projects/:id/hooks/:hook_id
 | `hook_id` | integer | yes | The ID of the project hook |
 | `url` | string | yes | The hook URL |
 | `push_events` | boolean | no | Trigger hook on push events |
+| `push_events_branch_filter` | string | no | Trigger hook on push events for matching branches only |
 | `issues_events` | boolean | no | Trigger hook on issues events |
+| `confidential_issues_events` | boolean | no | Trigger hook on confidential issues events |
 | `merge_requests_events` | boolean | no | Trigger hook on merge requests events |
 | `tag_push_events` | boolean | no | Trigger hook on tag push events |
 | `note_events` | boolean | no | Trigger hook on note events |
@@ -1259,11 +1465,16 @@ DELETE /projects/:id/hooks/:hook_id
 Note the JSON response differs if the hook is available or not. If the project hook
 is available before it is returned in the JSON response or an empty response is returned.
 
-## Admin fork relation
+## Fork relationship
 
-Allows modification of the forked relationship between existing projects. Available only for admins.
+Allows modification of the forked relationship between existing projects. Available only for project owners and admins.
 
 ### Create a forked from/to relation between existing projects
+
+CAUTION: **Warning:**
+This will destroy the LFS objects stored in the fork.
+So to retain the LFS objects, make sure you've pulled them **before** creating the fork relation,
+and push them again **after** creating the fork relation.
 
 ```
 POST /projects/:id/fork/:forked_from_id
@@ -1301,7 +1512,7 @@ GET /projects
 | `sort` | string | no | Return requests sorted in `asc` or `desc` order |
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects?search=test
+curl --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects?search=test
 ```
 
 ## Start the Housekeeping task for a Project
@@ -1316,10 +1527,57 @@ POST /projects/:id/housekeeping
 | --------- | ---- | -------- | ----------- |
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 
+### Transfer a project to a new namespace
+
+```
+PUT /projects/:id/transfer
+```
+
+| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `namespace` | integer/string | yes | The ID or path of the namespace to transfer to project to |
+
 ## Branches
 
 Read more in the [Branches](branches.md) documentation.
 
+## Project Import/Export
+
+Read more in the [Project import/export](project_import_export.md) documentation.
+
 ## Project members
 
 Read more in the [Project members](members.md) documentation.
+
+## Project badges
+
+Read more in the [Project Badges](project_badges.md) documentation.
+
+## Issue and merge request description templates
+
+The non-default [issue and merge request description templates](../user/project/description_templates.md) are managed inside the project's repository. So you can manage them via the API through the [Repositories API](repositories.md) and the [Repository Files API](repository_files.md).
+
+## Download snapshot of a git repository
+
+> Introduced in GitLab 10.7
+
+This endpoint may only be accessed by an administrative user.
+
+Download a snapshot of the project (or wiki, if requested) git repository. This
+snapshot is always in uncompressed [tar](https://en.wikipedia.org/wiki/Tar_(computing))
+format.
+
+If a repository is corrupted to the point where `git clone` does not work, the
+snapshot may allow some of the data to be retrieved.
+
+```
+GET /projects/:id/snapshot
+```
+
+| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `id`      | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
+| `wiki`    | boolean | no | Whether to download the wiki, rather than project, repository |
+
+[eep]: https://about.gitlab.com/pricing/ "Available only in GitLab Premium"
+[ee-6137]: https://gitlab.com/gitlab-org/gitlab-ee/merge_requests/6137

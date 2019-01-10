@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'Dropdown label', js: true do
+describe 'Dropdown label', :js do
   include FilteredSearchHelpers
 
   let(:project) { create(:project) }
@@ -33,7 +33,7 @@ describe 'Dropdown label', js: true do
   end
 
   before do
-    project.add_master(user)
+    project.add_maintainer(user)
     sign_in(user)
     create(:issue, project: project)
 
@@ -45,7 +45,8 @@ describe 'Dropdown label', js: true do
       bug_label = create(:label, project: project, title: 'bug-label')
       init_label_search
 
-      filtered_search.native.send_keys(:down, :down, :enter)
+      # navigate to the bug_label option and selects it
+      filtered_search.native.send_keys(:down, :down, :down, :enter)
 
       expect_tokens([label_token(bug_label.title)])
       expect_filtered_search_input_empty
@@ -66,9 +67,11 @@ describe 'Dropdown label', js: true do
     end
 
     it 'shows loading indicator when opened and hides it when loaded' do
-      filtered_search.set('label:')
+      slow_requests do
+        filtered_search.set('label:')
 
-      expect(find(js_dropdown_label)).to have_css('.filter-dropdown-loading')
+        expect(page).to have_css("#{js_dropdown_label} .filter-dropdown-loading", visible: true)
+      end
       expect(find(js_dropdown_label)).not_to have_css('.filter-dropdown-loading')
     end
 
@@ -232,10 +235,18 @@ describe 'Dropdown label', js: true do
     end
 
     it 'selects `no label`' do
-      find("#{js_dropdown_label} .filter-dropdown-item", text: 'No Label').click
+      find("#{js_dropdown_label} .filter-dropdown-item", text: 'None').click
 
       expect(page).not_to have_css(js_dropdown_label)
       expect_tokens([label_token('none', false)])
+      expect_filtered_search_input_empty
+    end
+
+    it 'selects `any label`' do
+      find("#{js_dropdown_label} .filter-dropdown-item", text: 'Any').click
+
+      expect(page).not_to have_css(js_dropdown_label)
+      expect_tokens([label_token('any', false)])
       expect_filtered_search_input_empty
     end
   end

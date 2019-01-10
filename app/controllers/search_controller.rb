@@ -1,8 +1,15 @@
-class SearchController < ApplicationController
-  skip_before_action :authenticate_user!
+# frozen_string_literal: true
 
+class SearchController < ApplicationController
+  include ControllerWithCrossProjectAccessCheck
   include SearchHelper
   include RendersCommits
+
+  skip_before_action :authenticate_user!
+  requires_cross_project_access if: -> do
+    search_term_present = params[:search].present? || params[:term].present?
+    search_term_present && !params[:project_id].present?
+  end
 
   layout 'search'
 
@@ -26,6 +33,7 @@ class SearchController < ApplicationController
     check_single_commit_result
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def autocomplete
     term = params[:term]
 
@@ -38,6 +46,7 @@ class SearchController < ApplicationController
 
     render json: search_autocomplete_opts(term).to_json
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   private
 

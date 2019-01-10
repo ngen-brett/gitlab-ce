@@ -19,6 +19,16 @@
     max-width: 425px;
     width: 100%;
   }
+
+  $image-widths: 80 130 250 306 394 430;
+  @each $width in $image-widths {
+    &.svg-#{$width} {
+      img,
+      svg {
+        max-width: #{$width + 'px'};
+      }
+    }
+  }
 }
 
 @mixin svg-size($size) {
@@ -27,9 +37,12 @@
 }
 
 svg {
-  &.s16 { @include svg-size(16px); }
-  &.s24 { @include svg-size(24px); }
-  &.s32 { @include svg-size(32px); }
-  &.s48 { @include svg-size(48px); }
-  &.s72 { @include svg-size(72px); }
+  fill: currentColor;
+
+  $svg-sizes: 8 10 12 14 16 18 24 32 48 72;
+  @each $svg-size in $svg-sizes {
+    &.s#{$svg-size} {
+      @include svg-size(#{$svg-size}px);
+    }
+  }
 }

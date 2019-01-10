@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'New issue', js: true do
+describe 'New issue', :js do
   include StubENV
 
   let(:project) { create(:project, :public) }
@@ -9,7 +9,7 @@ describe 'New issue', js: true do
   before do
     stub_env('IN_MEMORY_APPLICATION_SETTINGS', 'false')
 
-    current_application_settings.update!(
+    Gitlab::CurrentSettings.update!(
       akismet_enabled: true,
       akismet_api_key: 'testkey',
       recaptcha_enabled: true,
@@ -17,7 +17,7 @@ describe 'New issue', js: true do
       recaptcha_private_key: 'test private key'
     )
 
-    project.team << [user, :master]
+    project.add_maintainer(user)
     sign_in(user)
   end
 

@@ -1,9 +1,14 @@
+# frozen_string_literal: true
+
 module NotesActions
   include RendersNotes
+  include Gitlab::Utils::StrongMemoize
   extend ActiveSupport::Concern
 
   included do
+    prepend_before_action :normalize_create_params, only: [:create]
     before_action :set_polling_interval_header, only: [:index]
+    before_action :require_noteable!, only: [:index, :create]
     before_action :authorize_admin_note!, only: [:update, :destroy]
     before_action :note_project, only: [:create]
   end
@@ -13,14 +18,22 @@ module NotesActions
 
     notes_json = { notes: [], last_fetched_at: current_fetched_at }
 
-    notes = notes_finder.execute
-      .inc_relations_for_view
-      .reject { |n| n.cross_reference_not_visible_for?(current_user) }
+    notes = notes_finder
+              .execute
+              .inc_relations_for_view
+
+    if notes_filter != UserPreference::NOTES_FILTERS[:only_comments]
+      notes =
+        ResourceEvents::MergeIntoNotesService
+          .new(noteable, current_user, last_fetched_at: current_fetched_at)
+          .execute(notes)
+    end
 
     notes = prepare_notes_for_rendering(notes)
+    notes = notes.reject { |n| n.cross_reference_not_visible_for?(current_user) }
 
     notes_json[:notes] =
-      if noteable.discussions_rendered_on_frontend?
+      if use_note_serializer?
         note_serializer.represent(notes)
       else
         notes.map { |note| note_json(note) }
@@ -29,6 +42,7 @@ module NotesActions
     render json: notes_json
   end
 
+  # rubocop:disable Gitlab/ModuleWithInstanceVariables
   def create
     create_params = note_params.merge(
       merge_request_diff_head_sha: params[:merge_request_diff_head_sha],
@@ -37,28 +51,42 @@ module NotesActions
 
     @note = Notes::CreateService.new(note_project, current_user, create_params).execute
 
-    if @note.is_a?(Note)
-      Banzai::NoteRenderer.render([@note], @project, current_user)
-    end
-
     respond_to do |format|
-      format.json { render json: note_json(@note) }
+      format.json do
+        json = {
+          commands_changes: @note.commands_changes
+        }
+
+        if @note.persisted? && return_discussion?
+          json[:valid] = true
+
+          discussion = @note.discussion
+          prepare_notes_for_rendering(discussion.notes)
+          json[:discussion] = discussion_serializer.represent(discussion, context: self)
+        else
+          prepare_notes_for_rendering([@note])
+
+          json.merge!(note_json(@note))
+        end
+
+        render json: json
+      end
       format.html { redirect_back_or_default }
     end
   end
+  # rubocop:enable Gitlab/ModuleWithInstanceVariables
 
+  # rubocop:disable Gitlab/ModuleWithInstanceVariables
   def update
     @note = Notes::UpdateService.new(project, current_user, note_params).execute(note)
-
-    if @note.is_a?(Note)
-      Banzai::NoteRenderer.render([@note], @project, current_user)
-    end
+    prepare_notes_for_rendering([@note])
 
     respond_to do |format|
       format.json { render json: note_json(@note) }
       format.html { redirect_back_or_default }
     end
   end
+  # rubocop:enable Gitlab/ModuleWithInstanceVariables
 
   def destroy
     if note.editable?
@@ -82,21 +110,25 @@ module NotesActions
   end
 
   def note_json(note)
-    attrs = {
-      commands_changes: note.commands_changes
-    }
+    attrs = {}
 
     if note.persisted?
       attrs[:valid] = true
 
-      if noteable.nil? || noteable.discussions_rendered_on_frontend?
+      if return_discussion?
+        discussion = note.discussion
+        prepare_notes_for_rendering(discussion.notes)
+
+        attrs[:discussion] = discussion_serializer.represent(discussion, context: self)
+      elsif use_note_serializer?
         attrs.merge!(note_serializer.represent(note))
       else
         attrs.merge!(
           id: note.id,
           discussion_id: note.discussion_id(noteable),
           html: note_html(note),
-          note: note.note
+          note: note.note,
+          on_image: note.try(:on_image?)
         )
 
         discussion = note.to_discussion(noteable)
@@ -107,6 +139,8 @@ module NotesActions
             diff_discussion_html: diff_discussion_html(discussion),
             discussion_html: discussion_html(discussion)
           )
+
+          attrs[:discussion_line_code] = discussion.line_code if discussion.diff_discussion?
         end
       end
     else
@@ -122,7 +156,9 @@ module NotesActions
   def diff_discussion_html(discussion)
     return unless discussion.diff_discussion?
 
-    if params[:view] == 'parallel'
+    on_image = discussion.on_image?
+
+    if params[:view] == 'parallel' && !on_image
       template = "discussions/_parallel_diff_discussion"
       locals =
         if params[:line_type] == 'old'
@@ -132,7 +168,9 @@ module NotesActions
         end
     else
       template = "discussions/_diff_discussion"
-      locals = { discussions: [discussion] }
+      @fresh_discussion = true # rubocop:disable Gitlab/ModuleWithInstanceVariables
+
+      locals = { discussions: [discussion], on_image: on_image }
     end
 
     render_to_string(
@@ -183,11 +221,19 @@ module NotesActions
   end
 
   def noteable
-    @noteable ||= notes_finder.target
+    @noteable ||= notes_finder.target || @note&.noteable # rubocop:disable Gitlab/ModuleWithInstanceVariables
+  end
+
+  def require_noteable!
+    render_404 unless noteable
   end
 
   def last_fetched_at
     request.headers['X-Last-Fetched-At']
+  end
+
+  def notes_filter
+    current_user&.notes_filter_for(params[:target_type])
   end
 
   def notes_finder
@@ -195,24 +241,48 @@ module NotesActions
   end
 
   def note_serializer
-    NoteSerializer.new(project: project, noteable: noteable, current_user: current_user)
+    ProjectNoteSerializer.new(project: project, noteable: noteable, current_user: current_user)
+  end
+
+  def discussion_serializer
+    DiscussionSerializer.new(project: project, noteable: noteable, current_user: current_user, note_entity: ProjectNoteEntity)
+  end
+
+  # Avoids checking permissions in the wrong object - this ensures that the object we checked permissions for
+  # is the object we're actually creating a note in.
+  def normalize_create_params
+    params[:note].try do |note|
+      note[:noteable_id] = params[:target_id]
+      note[:noteable_type] = params[:target_type].classify
+    end
   end
 
   def note_project
-    return @note_project if defined?(@note_project)
-    return nil unless project
+    strong_memoize(:note_project) do
+      next nil unless project
 
-    note_project_id = params[:note_project_id]
+      note_project_id = params[:note_project_id]
 
-    @note_project =
-      if note_project_id.present?
-        Project.find(note_project_id)
-      else
-        project
-      end
+      the_project =
+        if note_project_id.present?
+          Project.find(note_project_id)
+        else
+          project
+        end
 
-    return access_denied! unless can?(current_user, :create_note, @note_project)
+      next access_denied! unless can?(current_user, :create_note, the_project)
 
-    @note_project
+      the_project
+    end
+  end
+
+  def return_discussion?
+    Gitlab::Utils.to_boolean(params[:return_discussion])
+  end
+
+  def use_note_serializer?
+    return false if params['html']
+
+    noteable.discussions_rendered_on_frontend?
   end
 end

@@ -4,12 +4,14 @@ describe Gitlab::ImportExport::RelationFactory do
   let(:project) { create(:project) }
   let(:members_mapper) { double('members_mapper').as_null_object }
   let(:user) { create(:admin) }
+  let(:excluded_keys) { [] }
   let(:created_object) do
     described_class.create(relation_sym: relation_sym,
                            relation_hash: relation_hash,
                            members_mapper: members_mapper,
                            user: user,
-                           project: project)
+                           project: project,
+                           excluded_keys: excluded_keys)
   end
 
   context 'hook object' do
@@ -29,6 +31,7 @@ describe Gitlab::ImportExport::RelationFactory do
         'service_id' => service_id,
         'push_events' => true,
         'issues_events' => false,
+        'confidential_issues_events' => false,
         'merge_requests_events' => true,
         'tag_push_events' => false,
         'note_events' => true,
@@ -64,6 +67,14 @@ describe Gitlab::ImportExport::RelationFactory do
 
       it 'does not have the original service_id' do
         expect(created_object.service_id).not_to eq(service_id)
+      end
+    end
+
+    context 'excluded attributes' do
+      let(:excluded_keys) { %w[url] }
+
+      it 'are removed from the imported object' do
+        expect(created_object.url).to be_nil
       end
     end
   end
@@ -105,6 +116,25 @@ describe Gitlab::ImportExport::RelationFactory do
 
     it 'does not preserve any foreign key IDs' do
       expect(created_object.values).not_to include(99)
+    end
+  end
+
+  context 'overrided model with pluralized name' do
+    let(:relation_sym) { :metrics }
+
+    let(:relation_hash) do
+      {
+        'id' => 99,
+        'merge_request_id' => 99,
+        'merged_at' => Time.now,
+        'merged_by_id' => 99,
+        'latest_closed_at' => nil,
+        'latest_closed_by_id' => nil
+      }
+    end
+
+    it 'does not raise errors' do
+      expect { created_object }.not_to raise_error
     end
   end
 
@@ -161,9 +191,7 @@ describe Gitlab::ImportExport::RelationFactory do
         "author" => {
           "name" => "Administrator"
         },
-        "events" => [
-
-        ]
+        "events" => []
       }
     end
 

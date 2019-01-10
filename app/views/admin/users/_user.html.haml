@@ -1,15 +1,15 @@
 %li.flex-row
   .user-avatar
-    = image_tag avatar_icon(user), class: "avatar", alt: ''
+    = image_tag avatar_icon_for_user(user), class: "avatar", alt: ''
   .row-main-content
     .user-name.row-title.str-truncated-100
-      = link_to user.name, [:admin, user]
+      = link_to user.name, [:admin, user], class: "js-user-link", data: { user_id: user.id }
     - if user.blocked?
-      %span.label.label-danger blocked
+      %span.badge.badge-danger blocked
     - if user.admin?
-      %span.label.label-success Admin
+      %span.badge.badge-success Admin
     - if user.external?
-      %span.label.label-default External
+      %span.badge.badge-secondary External
     - if user == current_user
       %span It's you!
     .row-second-line.str-truncated-100
@@ -21,7 +21,7 @@
         %a.dropdown-new.btn.btn-default#project-settings-button{ href: '#', data: { toggle: 'dropdown' } }
           = icon('cog')
           = icon('caret-down')
-        %ul.dropdown-menu.dropdown-menu-align-right
+        %ul.dropdown-menu.dropdown-menu-right
           %li.dropdown-header
             Settings
             %li
@@ -33,17 +33,24 @@
                 = link_to 'Block', block_admin_user_path(user), data: { confirm: 'USER WILL BE BLOCKED! Are you sure?' }, method: :put
             - if user.access_locked?
               %li
-                = link_to 'Unlock', unlock_admin_user_path(user), method: :put, class: 'btn-grouped btn btn-xs btn-success', data: { confirm: 'Are you sure?' }
+                = link_to _('Unlock'), unlock_admin_user_path(user), method: :put, data: { confirm: _('Are you sure?') }
           - if can?(current_user, :destroy_user, user)
             %li.divider
             - if user.can_be_removed?
               %li
-                = link_to 'Remove user', admin_user_path(user),
-                    data: { confirm: "USER #{user.name} WILL BE REMOVED! Are you sure?" },
-                    class: 'text-danger',
-                    method: :delete
+                %button.delete-user-button.btn.text-danger{ data: { toggle: 'modal',
+                  target: '#delete-user-modal',
+                  delete_user_url: admin_user_path(user),
+                  block_user_url: block_admin_user_path(user),
+                  username: user.name,
+                  delete_contributions: false }, type: 'button' }
+                  = s_('AdminUsers|Delete user')
+
             %li
-              = link_to 'Remove user and contributions', admin_user_path(user, hard_delete: true),
-                  data: { confirm: "USER #{user.name} WILL BE REMOVED! All issues, merge requests and comments authored by this user, and groups owned solely by them, will also be removed! Are you sure?" },
-                  class: 'text-danger',
-                  method: :delete
+              %button.delete-user-button.btn.text-danger{ data: { toggle: 'modal',
+                target: '#delete-user-modal',
+                delete_user_url: admin_user_path(user, hard_delete: true),
+                block_user_url: block_admin_user_path(user),
+                username: user.name,
+                delete_contributions: true }, type: 'button' }
+                = s_('AdminUsers|Delete user and contributions')

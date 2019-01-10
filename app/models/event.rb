@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 class Event < ActiveRecord::Base
   include Sortable
   include IgnorableColumn
+  include FromUnion
   default_scope { reorder(nil) }
 
   CREATED   = 1
@@ -40,6 +43,7 @@ class Event < ActiveRecord::Base
   ).freeze
 
   RESET_PROJECT_ACTIVITY_INTERVAL = 1.hour
+  REPOSITORY_UPDATED_AT_INTERVAL = 5.minutes
 
   delegate :name, :email, :public_email, :username, to: :author, prefix: true, allow_nil: true
   delegate :title, to: :issue, prefix: true, allow_nil: true
@@ -48,12 +52,24 @@ class Event < ActiveRecord::Base
 
   belongs_to :author, class_name: "User"
   belongs_to :project
-  belongs_to :target, polymorphic: true # rubocop:disable Cop/PolymorphicAssociations
+
+  belongs_to :target, -> {
+    # If the association for "target" defines an "author" association we want to
+    # eager-load this so Banzai & friends don't end up performing N+1 queries to
+    # get the authors of notes, issues, etc. (likewise for "noteable").
+    incs = %i(author noteable).select do |a|
+      reflections['events'].active_record.reflect_on_association(a)
+    end
+
+    incs.reduce(self) { |obj, a| obj.includes(a) }
+  }, polymorphic: true # rubocop:disable Cop/PolymorphicAssociations
+
   has_one :push_event_payload
 
   # Callbacks
   after_create :reset_project_activity
   after_create :set_last_repository_updated_at, if: :push?
+  after_create :track_user_interacted_projects
 
   # Scopes
   scope :recent, -> { reorder(id: :desc) }
@@ -71,7 +87,7 @@ class Event < ActiveRecord::Base
   scope :with_associations, -> do
     # We're using preload for "push_event_payload" as otherwise the association
     # is not always available (depending on the query being built).
-    includes(:author, :project, project: :namespace)
+    includes(:author, :project, project: [:project_feature, :import_data, :namespace])
       .preload(:target, :push_event_payload)
   end
 
@@ -85,10 +101,6 @@ class Event < ActiveRecord::Base
 
   self.inheritance_column = 'action'
 
-  # "data" will be removed in 10.0 but it may be possible that JOINs happen that
-  # include this column, hence we're ignoring it as well.
-  ignore_column :data
-
   class << self
     def model_name
       ActiveModel::Name.new(self, nil, 'event')
@@ -100,16 +112,6 @@ class Event < ActiveRecord::Base
       else
         Event
       end
-    end
-
-    def subclass_from_attributes(attrs)
-      # Without this Rails will keep calling this method on the returned class,
-      # resulting in an infinite loop.
-      return unless self == Event
-
-      action = attrs.with_indifferent_access[inheritance_column].to_i
-
-      PushEvent if action == PUSHED
     end
 
     # Update Gitlab::ContributionsCalendar#activity_dates if this changes
@@ -133,25 +135,35 @@ class Event < ActiveRecord::Base
     end
   end
 
+  # rubocop:disable Metrics/CyclomaticComplexity
+  # rubocop:disable Metrics/PerceivedComplexity
   def visible_to_user?(user = nil)
     if push? || commit_note?
       Ability.allowed?(user, :download_code, project)
     elsif membership_changed?
-      true
+      Ability.allowed?(user, :read_project, project)
     elsif created_project?
-      true
+      Ability.allowed?(user, :read_project, project)
     elsif issue? || issue_note?
       Ability.allowed?(user, :read_issue, note? ? note_target : target)
     elsif merge_request? || merge_request_note?
       Ability.allowed?(user, :read_merge_request, note? ? note_target : target)
+    elsif personal_snippet_note?
+      Ability.allowed?(user, :read_personal_snippet, note_target)
+    elsif project_snippet_note?
+      Ability.allowed?(user, :read_project_snippet, note_target)
+    elsif milestone?
+      Ability.allowed?(user, :read_milestone, project)
     else
-      milestone?
+      false # No other event types are visible
     end
   end
+  # rubocop:enable Metrics/PerceivedComplexity
+  # rubocop:enable Metrics/CyclomaticComplexity
 
   def project_name
     if project
-      project.name_with_namespace
+      project.full_name
     else
       "(deleted project)"
     end
@@ -289,6 +301,10 @@ class Event < ActiveRecord::Base
     note? && target && target.for_snippet?
   end
 
+  def personal_snippet_note?
+    note? && target && target.for_personal_snippet?
+  end
+
   def note_target
     target.noteable
   end
@@ -380,6 +396,14 @@ class Event < ActiveRecord::Base
 
   def set_last_repository_updated_at
     Project.unscoped.where(id: project_id)
+      .where("last_repository_updated_at < ? OR last_repository_updated_at IS NULL", REPOSITORY_UPDATED_AT_INTERVAL.ago)
       .update_all(last_repository_updated_at: created_at)
+  end
+
+  def track_user_interacted_projects
+    # Note the call to .available? is due to earlier migrations
+    # that would otherwise conflict with the call to .track
+    # (because the table does not exist yet).
+    UserInteractedProject.track(self) if UserInteractedProject.available?
   end
 end

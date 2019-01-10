@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'base64'
 require 'json'
 require 'securerandom'
@@ -10,72 +12,50 @@ module Gitlab
     INTERNAL_API_CONTENT_TYPE = 'application/vnd.gitlab-workhorse+json'.freeze
     INTERNAL_API_REQUEST_HEADER = 'Gitlab-Workhorse-Api-Request'.freeze
     NOTIFICATION_CHANNEL = 'workhorse:notifications'.freeze
+    ALLOWED_GIT_HTTP_ACTIONS = %w[git_receive_pack git_upload_pack info_refs].freeze
+    DETECT_HEADER = 'Gitlab-Workhorse-Detect-Content-Type'.freeze
 
     # Supposedly the effective key size for HMAC-SHA256 is 256 bits, i.e. 32
     # bytes https://tools.ietf.org/html/rfc4868#section-2.6
     SECRET_LENGTH = 32
 
     class << self
-      def git_http_ok(repository, is_wiki, user, action)
+      def git_http_ok(repository, is_wiki, user, action, show_all_refs: false)
+        raise "Unsupported action: #{action}" unless ALLOWED_GIT_HTTP_ACTIONS.include?(action.to_s)
+
         project = repository.project
-        repo_path = repository.path_to_repo
-        params = {
+
+        attrs = {
           GL_ID: Gitlab::GlId.gl_id(user),
           GL_REPOSITORY: Gitlab::GlRepository.gl_repository(project, is_wiki),
-          RepoPath: repo_path
+          GL_USERNAME: user&.username,
+          ShowAllRefs: show_all_refs,
+          Repository: repository.gitaly_repository.to_h,
+          GitConfigOptions: [],
+          GitalyServer: {
+            address: Gitlab::GitalyClient.address(project.repository_storage),
+            token: Gitlab::GitalyClient.token(project.repository_storage)
+          }
         }
 
-        server = {
-          address: Gitlab::GitalyClient.address(project.repository_storage),
-          token: Gitlab::GitalyClient.token(project.repository_storage)
-        }
-        params[:Repository] = repository.gitaly_repository.to_h
-
-        feature_enabled = case action.to_s
-                          when 'git_receive_pack'
-                            Gitlab::GitalyClient.feature_enabled?(:post_receive_pack)
-                          when 'git_upload_pack'
-                            true
-                          when 'info_refs'
-                            true
-                          else
-                            raise "Unsupported action: #{action}"
-                          end
-        if feature_enabled
-          params[:GitalyServer] = server
+        # Custom option for git-receive-pack command
+        receive_max_input_size = Gitlab::CurrentSettings.receive_max_input_size.to_i
+        if receive_max_input_size > 0
+          attrs[:GitConfigOptions] << "receive.maxInputSize=#{receive_max_input_size.megabytes}"
         end
 
-        params
-      end
-
-      def lfs_upload_ok(oid, size)
-        {
-          StoreLFSPath: "#{Gitlab.config.lfs.storage_path}/tmp/upload",
-          LfsOid: oid,
-          LfsSize: size
-        }
-      end
-
-      def artifact_upload_ok
-        { TempPath: ArtifactUploader.artifacts_upload_path }
+        attrs
       end
 
       def send_git_blob(repository, blob)
-        params = if Gitlab::GitalyClient.feature_enabled?(:workhorse_raw_show)
-                   {
-                     'GitalyServer' => gitaly_server_hash(repository),
-                     'GetBlobRequest' => {
-                       repository: repository.gitaly_repository.to_h,
-                       oid: blob.id,
-                       limit: -1
-                     }
-                   }
-                 else
-                   {
-                     'RepoPath' => repository.path_to_repo,
-                     'BlobId' => blob.id
-                   }
-                 end
+        params = {
+          'GitalyServer' => gitaly_server_hash(repository),
+          'GetBlobRequest' => {
+            repository: repository.gitaly_repository.to_h,
+            oid: blob.id,
+            limit: -1
+          }
+        }
 
         [
           SEND_DATA_HEADER,
@@ -83,11 +63,16 @@ module Gitlab
         ]
       end
 
-      def send_git_archive(repository, ref:, format:)
+      def send_git_archive(repository, ref:, format:, append_sha:)
         format ||= 'tar.gz'
-        format.downcase!
-        params = repository.archive_metadata(ref, Gitlab.config.gitlab.repository_downloads_path, format)
+        format = format.downcase
+        params = repository.archive_metadata(ref, Gitlab.config.gitlab.repository_downloads_path, format, append_sha: append_sha)
         raise "Repository or ref not found" if params.empty?
+
+        params['GitalyServer'] = gitaly_server_hash(repository)
+
+        # If present DisableCache must be a Boolean. Otherwise workhorse ignores it.
+        params['DisableCache'] = true if git_archive_cache_disabled?
 
         [
           SEND_DATA_HEADER,
@@ -95,11 +80,26 @@ module Gitlab
         ]
       end
 
+      def send_git_snapshot(repository)
+        params = {
+          'GitalyServer' => gitaly_server_hash(repository),
+          'GetSnapshotRequest' => Gitaly::GetSnapshotRequest.new(
+            repository: repository.gitaly_repository
+          ).to_json
+        }
+
+        [
+          SEND_DATA_HEADER,
+          "git-snapshot:#{encode(params)}"
+        ]
+      end
+
       def send_git_diff(repository, diff_refs)
         params = {
-          'RepoPath'  => repository.path_to_repo,
-          'ShaFrom'   => diff_refs.base_sha,
-          'ShaTo'     => diff_refs.head_sha
+          'GitalyServer' => gitaly_server_hash(repository),
+          'RawDiffRequest' => Gitaly::RawDiffRequest.new(
+            gitaly_diff_or_patch_hash(repository, diff_refs)
+          ).to_json
         }
 
         [
@@ -110,9 +110,10 @@ module Gitlab
 
       def send_git_patch(repository, diff_refs)
         params = {
-          'RepoPath'  => repository.path_to_repo,
-          'ShaFrom'   => diff_refs.base_sha,
-          'ShaTo'     => diff_refs.head_sha
+          'GitalyServer' => gitaly_server_hash(repository),
+          'RawPatchRequest' => Gitaly::RawPatchRequest.new(
+            gitaly_diff_or_patch_hash(repository, diff_refs)
+          ).to_json
         }
 
         [
@@ -122,14 +123,29 @@ module Gitlab
       end
 
       def send_artifacts_entry(build, entry)
+        file = build.artifacts_file
+        archive = file.file_storage? ? file.path : file.url
+
         params = {
-          'Archive' => build.artifacts_file.path,
+          'Archive' => archive,
           'Entry' => Base64.encode64(entry.to_s)
         }
 
         [
           SEND_DATA_HEADER,
           "artifacts-entry:#{encode(params)}"
+        ]
+      end
+
+      def send_url(url, allow_redirects: false)
+        params = {
+          'URL' => url,
+          'AllowRedirects' => allow_redirects
+        }
+
+        [
+          SEND_DATA_HEADER,
+          "send-url:#{encode(params)}"
         ]
       end
 
@@ -156,6 +172,7 @@ module Gitlab
         @secret ||= begin
           bytes = Base64.strict_decode64(File.read(secret_path).chomp)
           raise "#{secret_path} does not contain #{SECRET_LENGTH} bytes" if bytes.length != SECRET_LENGTH
+
           bytes
         end
       end
@@ -208,6 +225,18 @@ module Gitlab
           address: Gitlab::GitalyClient.address(repository.project.repository_storage),
           token: Gitlab::GitalyClient.token(repository.project.repository_storage)
         }
+      end
+
+      def gitaly_diff_or_patch_hash(repository, diff_refs)
+        {
+          repository: repository.gitaly_repository,
+          left_commit_id: diff_refs.base_sha,
+          right_commit_id: diff_refs.head_sha
+        }
+      end
+
+      def git_archive_cache_disabled?
+        ENV['WORKHORSE_ARCHIVE_CACHE_DISABLED'].present? || Feature.enabled?(:workhorse_archive_cache_disabled)
       end
     end
   end

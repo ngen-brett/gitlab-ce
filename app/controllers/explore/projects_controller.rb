@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 class Explore::ProjectsController < Explore::ApplicationController
   include ParamsBackwardCompatibility
+  include RendersMemberAccess
 
   before_action :set_non_archived_param
 
@@ -33,6 +36,7 @@ class Explore::ProjectsController < Explore::ApplicationController
     end
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def starred
     @projects = load_projects.reorder('star_count DESC')
 
@@ -45,14 +49,19 @@ class Explore::ProjectsController < Explore::ApplicationController
       end
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   private
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def load_projects
-    ProjectsFinder.new(current_user: current_user, params: params)
-      .execute
-      .includes(:route, namespace: :route)
-      .page(params[:page])
-      .without_count
+    projects = ProjectsFinder.new(current_user: current_user, params: params)
+                 .execute
+                 .includes(:route, :creator, :group, namespace: [:route, :owner])
+                 .page(params[:page])
+                 .without_count
+
+    prepare_projects_for_rendering(projects)
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 end

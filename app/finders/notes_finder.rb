@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class NotesFinder
   FETCH_OVERLAP = 5.seconds
 
@@ -22,6 +24,8 @@ class NotesFinder
   def execute
     notes = init_collection
     notes = since_fetch_at(notes)
+    notes = notes.with_notes_filter(@params[:notes_filter]) if notes_filter?
+
     notes.fresh
   end
 
@@ -48,33 +52,48 @@ class NotesFinder
   def init_collection
     if target
       notes_on_target
+    elsif target_type
+      notes_of_target_type
     else
       notes_of_any_type
     end
   end
 
+  def notes_of_target_type
+    notes = notes_for_type(target_type)
+
+    search(notes)
+  end
+
+  def target_type
+    @params[:target_type]
+  end
+
+  # rubocop: disable CodeReuse/ActiveRecord
   def notes_of_any_type
     types = %w(commit issue merge_request snippet)
     note_relations = types.map { |t| notes_for_type(t) }
     note_relations.map! { |notes| search(notes) }
-    UnionFinder.new.find_union(note_relations, Note)
+    UnionFinder.new.find_union(note_relations, Note.includes(:author)) # rubocop: disable CodeReuse/Finder
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def noteables_for_type(noteable_type)
     case noteable_type
     when "issue"
-      IssuesFinder.new(@current_user, project_id: @project.id).execute
+      IssuesFinder.new(@current_user, project_id: @project.id).execute # rubocop: disable CodeReuse/Finder
     when "merge_request"
-      MergeRequestsFinder.new(@current_user, project_id: @project.id).execute
+      MergeRequestsFinder.new(@current_user, project_id: @project.id).execute # rubocop: disable CodeReuse/Finder
     when "snippet", "project_snippet"
-      SnippetsFinder.new(@current_user, project: @project).execute
+      SnippetsFinder.new(@current_user, project: @project).execute # rubocop: disable CodeReuse/Finder
     when "personal_snippet"
       PersonalSnippet.all
     else
-      raise 'invalid target_type'
+      raise "invalid target_type '#{noteable_type}'"
     end
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def notes_for_type(noteable_type)
     if noteable_type == "commit"
       if Ability.allowed?(@current_user, :download_code, @project)
@@ -87,6 +106,7 @@ class NotesFinder
       @project.notes.where(noteable_type: finder.base_class.name, noteable_id: finder.reorder(nil))
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def notes_on_target
     if target.respond_to?(:related_notes)
@@ -104,8 +124,7 @@ class NotesFinder
     query = @params[:search]
     return notes unless query
 
-    pattern = "%#{query}%"
-    notes.where(Note.arel_table[:note].matches(pattern))
+    notes.search(query)
   end
 
   # Notes changed since last fetch
@@ -116,5 +135,9 @@ class NotesFinder
     # Default to 0 to remain compatible with old clients
     last_fetched_at = Time.at(@params.fetch(:last_fetched_at, 0).to_i)
     notes.updated_after(last_fetched_at - FETCH_OVERLAP)
+  end
+
+  def notes_filter?
+    @params[:notes_filter].present?
   end
 end

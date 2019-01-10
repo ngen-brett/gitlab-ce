@@ -1,14 +1,14 @@
 # GitLab Licensing and Compatibility
 
-GitLab CE is licensed under the terms of the MIT License. GitLab EE is licensed under "The GitLab Enterprise Edition (EE) license" wherein there are more restrictions. See their respective LICENSE files ([CE][CE], [EE][EE]) for more information.
+[GitLab Community Edition](https://gitlab.com/gitlab-org/gitlab-ce/) (CE) is licensed [under the terms of the MIT License][CE]. [GitLab Enterprise Edition](https://gitlab.com/gitlab-org/gitlab-ee/) (EE) is licensed under "[The GitLab Enterprise Edition (EE) license][EE]" wherein there are more restrictions.
 
 ## Automated Testing
 
-In order to comply with the terms the libraries we use are licensed under, we have to make sure to check new gems for compatible licenses whenever they're added. To automate this process, we use the [license_finder][license_finder] gem by Pivotal. It runs every time a new commit is pushed and verifies that all gems in the bundle use a license that doesn't conflict with the licensing of either GitLab Community Edition or GitLab Enterprise Edition.
+In order to comply with the terms the libraries we use are licensed under, we have to make sure to check new gems for compatible licenses whenever they're added. To automate this process, we use the [license_finder][license_finder] gem by Pivotal. It runs every time a new commit is pushed and verifies that all gems and node modules in the bundle use a license that doesn't conflict with the licensing of either GitLab Community Edition or GitLab Enterprise Edition.
 
-There are some limitations with the automated testing, however. CSS and JavaScript libraries, as well as any Ruby libraries not included by way of Bundler, must be verified manually and independently. Take care whenever one such library is used, as automated tests won't catch problematic licenses from them.
+There are some limitations with the automated testing, however. CSS, JavaScript, or Ruby libraries which are not included by way of Bundler, NPM, or Yarn (for instance those manually copied into our source tree in the `vendor` directory), must be verified manually and independently. Take care whenever one such library is used, as automated tests won't catch problematic licenses from them.
 
-Some gems may not include their license information in their `gemspec` file. These won't be detected by License Finder, and will have to be verified manually.
+Some gems may not include their license information in their `gemspec` file, and some node modules may not include their license information in their `package.json` file. These won't be detected by License Finder, and will have to be verified manually.
 
 ### License Finder commands
 
@@ -56,15 +56,37 @@ Libraries with the following licenses are acceptable for use:
 - [ISC License][ISC] (also known as the OpenBSD License): A permissive (non-copyleft) license as defined by the Open Source Initiative.
 - [Creative Commons Zero (CC0)][CC0]: A public domain dedication, recommended as a way to disclaim copyright on your work to the maximum extent possible.
 - [Unlicense][UNLICENSE]: Another public domain dedication.
+- [OWFa 1.0][OWFa1]: An open-source license and patent grant designed for specifications.
 
 ## Unacceptable Licenses
 
-Libraries with the following licenses are unacceptable for use:
+Libraries with the following licenses require legal approval for use:
 
 - [GNU GPL][GPL] (version 1, [version 2][GPLv2], [version 3][GPLv3], or any future versions): GPL-licensed libraries cannot be linked to from non-GPL projects.
 - [GNU AGPLv3][AGPLv3]: AGPL-licensed libraries cannot be linked to from non-GPL projects.
 - [Open Software License (OSL)][OSL]: is a copyleft license. In addition, the FSF [recommend against its use][OSL-GNU].
 - [Facebook BSD + PATENTS][Facebook]: is a 3-clause BSD license with a patent grant that has been deemed [Category X][x-list] by the Apache foundation.
+- [WTFPL][WTFPL]: is a public domain dedication [rejected by the OSI (3.2)][WTFPL-OSI]. Also has a strong language which is not in accordance with our diversity policy.
+
+## GPL Cooperation Commitment
+
+Before filing or continuing to prosecute any legal proceeding or claim (other than a Defensive Action) arising from termination of a Covered License, GitLab commits to extend to the person or entity (“you”) accused of violating the Covered License the following provisions regarding cure and reinstatement, taken from GPL version 3. As used here, the term ‘this License’ refers to the specific Covered License being enforced.
+
+However, if you cease all violation of this License, then your license from a particular copyright holder is reinstated (a) provisionally, unless and until the copyright holder explicitly and finally terminates your license, and (b) permanently, if the copyright holder fails to notify you of the violation by some reasonable means prior to 60 days after the cessation.
+
+Moreover, your license from a particular copyright holder is reinstated permanently if the copyright holder notifies you of the violation by some reasonable means, this is the first time you have received notice of violation of this License (for any work) from that copyright holder, and you cure the violation prior to 30 days after your receipt of the notice.
+
+GitLab intends this Commitment to be irrevocable, and binding and enforceable against GitLab and assignees of or successors to GitLab’s copyrights.
+
+GitLab may modify this Commitment by publishing a new edition on this page or a successor location.
+
+Definitions
+
+‘Covered License’ means the GNU General Public License, version 2 (GPLv2), the GNU Lesser General Public License, version 2.1 (LGPLv2.1), or the GNU Library General Public License, version 2 (LGPLv2), all as published by the Free Software Foundation.
+
+‘Defensive Action’ means a legal proceeding or claim that GitLab brings against you in response to a prior proceeding or claim initiated by you or your affiliate.
+
+GitLab means GitLab Inc. and its affiliates and subsidiaries.
 
 ## Requesting Approval for Licenses
 
@@ -78,7 +100,7 @@ If a gem uses a license which is not listed above, open an issue and ask. If a l
 
 Keep in mind that each license has its own restrictions (typically defined in their body text). Please make sure to comply with those restrictions at all times whenever an external library is used.
 
-Gems which are included only in the "development" or "test" groups by Bundler are exempt from license requirements, as they're not distributed for use in production.
+Dependencies which are only used in development or test environment are exempt from license requirements, as they're not distributed for use in production.
 
 **NOTE:** This document is **not** legal advice, nor is it comprehensive. It should not be taken as such.
 
@@ -104,7 +126,10 @@ Gems which are included only in the "development" or "test" groups by Bundler ar
 [OSL-GNU]: https://www.gnu.org/licenses/license-list.en.html#OSL
 [Org-Repo]: https://gitlab.com/gitlab-com/organization
 [UNLICENSE]: https://unlicense.org
+[OWFa1]: http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0
 [Facebook]: https://code.facebook.com/pages/850928938376556
 [x-list]: https://www.apache.org/legal/resolved.html#category-x
 [Acceptable-Licenses]: #acceptable-licenses
 [Unacceptable-Licenses]: #unacceptable-licenses
+[WTFPL]: https://wtfpl.net
+[WTFPL-OSI]: https://opensource.org/minutes20090304

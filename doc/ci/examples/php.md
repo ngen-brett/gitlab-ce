@@ -20,7 +20,7 @@ build environment.
 
 Let's first specify the PHP image that will be used for the job process
 (you can read more about what an image means in the Runner's lingo reading
-about [Using Docker images](../docker/using_docker_images.md#what-is-image)).
+about [Using Docker images](../docker/using_docker_images.md#what-is-an-image)).
 
 Start by adding the image to your `.gitlab-ci.yml`:
 
@@ -167,7 +167,7 @@ Finally, push to GitLab and let the tests begin!
 ### Test against different PHP versions in Shell builds
 
 The [phpenv][] project allows you to easily manage different versions of PHP
-each with its own config. This is specially usefull when testing PHP projects
+each with its own config. This is especially useful when testing PHP projects
 with the Shell executor.
 
 You will have to install it on your build machine under the `gitlab-runner`
@@ -199,7 +199,7 @@ pecl install <extension>
 ```
 
 It's not advised to add this to `.gitlab-ci.yml`. You should execute this
-command once, only to setup the build environment.
+command once, only to set up the build environment.
 
 ## Extend your tests
 
@@ -227,7 +227,7 @@ following in your `.gitlab-ci.yml`:
 ...
 
 # Composer stores all downloaded packages in the vendor/ directory.
-# Do not use the following if the vendor/ directory is commited to
+# Do not use the following if the vendor/ directory is committed to
 # your git repository.
 cache:
   paths:
@@ -267,10 +267,10 @@ terminal execute:
 
 ```bash
 # Check using docker executor
-gitlab-ci-multi-runner exec docker test:app
+gitlab-runner exec docker test:app
 
 # Check using shell executor
-gitlab-ci-multi-runner exec shell test:app
+gitlab-runner exec shell test:app
 ```
 
 ## Example project

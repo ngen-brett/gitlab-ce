@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # SystemNoteService
 #
 # Used for creating system notes (e.g., when a user references a merge request
@@ -21,12 +23,28 @@ module SystemNoteService
     total_count  = new_commits.length + existing_commits.length
     commits_text = "#{total_count} commit".pluralize(total_count)
 
-    body = "added #{commits_text}\n\n"
-    body << existing_commit_summary(noteable, existing_commits, oldrev)
-    body << new_commit_summary(new_commits).join("\n")
-    body << "\n\n[Compare with previous version](#{diff_comparison_url(noteable, project, oldrev)})"
+    text_parts = ["added #{commits_text}"]
+    text_parts << commits_list(noteable, new_commits, existing_commits, oldrev)
+    text_parts << "[Compare with previous version](#{diff_comparison_url(noteable, project, oldrev)})"
+
+    body = text_parts.join("\n\n")
 
     create_note(NoteSummary.new(noteable, project, author, body, action: 'commit', commit_count: total_count))
+  end
+
+  # Called when a commit was tagged
+  #
+  # noteable  - Noteable object
+  # project   - Project owning noteable
+  # author    - User performing the tag
+  # tag_name  - The created tag name
+  #
+  # Returns the created Note object
+  def tag_commit(noteable, project, author, tag_name)
+    link = url_helpers.project_tag_url(project, id: tag_name)
+    body = "tagged commit #{noteable.sha} to [`#{tag_name}`](#{link})"
+
+    create_note(NoteSummary.new(noteable, project, author, body, action: 'tag'))
   end
 
   # Called when the assignee of a Noteable is changed or removed
@@ -68,63 +86,16 @@ module SystemNoteService
   #
   # Returns the created Note object
   def change_issue_assignees(issue, project, author, old_assignees)
-    body =
-      if issue.assignees.any? && old_assignees.any?
-        unassigned_users = old_assignees - issue.assignees
-        added_users = issue.assignees.to_a - old_assignees
+    unassigned_users = old_assignees - issue.assignees
+    added_users = issue.assignees.to_a - old_assignees
 
-        text_parts = []
-        text_parts << "assigned to #{added_users.map(&:to_reference).to_sentence}" if added_users.any?
-        text_parts << "unassigned #{unassigned_users.map(&:to_reference).to_sentence}" if unassigned_users.any?
+    text_parts = []
+    text_parts << "assigned to #{added_users.map(&:to_reference).to_sentence}" if added_users.any?
+    text_parts << "unassigned #{unassigned_users.map(&:to_reference).to_sentence}" if unassigned_users.any?
 
-        text_parts.join(' and ')
-      elsif old_assignees.any?
-        "removed assignee"
-      elsif issue.assignees.any?
-        "assigned to #{issue.assignees.map(&:to_reference).to_sentence}"
-      end
+    body = text_parts.join(' and ')
 
     create_note(NoteSummary.new(issue, project, author, body, action: 'assignee'))
-  end
-
-  # Called when one or more labels on a Noteable are added and/or removed
-  #
-  # noteable       - Noteable object
-  # project        - Project owning noteable
-  # author         - User performing the change
-  # added_labels   - Array of Labels added
-  # removed_labels - Array of Labels removed
-  #
-  # Example Note text:
-  #
-  #   "added ~1 and removed ~2 ~3 labels"
-  #
-  #   "added ~4 label"
-  #
-  #   "removed ~5 label"
-  #
-  # Returns the created Note object
-  def change_label(noteable, project, author, added_labels, removed_labels)
-    labels_count = added_labels.count + removed_labels.count
-
-    references     = ->(label) { label.to_reference(format: :id) }
-    added_labels   = added_labels.map(&references).join(' ')
-    removed_labels = removed_labels.map(&references).join(' ')
-
-    body = ''
-
-    if added_labels.present?
-      body << "added #{added_labels}"
-      body << ' and ' if removed_labels.present?
-    end
-
-    if removed_labels.present?
-      body << "removed #{removed_labels}"
-    end
-
-    body << ' ' << 'label'.pluralize(labels_count)
-
-    create_note(NoteSummary.new(noteable, project, author, body, action: 'label'))
   end
 
   # Called when the milestone of a Noteable is changed
@@ -148,6 +119,26 @@ module SystemNoteService
     create_note(NoteSummary.new(noteable, project, author, body, action: 'milestone'))
   end
 
+  # Called when the due_date of a Noteable is changed
+  #
+  # noteable  - Noteable object
+  # project   - Project owning noteable
+  # author    - User performing the change
+  # due_date  - Due date being assigned, or nil
+  #
+  # Example Note text:
+  #
+  #   "removed due date"
+  #
+  #   "changed due date to September 20, 2018"
+  #
+  # Returns the created Note object
+  def change_due_date(noteable, project, author, due_date)
+    body = due_date ? "changed due date to #{due_date.to_s(:long)}" : 'removed due date'
+
+    create_note(NoteSummary.new(noteable, project, author, body, action: 'due_date'))
+  end
+
   # Called when the estimated time of a Noteable is changed
   #
   # noteable      - Noteable object
@@ -162,7 +153,6 @@ module SystemNoteService
   #   "changed time estimate to 3d 5h"
   #
   # Returns the created Note object
-
   def change_time_estimate(noteable, project, author)
     parsed_time = Gitlab::TimeTrackingFormatter.output(noteable.time_estimate)
     body = if noteable.time_estimate == 0
@@ -188,16 +178,19 @@ module SystemNoteService
   #   "added 2h 30m of time spent"
   #
   # Returns the created Note object
-
   def change_time_spent(noteable, project, author)
     time_spent = noteable.time_spent
 
     if time_spent == :reset
       body = "removed time spent"
     else
+      spent_at = noteable.spent_at
       parsed_time = Gitlab::TimeTrackingFormatter.output(time_spent.abs)
       action = time_spent > 0 ? 'added' : 'subtracted'
-      body = "#{action} #{parsed_time} of time spent"
+
+      text_parts = ["#{action} #{parsed_time} of time spent"]
+      text_parts << "at #{spent_at}" if spent_at
+      body = text_parts.join(' ')
     end
 
     create_note(NoteSummary.new(noteable, project, author, body, action: 'time_tracking'))
@@ -218,7 +211,7 @@ module SystemNoteService
   #   "closed via bc17db76"
   #
   # Returns the created Note object
-  def change_status(noteable, project, author, status, source)
+  def change_status(noteable, project, author, status, source = nil)
     body = status.dup
     body << " via #{source.gfm_reference(project)}" if source
 
@@ -241,14 +234,10 @@ module SystemNoteService
     create_note(NoteSummary.new(noteable, project, author, body, action: 'merge'))
   end
 
-  def remove_merge_request_wip(noteable, project, author)
-    body = 'unmarked as a **Work In Progress**'
+  def handle_merge_request_wip(noteable, project, author)
+    prefix = noteable.work_in_progress? ? "marked" : "unmarked"
 
-    create_note(NoteSummary.new(noteable, project, author, body, action: 'title'))
-  end
-
-  def add_merge_request_wip(noteable, project, author)
-    body = 'marked as a **Work In Progress**'
+    body = "#{prefix} as a **Work In Progress**"
 
     create_note(NoteSummary.new(noteable, project, author, body, action: 'title'))
   end
@@ -280,17 +269,19 @@ module SystemNoteService
     diff_refs = change_position.diff_refs
     version_index = merge_request.merge_request_diffs.viewable.count
 
-    body = "changed this line in"
+    text_parts = ["changed this line in"]
     if version_params = merge_request.version_params_for(diff_refs)
       line_code = change_position.line_code(project.repository)
       url = url_helpers.diffs_project_merge_request_url(project, merge_request, version_params.merge(anchor: line_code))
 
-      body << " [version #{version_index} of the diff](#{url})"
+      text_parts << "[version #{version_index} of the diff](#{url})"
     else
-      body << " version #{version_index} of the diff"
+      text_parts << "version #{version_index} of the diff"
     end
 
+    body = text_parts.join(' ')
     note_attributes = discussion.reply_attributes.merge(project: project, author: author, note: body)
+
     note = Note.create(note_attributes.merge(system: true))
     note.system_note_metadata = SystemNoteMetadata.new(action: 'outdated')
 
@@ -416,9 +407,15 @@ module SystemNoteService
   def new_issue_branch(issue, project, author, branch)
     link = url_helpers.project_compare_url(project, from: project.default_branch, to: branch)
 
-    body = "created branch [`#{branch}`](#{link})"
+    body = "created branch [`#{branch}`](#{link}) to address this issue"
 
     create_note(NoteSummary.new(issue, project, author, body, action: 'branch'))
+  end
+
+  def new_merge_request(issue, project, author, merge_request)
+    body = "created merge request #{merge_request.to_reference} to address this issue"
+
+    create_note(NoteSummary.new(issue, project, author, body, action: 'merge'))
   end
 
   # Called when a Mentionable references a Noteable
@@ -441,7 +438,7 @@ module SystemNoteService
   def cross_reference(noteable, mentioner, author)
     return if cross_reference_disallowed?(noteable, mentioner)
 
-    gfm_reference = mentioner.gfm_reference(noteable.project)
+    gfm_reference = mentioner.gfm_reference(noteable.project || noteable.group)
     body = cross_reference_note_content(gfm_reference)
 
     if noteable.is_a?(ExternalIssue)
@@ -449,10 +446,6 @@ module SystemNoteService
     else
       create_note(NoteSummary.new(noteable, noteable.project, author, body, action: 'cross_reference'))
     end
-  end
-
-  def cross_reference?(note_text)
-    note_text =~ /\A#{cross_reference_note_prefix}/i
   end
 
   # Check if a cross-reference is disallowed
@@ -484,19 +477,8 @@ module SystemNoteService
   # mentioner - Mentionable object
   #
   # Returns Boolean
-
   def cross_reference_exists?(noteable, mentioner)
-    # Initial scope should be system notes of this noteable type
-    notes = Note.system.where(noteable_type: noteable.class)
-
-    notes =
-      if noteable.is_a?(Commit)
-        # Commits have non-integer IDs, so they're stored in `commit_id`
-        notes.where(commit_id: noteable.id)
-      else
-        notes.where(noteable_id: noteable.id)
-      end
-
+    notes = noteable.notes.system
     notes_for_mentioner(mentioner, noteable, notes).exists?
   end
 
@@ -507,7 +489,7 @@ module SystemNoteService
   # Returns an Array of Strings
   def new_commit_summary(new_commits)
     new_commits.collect do |commit|
-      "* #{commit.short_id} - #{escape_html(commit.title)}"
+      content_tag('li', "#{commit.short_id} - #{commit.title}")
     end
   end
 
@@ -591,18 +573,31 @@ module SystemNoteService
     create_note(NoteSummary.new(noteable, project, author, body, action: 'duplicate'))
   end
 
+  def discussion_lock(issuable, author)
+    action = issuable.discussion_locked? ? 'locked' : 'unlocked'
+    body = "#{action} this #{issuable.class.to_s.titleize.downcase}"
+
+    create_note(NoteSummary.new(issuable, issuable.project, author, body, action: action))
+  end
+
+  def cross_reference?(note_text)
+    note_text =~ /\A#{cross_reference_note_prefix}/i
+  end
+
   private
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def notes_for_mentioner(mentioner, noteable, notes)
     if mentioner.is_a?(Commit)
       text = "#{cross_reference_note_prefix}%#{mentioner.to_reference(nil)}"
       notes.where('(note LIKE ? OR note LIKE ?)', text, text.capitalize)
     else
-      gfm_reference = mentioner.gfm_reference(noteable.project)
+      gfm_reference = mentioner.gfm_reference(noteable.project || noteable.group)
       text = cross_reference_note_content(gfm_reference)
       notes.where(note: [text, text.capitalize])
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def create_note(note_summary)
     note = Note.create(note_summary.note.merge(system: true))
@@ -617,6 +612,16 @@ module SystemNoteService
 
   def cross_reference_note_content(gfm_reference)
     "#{cross_reference_note_prefix}#{gfm_reference}"
+  end
+
+  # Builds a list of existing and new commits according to existing_commits and
+  # new_commits methods.
+  # Returns a String wrapped in `ul` and `li` tags.
+  def commits_list(noteable, new_commits, existing_commits, oldrev)
+    existing_commit_summary = existing_commit_summary(noteable, existing_commits, oldrev)
+    new_commit_summary = new_commit_summary(new_commits).join
+
+    content_tag('ul', "#{existing_commit_summary}#{new_commit_summary}".html_safe)
   end
 
   # Build a single line summarizing existing commits being added in a merge
@@ -655,11 +660,8 @@ module SystemNoteService
     branch = noteable.target_branch
     branch = "#{noteable.target_project_namespace}:#{branch}" if noteable.for_fork?
 
-    "* #{commit_ids} - #{commits_text} from branch `#{branch}`\n"
-  end
-
-  def escape_html(text)
-    Rack::Utils.escape_html(text)
+    branch_name = content_tag('code', branch)
+    content_tag('li', "#{commit_ids} - #{commits_text} from branch #{branch_name}".html_safe)
   end
 
   def url_helpers
@@ -675,5 +677,9 @@ module SystemNoteService
       diff_id: diff_id,
       start_sha: oldrev
     )
+  end
+
+  def content_tag(*args)
+    ActionController::Base.helpers.content_tag(*args)
   end
 end

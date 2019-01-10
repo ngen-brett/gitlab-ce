@@ -21,7 +21,8 @@ describe Upload do
           path: __FILE__,
           size: described_class::CHECKSUM_THRESHOLD + 1.kilobyte,
           model: build_stubbed(:user),
-          uploader: double('ExampleUploader')
+          uploader: double('ExampleUploader'),
+          store: ObjectStorage::Store::LOCAL
         )
 
         expect(UploadChecksumWorker)
@@ -35,7 +36,8 @@ describe Upload do
           path: __FILE__,
           size: described_class::CHECKSUM_THRESHOLD,
           model: build_stubbed(:user),
-          uploader: double('ExampleUploader')
+          uploader: double('ExampleUploader'),
+          store: ObjectStorage::Store::LOCAL
         )
 
         expect { upload.save }
@@ -43,49 +45,16 @@ describe Upload do
           .to(a_string_matching(/\A\h{64}\z/))
       end
     end
-  end
 
-  describe '.remove_path' do
-    it 'removes all records at the given path' do
-      described_class.create!(
-        size: File.size(__FILE__),
-        path: __FILE__,
-        model: build_stubbed(:user),
-        uploader: 'AvatarUploader'
-      )
+    describe 'after_destroy' do
+      context 'uploader is FileUploader-based' do
+        subject { create(:upload, :issuable_upload) }
 
-      expect { described_class.remove_path(__FILE__) }
-        .to change { described_class.count }.from(1).to(0)
-    end
-  end
+        it 'calls delete_file!' do
+          is_expected.to receive(:delete_file!)
 
-  describe '.record' do
-    let(:fake_uploader) do
-      double(
-        file: double(size: 12_345),
-        relative_path: 'foo/bar.jpg',
-        model: build_stubbed(:user),
-        class: 'AvatarUploader'
-      )
-    end
-
-    it 'removes existing paths before creation' do
-      expect(described_class).to receive(:remove_path)
-        .with(fake_uploader.relative_path)
-
-      described_class.record(fake_uploader)
-    end
-
-    it 'creates a new record and assigns size, path, model, and uploader' do
-      upload = described_class.record(fake_uploader)
-
-      aggregate_failures do
-        expect(upload).to be_persisted
-        expect(upload.size).to eq fake_uploader.file.size
-        expect(upload.path).to eq fake_uploader.relative_path
-        expect(upload.model_id).to eq fake_uploader.model.id
-        expect(upload.model_type).to eq fake_uploader.model.class.to_s
-        expect(upload.uploader).to eq fake_uploader.class
+          subject.destroy
+        end
       end
     end
   end
@@ -93,7 +62,7 @@ describe Upload do
   describe '#absolute_path' do
     it 'returns the path directly when already absolute' do
       path = '/path/to/namespace/project/secret/file.jpg'
-      upload = described_class.new(path: path)
+      upload = described_class.new(path: path, store: ObjectStorage::Store::LOCAL)
 
       expect(upload).not_to receive(:uploader_class)
 
@@ -102,7 +71,7 @@ describe Upload do
 
     it "delegates to the uploader's absolute_path method" do
       uploader = spy('FakeUploader')
-      upload = described_class.new(path: 'secret/file.jpg')
+      upload = described_class.new(path: 'secret/file.jpg', store: ObjectStorage::Store::LOCAL)
       expect(upload).to receive(:uploader_class).and_return(uploader)
 
       upload.absolute_path
@@ -111,41 +80,89 @@ describe Upload do
     end
   end
 
-  describe '#calculate_checksum' do
-    it 'calculates the SHA256 sum' do
-      upload = described_class.new(
-        path: __FILE__,
-        size: described_class::CHECKSUM_THRESHOLD - 1.megabyte
-      )
+  describe '#calculate_checksum!' do
+    let(:upload) do
+      described_class.new(path: __FILE__,
+                          size: described_class::CHECKSUM_THRESHOLD - 1.megabyte,
+                          store: ObjectStorage::Store::LOCAL)
+    end
+
+    it 'sets `checksum` to SHA256 sum of the file' do
       expected = Digest::SHA256.file(__FILE__).hexdigest
 
-      expect { upload.calculate_checksum }
+      expect { upload.calculate_checksum! }
         .to change { upload.checksum }.from(nil).to(expected)
     end
 
-    it 'returns nil for a non-existant file' do
-      upload = described_class.new(
-        path: __FILE__,
-        size: described_class::CHECKSUM_THRESHOLD - 1.megabyte
-      )
-
+    it 'sets `checksum` to nil for a non-existent file' do
       expect(upload).to receive(:exist?).and_return(false)
 
-      expect(upload.calculate_checksum).to be_nil
+      checksum = Digest::SHA256.file(__FILE__).hexdigest
+      upload.checksum = checksum
+
+      expect { upload.calculate_checksum! }
+        .to change { upload.checksum }.from(checksum).to(nil)
     end
   end
 
   describe '#exist?' do
     it 'returns true when the file exists' do
-      upload = described_class.new(path: __FILE__)
+      upload = described_class.new(path: __FILE__, store: ObjectStorage::Store::LOCAL)
 
       expect(upload).to exist
     end
 
-    it 'returns false when the file does not exist' do
-      upload = described_class.new(path: "#{__FILE__}-nope")
+    context 'when the file does not exist' do
+      it 'returns false' do
+        upload = described_class.new(path: "#{__FILE__}-nope", store: ObjectStorage::Store::LOCAL)
 
-      expect(upload).not_to exist
+        expect(upload).not_to exist
+      end
+
+      context 'when the record is persisted' do
+        it 'sends a message to Sentry' do
+          upload = create(:upload, :issuable_upload)
+
+          expect(Gitlab::Sentry).to receive(:enabled?).and_return(true)
+          expect(Raven).to receive(:capture_message).with("Upload file does not exist", extra: upload.attributes)
+
+          upload.exist?
+        end
+
+        it 'increments a metric counter to signal a problem' do
+          upload = create(:upload, :issuable_upload)
+
+          counter = double(:counter)
+          expect(counter).to receive(:increment)
+          expect(Gitlab::Metrics).to receive(:counter).with(:upload_file_does_not_exist_total, 'The number of times an upload record could not find its file').and_return(counter)
+
+          upload.exist?
+        end
+      end
+
+      context 'when the record is not persisted' do
+        it 'does not send a message to Sentry' do
+          upload = described_class.new(path: "#{__FILE__}-nope", store: ObjectStorage::Store::LOCAL)
+
+          expect(Raven).not_to receive(:capture_message)
+
+          upload.exist?
+        end
+
+        it 'does not increment a metric counter' do
+          upload = described_class.new(path: "#{__FILE__}-nope", store: ObjectStorage::Store::LOCAL)
+
+          expect(Gitlab::Metrics).not_to receive(:counter)
+
+          upload.exist?
+        end
+      end
     end
+  end
+
+  describe "#uploader_context" do
+    subject { create(:upload, :issuable_upload, secret: 'secret', filename: 'file.txt') }
+
+    it { expect(subject.uploader_context).to match(a_hash_including(secret: 'secret', identifier: 'file.txt')) }
   end
 end

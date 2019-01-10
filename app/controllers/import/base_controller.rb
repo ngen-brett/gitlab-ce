@@ -1,27 +1,38 @@
+# frozen_string_literal: true
+
 class Import::BaseController < ApplicationController
   private
 
+  # rubocop: disable CodeReuse/ActiveRecord
+  def find_already_added_projects(import_type)
+    current_user.created_projects.where(import_type: import_type).includes(:import_state)
+  end
+  # rubocop: enable CodeReuse/ActiveRecord
+
+  # rubocop: disable CodeReuse/ActiveRecord
+  def find_jobs(import_type)
+    current_user.created_projects
+      .includes(:import_state)
+      .where(import_type: import_type)
+      .to_json(only: [:id], methods: [:import_status])
+  end
+  # rubocop: enable CodeReuse/ActiveRecord
+
   def find_or_create_namespace(names, owner)
-    return current_user.namespace if names == owner
-    return current_user.namespace unless current_user.can_create_group?
-
     names = params[:target_namespace].presence || names
-    full_path_namespace = Namespace.find_by_full_path(names)
 
-    return full_path_namespace if full_path_namespace
+    return current_user.namespace if names == owner
 
-    names.split('/').inject(nil) do |parent, name|
-      begin
-        namespace = Group.create!(name: name,
-                                  path: name,
-                                  owner: current_user,
-                                  parent: parent)
-        namespace.add_owner(current_user)
+    group = Groups::NestedCreateService.new(current_user, group_path: names).execute
 
-        namespace
-      rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid
-        Namespace.where(parent: parent).find_by_path_or_name(name)
-      end
-    end
+    group.errors.any? ? current_user.namespace : group
+  rescue => e
+    Gitlab::AppLogger.error(e)
+
+    current_user.namespace
+  end
+
+  def project_save_error(project)
+    project.errors.full_messages.join(', ')
   end
 end

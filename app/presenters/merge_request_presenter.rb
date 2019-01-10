@@ -1,8 +1,12 @@
+# frozen_string_literal: true
+
 class MergeRequestPresenter < Gitlab::View::Presenter::Delegated
   include ActionView::Helpers::UrlHelper
   include GitlabRoutingHelper
   include MarkupHelper
   include TreeHelper
+  include ChecksCollaboration
+  include Gitlab::Utils::StrongMemoize
 
   presents :merge_request
 
@@ -31,7 +35,7 @@ class MergeRequestPresenter < Gitlab::View::Presenter::Delegated
   end
 
   def remove_wip_path
-    if can?(current_user, :update_merge_request, merge_request.project)
+    if work_in_progress? && can?(current_user, :update_merge_request, merge_request.project)
       remove_wip_project_merge_request_path(project, merge_request)
     end
   end
@@ -43,7 +47,7 @@ class MergeRequestPresenter < Gitlab::View::Presenter::Delegated
   end
 
   def revert_in_fork_path
-    if user_can_fork_project? && can_be_reverted?(current_user)
+    if user_can_fork_project? && cached_can_be_reverted?
       continue_params = {
         to: merge_request_path(merge_request),
         notice: "#{edit_in_new_fork_notice} Try to cherry-pick this commit again.",
@@ -76,6 +80,12 @@ class MergeRequestPresenter < Gitlab::View::Presenter::Delegated
     end
   end
 
+  def rebase_path
+    if !rebase_in_progress? && should_be_rebased? && can_push_to_source_branch?
+      rebase_project_merge_request_path(project, merge_request)
+    end
+  end
+
   def target_branch_tree_path
     if target_branch_exists?
       project_tree_path(project, target_branch)
@@ -98,16 +108,10 @@ class MergeRequestPresenter < Gitlab::View::Presenter::Delegated
     namespace = source_project_namespace
     branch = source_branch
 
-    if source_branch_exists?
-      namespace = link_to(namespace, project_path(source_project))
-      branch = link_to(branch, project_tree_path(source_project, source_branch))
-    end
+    namespace_link = source_branch_exists? ? link_to(namespace, project_path(source_project)) : ERB::Util.html_escape(namespace)
+    branch_link = source_branch_exists? ? link_to(branch, project_tree_path(source_project, source_branch)) : ERB::Util.html_escape(branch)
 
-    if for_fork?
-      namespace + ":" + branch
-    else
-      branch
-    end
+    for_fork? ? "#{namespace_link}:#{branch_link}" : branch_link
   end
 
   def closing_issues_links
@@ -132,6 +136,7 @@ class MergeRequestPresenter < Gitlab::View::Presenter::Delegated
   end
 
   def assign_to_closing_issues_link
+    # rubocop: disable CodeReuse/ServiceClass
     issues = MergeRequests::AssignIssuesService.new(project,
                                                     current_user,
                                                     merge_request: merge_request,
@@ -142,28 +147,72 @@ class MergeRequestPresenter < Gitlab::View::Presenter::Delegated
       pluralize_this_issue = issues.count > 1 ? "these issues" : "this issue"
       link_to "Assign yourself to #{pluralize_this_issue}", path, method: :post
     end
+    # rubocop: enable CodeReuse/ServiceClass
   end
 
   def can_revert_on_current_merge_request?
-    user_can_collaborate_with_project? && can_be_reverted?(current_user)
+    can_collaborate_with_project?(project) && cached_can_be_reverted?
   end
 
   def can_cherry_pick_on_current_merge_request?
-    user_can_collaborate_with_project? && can_be_cherry_picked?
+    can_collaborate_with_project?(project) && can_be_cherry_picked?
+  end
+
+  def can_push_to_source_branch?
+    return false unless source_branch_exists?
+
+    !!::Gitlab::UserAccess
+      .new(current_user, project: source_project)
+      .can_push_to_branch?(source_branch)
+  end
+
+  def can_remove_source_branch?
+    source_branch_exists? && merge_request.can_remove_source_branch?(current_user)
+  end
+
+  def mergeable_discussions_state
+    # This avoids calling MergeRequest#mergeable_discussions_state without
+    # considering the state of the MR first. If a MR isn't mergeable, we can
+    # safely short-circuit it.
+    if merge_request.mergeable_state?(skip_ci_check: true, skip_discussions_check: true)
+      merge_request.mergeable_discussions_state?
+    else
+      false
+    end
+  end
+
+  def web_url
+    Gitlab::UrlBuilder.build(merge_request)
+  end
+
+  def subscribed?
+    merge_request.subscribed?(current_user, merge_request.target_project)
+  end
+
+  def conflicts_docs_path
+    help_page_path('user/project/merge_requests/resolve_conflicts.md')
   end
 
   private
 
+  def cached_can_be_reverted?
+    strong_memoize(:can_be_reverted) do
+      can_be_reverted?(current_user)
+    end
+  end
+
   def conflicts
+    # rubocop: disable CodeReuse/ServiceClass
     @conflicts ||= MergeRequests::Conflicts::ListService.new(merge_request)
+    # rubocop: enable CodeReuse/ServiceClass
   end
 
   def closing_issues
-    @closing_issues ||= closes_issues(current_user)
+    @closing_issues ||= visible_closing_issues_for(current_user)
   end
 
   def pipeline
-    @pipeline ||= head_pipeline
+    @pipeline ||= actual_head_pipeline
   end
 
   def issues_sentence(project, issues)
@@ -172,11 +221,6 @@ class MergeRequestPresenter < Gitlab::View::Presenter::Delegated
     issues.map do |issue|
       issue.to_reference(project)
     end.sort.to_sentence
-  end
-
-  def user_can_collaborate_with_project?
-    can?(current_user, :push_code, project) ||
-      (current_user && current_user.already_forked?(project))
   end
 
   def user_can_fork_project?

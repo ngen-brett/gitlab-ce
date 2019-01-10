@@ -9,15 +9,38 @@ describe Notes::UpdateService do
   let(:note) { create(:note, project: project, noteable: issue, author: user, note: "Old note #{user2.to_reference}") }
 
   before do
-    project.team << [user, :master]
-    project.team << [user2, :developer]
-    project.team << [user3, :developer]
+    project.add_maintainer(user)
+    project.add_developer(user2)
+    project.add_developer(user3)
   end
 
   describe '#execute' do
     def update_note(opts)
       @note = Notes::UpdateService.new(project, user, opts).execute(note)
       @note.reload
+    end
+
+    context 'suggestions' do
+      it 'refreshes note suggestions' do
+        markdown = <<-MARKDOWN.strip_heredoc
+          ```suggestion
+            foo
+          ```
+
+          ```suggestion
+            bar
+          ```
+        MARKDOWN
+
+        suggestion = create(:suggestion)
+        note = suggestion.note
+
+        expect { described_class.new(project, user, note: markdown).execute(note) }
+          .to change { note.suggestions.count }.from(1).to(2)
+
+        expect(note.suggestions.order(:relative_order).map(&:to_content))
+          .to eq(["  foo\n", "  bar\n"])
+      end
     end
 
     context 'todos' do

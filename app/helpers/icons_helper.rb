@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require 'json'
+
 module IconsHelper
   extend self
   include FontAwesome::Rails::IconHelper
@@ -23,10 +27,36 @@ module IconsHelper
     render "shared/icons/#{icon_name}.svg", size: size
   end
 
+  def sprite_icon_path
+    # SVG Sprites currently don't work across domains, so in the case of a CDN
+    # we have to set the current path deliberately to prevent addition of asset_host
+    sprite_base_url = Gitlab.config.gitlab.url if ActionController::Base.asset_host
+    ActionController::Base.helpers.image_path('icons.svg', host: sprite_base_url)
+  end
+
+  def sprite_file_icons_path
+    # SVG Sprites currently don't work across domains, so in the case of a CDN
+    # we have to set the current path deliberately to prevent addition of asset_host
+    sprite_base_url = Gitlab.config.gitlab.url if ActionController::Base.asset_host
+    ActionController::Base.helpers.image_path('file_icons.svg', host: sprite_base_url)
+  end
+
   def sprite_icon(icon_name, size: nil, css_class: nil)
-    css_classes = size ? "s#{size}" : nil
-    css_classes << " #{css_class}" unless css_class.blank?
-    content_tag(:svg, content_tag(:use, "", { "xlink:href" => "#{image_path('icons.svg')}##{icon_name}" } ), class: css_classes)
+    if Gitlab::Sentry.should_raise_for_dev?
+      unless known_sprites.include?(icon_name)
+        exception = ArgumentError.new("#{icon_name} is not a known icon in @gitlab-org/gitlab-svg")
+        raise exception
+      end
+    end
+
+    css_classes = []
+    css_classes << "s#{size}" if size
+    css_classes << "#{css_class}" unless css_class.blank?
+    content_tag(:svg, content_tag(:use, "", { "xlink:href" => "#{sprite_icon_path}##{icon_name}" } ), class: css_classes.empty? ? nil : css_classes.join(' '))
+  end
+
+  def external_snippet_icon(name)
+    content_tag(:span, "", class: "gl-snippet-icon gl-snippet-icon-#{name}")
   end
 
   def audit_icon(names, options = {})
@@ -35,16 +65,18 @@ module IconsHelper
       names = "key"
     when "two-factor"
       names = "key"
+    when "google_oauth2"
+      names = "google"
     end
 
     options.include?(:base) ? fa_stacked_icon(names, options) : fa_icon(names, options)
   end
 
   def spinner(text = nil, visible = false)
-    css_class = 'loading'
-    css_class << ' hide' unless visible
+    css_class = ['loading']
+    css_class << 'hide' unless visible
 
-    content_tag :div, class: css_class do
+    content_tag :div, class: css_class.join(' ') do
       icon('spinner spin') + text
     end
   end
@@ -57,7 +89,7 @@ module IconsHelper
     end
   end
 
-  def visibility_level_icon(level, fw: true)
+  def visibility_level_icon(level, fw: true, options: {})
     name =
       case level
       when Gitlab::VisibilityLevel::PRIVATE
@@ -68,14 +100,17 @@ module IconsHelper
         'globe'
       end
 
-    name << " fw" if fw
+    name = [name]
+    name << "fw" if fw
 
-    icon(name)
+    icon(name.join(' '), options)
   end
 
   def file_type_icon_class(type, mode, name)
     if type == 'folder'
       icon_class = 'folder'
+    elsif type == 'archive'
+      icon_class = 'archive'
     elsif mode == '120000'
       icon_class = 'share'
     else
@@ -115,5 +150,11 @@ module IconsHelper
     end
 
     icon_class
+  end
+
+  private
+
+  def known_sprites
+    @known_sprites ||= JSON.parse(File.read(Rails.root.join('node_modules/@gitlab/svgs/dist/icons.json')))['icons']
   end
 end

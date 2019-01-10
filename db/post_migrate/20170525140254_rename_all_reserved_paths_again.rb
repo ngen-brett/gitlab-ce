@@ -1,7 +1,7 @@
 # See http://doc.gitlab.com/ce/development/migration_style_guide.html
 # for more information on how to write migrations for GitLab.
 
-class RenameAllReservedPathsAgain < ActiveRecord::Migration
+class RenameAllReservedPathsAgain < ActiveRecord::Migration[4.2]
   include Gitlab::Database::RenameReservedPathsMigration::V1
 
   DOWNTIME = false
@@ -13,7 +13,6 @@ class RenameAllReservedPathsAgain < ActiveRecord::Migration
       .well-known
       abuse_reports
       admin
-      all
       api
       assets
       autocomplete
@@ -24,29 +23,20 @@ class RenameAllReservedPathsAgain < ActiveRecord::Migration
       groups
       health_check
       help
-      hooks
       import
       invites
-      issues
       jwt
       koding
-      member
-      merge_requests
-      new
-      notes
       notification_settings
       oauth
       profile
       projects
       public
-      repository
       robots.txt
       s
       search
       sent_notifications
-      services
       snippets
-      teams
       u
       unicorn_test
       unsubscribes
@@ -94,20 +84,19 @@ class RenameAllReservedPathsAgain < ActiveRecord::Migration
       notification_setting
       pipeline_quota
       projects
-      subgroups
   ].freeze
 
   def up
-    disable_statement_timeout
-
-    TOP_LEVEL_ROUTES.each { |route| rename_root_paths(route) }
-    PROJECT_WILDCARD_ROUTES.each { |route| rename_wildcard_paths(route) }
-    GROUP_ROUTES.each { |route| rename_child_paths(route) }
+    disable_statement_timeout do
+      TOP_LEVEL_ROUTES.each { |route| rename_root_paths(route) }
+      PROJECT_WILDCARD_ROUTES.each { |route| rename_wildcard_paths(route) }
+      GROUP_ROUTES.each { |route| rename_child_paths(route) }
+    end
   end
 
   def down
-    disable_statement_timeout
-
-    revert_renames
+    disable_statement_timeout do
+      revert_renames
+    end
   end
 end

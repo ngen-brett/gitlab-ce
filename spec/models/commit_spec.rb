@@ -13,21 +13,158 @@ describe Commit do
     it { is_expected.to include_module(StaticModel) }
   end
 
-  describe '#author' do
+  describe '.lazy' do
+    set(:project) { create(:project, :repository) }
+
+    context 'when the commits are found' do
+      let(:oids) do
+        %w(
+          498214de67004b1da3d820901307bed2a68a8ef6
+          c642fe9b8b9f28f9225d7ea953fe14e74748d53b
+          6f6d7e7ed97bb5f0054f2b1df789b39ca89b6ff9
+          048721d90c449b244b7b4c53a9186b04330174ec
+          281d3a76f31c812dbf48abce82ccf6860adedd81
+        )
+      end
+
+      subject { oids.map { |oid| described_class.lazy(project, oid) } }
+
+      it 'batches requests for commits' do
+        expect(project.repository).to receive(:commits_by).once.and_call_original
+
+        subject.first.title
+        subject.last.title
+      end
+
+      it 'maintains ordering' do
+        subject.each_with_index do |commit, i|
+          expect(commit.id).to eq(oids[i])
+        end
+      end
+    end
+
+    context 'when not found' do
+      it 'returns nil as commit' do
+        commit = described_class.lazy(project, 'deadbeef').__sync
+
+        expect(commit).to be_nil
+      end
+    end
+  end
+
+  describe '#author', :request_store do
     it 'looks up the author in a case-insensitive way' do
       user = create(:user, email: commit.author_email.upcase)
       expect(commit.author).to eq(user)
     end
 
-    it 'caches the author', :request_store do
+    it 'caches the author' do
       user = create(:user, email: commit.author_email)
-      expect(User).to receive(:find_by_any_email).and_call_original
 
       expect(commit.author).to eq(user)
+
       key = "Commit:author:#{commit.author_email.downcase}"
-      expect(RequestStore.store[key]).to eq(user)
 
+      expect(Gitlab::SafeRequestStore[key]).to eq(user)
       expect(commit.author).to eq(user)
+    end
+
+    context 'using eager loading' do
+      let!(:alice) { create(:user, email: 'alice@example.com') }
+      let!(:bob) { create(:user, email: 'hunter2@example.com') }
+      let!(:jeff) { create(:user) }
+
+      let(:alice_commit) do
+        described_class.new(RepoHelpers.sample_commit, project).tap do |c|
+          c.author_email = 'alice@example.com'
+        end
+      end
+
+      let(:bob_commit) do
+        # The commit for Bob uses one of his alternative Emails, instead of the
+        # primary one.
+        described_class.new(RepoHelpers.sample_commit, project).tap do |c|
+          c.author_email = 'bob@example.com'
+        end
+      end
+
+      let(:eve_commit) do
+        described_class.new(RepoHelpers.sample_commit, project).tap do |c|
+          c.author_email = 'eve@example.com'
+        end
+      end
+
+      let(:jeff_commit) do
+        # The commit for Jeff uses his private commit email
+        described_class.new(RepoHelpers.sample_commit, project).tap do |c|
+          c.author_email = jeff.private_commit_email
+        end
+      end
+
+      let!(:commits) { [alice_commit, bob_commit, eve_commit, jeff_commit] }
+
+      before do
+        create(:email, user: bob, email: 'bob@example.com')
+      end
+
+      it 'executes only two SQL queries' do
+        recorder = ActiveRecord::QueryRecorder.new do
+          # Running this first ensures we don't run one query for every
+          # commit.
+          commits.each(&:lazy_author)
+
+          # This forces the execution of the SQL queries necessary to load the
+          # data.
+          commits.each { |c| c.author.try(:id) }
+        end
+
+        expect(recorder.count).to eq(2)
+      end
+
+      it "preloads the authors for Commits matching a user's primary Email" do
+        commits.each(&:lazy_author)
+
+        expect(alice_commit.author).to eq(alice)
+      end
+
+      it "preloads the authors for Commits using a User's alternative Email" do
+        commits.each(&:lazy_author)
+
+        expect(bob_commit.author).to eq(bob)
+      end
+
+      it "preloads the authors for Commits using a User's private commit Email" do
+        commits.each(&:lazy_author)
+
+        expect(jeff_commit.author).to eq(jeff)
+      end
+
+      it "preloads the authors for Commits using a User's outdated private commit Email" do
+        jeff.update!(username: 'new-username')
+
+        commits.each(&:lazy_author)
+
+        expect(jeff_commit.author).to eq(jeff)
+      end
+
+      it 'sets the author to Nil if an author could not be found for a Commit' do
+        commits.each(&:lazy_author)
+
+        expect(eve_commit.author).to be_nil
+      end
+
+      it 'does not execute SQL queries once the authors are preloaded' do
+        commits.each(&:lazy_author)
+        commits.each { |c| c.author.try(:id) }
+
+        recorder = ActiveRecord::QueryRecorder.new do
+          alice_commit.author
+          bob_commit.author
+          eve_commit.author
+        end
+
+        expect(recorder.count).to be_zero
+      end
     end
   end
 
@@ -67,7 +204,7 @@ describe Commit do
       message = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sodales id felis id blandit. Vivamus egestas lacinia lacus, sed rutrum mauris.'
 
       allow(commit).to receive(:safe_message).and_return(message)
-      expect(commit.title).to eq('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sodales id felis…')
+      expect(commit.title).to eq('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sodales id...')
     end
 
     it "truncates a message with a newline before 80 characters at the newline" do
@@ -110,6 +247,12 @@ eos
   end
 
   describe 'description' do
+    it 'returns no_commit_message when safe_message is blank' do
+      allow(commit).to receive(:safe_message).and_return(nil)
+
+      expect(commit.description).to eq('--no commit message')
+    end
+
     it 'returns description of commit message if title less than 100 characters' do
       message = <<eos
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sodales id felis id blandit.
@@ -142,20 +285,18 @@ eos
     it { is_expected.to respond_to(:parents) }
     it { is_expected.to respond_to(:date) }
     it { is_expected.to respond_to(:diffs) }
-    it { is_expected.to respond_to(:tree) }
     it { is_expected.to respond_to(:id) }
-    it { is_expected.to respond_to(:to_patch) }
   end
 
   describe '#closes_issues' do
     let(:issue) { create :issue, project: project }
     let(:other_project) { create(:project, :public) }
     let(:other_issue) { create :issue, project: other_project }
-    let(:commiter) { create :user }
+    let(:committer) { create :user }
 
     before do
-      project.team << [commiter, :developer]
-      other_project.team << [commiter, :developer]
+      project.add_developer(committer)
+      other_project.add_developer(committer)
     end
 
     it 'detects issues that this commit is marked as closing' do
@@ -163,7 +304,7 @@ eos
 
       allow(commit).to receive_messages(
         safe_message: "Fixes ##{issue.iid} and #{ext_ref}",
-        committer_email: commiter.email
+        committer_email: committer.email
       )
 
       expect(commit.closes_issues).to include(issue)
@@ -190,7 +331,7 @@ eos
     it { expect(data).to be_a(Hash) }
     it { expect(data[:message]).to include('adds bar folder and branch-test text file to check Repository merged_to_root_ref method') }
     it { expect(data[:timestamp]).to eq('2016-09-27T14:37:46Z') }
-    it { expect(data[:added]).to eq(["bar/branch-test.txt"]) }
+    it { expect(data[:added]).to contain_exactly("bar/branch-test.txt") }
     it { expect(data[:modified]).to eq([]) }
     it { expect(data[:removed]).to eq([]) }
   end
@@ -351,9 +492,16 @@ eos
       end
 
       it 'gives compound status from latest pipelines if ref is nil' do
-        expect(commit.status(nil)).to eq(Ci::Pipeline.latest_status)
-        expect(commit.status(nil)).to eq('failed')
+        expect(commit.status(nil)).to eq(pipeline_from_fix.status)
       end
+    end
+  end
+
+  describe '#set_status_for_ref' do
+    it 'sets the status for a given reference' do
+      commit.set_status_for_ref('master', 'failed')
+
+      expect(commit.status('master')).to eq('failed')
     end
   end
 
@@ -403,6 +551,12 @@ eos
 
     it "returns nil if the path doesn't exists" do
       expect(commit.uri_type('this/path/doesnt/exist')).to be_nil
+      expect(commit.uri_type('../path/doesnt/exist')).to be_nil
+    end
+
+    it 'is nil if the path is nil or empty' do
+      expect(commit.uri_type(nil)).to be_nil
+      expect(commit.uri_type("")).to be_nil
     end
   end
 
@@ -466,6 +620,19 @@ eos
       expect(described_class.valid_hash?('a' * 7)).to be true
       expect(described_class.valid_hash?('a' * 40)).to be true
       expect(described_class.valid_hash?('a' * 41)).to be false
+    end
+  end
+
+  describe '#merge_requests' do
+    let!(:project) { create(:project, :repository) }
+    let!(:merge_request1) { create(:merge_request, source_project: project, source_branch: 'master', target_branch: 'feature') }
+    let!(:merge_request2) { create(:merge_request, source_project: project, source_branch: 'merged-target', target_branch: 'feature') }
+    let(:commit1) { merge_request1.merge_request_diff.commits.last }
+    let(:commit2) { merge_request1.merge_request_diff.commits.first }
+
+    it 'returns merge_requests that introduced that commit' do
+      expect(commit1.merge_requests).to contain_exactly(merge_request1, merge_request2)
+      expect(commit2.merge_requests).to contain_exactly(merge_request1)
     end
   end
 end

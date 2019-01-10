@@ -1,4 +1,4 @@
-# Milestones API
+# Project milestones API
 
 ## List project milestones
 
@@ -19,11 +19,11 @@ Parameters:
 | --------- | ---- | -------- | ----------- |
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
 | `iids[]` | Array[integer] | optional | Return only the milestones having the given `iid` |
-| `state` | string | optional | Return only `active` or `closed` milestones` |
+| `state` | string | optional | Return only `active` or `closed` milestones |
 | `search` | string | optional | Return only milestones with a title or description matching the provided string |
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects/5/milestones
+curl --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/milestones
 ```
 
 Example Response:
@@ -44,7 +44,6 @@ Example Response:
   }
 ]
 ```
-
 
 ## Get single milestone
 
@@ -70,7 +69,7 @@ POST /projects/:id/milestones
 Parameters:
 
 - `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
-- `title` (required) - The title of an milestone
+- `title` (required) - The title of a milestone
 - `description` (optional) - The description of the milestone
 - `due_date` (optional) - The due date of the milestone
 - `start_date` (optional) - The start date of the milestone
@@ -92,6 +91,19 @@ Parameters:
 - `due_date` (optional) - The due date of the milestone
 - `start_date` (optional) - The start date of the milestone
 - `state_event` (optional) - The state event of the milestone (close|activate)
+
+## Delete project milestone
+
+Only for user with developer access to the project.
+
+```
+DELETE /projects/:id/milestones/:milestone_id
+```
+
+Parameters:
+
+- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+- `milestone_id` (required) - The ID of the project's milestone
 
 ## Get all issues assigned to a single milestone
 

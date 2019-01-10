@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This concern assumes:
 # - a `#project` accessor
 # - a `#user` accessor
@@ -9,6 +11,8 @@
 # - a `#has_authentication_ability?(ability)` method
 module LfsRequest
   extend ActiveSupport::Concern
+
+  CONTENT_TYPE = 'application/vnd.git-lfs+json'.freeze
 
   included do
     before_action :require_lfs_enabled!
@@ -25,7 +29,7 @@ module LfsRequest
         message: 'Git LFS is not enabled on this GitLab server, contact your admin.',
         documentation_url: help_url
       },
-      status: 501
+      status: :not_implemented
     )
   end
 
@@ -50,7 +54,7 @@ module LfsRequest
         message: 'Access forbidden. Check your access level.',
         documentation_url: help_url
       },
-      content_type: "application/vnd.git-lfs+json",
+      content_type: CONTENT_TYPE,
       status: 403
     )
   end
@@ -61,7 +65,7 @@ module LfsRequest
         message: 'Not found.',
         documentation_url: help_url
       },
-      content_type: "application/vnd.git-lfs+json",
+      content_type: CONTENT_TYPE,
       status: 404
     )
   end
@@ -69,13 +73,30 @@ module LfsRequest
   def lfs_download_access?
     return false unless project.lfs_enabled?
 
-    ci? || lfs_deploy_token? || user_can_download_code? || build_can_download_code?
+    ci? || lfs_deploy_token? || user_can_download_code? || build_can_download_code? || deploy_token_can_download_code?
+  end
+
+  def deploy_token_can_download_code?
+    deploy_token_present? &&
+      deploy_token.project == project &&
+      deploy_token.active? &&
+      deploy_token.read_repository?
+  end
+
+  def deploy_token_present?
+    user && user.is_a?(DeployToken)
+  end
+
+  def deploy_token
+    user
   end
 
   def lfs_upload_access?
     return false unless project.lfs_enabled?
+    return false unless has_authentication_ability?(:push_code)
+    return false if limit_exceeded?
 
-    has_authentication_ability?(:push_code) && can?(user, :push_code, project)
+    lfs_deploy_token? || can?(user, :push_code, project)
   end
 
   def lfs_deploy_token?
@@ -83,7 +104,7 @@ module LfsRequest
   end
 
   def user_can_download_code?
-    has_authentication_ability?(:download_code) && can?(user, :download_code, project)
+    has_authentication_ability?(:download_code) && can?(user, :download_code, project) && !deploy_token_present?
   end
 
   def build_can_download_code?
@@ -91,16 +112,7 @@ module LfsRequest
   end
 
   def storage_project
-    @storage_project ||= begin
-      result = project
-
-      loop do
-        break unless result.forked?
-        result = result.forked_from_project
-      end
-
-      result
-    end
+    @storage_project ||= project.lfs_storage_project
   end
 
   def objects
@@ -109,5 +121,10 @@ module LfsRequest
 
   def has_authentication_ability?(capability)
     (authentication_abilities || []).include?(capability)
+  end
+
+  # Overriden in EE
+  def limit_exceeded?
+    false
   end
 end

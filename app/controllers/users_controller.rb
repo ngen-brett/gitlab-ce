@@ -1,8 +1,23 @@
+# frozen_string_literal: true
+
 class UsersController < ApplicationController
   include RoutableActions
+  include RendersMemberAccess
+  include ControllerWithCrossProjectAccessCheck
+
+  requires_cross_project_access show: false,
+                                groups: false,
+                                projects: false,
+                                contributed: false,
+                                snippets: true,
+                                calendar: false,
+                                calendar_activities: true
 
   skip_before_action :authenticate_user!
+  prepend_before_action(only: [:show]) { authenticate_sessionless_user!(:rss) }
   before_action :user, except: [:exists]
+  before_action :authorize_read_user_profile!,
+                only: [:calendar, :calendar_activities, :groups, :projects, :contributed_projects, :snippets]
 
   def show
     respond_to do |format|
@@ -15,8 +30,14 @@ class UsersController < ApplicationController
 
       format.json do
         load_events
-        pager_json("events/_events", @events.count)
+        pager_json("events/_events", @events.count, events: @events)
       end
+    end
+  end
+
+  def activity
+    respond_to do |format|
+      format.html { render 'show' }
     end
   end
 
@@ -36,12 +57,14 @@ class UsersController < ApplicationController
   def projects
     load_projects
 
+    skip_pagination = Gitlab::Utils.to_boolean(params[:skip_pagination])
+    skip_namespace = Gitlab::Utils.to_boolean(params[:skip_namespace])
+    compact_mode = Gitlab::Utils.to_boolean(params[:compact_mode])
+
     respond_to do |format|
       format.html { render 'show' }
       format.json do
-        render json: {
-          html: view_to_html_string("shared/projects/_list", projects: @projects)
-        }
+        pager_json("shared/projects/_list", @projects.count, projects: @projects, skip_pagination: skip_pagination, skip_namespace: skip_namespace, compact_mode: compact_mode)
       end
     end
   end
@@ -102,26 +125,30 @@ class UsersController < ApplicationController
   end
 
   def load_events
-    # Get user activity feed for projects common for both users
-    @events = user.recent_events
-      .merge(projects_for_current_user)
-      .references(:project)
-      .with_associations
-      .limit_recent(20, params[:offset])
+    @events = UserRecentEventsFinder.new(current_user, user, params).execute
+
+    Events::RenderService.new(current_user).execute(@events, atom_request: request.format.atom?)
   end
 
   def load_projects
     @projects =
       PersonalProjectsFinder.new(user).execute(current_user)
       .page(params[:page])
+      .per(params[:limit])
+
+    prepare_projects_for_rendering(@projects)
   end
 
   def load_contributed_projects
     @contributed_projects = contributed_projects.joined(user)
+
+    prepare_projects_for_rendering(@contributed_projects)
   end
 
   def load_groups
     @groups = JoinedGroupsFinder.new(user).execute(current_user)
+
+    prepare_groups_for_rendering(@groups)
   end
 
   def load_snippets
@@ -132,11 +159,11 @@ class UsersController < ApplicationController
     ).execute.page(params[:page])
   end
 
-  def projects_for_current_user
-    ProjectsFinder.new(current_user: current_user).execute
+  def build_canonical_path(user)
+    url_for(safe_params.merge(username: user.to_param))
   end
 
-  def build_canonical_path(user)
-    url_for(params.merge(username: user.to_param))
+  def authorize_read_user_profile!
+    access_denied! unless can?(current_user, :read_user_profile, user)
   end
 end

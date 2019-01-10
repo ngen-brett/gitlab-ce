@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-feature 'RavenJS', :js do
-  let(:raven_path) { '/raven.bundle.js' }
+describe 'RavenJS' do
+  let(:raven_path) { '/raven.chunk.js' }
 
   it 'should not load raven if sentry is disabled' do
     visit new_user_session_path
@@ -18,6 +18,8 @@ feature 'RavenJS', :js do
   end
 
   def has_requested_raven
-    page.driver.network_traffic.one? {|request| request.url.end_with?(raven_path)}
+    page.all('script', visible: false).one? do |elm|
+      elm[:src] =~ /#{raven_path}$/
+    end
   end
 end

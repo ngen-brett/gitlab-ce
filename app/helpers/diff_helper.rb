@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DiffHelper
   def mark_inline_diffs(old_line, new_line)
     old_diffs, new_diffs = Gitlab::Diff::InlineDiff.new(old_line, new_line).inline_diffs
@@ -33,22 +35,25 @@ module DiffHelper
   end
 
   def diff_match_line(old_pos, new_pos, text: '', view: :inline, bottom: false)
-    content = content_tag :td, text, class: "line_content match #{view == :inline ? '' : view}"
-    cls = ['diff-line-num', 'unfold', 'js-unfold']
-    cls << 'js-unfold-bottom' if bottom
+    content_line_class = %w[line_content match]
+    content_line_class << 'parallel' if view == :parallel
 
-    html = ''
+    line_num_class = %w[diff-line-num unfold js-unfold]
+    line_num_class << 'js-unfold-bottom' if bottom
+
+    html = []
+
     if old_pos
-      html << content_tag(:td, '...', class: cls + ['old_line'], data: { linenumber: old_pos })
-      html << content unless view == :inline
+      html << content_tag(:td, '...', class: [*line_num_class, 'old_line'], data: { linenumber: old_pos })
+      html << content_tag(:td, text, class: [*content_line_class, 'left-side']) if view == :parallel
     end
 
     if new_pos
-      html << content_tag(:td, '...', class: cls + ['new_line'], data: { linenumber: new_pos })
-      html << content
+      html << content_tag(:td, '...', class: [*line_num_class, 'new_line'], data: { linenumber: new_pos })
+      html << content_tag(:td, text, class: [*content_line_class, ('right-side' if view == :parallel)])
     end
 
-    html.html_safe
+    html.join.html_safe
   end
 
   def diff_line_content(line)
@@ -102,14 +107,23 @@ module DiffHelper
     ].join(' ').html_safe
   end
 
+  def diff_file_blob_raw_url(diff_file, only_path: false)
+    project_raw_url(@project, tree_join(diff_file.content_sha, diff_file.file_path), only_path: only_path)
+  end
+
+  def diff_file_old_blob_raw_url(diff_file, only_path: false)
+    sha = diff_file.old_content_sha
+    return unless sha
+
+    project_raw_url(@project, tree_join(diff_file.old_content_sha, diff_file.old_path), only_path: only_path)
+  end
+
   def diff_file_blob_raw_path(diff_file)
-    project_raw_path(@project, tree_join(diff_file.content_sha, diff_file.file_path))
+    diff_file_blob_raw_url(diff_file, only_path: true)
   end
 
   def diff_file_old_blob_raw_path(diff_file)
-    sha = diff_file.old_content_sha
-    return unless sha
-    project_raw_path(@project, tree_join(diff_file.old_content_sha, diff_file.old_path))
+    diff_file_old_blob_raw_url(diff_file, only_path: true)
   end
 
   def diff_file_html_data(project, diff_file_path, diff_commit_id)
@@ -124,37 +138,13 @@ module DiffHelper
     !diff_file.deleted_file? && @merge_request && @merge_request.source_project
   end
 
-  def diff_render_error_reason(viewer)
-    case viewer.render_error
-    when :too_large
-      "it is too large"
-    when :server_side_but_stored_externally
-      case viewer.diff_file.external_storage
-      when :lfs
-        'it is stored in LFS'
-      else
-        'it is stored externally'
-      end
-    end
-  end
-
-  def diff_render_error_options(viewer)
-    diff_file = viewer.diff_file
-    options = []
-
-    blob_url = project_blob_path(@project, tree_join(diff_file.content_sha, diff_file.file_path))
-    options << link_to('view the blob', blob_url)
-
-    options
-  end
-
   def diff_file_changed_icon(diff_file)
-    if diff_file.deleted_file? || diff_file.renamed_file?
-      "minus"
+    if diff_file.deleted_file?
+      "file-deletion"
     elsif diff_file.new_file?
-      "plus"
+      "file-addition"
     else
-      "adjust"
+      "file-modified"
     end
   end
 
@@ -169,7 +159,7 @@ module DiffHelper
   private
 
   def diff_btn(title, name, selected)
-    params_copy = params.dup
+    params_copy = safe_params.dup
     params_copy[:view] = name
 
     # Always use HTML to handle case where JSON diff rendered this button
@@ -199,14 +189,14 @@ module DiffHelper
     params[:w] == '1'
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def params_with_whitespace
     hide_whitespace? ? request.query_parameters.except(:w) : request.query_parameters.merge(w: 1)
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def toggle_whitespace_link(url, options)
-    options[:class] ||= ''
-    options[:class] << ' btn btn-default'
-
+    options[:class] = [*options[:class], 'btn btn-default'].join(' ')
     link_to "#{hide_whitespace? ? 'Show' : 'Hide'} whitespace changes", url, class: options[:class]
   end
 
@@ -214,5 +204,13 @@ module DiffHelper
     diffs = @merge_request_diff.presence || diff_files
 
     diffs.overflow?
+  end
+
+  def diff_file_path_text(diff_file, max: 60)
+    path = diff_file.new_path
+
+    return path unless path.size > max && max > 3
+
+    "...#{path[-(max - 3)..-1]}"
   end
 end

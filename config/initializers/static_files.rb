@@ -1,6 +1,6 @@
 app = Rails.application
 
-if app.config.serve_static_files
+if app.config.public_file_server.enabled
   # The `ActionDispatch::Static` middleware intercepts requests for static files
   # by checking if they exist in the `/public` directory.
   # We're replacing it with our `Gitlab::Middleware::Static` that does the same,
@@ -10,7 +10,7 @@ if app.config.serve_static_files
     ActionDispatch::Static,
     Gitlab::Middleware::Static,
     app.paths["public"].first,
-    app.config.static_cache_control
+    headers: app.config.public_file_server.headers
   )
 
   # If webpack-dev-server is configured, proxy webpack's public directory
@@ -34,7 +34,7 @@ if app.config.serve_static_files
       )
       app.config.middleware.insert_before(
         Gitlab::Middleware::Static,
-        Gitlab::Middleware::WebpackProxy,
+        Gitlab::Webpack::DevServerMiddleware,
         proxy_path: app.config.webpack.public_path,
         proxy_host: dev_server.host,
         proxy_port: dev_server.port

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Network
   class Graph
     attr_reader :days, :commits, :map, :notes, :repo
@@ -61,11 +63,8 @@ module Network
         @reserved[i] = []
       end
 
-      # n+1: https://gitlab.com/gitlab-org/gitlab-ce/issues/37436
-      Gitlab::GitalyClient.allow_n_plus_1_calls do
-        commits_sort_by_ref.each do |commit|
-          place_chain(commit)
-        end
+      commits_sort_by_ref.each do |commit|
+        place_chain(commit)
       end
 
       # find parent spaces for not overlap lines
@@ -82,7 +81,7 @@ module Network
       skip = 0
       while offset == -1
         tmp_commits = find_commits(skip)
-        if tmp_commits.size > 0
+        if tmp_commits.present?
           index = tmp_commits.index do |c|
             c.id == @commit.id
           end
@@ -219,11 +218,12 @@ module Network
     def get_space_base(leaves)
       space_base = 1
       parents = leaves.last.parents(@map)
-      if parents.size > 0
+      if parents.present?
         if parents.first.space > 0
           space_base = parents.first.space
         end
       end
+
       space_base
     end
 

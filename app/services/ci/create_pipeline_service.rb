@@ -1,123 +1,72 @@
+# frozen_string_literal: true
+
 module Ci
   class CreatePipelineService < BaseService
     attr_reader :pipeline
 
-    def execute(source, ignore_skip_ci: false, save_on_errors: true, trigger_request: nil, schedule: nil)
-      @pipeline = Ci::Pipeline.new(
+    CreateError = Class.new(StandardError)
+
+    SEQUENCE = [Gitlab::Ci::Pipeline::Chain::Build,
+                Gitlab::Ci::Pipeline::Chain::Validate::Abilities,
+                Gitlab::Ci::Pipeline::Chain::Validate::Repository,
+                Gitlab::Ci::Pipeline::Chain::Validate::Config,
+                Gitlab::Ci::Pipeline::Chain::Skip,
+                Gitlab::Ci::Pipeline::Chain::Populate,
+                Gitlab::Ci::Pipeline::Chain::Create].freeze
+
+    def execute(source, ignore_skip_ci: false, save_on_errors: true, trigger_request: nil, schedule: nil, merge_request: nil, &block)
+      @pipeline = Ci::Pipeline.new
+
+      command = Gitlab::Ci::Pipeline::Chain::Command.new(
         source: source,
+        origin_ref: params[:ref],
+        checkout_sha: params[:checkout_sha],
+        after_sha: params[:after],
+        before_sha: params[:before],
+        trigger_request: trigger_request,
+        schedule: schedule,
+        merge_request: merge_request,
+        ignore_skip_ci: ignore_skip_ci,
+        save_incompleted: save_on_errors,
+        seeds_block: block,
+        variables_attributes: params[:variables_attributes],
         project: project,
-        ref: ref,
-        sha: sha,
-        before_sha: before_sha,
-        tag: tag?,
-        trigger_requests: Array(trigger_request),
-        user: current_user,
-        pipeline_schedule: schedule,
-        protected: project.protected_for?(ref)
-      )
+        current_user: current_user,
+        push_options: params[:push_options])
 
-      result = validate_project_and_git_items ||
-        validate_pipeline(ignore_skip_ci: ignore_skip_ci,
-                          save_on_errors: save_on_errors)
+      sequence = Gitlab::Ci::Pipeline::Chain::Sequence
+        .new(pipeline, command, SEQUENCE)
 
-      return result if result
+      sequence.build! do |pipeline, sequence|
+        schedule_head_pipeline_update
 
-      begin
-        Ci::Pipeline.transaction do
-          pipeline.save!
+        if sequence.complete?
+          cancel_pending_pipelines if project.auto_cancel_pending_pipelines?
+          pipeline_created_counter.increment(source: source)
 
-          yield(pipeline) if block_given?
-
-          Ci::CreatePipelineStagesService
-            .new(project, current_user)
-            .execute(pipeline)
+          pipeline.process!
         end
-      rescue ActiveRecord::RecordInvalid => e
-        return error("Failed to persist the pipeline: #{e}")
       end
 
-      update_merge_requests_head_pipeline
+      pipeline
+    end
 
-      cancel_pending_pipelines if project.auto_cancel_pending_pipelines?
-
-      pipeline_created_counter.increment(source: source)
-
-      pipeline.tap(&:process!)
+    def execute!(*args, &block)
+      execute(*args, &block).tap do |pipeline|
+        unless pipeline.persisted?
+          raise CreateError, pipeline.errors.full_messages.join(',')
+        end
+      end
     end
 
     private
 
-    def validate_project_and_git_items
-      unless project.builds_enabled?
-        return error('Pipeline is disabled')
-      end
-
-      unless allowed_to_trigger_pipeline?
-        if can?(current_user, :create_pipeline, project)
-          return error("Insufficient permissions for protected ref '#{ref}'")
-        else
-          return error('Insufficient permissions to create a new pipeline')
-        end
-      end
-
-      unless branch? || tag?
-        return error('Reference not found')
-      end
-
-      unless commit
-        return error('Commit not found')
-      end
+    def commit
+      @commit ||= project.commit(origin_sha || origin_ref)
     end
 
-    def validate_pipeline(ignore_skip_ci:, save_on_errors:)
-      unless pipeline.config_processor
-        unless pipeline.ci_yaml_file
-          return error("Missing #{pipeline.ci_yaml_file_path} file")
-        end
-        return error(pipeline.yaml_errors, save: save_on_errors)
-      end
-
-      if !ignore_skip_ci && skip_ci?
-        pipeline.skip if save_on_errors
-        return pipeline
-      end
-
-      unless pipeline.has_stage_seeds?
-        return error('No stages / jobs for this pipeline.')
-      end
-    end
-
-    def allowed_to_trigger_pipeline?
-      if current_user
-        allowed_to_create?
-      else # legacy triggers don't have a corresponding user
-        !project.protected_for?(ref)
-      end
-    end
-
-    def allowed_to_create?
-      return unless can?(current_user, :create_pipeline, project)
-
-      access = Gitlab::UserAccess.new(current_user, project: project)
-      if branch?
-        access.can_update_branch?(ref)
-      elsif tag?
-        access.can_create_tag?(ref)
-      else
-        true # Allow it for now and we'll reject when we check ref existence
-      end
-    end
-
-    def update_merge_requests_head_pipeline
-      return unless pipeline.latest?
-
-      MergeRequest.where(source_project: @pipeline.project, source_branch: @pipeline.ref)
-        .update_all(head_pipeline_id: @pipeline.id)
-    end
-
-    def skip_ci?
-      return false unless pipeline.git_commit_message
-      pipeline.git_commit_message =~ /\[(ci[ _-]skip|skip[ _-]ci)\]/i
+    def sha
+      commit.try(:id)
     end
 
     def cancel_pending_pipelines
@@ -128,69 +77,31 @@ module Ci
       end
     end
 
+    # rubocop: disable CodeReuse/ActiveRecord
     def auto_cancelable_pipelines
-      project.pipelines
+      project.ci_pipelines
         .where(ref: pipeline.ref)
         .where.not(id: pipeline.id)
-        .where.not(sha: project.repository.sha_from_ref(pipeline.ref))
+        .where.not(sha: project.commit(pipeline.ref).try(:id))
         .created_or_pending
     end
+    # rubocop: enable CodeReuse/ActiveRecord
 
-    def commit
-      @commit ||= project.commit(origin_sha || origin_ref)
+    def pipeline_created_counter
+      @pipeline_created_counter ||= Gitlab::Metrics
+        .counter(:pipelines_created_total, "Counter of pipelines created")
     end
 
-    def sha
-      commit.try(:id)
-    end
-
-    def before_sha
-      params[:checkout_sha] || params[:before] || Gitlab::Git::BLANK_SHA
-    end
-
-    def origin_sha
-      params[:checkout_sha] || params[:after]
-    end
-
-    def origin_ref
-      params[:ref]
-    end
-
-    def branch?
-      return @is_branch if defined?(@is_branch)
-
-      @is_branch =
-        project.repository.ref_exists?(Gitlab::Git::BRANCH_REF_PREFIX + ref)
-    end
-
-    def tag?
-      return @is_tag if defined?(@is_tag)
-
-      @is_tag =
-        project.repository.ref_exists?(Gitlab::Git::TAG_REF_PREFIX + ref)
-    end
-
-    def ref
-      @ref ||= Gitlab::Git.ref_name(origin_ref)
-    end
-
-    def valid_sha?
-      origin_sha && origin_sha != Gitlab::Git::BLANK_SHA
-    end
-
-    def error(message, save: false)
-      pipeline.tap do
-        pipeline.errors.add(:base, message)
-
-        if save
-          pipeline.drop
-          update_merge_requests_head_pipeline
-        end
+    def schedule_head_pipeline_update
+      related_merge_requests.each do |merge_request|
+        UpdateHeadPipelineForMergeRequestWorker.perform_async(merge_request.id)
       end
     end
 
-    def pipeline_created_counter
-      @pipeline_created_counter ||= Gitlab::Metrics.counter(:pipelines_created_total, "Counter of pipelines created")
+    # rubocop: disable CodeReuse/ActiveRecord
+    def related_merge_requests
+      pipeline.project.source_of_merge_requests.opened.where(source_branch: pipeline.ref)
     end
+    # rubocop: enable CodeReuse/ActiveRecord
   end
 end

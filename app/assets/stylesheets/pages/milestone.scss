@@ -1,10 +1,24 @@
+$status-box-line-height: 26px;
+
 .issues-sortable-list .str-truncated {
   max-width: 90%;
 }
 
 .milestones {
+  padding: $gl-padding-8;
+  margin-top: $gl-padding-8;
+  border-radius: $border-radius-default;
+  background-color: $theme-gray-100;
+
   .milestone {
-    padding: 10px 16px;
+    border: 0;
+    padding: $gl-padding-top $gl-padding;
+    border-radius: $border-radius-default;
+    background-color: $white-light;
+
+    &:not(:last-child) {
+      margin-bottom: $gl-padding-4;
+    }
 
     h4 {
       font-weight: $gl-font-weight-bold;
@@ -13,6 +27,25 @@
     .progress {
       width: 100%;
       height: 6px;
+      margin-bottom: $gl-padding-4;
+    }
+
+    .milestone-progress {
+      a {
+        color: $blue-600;
+      }
+    }
+
+    .status-box {
+      font-size: $tooltip-font-size;
+      margin-top: 0;
+      margin-right: $gl-padding-4;
+      line-height: $status-box-line-height;
+
+      @include media-breakpoint-down(xs) {
+        line-height: unset;
+        padding: $gl-padding-4 $gl-input-padding;
+      }
     }
   }
 }
@@ -31,7 +64,7 @@
     }
   }
 
-  .panel-heading {
+  .card-header {
     line-height: $line-height-base;
     padding: 14px 16px;
     display: -webkit-flex;
@@ -53,10 +86,6 @@
 }
 
 .milestone-sidebar {
-  .gutter-toggle {
-    margin-bottom: 10px;
-  }
-
   .milestone-progress {
     .title {
       padding-top: 5px;
@@ -65,6 +94,15 @@
     .progress {
       height: 6px;
       margin: 0;
+    }
+
+    .sidebar-collapsed-icon {
+      clear: both;
+      padding: 15px 5px 5px;
+
+      .progress {
+        margin: 5px 0;
+      }
     }
   }
 
@@ -93,18 +131,17 @@
     margin-right: 0;
   }
 
-  .milestone-progress {
-    .sidebar-collapsed-icon {
-      clear: both;
-      padding: 15px 5px 5px;
-
-      .progress {
-        margin: 5px 0;
-      }
+  .right-sidebar-expanded & {
+    .gutter-toggle {
+      margin-bottom: $sidebar-milestone-toggle-bottom-margin;
     }
   }
 
   .right-sidebar-collapsed & {
+    .milestone-progress {
+      padding-top: 0;
+    }
+
     .reference {
       border-top: 1px solid $border-gray-normal;
     }
@@ -116,6 +153,10 @@
   .issuable-detail {
     display: block;
     margin-top: 7px;
+
+    .issue-link {
+      display: inline-block;
+    }
 
     .issuable-number {
       color: $gl-text-color-secondary;
@@ -137,7 +178,7 @@
   padding: 20px 0;
 }
 
-@media (max-width: $screen-xs-max) {
+@include media-breakpoint-down(xs) {
   .milestone-actions {
     @include clearfix();
     padding-top: $gl-vert-padding;
@@ -156,18 +197,16 @@
 
   .status-box {
     margin-top: 0;
-  }
-
-  .milestone-buttons {
-    margin-left: auto;
-  }
-
-  .status-box {
     order: 1;
   }
 
   .milestone-buttons {
+    margin-left: auto;
     order: 2;
+
+    .verbose {
+      display: none;
+    }
   }
 
   .header-text-content {
@@ -175,11 +214,7 @@
     width: 100%;
   }
 
-  .milestone-buttons .verbose {
-    display: none;
-  }
-
-  @media (min-width: $screen-xs-min) {
+  @include media-breakpoint-up(xs) {
     .milestone-buttons .verbose {
       display: inline;
     }
@@ -197,4 +232,43 @@
 
 .issuable-row {
   background-color: $white-light;
+}
+
+.milestone-deprecation-message {
+  .popover {
+    padding: 0;
+  }
+
+  .popover-content {
+    padding: 0;
+  }
+}
+
+.milestone-popover-body {
+  padding: $gl-padding-8;
+  background-color: $gray-light;
+}
+
+.milestone-popover-footer {
+  padding: $gl-padding-8 $gl-padding;
+  border-top: 1px solid $white-dark;
+}
+
+.milestone-popover-instructions-list {
+  padding-left: 2em;
+
+  > li {
+    padding-left: 1em;
+  }
+}
+
+.milestone-range {
+  color: $gl-text-color-tertiary;
+}
+
+@include media-breakpoint-down(xs) {
+  .milestone-banner-text,
+  .milestone-banner-link {
+    display: inline;
+  }
 }

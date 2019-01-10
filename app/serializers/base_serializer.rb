@@ -1,6 +1,11 @@
+# frozen_string_literal: true
+
 class BaseSerializer
-  def initialize(parameters = {})
-    @request = EntityRequest.new(parameters)
+  attr_reader :params
+
+  def initialize(params = {})
+    @params = params
+    @request = EntityRequest.new(params)
   end
 
   def represent(resource, opts = {}, entity_class = nil)

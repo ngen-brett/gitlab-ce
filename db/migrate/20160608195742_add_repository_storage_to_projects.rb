@@ -1,5 +1,5 @@
-# rubocop:disable Migration/AddColumnWithDefaultToLargeTable
-class AddRepositoryStorageToProjects < ActiveRecord::Migration
+# rubocop:disable Migration/UpdateLargeTable
+class AddRepositoryStorageToProjects < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
   disable_ddl_transaction!
 

@@ -1,15 +1,16 @@
 require "spec_helper"
 
 describe 'Git HTTP requests' do
+  include ProjectForksHelper
+  include TermsHelper
   include GitHttpHelpers
   include WorkhorseHelpers
-  include UserActivitiesHelpers
 
   shared_examples 'pulls require Basic HTTP Authentication' do
     context "when no credentials are provided" do
       it "responds to downloads with status 401 Unauthorized (no project existence information leak)" do
         download(path) do |response|
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_gitlab_http_status(:unauthorized)
           expect(response.header['WWW-Authenticate']).to start_with('Basic ')
         end
       end
@@ -18,7 +19,7 @@ describe 'Git HTTP requests' do
     context "when only username is provided" do
       it "responds to downloads with status 401 Unauthorized" do
         download(path, user: user.username) do |response|
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_gitlab_http_status(:unauthorized)
           expect(response.header['WWW-Authenticate']).to start_with('Basic ')
         end
       end
@@ -28,7 +29,7 @@ describe 'Git HTTP requests' do
       context "when authentication fails" do
         it "responds to downloads with status 401 Unauthorized" do
           download(path, user: user.username, password: "wrong-password") do |response|
-            expect(response).to have_http_status(:unauthorized)
+            expect(response).to have_gitlab_http_status(:unauthorized)
             expect(response.header['WWW-Authenticate']).to start_with('Basic ')
           end
         end
@@ -37,7 +38,7 @@ describe 'Git HTTP requests' do
       context "when authentication succeeds" do
         it "does not respond to downloads with status 401 Unauthorized" do
           download(path, user: user.username, password: user.password) do |response|
-            expect(response).not_to have_http_status(:unauthorized)
+            expect(response).not_to have_gitlab_http_status(:unauthorized)
             expect(response.header['WWW-Authenticate']).to be_nil
           end
         end
@@ -49,7 +50,7 @@ describe 'Git HTTP requests' do
     context "when no credentials are provided" do
       it "responds to uploads with status 401 Unauthorized (no project existence information leak)" do
         upload(path) do |response|
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_gitlab_http_status(:unauthorized)
           expect(response.header['WWW-Authenticate']).to start_with('Basic ')
         end
       end
@@ -58,7 +59,7 @@ describe 'Git HTTP requests' do
     context "when only username is provided" do
       it "responds to uploads with status 401 Unauthorized" do
         upload(path, user: user.username) do |response|
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_gitlab_http_status(:unauthorized)
           expect(response.header['WWW-Authenticate']).to start_with('Basic ')
         end
       end
@@ -68,7 +69,7 @@ describe 'Git HTTP requests' do
       context "when authentication fails" do
         it "responds to uploads with status 401 Unauthorized" do
           upload(path, user: user.username, password: "wrong-password") do |response|
-            expect(response).to have_http_status(:unauthorized)
+            expect(response).to have_gitlab_http_status(:unauthorized)
             expect(response.header['WWW-Authenticate']).to start_with('Basic ')
           end
         end
@@ -77,7 +78,7 @@ describe 'Git HTTP requests' do
       context "when authentication succeeds" do
         it "does not respond to uploads with status 401 Unauthorized" do
           upload(path, user: user.username, password: user.password) do |response|
-            expect(response).not_to have_http_status(:unauthorized)
+            expect(response).not_to have_gitlab_http_status(:unauthorized)
             expect(response.header['WWW-Authenticate']).to be_nil
           end
         end
@@ -88,7 +89,7 @@ describe 'Git HTTP requests' do
   shared_examples_for 'pulls are allowed' do
     it do
       download(path, env) do |response|
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_gitlab_http_status(:ok)
         expect(response.content_type.to_s).to eq(Gitlab::Workhorse::INTERNAL_API_CONTENT_TYPE)
       end
     end
@@ -97,7 +98,7 @@ describe 'Git HTTP requests' do
   shared_examples_for 'pushes are allowed' do
     it do
       upload(path, env) do |response|
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_gitlab_http_status(:ok)
         expect(response.content_type.to_s).to eq(Gitlab::Workhorse::INTERNAL_API_CONTENT_TYPE)
       end
     end
@@ -107,15 +108,39 @@ describe 'Git HTTP requests' do
     let(:user) { create(:user) }
 
     context "when the project doesn't exist" do
-      let(:path) { 'doesnt/exist.git' }
+      context "when namespace doesn't exist" do
+        let(:path) { 'doesnt/exist.git' }
 
-      it_behaves_like 'pulls require Basic HTTP Authentication'
-      it_behaves_like 'pushes require Basic HTTP Authentication'
+        it_behaves_like 'pulls require Basic HTTP Authentication'
+        it_behaves_like 'pushes require Basic HTTP Authentication'
 
-      context 'when authenticated' do
-        it 'rejects downloads and uploads with 404 Not Found' do
-          download_or_upload(path, user: user.username, password: user.password) do |response|
-            expect(response).to have_http_status(:not_found)
+        context 'when authenticated' do
+          it 'rejects downloads and uploads with 404 Not Found' do
+            download_or_upload(path, user: user.username, password: user.password) do |response|
+              expect(response).to have_gitlab_http_status(:not_found)
+            end
+          end
+        end
+      end
+
+      context 'when namespace exists' do
+        let(:path) { "#{user.namespace.path}/new-project.git"}
+
+        context 'when authenticated' do
+          it 'creates a new project under the existing namespace' do
+            expect do
+              upload(path, user: user.username, password: user.password) do |response|
+                expect(response).to have_gitlab_http_status(:ok)
+              end
+            end.to change { user.projects.count }.by(1)
+          end
+
+          it 'rejects push with 422 Unprocessable Entity when project is invalid' do
+            path = "#{user.namespace.path}/new.git"
+
+            push_get(path, user: user.username, password: user.password)
+
+            expect(response).to have_gitlab_http_status(:unprocessable_entity)
           end
         end
       end
@@ -126,7 +151,7 @@ describe 'Git HTTP requests' do
       let(:path) { "/#{wiki.repository.full_path}.git" }
 
       context "when the project is public" do
-        let(:project) { create(:project, :repository, :public, :wiki_enabled) }
+        let(:project) { create(:project, :wiki_repo, :public, :wiki_enabled) }
 
         it_behaves_like 'pushes require Basic HTTP Authentication'
 
@@ -139,7 +164,7 @@ describe 'Git HTTP requests' do
             download(path) do |response|
               json_body = ActiveSupport::JSON.decode(response.body)
 
-              expect(json_body['RepoPath']).to include(wiki.repository.full_path)
+              expect(json_body['Repository']['relative_path']).to eq(wiki.repository.relative_path)
             end
           end
         end
@@ -149,11 +174,11 @@ describe 'Git HTTP requests' do
 
           context 'and as a developer on the team' do
             before do
-              project.team << [user, :developer]
+              project.add_developer(user)
             end
 
             context 'but the repo is disabled' do
-              let(:project) { create(:project, :repository, :public, :repository_disabled, :wiki_enabled) }
+              let(:project) { create(:project, :wiki_repo, :public, :repository_disabled, :wiki_enabled) }
 
               it_behaves_like 'pulls are allowed'
               it_behaves_like 'pushes are allowed'
@@ -165,7 +190,7 @@ describe 'Git HTTP requests' do
 
             it 'rejects pushes with 403 Forbidden' do
               upload(path, env) do |response|
-                expect(response).to have_http_status(:forbidden)
+                expect(response).to have_gitlab_http_status(:forbidden)
                 expect(response.body).to eq(git_access_wiki_error(:write_to_wiki))
               end
             end
@@ -174,7 +199,7 @@ describe 'Git HTTP requests' do
       end
 
       context "when the project is private" do
-        let(:project) { create(:project, :repository, :private, :wiki_enabled) }
+        let(:project) { create(:project, :wiki_repo, :private, :wiki_enabled) }
 
         it_behaves_like 'pulls require Basic HTTP Authentication'
         it_behaves_like 'pushes require Basic HTTP Authentication'
@@ -182,21 +207,21 @@ describe 'Git HTTP requests' do
         context 'when authenticated' do
           context 'and as a developer on the team' do
             before do
-              project.team << [user, :developer]
+              project.add_developer(user)
             end
 
             context 'but the repo is disabled' do
-              let(:project) { create(:project, :repository, :private, :repository_disabled, :wiki_enabled) }
+              let(:project) { create(:project, :wiki_repo, :private, :repository_disabled, :wiki_enabled) }
 
               it 'allows clones' do
                 download(path, user: user.username, password: user.password) do |response|
-                  expect(response).to have_http_status(:ok)
+                  expect(response).to have_gitlab_http_status(:ok)
                 end
               end
 
               it 'pushes are allowed' do
                 upload(path, user: user.username, password: user.password) do |response|
-                  expect(response).to have_http_status(:ok)
+                  expect(response).to have_gitlab_http_status(:ok)
                 end
               end
             end
@@ -205,14 +230,14 @@ describe 'Git HTTP requests' do
           context 'and not on the team' do
             it 'rejects clones with 404 Not Found' do
               download(path, user: user.username, password: user.password) do |response|
-                expect(response).to have_http_status(:not_found)
+                expect(response).to have_gitlab_http_status(:not_found)
                 expect(response.body).to eq(git_access_error(:project_not_found))
               end
             end
 
             it 'rejects pushes with 404 Not Found' do
               upload(path, user: user.username, password: user.password) do |response|
-                expect(response).to have_http_status(:not_found)
+                expect(response).to have_gitlab_http_status(:not_found)
                 expect(response.body).to eq(git_access_error(:project_not_found))
               end
             end
@@ -240,7 +265,7 @@ describe 'Git HTTP requests' do
 
           context 'as a developer on the team' do
             before do
-              project.team << [user, :developer]
+              project.add_developer(user)
             end
 
             it_behaves_like 'pulls are allowed'
@@ -253,7 +278,7 @@ describe 'Git HTTP requests' do
 
               it 'rejects pushes with 403 Forbidden' do
                 upload(path, env) do |response|
-                  expect(response).to have_http_status(:forbidden)
+                  expect(response).to have_gitlab_http_status(:forbidden)
                   expect(response.body).to eq(git_access_error(:receive_pack_disabled_over_http))
                 end
               end
@@ -264,7 +289,7 @@ describe 'Git HTTP requests' do
                 allow(Gitlab.config.gitlab_shell).to receive(:upload_pack).and_return(false)
 
                 download(path, env) do |response|
-                  expect(response).to have_http_status(:forbidden)
+                  expect(response).to have_gitlab_http_status(:forbidden)
                   expect(response.body).to eq(git_access_error(:upload_pack_disabled_over_http))
                 end
               end
@@ -276,9 +301,25 @@ describe 'Git HTTP requests' do
 
             it 'rejects pushes with 403 Forbidden' do
               upload(path, env) do |response|
-                expect(response).to have_http_status(:forbidden)
-                expect(response.body).to eq(change_access_error(:push_code))
+                expect(response).to have_gitlab_http_status(:forbidden)
+                expect(response.body).to eq('You are not allowed to push code to this project.')
               end
+            end
+
+            context 'when merge requests are open that allow maintainer access' do
+              let(:canonical_project) { create(:project, :public, :repository) }
+              let(:project) { fork_project(canonical_project, nil, repository: true) }
+
+              before do
+                canonical_project.add_maintainer(user)
+                create(:merge_request,
+                       source_project: project,
+                       target_project:  canonical_project,
+                       source_branch: 'fixes',
+                       allow_collaboration: true)
+              end
+
+              it_behaves_like 'pushes are allowed'
             end
           end
         end
@@ -320,20 +361,11 @@ describe 'Git HTTP requests' do
         context 'and the user requests a redirected path' do
           let!(:redirect) { project.route.create_redirect('foo/bar') }
           let(:path) { "#{redirect.path}.git" }
-          let(:project_moved_message) do
-            <<-MSG.strip_heredoc
-              Project '#{redirect.path}' was moved to '#{project.full_path}'.
 
-              Please update your Git remote and try again:
-
-                git remote set-url origin #{project.http_url_to_repo}
-            MSG
-          end
-
-          it 'downloads get status 404 with "project was moved" message' do
+          it 'downloads get status 200 for redirects' do
             clone_get(path, {})
-            expect(response).to have_http_status(:not_found)
-            expect(response.body).to match(project_moved_message)
+
+            expect(response).to have_gitlab_http_status(:ok)
           end
         end
       end
@@ -349,13 +381,17 @@ describe 'Git HTTP requests' do
 
           context "when authentication fails" do
             context "when the user is IP banned" do
+              before do
+                Gitlab.config.rack_attack.git_basic_auth['enabled'] = true
+              end
+
               it "responds with status 401" do
                 expect(Rack::Attack::Allow2Ban).to receive(:filter).and_return(true)
-                allow_any_instance_of(Rack::Request).to receive(:ip).and_return('1.2.3.4')
+                allow_any_instance_of(ActionDispatch::Request).to receive(:ip).and_return('1.2.3.4')
 
                 clone_get(path, env)
 
-                expect(response).to have_http_status(:unauthorized)
+                expect(response).to have_gitlab_http_status(:unauthorized)
               end
             end
           end
@@ -365,16 +401,16 @@ describe 'Git HTTP requests' do
 
             context "when the user has access to the project" do
               before do
-                project.team << [user, :master]
+                project.add_maintainer(user)
               end
 
               context "when the user is blocked" do
                 it "rejects pulls with 401 Unauthorized" do
                   user.block
-                  project.team << [user, :master]
+                  project.add_maintainer(user)
 
                   download(path, env) do |response|
-                    expect(response).to have_http_status(:unauthorized)
+                    expect(response).to have_gitlab_http_status(:unauthorized)
                   end
                 end
 
@@ -382,17 +418,21 @@ describe 'Git HTTP requests' do
                   user.block
 
                   download('doesnt/exist.git', env) do |response|
-                    expect(response).to have_http_status(:unauthorized)
+                    expect(response).to have_gitlab_http_status(:unauthorized)
                   end
                 end
               end
 
               context "when the user isn't blocked" do
+                before do
+                  Gitlab.config.rack_attack.git_basic_auth['enabled'] = true
+                end
+
                 it "resets the IP in Rack Attack on download" do
                   expect(Rack::Attack::Allow2Ban).to receive(:reset).twice
 
                   download(path, env) do
-                    expect(response).to have_http_status(:ok)
+                    expect(response).to have_gitlab_http_status(:ok)
                     expect(response.content_type.to_s).to eq(Gitlab::Workhorse::INTERNAL_API_CONTENT_TYPE)
                   end
                 end
@@ -401,16 +441,16 @@ describe 'Git HTTP requests' do
                   expect(Rack::Attack::Allow2Ban).to receive(:reset).twice
 
                   upload(path, env) do
-                    expect(response).to have_http_status(:ok)
+                    expect(response).to have_gitlab_http_status(:ok)
                     expect(response.content_type.to_s).to eq(Gitlab::Workhorse::INTERNAL_API_CONTENT_TYPE)
                   end
                 end
 
                 it 'updates the user last activity', :clean_gitlab_redis_shared_state do
-                  expect(user_activity(user)).to be_nil
+                  expect(user.last_activity_on).to be_nil
 
                   download(path, env) do |response|
-                    expect(user_activity(user)).to be_present
+                    expect(user.reload.last_activity_on).to eql(Date.today)
                   end
                 end
               end
@@ -434,20 +474,20 @@ describe 'Git HTTP requests' do
                 let(:path) { "#{project.full_path}.git" }
 
                 before do
-                  project.team << [user, :master]
+                  project.add_maintainer(user)
                 end
 
                 context 'when username and password are provided' do
                   it 'rejects pulls with personal access token error message' do
                     download(path, user: user.username, password: user.password) do |response|
-                      expect(response).to have_http_status(:unauthorized)
+                      expect(response).to have_gitlab_http_status(:unauthorized)
                       expect(response.body).to include('You must use a personal access token with \'api\' scope for Git over HTTP')
                     end
                   end
 
                   it 'rejects the push attempt with personal access token error message' do
                     upload(path, user: user.username, password: user.password) do |response|
-                      expect(response).to have_http_status(:unauthorized)
+                      expect(response).to have_gitlab_http_status(:unauthorized)
                       expect(response.body).to include('You must use a personal access token with \'api\' scope for Git over HTTP')
                     end
                   end
@@ -463,33 +503,33 @@ describe 'Git HTTP requests' do
 
               context 'when internal auth is disabled' do
                 before do
-                  allow_any_instance_of(ApplicationSetting).to receive(:password_authentication_enabled?) { false }
+                  allow_any_instance_of(ApplicationSetting).to receive(:password_authentication_enabled_for_git?) { false }
                 end
 
                 it 'rejects pulls with personal access token error message' do
                   download(path, user: 'foo', password: 'bar') do |response|
-                    expect(response).to have_http_status(:unauthorized)
+                    expect(response).to have_gitlab_http_status(:unauthorized)
                     expect(response.body).to include('You must use a personal access token with \'api\' scope for Git over HTTP')
                   end
                 end
 
                 it 'rejects pushes with personal access token error message' do
                   upload(path, user: 'foo', password: 'bar') do |response|
-                    expect(response).to have_http_status(:unauthorized)
+                    expect(response).to have_gitlab_http_status(:unauthorized)
                     expect(response.body).to include('You must use a personal access token with \'api\' scope for Git over HTTP')
                   end
                 end
 
                 context 'when LDAP is configured' do
                   before do
-                    allow(Gitlab::LDAP::Config).to receive(:enabled?).and_return(true)
-                    allow_any_instance_of(Gitlab::LDAP::Authentication)
+                    allow(Gitlab::Auth::LDAP::Config).to receive(:enabled?).and_return(true)
+                    allow_any_instance_of(Gitlab::Auth::LDAP::Authentication)
                       .to receive(:login).and_return(nil)
                   end
 
                   it 'does not display the personal access token error message' do
                     upload(path, user: 'foo', password: 'bar') do |response|
-                      expect(response).to have_http_status(:unauthorized)
+                      expect(response).to have_gitlab_http_status(:unauthorized)
                       expect(response.body).not_to include('You must use a personal access token with \'api\' scope for Git over HTTP')
                     end
                   end
@@ -508,7 +548,7 @@ describe 'Git HTTP requests' do
                   maxretry = options[:maxretry] - 1
                   ip = '1.2.3.4'
 
-                  allow_any_instance_of(Rack::Request).to receive(:ip).and_return(ip)
+                  allow_any_instance_of(ActionDispatch::Request).to receive(:ip).and_return(ip)
                   Rack::Attack::Allow2Ban.reset(ip, options)
 
                   maxretry.times.each do
@@ -533,22 +573,21 @@ describe 'Git HTTP requests' do
                   <<-MSG.strip_heredoc
                     Project '#{redirect.path}' was moved to '#{project.full_path}'.
 
-                    Please update your Git remote and try again:
+                    Please update your Git remote:
 
-                      git remote set-url origin #{project.http_url_to_repo}
+                      git remote set-url origin #{project.http_url_to_repo}.
                   MSG
                 end
 
-                it 'downloads get status 404 with "project was moved" message' do
+                it 'downloads get status 200' do
                   clone_get(path, env)
-                  expect(response).to have_http_status(:not_found)
-                  expect(response.body).to match(project_moved_message)
+
+                  expect(response).to have_gitlab_http_status(:ok)
                 end
 
                 it 'uploads get status 404 with "project was moved" message' do
                   upload(path, env) do |response|
-                    expect(response).to have_http_status(:not_found)
-                    expect(response.body).to match(project_moved_message)
+                    expect(response).to have_gitlab_http_status(:ok)
                   end
                 end
               end
@@ -557,13 +596,13 @@ describe 'Git HTTP requests' do
             context "when the user doesn't have access to the project" do
               it "pulls get status 404" do
                 download(path, user: user.username, password: user.password) do |response|
-                  expect(response).to have_http_status(:not_found)
+                  expect(response).to have_gitlab_http_status(:not_found)
                 end
               end
 
               it "uploads get status 404" do
                 upload(path, user: user.username, password: user.password) do |response|
-                  expect(response).to have_http_status(:not_found)
+                  expect(response).to have_gitlab_http_status(:not_found)
                 end
               end
             end
@@ -573,7 +612,7 @@ describe 'Git HTTP requests' do
         context "when a gitlab ci token is provided" do
           let(:project) { create(:project, :repository) }
           let(:build) { create(:ci_build, :running) }
-          let(:other_project) { create(:project) }
+          let(:other_project) { create(:project, :repository) }
 
           before do
             build.update!(project: project) # can't associate it on factory create
@@ -595,8 +634,8 @@ describe 'Git HTTP requests' do
             it "rejects pushes with 403 Forbidden" do
               push_get(path, env)
 
-              expect(response).to have_http_status(:forbidden)
-              expect(response.body).to eq(git_access_error(:upload))
+              expect(response).to have_gitlab_http_status(:forbidden)
+              expect(response.body).to eq(git_access_error(:auth_upload))
             end
 
             # We are "authenticated" as CI using a valid token here. But we are
@@ -604,7 +643,7 @@ describe 'Git HTTP requests' do
             it "rejects pulls for other project with 404 Not Found" do
               clone_get("#{other_project.full_path}.git", env)
 
-              expect(response).to have_http_status(:not_found)
+              expect(response).to have_gitlab_http_status(:not_found)
               expect(response.body).to eq(git_access_error(:project_not_found))
             end
           end
@@ -612,7 +651,7 @@ describe 'Git HTTP requests' do
           context 'and build created by' do
             before do
               build.update(user: user)
-              project.team << [user, :reporter]
+              project.add_reporter(user)
             end
 
             shared_examples 'can download code only' do
@@ -624,10 +663,10 @@ describe 'Git HTTP requests' do
               context 'when the repo does not exist' do
                 let(:project) { create(:project) }
 
-                it 'rejects pulls with 403 Forbidden' do
+                it 'rejects pulls with 404 Not Found' do
                   clone_get path, env
 
-                  expect(response).to have_http_status(:forbidden)
+                  expect(response).to have_gitlab_http_status(:not_found)
                   expect(response.body).to eq(git_access_error(:no_repo))
                 end
               end
@@ -635,8 +674,8 @@ describe 'Git HTTP requests' do
               it 'rejects pushes with 403 Forbidden' do
                 push_get path, env
 
-                expect(response).to have_http_status(:forbidden)
-                expect(response.body).to eq(git_access_error(:upload))
+                expect(response).to have_gitlab_http_status(:forbidden)
+                expect(response.body).to eq(git_access_error(:auth_upload))
               end
             end
 
@@ -648,7 +687,7 @@ describe 'Git HTTP requests' do
               it 'downloads from other project get status 403' do
                 clone_get "#{other_project.full_path}.git", user: 'gitlab-ci-token', password: build.token
 
-                expect(response).to have_http_status(:forbidden)
+                expect(response).to have_gitlab_http_status(:forbidden)
               end
             end
 
@@ -660,7 +699,7 @@ describe 'Git HTTP requests' do
               it 'downloads from other project get status 404' do
                 clone_get "#{other_project.full_path}.git", user: 'gitlab-ci-token', password: build.token
 
-                expect(response).to have_http_status(:not_found)
+                expect(response).to have_gitlab_http_status(:not_found)
               end
             end
           end
@@ -687,7 +726,7 @@ describe 'Git HTTP requests' do
             let(:params) { { service: 'git-upload-pack' } }
 
             before do
-              get path, params
+              get path, params: params
             end
 
             it "redirects to the .git suffix version" do
@@ -699,7 +738,7 @@ describe 'Git HTTP requests' do
             let(:params) { { service: 'git-receive-pack' } }
 
             before do
-              get path, params
+              get path, params: params
             end
 
             it "redirects to the .git suffix version" do
@@ -711,7 +750,7 @@ describe 'Git HTTP requests' do
             let(:params) { { service: 'git-implode-pack' } }
 
             before do
-              get path, params
+              get path, params: params
             end
 
             it "redirects to the sign-in page" do
@@ -748,7 +787,7 @@ describe 'Git HTTP requests' do
           end
 
           it "returns the file" do
-            expect(response).to have_http_status(:ok)
+            expect(response).to have_gitlab_http_status(:ok)
           end
         end
 
@@ -758,7 +797,7 @@ describe 'Git HTTP requests' do
           end
 
           it "returns not found" do
-            expect(response).to have_http_status(:not_found)
+            expect(response).to have_gitlab_http_status(:not_found)
           end
         end
       end
@@ -771,9 +810,9 @@ describe 'Git HTTP requests' do
     let(:path) { 'doesnt/exist.git' }
 
     before do
-      allow(Gitlab::LDAP::Config).to receive(:enabled?).and_return(true)
-      allow(Gitlab::LDAP::Authentication).to receive(:login).and_return(nil)
-      allow(Gitlab::LDAP::Authentication).to receive(:login).with(user.username, user.password).and_return(user)
+      allow(Gitlab::Auth::OAuth::Provider).to receive(:enabled?).and_return(true)
+      allow_any_instance_of(Gitlab::Auth::LDAP::Authentication).to receive(:login).and_return(nil)
+      allow_any_instance_of(Gitlab::Auth::LDAP::Authentication).to receive(:login).with(user.username, user.password).and_return(user)
     end
 
     it_behaves_like 'pulls require Basic HTTP Authentication'
@@ -783,7 +822,7 @@ describe 'Git HTTP requests' do
       context "when the project doesn't exist" do
         it "responds with status 404 Not Found" do
           download(path, user: user.username, password: user.password) do |response|
-            expect(response).to have_http_status(:not_found)
+            expect(response).to have_gitlab_http_status(:not_found)
           end
         end
       end
@@ -795,12 +834,12 @@ describe 'Git HTTP requests' do
 
         context 'and the user is on the team' do
           before do
-            project.team << [user, :master]
+            project.add_maintainer(user)
           end
 
           it "responds with status 200" do
             clone_get(path, env) do |response|
-              expect(response).to have_http_status(200)
+              expect(response).to have_gitlab_http_status(200)
             end
           end
 
@@ -808,6 +847,58 @@ describe 'Git HTTP requests' do
           it_behaves_like 'pushes are allowed'
         end
       end
+    end
+  end
+
+  context 'when terms are enforced' do
+    let(:project) { create(:project, :repository) }
+    let(:user) { create(:user) }
+    let(:path) { "#{project.full_path}.git" }
+    let(:env) { { user: user.username, password: user.password } }
+
+    before do
+      project.add_maintainer(user)
+      enforce_terms
+    end
+
+    it 'blocks git access when the user did not accept terms', :aggregate_failures do
+      clone_get(path, env) do |response|
+        expect(response).to have_gitlab_http_status(:forbidden)
+      end
+
+      download(path, env) do |response|
+        expect(response).to have_gitlab_http_status(:forbidden)
+      end
+
+      upload(path, env) do |response|
+        expect(response).to have_gitlab_http_status(:forbidden)
+      end
+    end
+
+    context 'when the user accepted the terms' do
+      before do
+        accept_terms(user)
+      end
+
+      it 'allows clones' do
+        clone_get(path, env) do |response|
+          expect(response).to have_gitlab_http_status(:ok)
+        end
+      end
+
+      it_behaves_like 'pulls are allowed'
+      it_behaves_like 'pushes are allowed'
+    end
+
+    context 'from CI' do
+      let(:build) { create(:ci_build, :running) }
+      let(:env) { { user: 'gitlab-ci-token', password: build.token } }
+
+      before do
+        build.update!(user: user, project: project)
+      end
+
+      it_behaves_like 'pulls are allowed'
     end
   end
 end

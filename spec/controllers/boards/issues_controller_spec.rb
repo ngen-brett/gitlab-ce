@@ -13,23 +13,32 @@ describe Boards::IssuesController do
   let!(:list2) { create(:list, board: board, label: development, position: 1) }
 
   before do
-    project.team << [user, :master]
-    project.team << [guest, :guest]
+    project.add_maintainer(user)
+    project.add_guest(guest)
   end
 
-  describe 'GET index' do
-    let(:johndoe) { create(:user, avatar: fixture_file_upload(File.join(Rails.root, 'spec/fixtures/dk.png'))) }
+  describe 'GET index', :request_store do
+    let(:johndoe) { create(:user, avatar: fixture_file_upload(File.join('spec/fixtures/dk.png'))) }
 
     context 'with invalid board id' do
       it 'returns a not found 404 response' do
         list_issues user: user, board: 999, list: list2
 
-        expect(response).to have_http_status(404)
+        expect(response).to have_gitlab_http_status(404)
       end
     end
 
     context 'when list id is present' do
       context 'with valid list id' do
+        let(:group) { create(:group, :private, projects: [project]) }
+        let(:group_board) { create(:board, group: group) }
+        let!(:list3) { create(:list, board: group_board, label: development, position: 2) }
+        let(:sub_group_1) { create(:group, :private, parent: group) }
+
+        before do
+          group.add_maintainer(user)
+        end
+
         it 'returns issues that have the list label applied' do
           issue = create(:labeled_issue, project: project, labels: [planning])
           create(:labeled_issue, project: project, labels: [planning])
@@ -41,8 +50,8 @@ describe Boards::IssuesController do
 
           parsed_response = JSON.parse(response.body)
 
-          expect(response).to match_response_schema('issues')
-          expect(parsed_response.length).to eq 2
+          expect(response).to match_response_schema('entities/issue_boards')
+          expect(parsed_response['issues'].length).to eq 2
           expect(development.issues.map(&:relative_position)).not_to include(nil)
         end
 
@@ -56,13 +65,46 @@ describe Boards::IssuesController do
 
           expect { list_issues(user: user, board: board, list: list2) }.not_to exceed_query_limit(control_count)
         end
+
+        it 'avoids N+1 database queries when adding a project', :request_store do
+          create(:labeled_issue, project: project, labels: [development])
+          control_count = ActiveRecord::QueryRecorder.new { list_issues(user: user, board: group_board, list: list3) }.count
+
+          2.times do
+            p = create(:project, group: group)
+            create(:labeled_issue, project: p, labels: [development])
+          end
+
+          project_2 = create(:project, group: group)
+          create(:labeled_issue, project: project_2, labels: [development], assignees: [johndoe])
+
+          # because each issue without relative_position must be updated with
+          # a different value, we have 8 extra queries per issue
+          expect { list_issues(user: user, board: group_board, list: list3) }.not_to exceed_query_limit(control_count + (2 * 8 - 1))
+        end
+
+        it 'avoids N+1 database queries when adding a subgroup, project, and issue', :nested_groups do
+          create(:project, group: sub_group_1)
+          create(:labeled_issue, project: project, labels: [development])
+          control_count = ActiveRecord::QueryRecorder.new { list_issues(user: user, board: group_board, list: list3) }.count
+          project_2 = create(:project, group: group)
+
+          2.times do
+            p = create(:project, group: sub_group_1)
+            create(:labeled_issue, project: p, labels: [development])
+          end
+
+          create(:labeled_issue, project: project_2, labels: [development], assignees: [johndoe])
+
+          expect { list_issues(user: user, board: group_board, list: list3) }.not_to exceed_query_limit(control_count + (2 * 8 - 1))
+        end
       end
 
       context 'with invalid list id' do
         it 'returns a not found 404 response' do
           list_issues user: user, board: board, list: 999
 
-          expect(response).to have_http_status(404)
+          expect(response).to have_gitlab_http_status(404)
         end
       end
     end
@@ -79,13 +121,14 @@ describe Boards::IssuesController do
 
         parsed_response = JSON.parse(response.body)
 
-        expect(response).to match_response_schema('issues')
-        expect(parsed_response.length).to eq 2
+        expect(response).to match_response_schema('entities/issue_boards')
+        expect(parsed_response['issues'].length).to eq 2
       end
     end
 
     context 'with unauthorized user' do
       before do
+        allow(Ability).to receive(:allowed?).and_call_original
         allow(Ability).to receive(:allowed?).with(user, :read_project, project).and_return(true)
         allow(Ability).to receive(:allowed?).with(user, :read_issue, project).and_return(false)
       end
@@ -93,7 +136,7 @@ describe Boards::IssuesController do
       it 'returns a forbidden 403 response' do
         list_issues user: user, board: board, list: list2
 
-        expect(response).to have_http_status(403)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
 
@@ -101,13 +144,16 @@ describe Boards::IssuesController do
       sign_in(user)
 
       params = {
-        namespace_id: project.namespace.to_param,
-        project_id: project,
         board_id: board.to_param,
         list_id: list.try(:to_param)
       }
 
-      get :index, params.compact
+      unless board.try(:parent)&.is_a?(Group)
+        params[:namespace_id] = project.namespace.to_param
+        params[:project_id] = project
+      end
+
+      get :index, params: params.compact
     end
   end
 
@@ -116,13 +162,13 @@ describe Boards::IssuesController do
       it 'returns a successful 200 response' do
         create_issue user: user, board: board, list: list1, title: 'New issue'
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
       end
 
       it 'returns the created issue' do
         create_issue user: user, board: board, list: list1, title: 'New issue'
 
-        expect(response).to match_response_schema('issue')
+        expect(response).to match_response_schema('entities/issue_board')
       end
     end
 
@@ -131,7 +177,7 @@ describe Boards::IssuesController do
         it 'returns an unprocessable entity 422 response' do
           create_issue user: user, board: board, list: list1, title: nil
 
-          expect(response).to have_http_status(422)
+          expect(response).to have_gitlab_http_status(422)
         end
       end
 
@@ -141,7 +187,7 @@ describe Boards::IssuesController do
 
           create_issue user: user, board: board, list: list, title: 'New issue'
 
-          expect(response).to have_http_status(404)
+          expect(response).to have_gitlab_http_status(404)
         end
       end
 
@@ -149,7 +195,7 @@ describe Boards::IssuesController do
         it 'returns a not found 404 response' do
           create_issue user: user, board: 999, list: list1, title: 'New issue'
 
-          expect(response).to have_http_status(404)
+          expect(response).to have_gitlab_http_status(404)
         end
       end
 
@@ -157,25 +203,38 @@ describe Boards::IssuesController do
         it 'returns a not found 404 response' do
           create_issue user: user, board: board, list: 999, title: 'New issue'
 
-          expect(response).to have_http_status(404)
+          expect(response).to have_gitlab_http_status(404)
         end
       end
     end
 
-    context 'with unauthorized user' do
-      it 'returns a forbidden 403 response' do
-        create_issue user: guest, board: board, list: list1, title: 'New issue'
+    context 'with guest user' do
+      context 'in open list' do
+        it 'returns a successful 200 response' do
+          open_list = board.lists.create(list_type: :backlog)
+          create_issue user: guest, board: board, list: open_list, title: 'New issue'
 
-        expect(response).to have_http_status(403)
+          expect(response).to have_gitlab_http_status(200)
+        end
+      end
+
+      context 'in label list' do
+        it 'returns a forbidden 403 response' do
+          create_issue user: guest, board: board, list: list1, title: 'New issue'
+
+          expect(response).to have_gitlab_http_status(403)
+        end
       end
     end
 
     def create_issue(user:, board:, list:, title:)
       sign_in(user)
 
-      post :create, board_id: board.to_param,
-                    list_id: list.to_param,
-                    issue: { title: title,  project_id: project.id },
+      post :create, params: {
+                      board_id: board.to_param,
+                      list_id: list.to_param,
+                      issue: { title: title,  project_id: project.id }
+                    },
                     format: :json
     end
   end
@@ -187,7 +246,7 @@ describe Boards::IssuesController do
       it 'returns a successful 200 response' do
         move user: user, board: board, issue: issue, from_list_id: list1.id, to_list_id: list2.id
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
       end
 
       it 'moves issue to the desired list' do
@@ -201,19 +260,19 @@ describe Boards::IssuesController do
       it 'returns a unprocessable entity 422 response for invalid lists' do
         move user: user, board: board, issue: issue, from_list_id: nil, to_list_id: nil
 
-        expect(response).to have_http_status(422)
+        expect(response).to have_gitlab_http_status(422)
       end
 
       it 'returns a not found 404 response for invalid board id' do
         move user: user, board: 999, issue: issue, from_list_id: list1.id, to_list_id: list2.id
 
-        expect(response).to have_http_status(404)
+        expect(response).to have_gitlab_http_status(404)
       end
 
       it 'returns a not found 404 response for invalid issue id' do
         move user: user, board: board, issue: double(id: 999), from_list_id: list1.id, to_list_id: list2.id
 
-        expect(response).to have_http_status(404)
+        expect(response).to have_gitlab_http_status(404)
       end
     end
 
@@ -221,25 +280,27 @@ describe Boards::IssuesController do
       let(:guest) { create(:user) }
 
       before do
-        project.team << [guest, :guest]
+        project.add_guest(guest)
       end
 
       it 'returns a forbidden 403 response' do
         move user: guest, board: board, issue: issue, from_list_id: list1.id, to_list_id: list2.id
 
-        expect(response).to have_http_status(403)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
 
     def move(user:, board:, issue:, from_list_id:, to_list_id:)
       sign_in(user)
 
-      patch :update, namespace_id: project.namespace.to_param,
-                     project_id: project.id,
-                     board_id: board.to_param,
-                     id: issue.id,
-                     from_list_id: from_list_id,
-                     to_list_id: to_list_id,
+      patch :update, params: {
+                       namespace_id: project.namespace.to_param,
+                       project_id: project.id,
+                       board_id: board.to_param,
+                       id: issue.id,
+                       from_list_id: from_list_id,
+                       to_list_id: to_list_id
+                     },
                      format: :json
     end
   end

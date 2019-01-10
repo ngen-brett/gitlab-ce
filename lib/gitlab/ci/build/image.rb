@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Ci
     module Build
@@ -8,6 +10,7 @@ module Gitlab
           def from_image(job)
             image = Gitlab::Ci::Build::Image.new(job.options[:image])
             return unless image.valid?
+
             image
           end
 

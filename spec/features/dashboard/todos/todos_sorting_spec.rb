@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-feature 'Dashboard > User sorts todos' do
+describe 'Dashboard > User sorts todos' do
   let(:user)    { create(:user) }
   let(:project) { create(:project) }
 
@@ -9,7 +9,7 @@ feature 'Dashboard > User sorts todos' do
   let(:label_3) { create(:label, title: 'label_3', project: project, priority: 3) }
 
   before do
-    project.team << [user, :developer]
+    project.add_developer(user)
   end
 
   context 'sort options' do

@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 describe MergeRequests::CreateService do
+  include ProjectForksHelper
+
   let(:project) { create(:project, :repository) }
   let(:user) { create(:user) }
   let(:assignee) { create(:user) }
@@ -21,13 +23,14 @@ describe MergeRequests::CreateService do
       let(:merge_request) { service.execute }
 
       before do
-        project.team << [user, :master]
-        project.team << [assignee, :developer]
+        project.add_maintainer(user)
+        project.add_developer(assignee)
         allow(service).to receive(:execute_hooks)
       end
 
       it 'creates an MR' do
         expect(merge_request).to be_valid
+        expect(merge_request.work_in_progress?).to be(false)
         expect(merge_request.title).to eq('Awesome merge_request')
         expect(merge_request.assignee).to be_nil
         expect(merge_request.merge_params['force_remove_source_branch']).to eq('1')
@@ -62,6 +65,40 @@ describe MergeRequests::CreateService do
         expect(Event.where(attributes).count).to eq(1)
       end
 
+      describe 'when marked with /wip' do
+        context 'in title and in description' do
+          let(:opts) do
+            {
+              title: 'WIP: Awesome merge_request',
+              description: "well this is not done yet\n/wip",
+              source_branch: 'feature',
+              target_branch: 'master',
+              assignee: assignee
+            }
+          end
+
+          it 'sets MR to WIP' do
+            expect(merge_request.work_in_progress?).to be(true)
+          end
+        end
+
+        context 'in description only' do
+          let(:opts) do
+            {
+              title: 'Awesome merge_request',
+              description: "well this is not done yet\n/wip",
+              source_branch: 'feature',
+              target_branch: 'master',
+              assignee: assignee
+            }
+          end
+
+          it 'sets MR to WIP' do
+            expect(merge_request.work_in_progress?).to be(true)
+          end
+        end
+      end
+
       context 'when merge request is assigned to someone' do
         let(:opts) do
           {
@@ -91,32 +128,119 @@ describe MergeRequests::CreateService do
       end
 
       context 'when head pipelines already exist for merge request source branch' do
-        let(:sha) { project.commit(opts[:source_branch]).id }
-        let!(:pipeline_1) { create(:ci_pipeline, project: project, ref: opts[:source_branch], project_id: project.id, sha: sha) }
-        let!(:pipeline_2) { create(:ci_pipeline, project: project, ref: opts[:source_branch], project_id: project.id, sha: sha) }
+        let(:shas) { project.repository.commits(opts[:source_branch], limit: 2).map(&:id) }
+        let!(:pipeline_1) { create(:ci_pipeline, project: project, ref: opts[:source_branch], project_id: project.id, sha: shas[1]) }
+        let!(:pipeline_2) { create(:ci_pipeline, project: project, ref: opts[:source_branch], project_id: project.id, sha: shas[0]) }
         let!(:pipeline_3) { create(:ci_pipeline, project: project, ref: "other_branch", project_id: project.id) }
 
         before do
+          # rubocop: disable DestroyAll
           project.merge_requests
             .where(source_branch: opts[:source_branch], target_branch: opts[:target_branch])
             .destroy_all
+          # rubocop: enable DestroyAll
         end
 
         it 'sets head pipeline' do
           merge_request = service.execute
 
-          expect(merge_request.head_pipeline).to eq(pipeline_2)
+          expect(merge_request.reload.head_pipeline).to eq(pipeline_2)
           expect(merge_request).to be_persisted
         end
 
-        context 'when merge request head commit sha does not match pipeline sha' do
-          it 'sets the head pipeline correctly' do
-            pipeline_2.update(sha: 1234)
+        context 'when the new pipeline is associated with an old sha' do
+          let!(:pipeline_1) { create(:ci_pipeline, project: project, ref: opts[:source_branch], project_id: project.id, sha: shas[0]) }
+          let!(:pipeline_2) { create(:ci_pipeline, project: project, ref: opts[:source_branch], project_id: project.id, sha: shas[1]) }
 
+          it 'sets an old pipeline with associated with the latest sha as the head pipeline' do
             merge_request = service.execute
 
-            expect(merge_request.head_pipeline).to eq(pipeline_1)
+            expect(merge_request.reload.head_pipeline).to eq(pipeline_1)
             expect(merge_request).to be_persisted
+          end
+        end
+
+        context 'when there are no pipelines with the diff head sha' do
+          let!(:pipeline_1) { create(:ci_pipeline, project: project, ref: opts[:source_branch], project_id: project.id, sha: shas[1]) }
+          let!(:pipeline_2) { create(:ci_pipeline, project: project, ref: opts[:source_branch], project_id: project.id, sha: shas[1]) }
+
+          it 'does not set the head pipeline' do
+            merge_request = service.execute
+
+            expect(merge_request.reload.head_pipeline).to be_nil
+            expect(merge_request).to be_persisted
+          end
+        end
+      end
+
+      describe 'Merge request pipelines' do
+        before do
+          stub_ci_pipeline_yaml_file(YAML.dump(config))
+        end
+
+        context "when .gitlab-ci.yml has merge_requests keywords" do
+          let(:config) do
+            {
+              test: {
+                stage: 'test',
+                script: 'echo',
+                only: ['merge_requests']
+              }
+            }
+          end
+
+          it 'creates a merge request pipeline and sets it as a head pipeline' do
+            expect(merge_request).to be_persisted
+
+            merge_request.reload
+            expect(merge_request.merge_request_pipelines.count).to eq(1)
+            expect(merge_request.actual_head_pipeline).to be_merge_request
+          end
+
+          context "when branch pipeline was created before a merge request pipline has been created" do
+            before do
+              create(:ci_pipeline, project: merge_request.source_project,
+                                   sha: merge_request.diff_head_sha,
+                                   ref: merge_request.source_branch,
+                                   tag: false)
+
+              merge_request
+            end
+
+            it 'sets the latest merge request pipeline as the head pipeline' do
+              expect(merge_request.actual_head_pipeline).to be_merge_request
+            end
+          end
+
+          context "when the 'ci_merge_request_pipeline' feature flag is disabled" do
+            before do
+              stub_feature_flags(ci_merge_request_pipeline: false)
+            end
+
+            it 'does not create a merge request pipeline' do
+              expect(merge_request).to be_persisted
+
+              merge_request.reload
+              expect(merge_request.merge_request_pipelines.count).to eq(0)
+            end
+          end
+        end
+
+        context "when .gitlab-ci.yml does not have merge_requests keywords" do
+          let(:config) do
+            {
+              test: {
+                stage: 'test',
+                script: 'echo'
+              }
+            }
+          end
+
+          it 'does not create a merge request pipeline' do
+            expect(merge_request).to be_persisted
+
+            merge_request.reload
+            expect(merge_request.merge_request_pipelines.count).to eq(0)
           end
         end
       end
@@ -148,8 +272,8 @@ describe MergeRequests::CreateService do
         end
 
         before do
-          project.team << [user, :master]
-          project.team << [assignee, :master]
+          project.add_maintainer(user)
+          project.add_maintainer(assignee)
         end
 
         it 'assigns and sets milestone to issuable from command' do
@@ -165,7 +289,7 @@ describe MergeRequests::CreateService do
         let(:assignee) { create(:user) }
 
         before do
-          project.team << [user, :master]
+          project.add_maintainer(user)
         end
 
         it 'removes assignee_id when user id is invalid' do
@@ -185,7 +309,7 @@ describe MergeRequests::CreateService do
         end
 
         it 'saves assignee when user id is valid' do
-          project.team << [assignee, :master]
+          project.add_maintainer(assignee)
           opts = { title: 'Title', description: 'Description', assignee_id: assignee.id }
 
           merge_request = described_class.new(project, user, opts).execute
@@ -205,7 +329,7 @@ describe MergeRequests::CreateService do
           end
 
           it 'invalidates open merge request counter for assignees when merge request is assigned' do
-            project.team << [assignee, :master]
+            project.add_maintainer(assignee)
 
             described_class.new(project, user, opts).execute
 
@@ -249,8 +373,8 @@ describe MergeRequests::CreateService do
       end
 
       before do
-        project.team << [user, :master]
-        project.team << [assignee, :developer]
+        project.add_maintainer(user)
+        project.add_developer(assignee)
       end
 
       it 'creates a `MergeRequestsClosingIssues` record for each issue' do
@@ -261,6 +385,87 @@ describe MergeRequests::CreateService do
 
         issue_ids = MergeRequestsClosingIssues.where(merge_request: merge_request).pluck(:issue_id)
         expect(issue_ids).to match_array([first_issue.id, second_issue.id])
+      end
+    end
+
+    context 'when source and target projects are different' do
+      let(:target_project) { fork_project(project, nil, repository: true) }
+
+      let(:opts) do
+        {
+          title: 'Awesome merge_request',
+          source_branch: 'feature',
+          target_branch: 'master',
+          target_project_id: target_project.id
+        }
+      end
+
+      context 'when user can not access source project' do
+        before do
+          target_project.add_developer(assignee)
+          target_project.add_maintainer(user)
+        end
+
+        it 'raises an error' do
+          expect { described_class.new(project, user, opts).execute }
+            .to raise_error Gitlab::Access::AccessDeniedError
+        end
+      end
+
+      context 'when user can not access target project' do
+        before do
+          target_project.add_developer(assignee)
+          target_project.add_maintainer(user)
+        end
+
+        it 'raises an error' do
+          expect { described_class.new(project, user, opts).execute }
+            .to raise_error Gitlab::Access::AccessDeniedError
+        end
+      end
+
+      context 'when the user has access to both projects' do
+        before do
+          target_project.add_developer(user)
+          project.add_developer(user)
+        end
+
+        it 'creates the merge request' do
+          merge_request = described_class.new(project, user, opts).execute
+
+          expect(merge_request).to be_persisted
+        end
+
+        it 'does not create the merge request when the target project is archived' do
+          target_project.update!(archived: true)
+
+          expect { described_class.new(project, user, opts).execute }
+            .to raise_error Gitlab::Access::AccessDeniedError
+        end
+      end
+    end
+
+    context 'when user sets source project id' do
+      let(:another_project) { create(:project) }
+
+      let(:opts) do
+        {
+          title: 'Awesome merge_request',
+          source_branch: 'feature',
+          target_branch: 'master',
+          source_project_id: another_project.id
+        }
+      end
+
+      before do
+        project.add_developer(assignee)
+        project.add_maintainer(user)
+      end
+
+      it 'ignores source_project_id' do
+        merge_request = described_class.new(project, user, opts).execute
+
+        expect(merge_request.source_project_id).to eq(project.id)
       end
     end
   end

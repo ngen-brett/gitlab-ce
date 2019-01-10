@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 module Gitlab
   class Daemon
     def self.initialize_instance(*args)
       raise "#{name} singleton instance already initialized" if @instance
+
       @instance = new(*args)
       Kernel.at_exit(&@instance.method(:stop))
       @instance
@@ -29,7 +32,7 @@ module Gitlab
       return unless enabled?
 
       @mutex.synchronize do
-        return thread if thread?
+        break thread if thread?
 
         @thread = Thread.new { start_working }
       end
@@ -37,13 +40,13 @@ module Gitlab
 
     def stop
       @mutex.synchronize do
-        return unless thread?
+        break unless thread?
 
         stop_working
 
         if thread
           thread.wakeup if thread.alive?
-          thread.join
+          thread.join unless Thread.current == thread
           @thread = nil
         end
       end

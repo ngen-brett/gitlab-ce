@@ -1,6 +1,4 @@
 #cycle-analytics {
-  @include new-style-dropdown;
-
   max-width: 1000px;
   margin: 24px auto 0;
   position: relative;
@@ -17,10 +15,15 @@
         max-width: 480px;
         padding: 0 $gl-padding;
 
-        @media (max-width: $screen-sm-min) {
+        @include media-breakpoint-down(sm) {
           margin: 0 auto;
         }
       }
+    }
+
+    .svg-container svg {
+      width: 136px;
+      height: 136px;
     }
   }
 
@@ -72,13 +75,13 @@
     }
   }
 
-  .panel {
+  .card {
     .content-block {
       padding: 24px 0;
-      border-bottom: none;
+      border-bottom: 0;
       position: relative;
 
-      @media (max-width: $screen-xs-max) {
+      @include media-breakpoint-down(xs) {
         padding: 6px 0 24px;
       }
     }
@@ -86,7 +89,7 @@
     .column {
       text-align: center;
 
-      @media (max-width: $screen-xs-max) {
+      @include media-breakpoint-down(xs) {
         padding: 15px 0;
       }
 
@@ -103,7 +106,7 @@
       }
 
       &:last-child {
-        @media (max-width: $screen-xs-max) {
+        @include media-breakpoint-down(xs) {
           text-align: center;
         }
       }
@@ -112,52 +115,6 @@
 
   .js-ca-dropdown {
     top: $gl-padding-top;
-  }
-
-  .content-list {
-    li {
-      padding: 18px $gl-padding $gl-padding;
-
-      .container-fluid {
-        padding: 0;
-      }
-    }
-
-    .title-col {
-      p {
-        margin: 0;
-
-        &.title {
-          line-height: 19px;
-          font-size: 14px;
-          font-weight: $gl-font-weight-bold;
-          color: $gl-text-color;
-        }
-
-        &.text {
-          color: $layout-link-gray;
-
-          &.value-col {
-            color: $gl-text-color;
-          }
-        }
-      }
-    }
-
-    .value-col {
-      text-align: right;
-
-      span {
-        position: relative;
-        vertical-align: middle;
-        top: 3px;
-      }
-    }
-  }
-
-  .landing svg {
-    width: 136px;
-    height: 136px;
   }
 
   .fa-spinner {
@@ -208,7 +165,7 @@
         border-right-color: transparent;
         border-top-color: $border-color;
         border-bottom-color: $border-color;
-        box-shadow: inset 2px 0 0 0 $active-item-blue;
+        box-shadow: inset 2px 0 0 0 $blue-500;
 
         .stage-name {
           font-weight: $gl-font-weight-bold;
@@ -222,11 +179,11 @@
       }
 
       &:first-child {
-        border-top: none;
+        border-top: 0;
       }
 
       &:last-child {
-        border-bottom: none;
+        border-bottom: 0;
       }
 
       .stage-nav-item-cell {
@@ -256,7 +213,7 @@
   .stage-panel {
     min-width: 968px;
 
-    .panel-heading {
+    .card-header {
       padding: 0;
       background-color: transparent;
     }
@@ -290,7 +247,7 @@
     border-bottom: 1px solid $gray-darker;
 
     &:last-child {
-      border-bottom: none;
+      border-bottom: 0;
       margin-bottom: 0;
     }
 
@@ -309,7 +266,9 @@
       &.issue-title,
       &.commit-title,
       &.merge-merquest-title {
-        @include text-overflow();
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         max-width: 100%;
         display: block;
 
@@ -326,7 +285,7 @@
 
     .total-time {
       font-size: $cycle-analytics-big-font;
-      color: $cycle-analytics-dark-text;
+      color: $gl-text-color;
 
       span {
         color: $gl-text-color;
@@ -401,7 +360,7 @@
       }
 
       .commit-sha {
-        color: $gl-link-color;
+        color: $blue-600;
         line-height: 1.3;
         vertical-align: top;
         font-weight: $gl-font-weight-normal;
@@ -409,7 +368,7 @@
 
       .fa {
         color: $gl-text-color-secondary;
-        font-size: $code_font_size;
+        font-size: $code-font-size;
       }
     }
   }

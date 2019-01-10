@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-feature 'Dashboard > Activity' do
+describe 'Dashboard > Activity' do
   let(:user) { create(:user) }
 
   before do
@@ -12,8 +12,8 @@ feature 'Dashboard > Activity' do
       visit activity_dashboard_path
     end
 
-    it_behaves_like "it has an RSS button with current_user's RSS token"
-    it_behaves_like "an autodiscoverable RSS feed with current_user's RSS token"
+    it_behaves_like "it has an RSS button with current_user's feed token"
+    it_behaves_like "an autodiscoverable RSS feed with current_user's feed token"
   end
 
   context 'event filters', :js do
@@ -24,6 +24,7 @@ feature 'Dashboard > Activity' do
     end
 
     let(:note) { create(:note, project: project, noteable: merge_request) }
+    let(:milestone) { create(:milestone, :active, project: project, title: '1.0') }
 
     let!(:push_event) do
       event = create(:push_event, project: project, author: user)
@@ -54,24 +55,29 @@ feature 'Dashboard > Activity' do
       create(:event, :commented, project: project, target: note, author: user)
     end
 
+    let!(:milestone_event) do
+      create(:event, :closed, project: project, target: milestone, author: user)
+    end
+
     before do
-      project.add_master(user)
+      project.add_maintainer(user)
 
       visit activity_dashboard_path
       wait_for_requests
     end
 
-    scenario 'user should see all events' do
+    it 'user should see all events' do
       within '.content_list' do
         expect(page).to have_content('pushed new branch')
         expect(page).to have_content('joined')
         expect(page).to have_content('accepted')
         expect(page).to have_content('closed')
         expect(page).to have_content('commented on')
+        expect(page).to have_content('closed milestone')
       end
     end
 
-    scenario 'user should see only pushed events' do
+    it 'user should see only pushed events' do
       click_link('Push events')
       wait_for_requests
 
@@ -84,7 +90,7 @@ feature 'Dashboard > Activity' do
       end
     end
 
-    scenario 'user should see only merged events' do
+    it 'user should see only merged events' do
       click_link('Merge events')
       wait_for_requests
 
@@ -97,7 +103,7 @@ feature 'Dashboard > Activity' do
       end
     end
 
-    scenario 'user should see only issues events' do
+    it 'user should see only issues events' do
       click_link('Issue events')
       wait_for_requests
 
@@ -107,10 +113,11 @@ feature 'Dashboard > Activity' do
         expect(page).not_to have_content('accepted')
         expect(page).to have_content('closed')
         expect(page).not_to have_content('commented on')
+        expect(page).to have_content('closed milestone')
       end
     end
 
-    scenario 'user should see only comments events' do
+    it 'user should see only comments events' do
       click_link('Comments')
       wait_for_requests
 
@@ -123,7 +130,7 @@ feature 'Dashboard > Activity' do
       end
     end
 
-    scenario 'user should see only joined events' do
+    it 'user should see only joined events' do
       click_link('Team')
       wait_for_requests
 
@@ -136,7 +143,7 @@ feature 'Dashboard > Activity' do
       end
     end
 
-    scenario 'user see selected event after page reloading' do
+    it 'user see selected event after page reloading' do
       click_link('Push events')
       wait_for_requests
       visit activity_dashboard_path

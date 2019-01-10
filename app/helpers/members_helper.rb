@@ -1,15 +1,10 @@
-module MembersHelper
-  # Returns a `<action>_<source>_member` association, e.g.:
-  # - admin_project_member, update_project_member, destroy_project_member
-  # - admin_group_member, update_group_member, destroy_group_member
-  def action_member_permission(action, member)
-    "#{action}_#{member.type.underscore}".to_sym
-  end
+# frozen_string_literal: true
 
+module MembersHelper
   def remove_member_message(member, user: nil)
     user = current_user if defined?(current_user)
+    text = 'Are you sure you want to'
 
-    text = 'Are you sure you want to '
     action =
       if member.request?
         if member.user == user
@@ -23,13 +18,12 @@ module MembersHelper
         "remove #{member.user.name} from"
       end
 
-    text << action << " the #{member.source.human_name} #{member.real_source_type.humanize(capitalize: false)}?"
+    "#{text} #{action} the #{member.source.human_name} #{member.real_source_type.humanize(capitalize: false)}?"
   end
 
   def remove_member_title(member)
-    text = " from #{member.real_source_type.humanize(capitalize: false)}"
-
-    text.prepend(member.request? ? 'Deny access request' : 'Remove user')
+    action = member.request? ? 'Deny access request' : 'Remove user'
+    "#{action} from #{member.real_source_type.humanize(capitalize: false)}"
   end
 
   def leave_confirmation_message(member_source)
@@ -39,9 +33,6 @@ module MembersHelper
 
   def filter_group_project_member_path(options = {})
     options = params.slice(:search, :sort).merge(options)
-
-    path = request.path
-    path << "?#{options.to_param}"
-    path
+    "#{request.path}?#{options.to_param}"
   end
 end

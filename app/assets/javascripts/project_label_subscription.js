@@ -1,30 +1,41 @@
-/* eslint-disable wrap-iife, func-names, space-before-function-paren, object-shorthand, comma-dangle, one-var, one-var-declaration-per-line, no-restricted-syntax, max-len, no-param-reassign */
+import $ from 'jquery';
+import { __ } from './locale';
+import axios from './lib/utils/axios_utils';
+import flash from './flash';
 
-(function(global) {
-  class ProjectLabelSubscription {
-    constructor(container) {
-      this.$container = $(container);
-      this.$buttons = this.$container.find('.js-subscribe-button');
+const tooltipTitles = {
+  group: {
+    subscribed: __('Unsubscribe at group level'),
+    unsubscribed: __('Subscribe at group level'),
+  },
+  project: {
+    subscribed: __('Unsubscribe at project level'),
+    unsubscribed: __('Subscribe at project level'),
+  },
+};
 
-      this.$buttons.on('click', this.toggleSubscription.bind(this));
-    }
+export default class ProjectLabelSubscription {
+  constructor(container) {
+    this.$container = $(container);
+    this.$buttons = this.$container.find('.js-subscribe-button');
 
-    toggleSubscription(event) {
-      event.preventDefault();
+    this.$buttons.on('click', this.toggleSubscription.bind(this));
+  }
 
-      const $btn = $(event.currentTarget);
-      const $span = $btn.find('span');
-      const url = $btn.attr('data-url');
-      const oldStatus = $btn.attr('data-status');
+  toggleSubscription(event) {
+    event.preventDefault();
 
-      $btn.addClass('disabled');
-      $span.toggleClass('hidden');
+    const $btn = $(event.currentTarget);
+    const url = $btn.attr('data-url');
+    const oldStatus = $btn.attr('data-status');
 
-      $.ajax({
-        type: 'POST',
-        url: url
-      }).done(() => {
-        let newStatus, newAction;
+    $btn.addClass('disabled');
+
+    axios
+      .post(url)
+      .then(() => {
+        let newStatus;
+        let newAction;
 
         if (oldStatus === 'unsubscribed') {
           [newStatus, newAction] = ['subscribed', 'Unsubscribe'];
@@ -32,24 +43,29 @@
           [newStatus, newAction] = ['unsubscribed', 'Subscribe'];
         }
 
-        $span.toggleClass('hidden');
         $btn.removeClass('disabled');
 
         this.$buttons.attr('data-status', newStatus);
         this.$buttons.find('> span').text(newAction);
 
-        this.$buttons.map((button) => {
+        this.$buttons.map((i, button) => {
           const $button = $(button);
+          const originalTitle = $button.attr('data-original-title');
 
-          if ($button.attr('data-original-title')) {
-            $button.tooltip('hide').attr('data-original-title', newAction).tooltip('fixTitle');
+          if (originalTitle) {
+            ProjectLabelSubscription.setNewTitle($button, originalTitle, newStatus, newAction);
           }
 
           return button;
         });
-      });
-    }
+      })
+      .catch(() => flash(__('There was an error subscribing to this label.')));
   }
 
-  global.ProjectLabelSubscription = ProjectLabelSubscription;
-})(window.gl || (window.gl = {}));
+  static setNewTitle($button, originalTitle, newStatus) {
+    const type = /group/.test(originalTitle) ? 'group' : 'project';
+    const newTitle = tooltipTitles[type][newStatus];
+
+    $button.attr('title', newTitle).tooltip('_fixTitle');
+  }
+}

@@ -1,10 +1,18 @@
 <script>
-/* global Flash */
+import { __ } from '~/locale';
+import Flash from '~/flash';
+import tooltip from '~/vue_shared/directives/tooltip';
+import Icon from '~/vue_shared/components/icon.vue';
+import eventHub from '~/sidebar/event_hub';
 import editForm from './edit_form.vue';
 
 export default {
   components: {
     editForm,
+    Icon,
+  },
+  directives: {
+    tooltip,
   },
   props: {
     isConfidential: {
@@ -26,56 +34,77 @@ export default {
     };
   },
   computed: {
-    faEye() {
-      const eye = this.isConfidential ? 'fa-eye-slash' : 'fa-eye';
-      return {
-        [eye]: true,
-      };
+    confidentialityIcon() {
+      return this.isConfidential ? 'eye-slash' : 'eye';
     },
+    tooltipLabel() {
+      return this.isConfidential ? __('Confidential') : __('Not confidential');
+    },
+  },
+  created() {
+    eventHub.$on('closeConfidentialityForm', this.toggleForm);
+  },
+  beforeDestroy() {
+    eventHub.$off('closeConfidentialityForm', this.toggleForm);
   },
   methods: {
     toggleForm() {
       this.edit = !this.edit;
     },
     updateConfidentialAttribute(confidential) {
-      this.service.update('issue', { confidential })
-        .then(() => location.reload())
-        .catch(() => new Flash('Something went wrong trying to change the confidentiality of this issue'));
+      this.service
+        .update('issue', { confidential })
+        .then(() => window.location.reload())
+        .catch(() => {
+          Flash(__('Something went wrong trying to change the confidentiality of this issue'));
+        });
     },
   },
 };
 </script>
 
 <template>
-  <div class="block confidentiality">
-    <div class="sidebar-collapsed-icon">
-      <i class="fa" :class="faEye" aria-hidden="true" data-hidden="true"></i>
+  <div class="block issuable-sidebar-item confidentiality">
+    <div
+      v-tooltip
+      :title="tooltipLabel"
+      class="sidebar-collapsed-icon"
+      data-container="body"
+      data-placement="left"
+      data-boundary="viewport"
+      @click="toggleForm"
+    >
+      <icon :name="confidentialityIcon" aria-hidden="true" />
     </div>
     <div class="title hide-collapsed">
-      Confidentiality
+      {{ __('Confidentiality') }}
       <a
         v-if="isEditable"
-        class="pull-right confidential-edit"
+        class="float-right confidential-edit"
         href="#"
         @click.prevent="toggleForm"
       >
-        Edit
+        {{ __('Edit') }}
       </a>
     </div>
-    <div class="value confidential-value hide-collapsed">
+    <div class="value sidebar-item-value hide-collapsed">
       <editForm
         v-if="edit"
-        :toggle-form="toggleForm"
         :is-confidential="isConfidential"
         :update-confidential-attribute="updateConfidentialAttribute"
       />
-      <div v-if="!isConfidential" class="no-value confidential-value">
-        <i class="fa fa-eye is-not-confidential"></i>
-        Not confidential
+      <div v-if="!isConfidential" class="no-value sidebar-item-value">
+        <icon :size="16" name="eye" aria-hidden="true" class="sidebar-item-icon inline" />
+        {{ __('Not confidential') }}
       </div>
-      <div v-else class="value confidential-value hide-collapsed">
-        <i aria-hidden="true" data-hidden="true" class="fa fa-eye-slash is-confidential"></i>
-        This issue is confidential
+      <div v-else class="value sidebar-item-value hide-collapsed">
+        <icon
+          :size="16"
+          name="eye-slash"
+          aria-hidden="true"
+          class="sidebar-item-icon inline is-active"
+        />
+        {{ __('This issue is confidential') }}
       </div>
     </div>
   </div>

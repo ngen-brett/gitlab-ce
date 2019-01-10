@@ -1,109 +1,154 @@
-import '~/lib/utils/text_utility';
+import * as textUtils from '~/lib/utils/text_utility';
 
 describe('text_utility', () => {
-  describe('gl.text.getTextWidth', () => {
-    it('returns zero width when no text is passed', () => {
-      expect(gl.text.getTextWidth('')).toBe(0);
+  describe('addDelimiter', () => {
+    it('should add a delimiter to the given string', () => {
+      expect(textUtils.addDelimiter('1234')).toEqual('1,234');
+      expect(textUtils.addDelimiter('222222')).toEqual('222,222');
     });
 
-    it('returns zero width when no text is passed and font is passed', () => {
-      expect(gl.text.getTextWidth('', '100px sans-serif')).toBe(0);
-    });
-
-    it('returns width when text is passed', () => {
-      expect(gl.text.getTextWidth('foo') > 0).toBe(true);
-    });
-
-    it('returns bigger width when font is larger', () => {
-      const largeFont = gl.text.getTextWidth('foo', '100px sans-serif');
-      const regular = gl.text.getTextWidth('foo', '10px sans-serif');
-      expect(largeFont > regular).toBe(true);
+    it('should not add a delimiter if string contains no numbers', () => {
+      expect(textUtils.addDelimiter('aaaa')).toEqual('aaaa');
     });
   });
 
-  describe('gl.text.pluralize', () => {
-    it('returns pluralized', () => {
-      expect(gl.text.pluralize('test', 2)).toBe('tests');
-    });
-
-    it('returns pluralized when count is 0', () => {
-      expect(gl.text.pluralize('test', 0)).toBe('tests');
-    });
-
-    it('does not return pluralized', () => {
-      expect(gl.text.pluralize('test', 1)).toBe('test');
-    });
-  });
-
-  describe('gl.text.highCountTrim', () => {
+  describe('highCountTrim', () => {
     it('returns 99+ for count >= 100', () => {
-      expect(gl.text.highCountTrim(105)).toBe('99+');
-      expect(gl.text.highCountTrim(100)).toBe('99+');
+      expect(textUtils.highCountTrim(105)).toBe('99+');
+      expect(textUtils.highCountTrim(100)).toBe('99+');
     });
 
     it('returns exact number for count < 100', () => {
-      expect(gl.text.highCountTrim(45)).toBe(45);
+      expect(textUtils.highCountTrim(45)).toBe(45);
     });
   });
 
-  describe('gl.text.insertText', () => {
-    let textArea;
+  describe('capitalizeFirstCharacter', () => {
+    it('returns string with first letter capitalized', () => {
+      expect(textUtils.capitalizeFirstCharacter('gitlab')).toEqual('Gitlab');
+      expect(textUtils.highCountTrim(105)).toBe('99+');
+      expect(textUtils.highCountTrim(100)).toBe('99+');
+    });
+  });
 
-    beforeAll(() => {
-      textArea = document.createElement('textarea');
-      document.querySelector('body').appendChild(textArea);
-      textArea.focus();
+  describe('humanize', () => {
+    it('should remove underscores and uppercase the first letter', () => {
+      expect(textUtils.humanize('foo_bar')).toEqual('Foo bar');
+    });
+  });
+
+  describe('pluralize', () => {
+    it('should pluralize given string', () => {
+      expect(textUtils.pluralize('test', 2)).toBe('tests');
     });
 
-    afterAll(() => {
-      textArea.parentNode.removeChild(textArea);
+    it('should pluralize when count is 0', () => {
+      expect(textUtils.pluralize('test', 0)).toBe('tests');
     });
 
-    describe('without selection', () => {
-      it('inserts the tag on an empty line', () => {
-        const initialValue = '';
+    it('should not pluralize when count is 1', () => {
+      expect(textUtils.pluralize('test', 1)).toBe('test');
+    });
+  });
 
-        textArea.value = initialValue;
-        textArea.selectionStart = 0;
-        textArea.selectionEnd = 0;
+  describe('dasherize', () => {
+    it('should replace underscores with dashes', () => {
+      expect(textUtils.dasherize('foo_bar_foo')).toEqual('foo-bar-foo');
+    });
+  });
 
-        gl.text.insertText(textArea, textArea.value, '*', null, '', false);
+  describe('slugify', () => {
+    it('should remove accents and convert to lower case', () => {
+      expect(textUtils.slugify('João')).toEqual('joão');
+    });
+  });
 
-        expect(textArea.value).toEqual(`${initialValue}* `);
-      });
+  describe('slugifyWithHyphens', () => {
+    it('should replaces whitespaces with hyphens and convert to lower case', () => {
+      expect(textUtils.slugifyWithHyphens('My Input String')).toEqual('my-input-string');
+    });
+  });
 
-      it('inserts the tag on a new line if the current one is not empty', () => {
-        const initialValue = 'some text';
+  describe('stripHtml', () => {
+    it('replaces html tag with the default replacement', () => {
+      expect(textUtils.stripHtml('This is a text with <p>html</p>.')).toEqual(
+        'This is a text with html.',
+      );
+    });
 
-        textArea.value = initialValue;
-        textArea.setSelectionRange(initialValue.length, initialValue.length);
+    it('replaces html tags with the provided replacement', () => {
+      expect(textUtils.stripHtml('This is a text with <p>html</p>.', ' ')).toEqual(
+        'This is a text with  html .',
+      );
+    });
 
-        gl.text.insertText(textArea, textArea.value, '*', null, '', false);
+    it('passes through with null string input', () => {
+      expect(textUtils.stripHtml(null, ' ')).toEqual(null);
+    });
 
-        expect(textArea.value).toEqual(`${initialValue}\n* `);
-      });
+    it('passes through with undefined string input', () => {
+      expect(textUtils.stripHtml(undefined, ' ')).toEqual(undefined);
+    });
+  });
 
-      it('inserts the tag on the same line if the current line only contains spaces', () => {
-        const initialValue = '  ';
+  describe('convertToCamelCase', () => {
+    it('converts snake_case string to camelCase string', () => {
+      expect(textUtils.convertToCamelCase('snake_case')).toBe('snakeCase');
+    });
+  });
 
-        textArea.value = initialValue;
-        textArea.setSelectionRange(initialValue.length, initialValue.length);
+  describe('convertToSentenceCase', () => {
+    it('converts Sentence Case to Sentence case', () => {
+      expect(textUtils.convertToSentenceCase('Hello World')).toBe('Hello world');
+    });
+  });
 
-        gl.text.insertText(textArea, textArea.value, '*', null, '', false);
+  describe('truncateSha', () => {
+    it('shortens SHAs to 8 characters', () => {
+      expect(textUtils.truncateSha('verylongsha')).toBe('verylong');
+    });
 
-        expect(textArea.value).toEqual(`${initialValue}* `);
-      });
+    it('leaves short SHAs as is', () => {
+      expect(textUtils.truncateSha('shortsha')).toBe('shortsha');
+    });
+  });
 
-      it('inserts the tag on the same line if the current line only contains tabs', () => {
-        const initialValue = '\t\t\t';
+  describe('splitCamelCase', () => {
+    it('separates a PascalCase word to two', () => {
+      expect(textUtils.splitCamelCase('HelloWorld')).toBe('Hello World');
+    });
+  });
 
-        textArea.value = initialValue;
-        textArea.setSelectionRange(initialValue.length, initialValue.length);
+  describe('getFirstCharacterCapitalized', () => {
+    it('returns the first character capitalized, if first character is alphabetic', () => {
+      expect(textUtils.getFirstCharacterCapitalized('loremIpsumDolar')).toEqual('L');
+      expect(textUtils.getFirstCharacterCapitalized('Sit amit !')).toEqual('S');
+    });
 
-        gl.text.insertText(textArea, textArea.value, '*', null, '', false);
+    it('returns the first character, if first character is non-alphabetic', () => {
+      expect(textUtils.getFirstCharacterCapitalized(' lorem')).toEqual(' ');
+      expect(textUtils.getFirstCharacterCapitalized('%#!')).toEqual('%');
+    });
 
-        expect(textArea.value).toEqual(`${initialValue}* `);
-      });
+    it('returns an empty string, if string is falsey', () => {
+      expect(textUtils.getFirstCharacterCapitalized('')).toEqual('');
+      expect(textUtils.getFirstCharacterCapitalized(null)).toEqual('');
+    });
+  });
+
+  describe('truncatePathMiddleToLength', () => {
+    it('does not truncate text', () => {
+      expect(textUtils.truncatePathMiddleToLength('app/test', 50)).toEqual('app/test');
+    });
+
+    it('truncates middle of the path', () => {
+      expect(textUtils.truncatePathMiddleToLength('app/test/diff', 13)).toEqual('app/…/diff');
+    });
+
+    it('truncates multiple times in the middle of the path', () => {
+      expect(textUtils.truncatePathMiddleToLength('app/test/merge_request/diff', 13)).toEqual(
+        'app/…/…/diff',
+      );
     });
   });
 });

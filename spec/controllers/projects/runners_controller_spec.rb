@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Projects::RunnersController do
   let(:user) { create(:user) }
   let(:project) { create(:project) }
-  let(:runner) { create(:ci_runner) }
+  let(:runner) { create(:ci_runner, :project, projects: [project]) }
 
   let(:params) do
     {
@@ -15,8 +15,7 @@ describe Projects::RunnersController do
 
   before do
     sign_in(user)
-    project.add_master(user)
-    project.runners << runner
+    project.add_maintainer(user)
   end
 
   describe '#update' do
@@ -24,21 +23,21 @@ describe Projects::RunnersController do
       new_desc = runner.description.swapcase
 
       expect do
-        post :update, params.merge(runner: { description: new_desc } )
+        post :update, params: params.merge(runner: { description: new_desc } )
       end.to change { runner.ensure_runner_queue_value }
 
       runner.reload
 
-      expect(response).to have_http_status(302)
+      expect(response).to have_gitlab_http_status(302)
       expect(runner.description).to eq(new_desc)
     end
   end
 
   describe '#destroy' do
     it 'destroys the runner' do
-      delete :destroy, params
+      delete :destroy, params: params
 
-      expect(response).to have_http_status(302)
+      expect(response).to have_gitlab_http_status(302)
       expect(Ci::Runner.find_by(id: runner.id)).to be_nil
     end
   end
@@ -48,12 +47,12 @@ describe Projects::RunnersController do
       runner.update(active: false)
 
       expect do
-        post :resume, params
+        post :resume, params: params
       end.to change { runner.ensure_runner_queue_value }
 
       runner.reload
 
-      expect(response).to have_http_status(302)
+      expect(response).to have_gitlab_http_status(302)
       expect(runner.active).to eq(true)
     end
   end
@@ -63,12 +62,12 @@ describe Projects::RunnersController do
       runner.update(active: true)
 
       expect do
-        post :pause, params
+        post :pause, params: params
       end.to change { runner.ensure_runner_queue_value }
 
       runner.reload
 
-      expect(response).to have_http_status(302)
+      expect(response).to have_gitlab_http_status(302)
       expect(runner.active).to eq(false)
     end
   end

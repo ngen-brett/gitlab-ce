@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :project_hook do
     url { generate(:url) }
     enable_ssl_verification false
@@ -15,6 +15,7 @@ FactoryGirl.define do
       issues_events true
       confidential_issues_events true
       note_events true
+      confidential_note_events true
       job_events true
       pipeline_events true
       wiki_page_events true

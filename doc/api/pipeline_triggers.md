@@ -15,7 +15,7 @@ GET /projects/:id/triggers
 | `id`      | integer/string | yes      | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
 
 ```
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/1/triggers"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/1/triggers"
 ```
 
 ```json
@@ -24,7 +24,6 @@ curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/
         "id": 10,
         "description": "my trigger",
         "created_at": "2016-01-07T09:53:58.235Z",
-        "deleted_at": null,
         "last_used": null,
         "token": "6d056f63e50fe6f8c5f8f4aa10edb7",
         "updated_at": "2016-01-07T09:53:58.235Z",
@@ -47,7 +46,7 @@ GET /projects/:id/triggers/:trigger_id
 | `trigger_id` | integer | yes      | The trigger id           |
 
 ```
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/1/triggers/5"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/1/triggers/5"
 ```
 
 ```json
@@ -55,7 +54,6 @@ curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/
     "id": 10,
     "description": "my trigger",
     "created_at": "2016-01-07T09:53:58.235Z",
-    "deleted_at": null,
     "last_used": null,
     "token": "6d056f63e50fe6f8c5f8f4aa10edb7",
     "updated_at": "2016-01-07T09:53:58.235Z",
@@ -77,7 +75,7 @@ POST /projects/:id/triggers
 | `description` | string  | yes      | The trigger name         |
 
 ```
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" --form description="my description" "https://gitlab.example.com/api/v4/projects/1/triggers"
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" --form description="my description" "https://gitlab.example.com/api/v4/projects/1/triggers"
 ```
 
 ```json
@@ -85,7 +83,6 @@ curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" --form descri
     "id": 10,
     "description": "my trigger",
     "created_at": "2016-01-07T09:53:58.235Z",
-    "deleted_at": null,
     "last_used": null,
     "token": "6d056f63e50fe6f8c5f8f4aa10edb7",
     "updated_at": "2016-01-07T09:53:58.235Z",
@@ -108,7 +105,7 @@ PUT /projects/:id/triggers/:trigger_id
 | `description` | string  | no       | The trigger name         |
 
 ```
-curl --request PUT --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" --form description="my description" "https://gitlab.example.com/api/v4/projects/1/triggers/10"
+curl --request PUT --header "PRIVATE-TOKEN: <your_access_token>" --form description="my description" "https://gitlab.example.com/api/v4/projects/1/triggers/10"
 ```
 
 ```json
@@ -116,7 +113,6 @@ curl --request PUT --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" --form descrip
     "id": 10,
     "description": "my trigger",
     "created_at": "2016-01-07T09:53:58.235Z",
-    "deleted_at": null,
     "last_used": null,
     "token": "6d056f63e50fe6f8c5f8f4aa10edb7",
     "updated_at": "2016-01-07T09:53:58.235Z",
@@ -138,7 +134,7 @@ POST /projects/:id/triggers/:trigger_id/take_ownership
 | `trigger_id`  | integer | yes      | The trigger id           |
 
 ```
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/1/triggers/10/take_ownership"
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/1/triggers/10/take_ownership"
 ```
 
 ```json
@@ -146,7 +142,6 @@ curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitl
     "id": 10,
     "description": "my trigger",
     "created_at": "2016-01-07T09:53:58.235Z",
-    "deleted_at": null,
     "last_used": null,
     "token": "6d056f63e50fe6f8c5f8f4aa10edb7",
     "updated_at": "2016-01-07T09:53:58.235Z",
@@ -168,5 +163,5 @@ DELETE /projects/:id/triggers/:trigger_id
 | `trigger_id`   | integer | yes      | The trigger id           |
 
 ```
-curl --request DELETE --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/1/triggers/5"
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/1/triggers/5"
 ```

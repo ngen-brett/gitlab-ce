@@ -1,18 +1,31 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Prometheus
     module Queries
       module QueryAdditionalMetrics
-        def query_metrics(query_context)
+        def query_metrics(project, environment, query_context)
+          matched_metrics(project).map(&query_group(query_context))
+            .select(&method(:group_with_any_metrics))
+        end
+
+        protected
+
+        def query_group(query_context)
           query_processor = method(:process_query).curry[query_context]
 
-          groups = matched_metrics.map do |group|
+          lambda do |group|
             metrics = group.metrics.map do |metric|
-              {
+              metric_hsh = {
                 title: metric.title,
                 weight: metric.weight,
                 y_label: metric.y_label,
                 queries: metric.queries.map(&query_processor).select(&method(:query_with_result))
               }
+
+              metric_hsh[:id] = metric.id if metric.id
+
+              metric_hsh
             end
 
             {
@@ -21,8 +34,6 @@ module Gitlab
               metrics: metrics.select(&method(:metric_with_any_queries))
             }
           end
-
-          groups.select(&method(:group_with_any_metrics))
         end
 
         private
@@ -60,8 +71,8 @@ module Gitlab
           @available_metrics ||= client_label_values || []
         end
 
-        def matched_metrics
-          result = Gitlab::Prometheus::MetricGroup.all.map do |group|
+        def matched_metrics(project)
+          result = Gitlab::Prometheus::MetricGroup.for_project(project).map do |group|
             group.metrics.select! do |metric|
               metric.required_metrics.all?(&available_metrics.method(:include?))
             end
@@ -72,12 +83,14 @@ module Gitlab
         end
 
         def common_query_context(environment, timeframe_start:, timeframe_end:)
+          base_query_context(timeframe_start, timeframe_end)
+            .merge(QueryVariables.call(environment))
+        end
+
+        def base_query_context(timeframe_start, timeframe_end)
           {
             timeframe_start: timeframe_start,
-            timeframe_end: timeframe_end,
-            ci_environment_slug: environment.slug,
-            kube_namespace: environment.project.kubernetes_service&.actual_namespace || '',
-            environment_filter: %{container_name!="POD",environment="#{environment.slug}"}
+            timeframe_end: timeframe_end
           }
         end
       end

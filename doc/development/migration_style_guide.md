@@ -4,7 +4,7 @@ When writing migrations for GitLab, you have to take into account that
 these will be ran by hundreds of thousands of organizations of all sizes, some with
 many years of data in their database.
 
-In addition, having to take a server offline for a a upgrade small or big is a
+In addition, having to take a server offline for an upgrade small or big is a
 big burden for most organizations. For this reason it is important that your
 migrations are written carefully, can be applied online and adhere to the style
 guide below.
@@ -23,10 +23,6 @@ When downtime is necessary the migration has to be approved by:
 An up-to-date list of people holding these titles can be found at
 <https://about.gitlab.com/team/>.
 
-The document ["What Requires Downtime?"](what_requires_downtime.md) specifies
-various database operations, whether they require downtime and how to
-work around that whenever possible.
-
 When writing your migrations, also consider that databases might have stale data
 or inconsistencies and guard for that. Try to make as few assumptions as
 possible about the state of the database.
@@ -41,6 +37,18 @@ Migrations that make changes to the database schema (e.g. adding a column) can
 only be added in the monthly release, patch releases may only contain data
 migrations _unless_ schema changes are absolutely required to solve a problem.
 
+## What Requires Downtime?
+
+The document ["What Requires Downtime?"](what_requires_downtime.md) specifies
+various database operations, such as
+
+- [adding, dropping, and renaming columns](what_requires_downtime.md#adding-columns)
+- [changing column constraints and types](what_requires_downtime.md#changing-column-constraints)
+- [adding and dropping indexes, tables, and foreign keys](what_requires_downtime.md#adding-indexes)
+
+and whether they require downtime and how to work around that whenever possible.
+
+
 ## Downtime Tagging
 
 Every migration must specify if it requires downtime or not, and if it should
@@ -51,15 +59,15 @@ the migrations that _do_ require downtime.
 To tag a migration, add the following two constants to the migration class'
 body:
 
-* `DOWNTIME`: a boolean that when set to `true` indicates the migration requires
+- `DOWNTIME`: a boolean that when set to `true` indicates the migration requires
   downtime.
-* `DOWNTIME_REASON`: a String containing the reason for the migration requiring
+- `DOWNTIME_REASON`: a String containing the reason for the migration requiring
   downtime. This constant **must** be set when `DOWNTIME` is set to `true`.
 
 For example:
 
 ```ruby
-class MyMigration < ActiveRecord::Migration
+class MyMigration < ActiveRecord::Migration[4.2]
   DOWNTIME = true
   DOWNTIME_REASON = 'This migration requires downtime because ...'
 
@@ -87,7 +95,7 @@ migration. For this to work your migration needs to include the module
 `Gitlab::Database::MultiThreadedMigration`:
 
 ```ruby
-class MyMigration < ActiveRecord::Migration
+class MyMigration < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
   include Gitlab::Database::MultiThreadedMigration
 end
@@ -97,7 +105,7 @@ You can then use the method `with_multiple_threads` to perform work in separate
 threads. For example:
 
 ```ruby
-class MyMigration < ActiveRecord::Migration
+class MyMigration < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
   include Gitlab::Database::MultiThreadedMigration
 
@@ -126,20 +134,23 @@ should be more than enough.
 When removing an index make sure to use the method `remove_concurrent_index` instead
 of the regular `remove_index` method. The `remove_concurrent_index` method
 automatically drops concurrent indexes when using PostgreSQL, removing the
-need for downtime. To use this method you must disable transactions by calling
-the method `disable_ddl_transaction!` in the body of your migration class like
-so:
+need for downtime. To use this method you must disable single-transaction mode
+by calling the method `disable_ddl_transaction!` in the body of your migration
+class like so:
 
 ```ruby
-class MyMigration < ActiveRecord::Migration
+class MyMigration < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
   disable_ddl_transaction!
 
   def up
-    remove_concurrent_index :table_name, :column_name if index_exists?(:table_name, :column_name)
+    remove_concurrent_index :table_name, :column_name
   end
 end
 ```
+
+Note that it is not necessary to check if the index exists prior to
+removing it.
 
 ## Adding indexes
 
@@ -156,7 +167,7 @@ the method `disable_ddl_transaction!` in the body of your migration class like
 so:
 
 ```ruby
-class MyMigration < ActiveRecord::Migration
+class MyMigration < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
 
   disable_ddl_transaction!
@@ -171,6 +182,29 @@ class MyMigration < ActiveRecord::Migration
 end
 ```
 
+## Adding foreign-key constraints
+
+When adding a foreign-key constraint to either an existing or new
+column remember to also add a index on the column.
+
+This is _required_ for all foreign-keys.
+
+Here's an example where we add a new column with a foreign key
+constraint. Note it includes `index: true` to create an index for it.
+
+```ruby
+class Migration < ActiveRecord::Migration[4.2]
+
+  def change
+    add_reference :model, :other_model, index: true, foreign_key: { on_delete: :cascade }
+  end
+end
+```
+
+When adding a foreign-key constraint to an existing column, we
+have to employ `add_concurrent_foreign_key` and `add_concurrent_index`
+instead of `add_reference`.
+
 ## Adding Columns With Default Values
 
 When adding columns with default values you must use the method
@@ -182,7 +216,7 @@ For example, to add the column `foo` to the `projects` table with a default
 value of `10` you'd write the following:
 
 ```ruby
-class MyMigration < ActiveRecord::Migration
+class MyMigration < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
   disable_ddl_transaction!
 
@@ -198,7 +232,43 @@ end
 
 Keep in mind that this operation can easily take 10-15 minutes to complete on
 larger installations (e.g. GitLab.com). As a result you should only add default
-values if absolutely necessary.
+values if absolutely necessary. There is a RuboCop cop that will fail if this
+method is used on some tables that are very large on GitLab.com, which would
+cause other issues.
+
+## Updating an existing column
+
+To update an existing column to a particular value, you can use
+`update_column_in_batches` (`add_column_with_default` uses this internally to
+fill in the default value). This will split the updates into batches, so we
+don't update too many rows at in a single statement.
+
+This updates the column `foo` in the `projects` table to 10, where `some_column`
+is `'hello'`:
+
+```ruby
+update_column_in_batches(:projects, :foo, 10) do |table, query|
+  query.where(table[:some_column].eq('hello'))
+end
+```
+
+To perform a computed update, the value can be wrapped in `Arel.sql`, so Arel
+treats it as an SQL literal. The below example is the same as the one above, but
+the value is set to the product of the `bar` and `baz` columns:
+
+```ruby
+update_value = Arel.sql('bar * baz')
+
+update_column_in_batches(:projects, :foo, update_value) do |table, query|
+  query.where(table[:some_column].eq('hello'))
+end
+```
+
+Like `add_column_with_default`, there is a RuboCop cop to detect usage of this
+on large tables. In the case of `update_column_in_batches`, it may be acceptable
+to run on a large table, as long as it is only updating a small subset of the
+rows in the table, but do not ignore that without validating on the GitLab.com
+staging environment - or asking someone else to do so for you - beforehand.
 
 ## Integer column type
 
@@ -248,13 +318,38 @@ end
 
 Instead of using these methods one should use the following methods to store timestamps with timezones:
 
-* `add_timestamps_with_timezone`
-* `timestamps_with_timezone`
+- `add_timestamps_with_timezone`
+- `timestamps_with_timezone`
 
 This ensures all timestamps have a time zone specified. This in turn means existing timestamps won't
 suddenly use a different timezone when the system's timezone changes. It also makes it very clear which
 timezone was used in the first place.
 
+## Storing JSON in database
+
+The Rails 5 natively supports `JSONB` (binary JSON) column type.
+Example migration adding this column:
+
+```ruby
+class AddOptionsToBuildMetadata < ActiveRecord::Migration[5.0]
+  DOWNTIME = false
+
+  def change
+    add_column :ci_builds_metadata, :config_options, :jsonb
+  end
+end
+```
+
+On MySQL the `JSON` and `JSONB` is translated to `TEXT 1MB`, as `JSONB` is PostgreSQL only feature.
+
+For above reason you have to use a serializer to provide a translation layer
+in order to support PostgreSQL and MySQL seamlessly:
+
+```ruby
+class BuildMetadata
+  serialize :config_options, Serializers::JSON # rubocop:disable Cop/ActiveRecordSerialize
+end
+```
 
 ## Testing
 
@@ -295,7 +390,7 @@ If you need more complex logic you can define and use models local to a
 migration. For example:
 
 ```ruby
-class MyMigration < ActiveRecord::Migration
+class MyMigration < ActiveRecord::Migration[4.2]
   class Project < ActiveRecord::Base
     self.table_name = 'projects'
   end

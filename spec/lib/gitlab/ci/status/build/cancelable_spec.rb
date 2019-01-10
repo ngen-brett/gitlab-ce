@@ -40,6 +40,24 @@ describe Gitlab::Ci::Status::Build::Cancelable do
     end
   end
 
+  describe '#status_tooltip' do
+    it 'does not override status status_tooltip' do
+      expect(status).to receive(:status_tooltip)
+
+      subject.status_tooltip
+    end
+  end
+
+  describe '#badge_tooltip' do
+    let(:user) { create(:user) }
+    let(:build) { create(:ci_build) }
+    let(:status) { Gitlab::Ci::Status::Core.new(build, user) }
+
+    it 'returns the status' do
+      expect(subject.badge_tooltip).to eq('pending')
+    end
+  end
+
   describe 'action details' do
     let(:user) { create(:user) }
     let(:build) { create(:ci_build) }
@@ -66,11 +84,15 @@ describe Gitlab::Ci::Status::Build::Cancelable do
     end
 
     describe '#action_icon' do
-      it { expect(subject.action_icon).to eq 'icon_action_cancel' }
+      it { expect(subject.action_icon).to eq 'cancel' }
     end
 
     describe '#action_title' do
       it { expect(subject.action_title).to eq 'Cancel' }
+    end
+
+    describe '#action_button_title' do
+      it { expect(subject.action_button_title).to eq 'Cancel this job' }
     end
   end
 

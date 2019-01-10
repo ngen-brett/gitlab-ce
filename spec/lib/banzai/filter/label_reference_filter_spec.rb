@@ -59,7 +59,7 @@ describe Banzai::Filter::LabelReferenceFilter do
   describe 'label span element' do
     it 'includes default classes' do
       doc = reference_filter("Label #{reference}")
-      expect(doc.css('a span').first.attr('class')).to eq 'label color-label has-tooltip'
+      expect(doc.css('a span').first.attr('class')).to eq 'badge color-label has-tooltip'
     end
 
     it 'includes a style attribute' do
@@ -148,9 +148,11 @@ describe Banzai::Filter::LabelReferenceFilter do
       expect(doc.text).to eq 'See ?g.fm&'
     end
 
-    it 'links with adjacent text' do
-      doc = reference_filter("Label (#{reference}).")
-      expect(doc.to_html).to match(%r(\(<a.+><span.+>\?g\.fm&amp;</span></a>\)\.))
+    it 'does not include trailing punctuation', :aggregate_failures do
+      ['.', ', ok?', '...', '?', '!', ': is that ok?'].each do |trailing_punctuation|
+        doc = filter("Label #{reference}#{trailing_punctuation}")
+        expect(doc.to_html).to match(%r(<a.+><span.+>\?g\.fm&amp;</span></a>#{Regexp.escape(trailing_punctuation)}))
+      end
     end
 
     it 'ignores invalid label names' do
@@ -231,6 +233,24 @@ describe Banzai::Filter::LabelReferenceFilter do
       exp = %(Label #{Label.reference_prefix}"?secnerefer &amp; mf.g\")
 
       expect(reference_filter(act).to_html).to eq exp
+    end
+  end
+
+  context 'References with html entities' do
+    let!(:label)     { create(:label, name: '&lt;html&gt;', project: project) }
+
+    it 'links to a valid reference' do
+      doc = reference_filter('See ~"&lt;html&gt;"')
+
+      expect(doc.css('a').first.attr('href')).to eq urls
+        .project_issues_url(project, label_name: label.name)
+      expect(doc.text).to eq 'See <html>'
+    end
+
+    it 'ignores invalid label names and escapes entities' do
+      act = %(Label #{Label.reference_prefix}"&lt;non valid&gt;")
+
+      expect(reference_filter(act).to_html).to eq act
     end
   end
 
@@ -381,11 +401,11 @@ describe Banzai::Filter::LabelReferenceFilter do
     end
 
     it 'has valid link text' do
-      expect(result.css('a').first.text).to eq "#{label.name} in #{project2.name_with_namespace}"
+      expect(result.css('a').first.text).to eq "#{label.name} in #{project2.full_name}"
     end
 
     it 'has valid text' do
-      expect(result.text).to eq "See #{label.name} in #{project2.name_with_namespace}"
+      expect(result.text).to eq "See #{label.name} in #{project2.full_name}"
     end
 
     it 'ignores invalid IDs on the referenced label' do
@@ -481,12 +501,12 @@ describe Banzai::Filter::LabelReferenceFilter do
 
     it 'has valid link text' do
       expect(result.css('a').first.text)
-        .to eq "#{group_label.name} in #{another_project.name_with_namespace}"
+        .to eq "#{group_label.name} in #{another_project.full_name}"
     end
 
     it 'has valid text' do
       expect(result.text)
-        .to eq "See #{group_label.name} in #{another_project.name_with_namespace}"
+        .to eq "See #{group_label.name} in #{another_project.full_name}"
     end
 
     it 'ignores invalid IDs on the referenced label' do
@@ -592,6 +612,40 @@ describe Banzai::Filter::LabelReferenceFilter do
       exp = act = "See #{invalidate_reference(reference)}"
 
       expect(reference_filter(act).to_html).to eq exp
+    end
+  end
+
+  describe 'group context' do
+    it 'points to the page defined in label_url_method' do
+      group = create(:group)
+      label = create(:group_label, group: group)
+      reference = "~#{label.name}"
+
+      result = reference_filter("See #{reference}", { project: nil, group: group, label_url_method: :group_url } )
+
+      expect(result.css('a').first.attr('href')).to eq(urls.group_url(group, label_name: label.name))
+    end
+
+    it 'finds labels also in ancestor groups' do
+      group = create(:group)
+      label = create(:group_label, group: group)
+      subgroup = create(:group, parent: group)
+      reference = "~#{label.name}"
+
+      result = reference_filter("See #{reference}", { project: nil, group: subgroup, label_url_method: :group_url } )
+
+      expect(result.css('a').first.attr('href')).to eq(urls.group_url(subgroup, label_name: label.name))
+    end
+
+    it 'points to referenced project issues page' do
+      project = create(:project)
+      label = create(:label, project: project)
+      reference = "#{project.full_path}~#{label.name}"
+
+      result = reference_filter("See #{reference}", { project: nil, group: create(:group) } )
+
+      expect(result.css('a').first.attr('href')).to eq(urls.project_issues_url(project, label_name: label.name))
+      expect(result.css('a').first.text).to eq "#{label.name} in #{project.full_name}"
     end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FormHelper
   def form_errors(model, type: 'form')
     return unless model.errors.any?
@@ -27,7 +29,7 @@ module FormHelper
         first_user: current_user&.username,
         null_user: true,
         current_user: true,
-        project_id: @project.id,
+        project_id: @project&.id,
         field_name: 'issue[assignee_ids][]',
         default_label: 'Unassigned',
         'max-select': 1,
@@ -35,7 +37,7 @@ module FormHelper
         multi_select: true,
         'input-meta': 'name',
         'always-show-selectbox': true,
-        current_user_info: current_user.to_json(only: [:id, :name])
+        current_user_info: UserSerializer.new.represent(current_user)
       }
     }
   end

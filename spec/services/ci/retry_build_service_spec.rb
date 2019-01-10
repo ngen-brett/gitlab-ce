@@ -5,7 +5,13 @@ describe Ci::RetryBuildService do
   set(:project) { create(:project) }
   set(:pipeline) { create(:ci_pipeline, project: project) }
 
-  let(:build) { create(:ci_build, pipeline: pipeline) }
+  let(:stage) do
+    create(:ci_stage_entity, project: project,
+                             pipeline: pipeline,
+                             name: 'test')
+  end
+
+  let(:build) { create(:ci_build, pipeline: pipeline, stage_id: stage.id) }
 
   let(:service) do
     described_class.new(project, user)
@@ -14,41 +20,55 @@ describe Ci::RetryBuildService do
   CLONE_ACCESSORS = described_class::CLONE_ACCESSORS
 
   REJECT_ACCESSORS =
-    %i[id status user token coverage trace runner artifacts_expire_at
-       artifacts_file artifacts_metadata artifacts_size created_at
-       updated_at started_at finished_at queued_at erased_by
-       erased_at auto_canceled_by].freeze
+    %i[id status user token token_encrypted coverage trace runner
+       artifacts_expire_at artifacts_file artifacts_metadata artifacts_size
+       created_at updated_at started_at finished_at queued_at erased_by
+       erased_at auto_canceled_by job_artifacts job_artifacts_archive
+       job_artifacts_metadata job_artifacts_trace job_artifacts_junit
+       job_artifacts_sast job_artifacts_dependency_scanning
+       job_artifacts_container_scanning job_artifacts_dast
+       job_artifacts_license_management job_artifacts_performance
+       job_artifacts_codequality scheduled_at].freeze
 
   IGNORE_ACCESSORS =
-    %i[type lock_version target_url base_tags
-       commit_id deployments erased_by_id last_deployment project_id
+    %i[type lock_version target_url base_tags trace_sections
+       commit_id deployment erased_by_id project_id
        runner_id tag_taggings taggings tags trigger_request_id
-       user_id auto_canceled_by_id retried failure_reason].freeze
+       user_id auto_canceled_by_id retried failure_reason
+       artifacts_file_store artifacts_metadata_store
+       metadata runner_session trace_chunks].freeze
 
   shared_examples 'build duplication' do
-    let(:stage) do
-      # TODO, we still do not have factory for new stages, we will need to
-      # switch existing factory to persist stages, instead of using LegacyStage
-      #
-      Ci::Stage.create!(project: project, pipeline: pipeline, name: 'test')
-    end
+    let(:another_pipeline) { create(:ci_empty_pipeline, project: project) }
 
     let(:build) do
-      create(:ci_build, :failed, :artifacts_expired, :erased,
-             :queued, :coverage, :tags, :allowed_to_fail, :on_tag,
-             :triggered, :trace, :teardown_environment,
-             description: 'my-job', stage: 'test',  pipeline: pipeline,
-             auto_canceled_by: create(:ci_empty_pipeline, project: project)) do |build|
-               ##
-               # TODO, workaround for FactoryGirl limitation when having both
-               # stage (text) and stage_id (integer) columns in the table.
-               build.stage_id = stage.id
-             end
+      create(:ci_build, :failed, :expired, :erased, :queued, :coverage, :tags,
+             :allowed_to_fail, :on_tag, :triggered, :teardown_environment,
+             description: 'my-job', stage: 'test', stage_id: stage.id,
+             pipeline: pipeline, auto_canceled_by: another_pipeline,
+             scheduled_at: 10.seconds.since)
+    end
+
+    before do
+      # Make sure that build has both `stage_id` and `stage` because FactoryBot
+      # can reset one of the fields when assigning another. We plan to deprecate
+      # and remove legacy `stage` column in the future.
+      build.update(stage: 'test', stage_id: stage.id)
+
+      # Make sure we have one instance for every possible job_artifact_X
+      # associations to check they are correctly rejected on build duplication.
+      Ci::JobArtifact::TYPE_AND_FORMAT_PAIRS.each do |file_type, file_format|
+        create(:ci_job_artifact, file_format,
+               file_type: file_type, job: build, expire_at: build.artifacts_expire_at)
+      end
+
+      build.reload
     end
 
     describe 'clone accessors' do
       CLONE_ACCESSORS.each do |attribute|
         it "clones #{attribute} build attribute" do
+          expect(build.send(attribute)).not_to be_nil
           expect(new_build.send(attribute)).not_to be_nil
           expect(new_build.send(attribute)).to eq build.send(attribute)
         end
@@ -93,7 +113,11 @@ describe Ci::RetryBuildService do
   end
 
   describe '#execute' do
-    let(:new_build) { service.execute(build) }
+    let(:new_build) do
+      Timecop.freeze(1.second.from_now) do
+        service.execute(build)
+      end
+    end
 
     context 'when user has ability to execute build' do
       before do
@@ -121,10 +145,12 @@ describe Ci::RetryBuildService do
 
       context 'when there are subsequent builds that are skipped' do
         let!(:subsequent_build) do
-          create(:ci_build, :skipped, stage_idx: 1, pipeline: pipeline)
+          create(:ci_build, :skipped, stage_idx: 2,
+                                      pipeline: pipeline,
+                                      stage: 'deploy')
         end
 
-        it 'resumes pipeline processing in subsequent stages' do
+        it 'resumes pipeline processing in a subsequent stage' do
           service.execute(build)
 
           expect(subsequent_build.reload).to be_created
@@ -141,7 +167,11 @@ describe Ci::RetryBuildService do
   end
 
   describe '#reprocess' do
-    let(:new_build) { service.reprocess!(build) }
+    let(:new_build) do
+      Timecop.freeze(1.second.from_now) do
+        service.reprocess!(build)
+      end
+    end
 
     context 'when user has ability to execute build' do
       before do
@@ -160,8 +190,9 @@ describe Ci::RetryBuildService do
         expect(new_build).to be_created
       end
 
-      it 'does mark old build as retried' do
+      it 'does mark old build as retried in the database and on the instance' do
         expect(new_build).to be_latest
+        expect(build).to be_retried
         expect(build.reload).to be_retried
       end
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Search
   class GroupService < Search::GlobalService
     attr_accessor :group
@@ -5,6 +7,7 @@ module Search
     def initialize(user, group, params)
       super(user, params)
 
+      @default_project_filter = false
       @group = group
     end
 

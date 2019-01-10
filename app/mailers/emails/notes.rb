@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Emails
   module Notes
     def note_commit_email(recipient_id, note_id)
@@ -5,7 +7,7 @@ module Emails
 
       @commit = @note.noteable
       @target_url = project_commit_url(*note_target_url_options)
-      mail_answer_thread(@commit, note_thread_options(recipient_id))
+      mail_answer_note_thread(@commit, @note, note_thread_options(recipient_id))
     end
 
     def note_issue_email(recipient_id, note_id)
@@ -13,7 +15,7 @@ module Emails
 
       @issue = @note.noteable
       @target_url = project_issue_url(*note_target_url_options)
-      mail_answer_thread(@issue, note_thread_options(recipient_id))
+      mail_answer_note_thread(@issue, @note, note_thread_options(recipient_id))
     end
 
     def note_merge_request_email(recipient_id, note_id)
@@ -21,15 +23,15 @@ module Emails
 
       @merge_request = @note.noteable
       @target_url = project_merge_request_url(*note_target_url_options)
-      mail_answer_thread(@merge_request, note_thread_options(recipient_id))
+      mail_answer_note_thread(@merge_request, @note, note_thread_options(recipient_id))
     end
 
-    def note_snippet_email(recipient_id, note_id)
+    def note_project_snippet_email(recipient_id, note_id)
       setup_note_mail(note_id, recipient_id)
 
       @snippet = @note.noteable
       @target_url = project_snippet_url(*note_target_url_options)
-      mail_answer_thread(@snippet, note_thread_options(recipient_id))
+      mail_answer_note_thread(@snippet, @note, note_thread_options(recipient_id))
     end
 
     def note_personal_snippet_email(recipient_id, note_id)
@@ -37,13 +39,13 @@ module Emails
 
       @snippet = @note.noteable
       @target_url = snippet_url(@note.noteable)
-      mail_answer_thread(@snippet, note_thread_options(recipient_id))
+      mail_answer_note_thread(@snippet, @note, note_thread_options(recipient_id))
     end
 
     private
 
     def note_target_url_options
-      [@project, @note.noteable, anchor: "note_#{@note.id}"]
+      [@project || @group, @note.noteable, anchor: "note_#{@note.id}"]
     end
 
     def note_thread_options(recipient_id)
@@ -58,8 +60,9 @@ module Emails
       # `note_id` is a `Note` when originating in `NotifyPreview`
       @note = note_id.is_a?(Note) ? note_id : Note.find(note_id)
       @project = @note.project
+      @group = @note.noteable.try(:group)
 
-      if @project && @note.persisted?
+      if (@project || @group) && @note.persisted?
         @sent_notification = SentNotification.record_note(@note, recipient_id, reply_key)
       end
     end

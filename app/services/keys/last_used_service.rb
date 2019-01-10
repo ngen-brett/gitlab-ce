@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Keys
   class LastUsedService
     TIMEOUT = 1.day.to_i
@@ -16,6 +18,8 @@ module Keys
     end
 
     def update?
+      return false if ::Gitlab::Database.read_only?
+
       last_used = key.last_used_at
 
       return false if last_used && (Time.zone.now - last_used) <= TIMEOUT

@@ -30,19 +30,20 @@ Click on the service links to see further configuration instructions and details
 | [Bugzilla](bugzilla.md) | Bugzilla issue tracker |
 | Campfire | Simple web-based real-time group chat |
 | Custom Issue Tracker | Custom issue tracker |
+| [Discord Notifications](discord_notifications.md) | Receive event notifications in Discord |
 | Drone CI | Continuous Integration platform built on Docker, written in Go |
 | [Emails on push](emails_on_push.md) | Email the commits and diff of each push to a list of recipients |
 | External Wiki | Replaces the link to the internal wiki with a link to an external wiki |
 | Flowdock | Flowdock is a collaboration web app for technical teams |
-| Gemnasium | Gemnasium monitors your project dependencies and alerts you about updates and security vulnerabilities |
+| [Hangouts Chat](hangouts_chat.md) | Receive events notifications in Google Hangouts Chat |
 | [HipChat](hipchat.md) | Private group chat and IM |
 | [Irker (IRC gateway)](irker.md) | Send IRC messages, on update, to a list of recipients through an Irker gateway |
 | [JIRA](jira.md) | JIRA issue tracker |
 | JetBrains TeamCity CI | A continuous integration and build server |
-| [Kubernetes](kubernetes.md) | A containerized deployment service |
 | [Mattermost slash commands](mattermost_slash_commands.md) | Mattermost chat and ChatOps slash commands |
 | [Mattermost Notifications](mattermost.md) | Receive event notifications in Mattermost |
 | [Microsoft teams](microsoft_teams.md) |  Receive notifications for actions that happen on GitLab into a room on Microsoft Teams using Office 365 Connectors |
+| Packagist | Update your project on Packagist, the main Composer repository |
 | Pipelines emails | Email the pipeline status to a list of recipients |
 | [Slack Notifications](slack.md) | Send GitLab events (e.g. issue created) to Slack as notifications |
 | [Slack slash commands](slack_slash_commands.md) | Use slash commands in Slack to control GitLab |

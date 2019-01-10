@@ -1,7 +1,7 @@
 namespace :gitlab do
   namespace :shell do
     desc "GitLab | Install or upgrade gitlab-shell"
-    task :install, [:repo] => :environment do |t, args|
+    task :install, [:repo] => :gitlab_environment do |t, args|
       warn_user_is_not_gitlab
 
       default_version = Gitlab::Shell.version_required
@@ -54,32 +54,22 @@ namespace :gitlab do
       # (Re)create hooks
       Rake::Task['gitlab:shell:create_hooks'].invoke
 
-      # Required for debian packaging with PKGR: Setup .ssh/environment with
-      # the current PATH, so that the correct ruby version gets loaded
-      # Requires to set "PermitUserEnvironment yes" in sshd config (should not
-      # be an issue since it is more than likely that there are no "normal"
-      # user accounts on a gitlab server). The alternative is for the admin to
-      # install a ruby (1.9.3+) in the global path.
-      File.open(File.join(user_home, ".ssh", "environment"), "w+") do |f|
-        f.puts "PATH=#{ENV['PATH']}"
-      end
-
       Gitlab::Shell.ensure_secret_token!
     end
 
     desc "GitLab | Setup gitlab-shell"
-    task setup: :environment do
+    task setup: :gitlab_environment do
       setup
     end
 
     desc "GitLab | Build missing projects"
-    task build_missing_projects: :environment do
+    task build_missing_projects: :gitlab_environment do
       Project.find_each(batch_size: 1000) do |project|
         path_to_repo = project.repository.path_to_repo
         if File.exist?(path_to_repo)
           print '-'
         else
-          if Gitlab::Shell.new.add_repository(project.repository_storage_path,
+          if Gitlab::Shell.new.create_repository(project.repository_storage,
                                               project.disk_path)
             print '.'
           else
@@ -90,7 +80,7 @@ namespace :gitlab do
     end
 
     desc 'Create or repair repository hooks symlink'
-    task create_hooks: :environment do
+    task create_hooks: :gitlab_environment do
       warn_user_is_not_gitlab
 
       puts 'Creating/Repairing hooks symlinks for all repositories'
@@ -102,9 +92,11 @@ namespace :gitlab do
   def setup
     warn_user_is_not_gitlab
 
+    ensure_write_to_authorized_keys_is_enabled
+
     unless ENV['force'] == 'yes'
-      puts "This will rebuild an authorized_keys file."
-      puts "You will lose any data stored in authorized_keys file."
+      puts "This task will now rebuild the authorized_keys file."
+      puts "You will lose any data stored in the authorized_keys file."
       ask_to_continue
       puts ""
     end
@@ -127,5 +119,45 @@ namespace :gitlab do
   rescue Gitlab::TaskAbortedByUserError
     puts "Quitting...".color(:red)
     exit 1
+  end
+
+  def ensure_write_to_authorized_keys_is_enabled
+    return if Gitlab::CurrentSettings.current_application_settings.authorized_keys_enabled
+
+    puts authorized_keys_is_disabled_warning
+
+    unless ENV['force'] == 'yes'
+      puts 'Do you want to permanently enable the "Write to authorized_keys file" setting now?'
+      ask_to_continue
+    end
+
+    puts 'Enabling the "Write to authorized_keys file" setting...'
+    Gitlab::CurrentSettings.current_application_settings.update!(authorized_keys_enabled: true)
+
+    puts 'Successfully enabled "Write to authorized_keys file"!'
+    puts ''
+  end
+
+  def authorized_keys_is_disabled_warning
+    <<-MSG.strip_heredoc
+      WARNING
+
+      The "Write to authorized_keys file" setting is disabled, which prevents
+      the file from being rebuilt!
+
+      It should be enabled for most GitLab installations. Large installations
+      may wish to disable it as part of speeding up SSH operations.
+
+      See https://docs.gitlab.com/ee/administration/operations/fast_ssh_key_lookup.html
+
+      If you did not intentionally disable this option in Admin Area > Settings,
+      then you may have been affected by the 9.3.0 bug in which the new setting
+      was disabled by default.
+
+      https://gitlab.com/gitlab-org/gitlab-ee/issues/2738
+
+      It was reverted in 9.3.1 and fixed in 9.3.3, however, if Settings were
+      saved while the setting was unchecked, then it is still disabled.
+    MSG
   end
 end

@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Issuable::BulkUpdateService do
   let(:user)    { create(:user) }
-  let(:project) { create(:project, namespace: user.namespace) }
+  let(:project) { create(:project, :repository, namespace: user.namespace) }
 
   def bulk_update(issuables, extra_params = {})
     bulk_update_params = extra_params
@@ -27,6 +27,33 @@ describe Issuable::BulkUpdateService do
 
       expect(project.issues.opened).to be_empty
       expect(project.issues.closed).not_to be_empty
+    end
+
+    context 'when issue for a different project is created' do
+      let(:private_project) { create(:project, :private) }
+      let(:issue) { create(:issue, project: private_project, author: user) }
+
+      context 'when user has access to the project' do
+        it 'closes all issues passed' do
+          private_project.add_maintainer(user)
+
+          bulk_update(issues + [issue], state_event: 'close')
+
+          expect(project.issues.opened).to be_empty
+          expect(project.issues.closed).not_to be_empty
+          expect(private_project.issues.closed).not_to be_empty
+        end
+      end
+
+      context 'when user does not have access to project' do
+        it 'only closes all issues that the user has access to' do
+          bulk_update(issues + [issue], state_event: 'close')
+
+          expect(project.issues.opened).to be_empty
+          expect(project.issues.closed).not_to be_empty
+          expect(private_project.issues.closed).to be_empty
+        end
+      end
     end
   end
 
@@ -54,7 +81,7 @@ describe Issuable::BulkUpdateService do
     context 'when the new assignee ID is a valid user' do
       it 'succeeds' do
         new_assignee = create(:user)
-        project.team << [new_assignee, :developer]
+        project.add_developer(new_assignee)
 
         result = bulk_update(merge_request, assignee_id: new_assignee.id)
 
@@ -64,7 +91,7 @@ describe Issuable::BulkUpdateService do
 
       it 'updates the assignee to the user ID passed' do
         assignee = create(:user)
-        project.team << [assignee, :developer]
+        project.add_developer(assignee)
 
         expect { bulk_update(merge_request, assignee_id: assignee.id) }
           .to change { merge_request.reload.assignee }.from(user).to(assignee)
@@ -92,7 +119,7 @@ describe Issuable::BulkUpdateService do
     context 'when the new assignee ID is a valid user' do
       it 'succeeds' do
         new_assignee = create(:user)
-        project.team << [new_assignee, :developer]
+        project.add_developer(new_assignee)
 
         result = bulk_update(issue, assignee_ids: [new_assignee.id])
 
@@ -102,7 +129,7 @@ describe Issuable::BulkUpdateService do
 
       it 'updates the assignee to the user ID passed' do
         assignee = create(:user)
-        project.team << [assignee, :developer]
+        project.add_developer(assignee)
         expect { bulk_update(issue, assignee_ids: [assignee.id]) }
           .to change { issue.reload.assignees.first }.from(user).to(assignee)
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Milestone < ActiveRecord::Base
   # Represents a "No Milestone" state used for filtering Issues and Merge
   # Requests that have no milestone assigned.
@@ -8,17 +10,22 @@ class Milestone < ActiveRecord::Base
   Started = MilestoneStruct.new('Started', '#started', -3)
 
   include CacheMarkdownField
-  include InternalId
+  include AtomicInternalId
+  include IidRoutes
   include Sortable
   include Referable
   include StripAttribute
   include Milestoneish
+  include Gitlab::SQL::Pattern
 
   cache_markdown_field :title, pipeline: :single_line
   cache_markdown_field :description
 
   belongs_to :project
   belongs_to :group
+
+  has_internal_id :iid, scope: :project, init: ->(s) { s&.project&.milestones&.maximum(:iid) }
+  has_internal_id :iid, scope: :group, init: ->(s) { s&.group&.milestones&.maximum(:iid) }
 
   has_many :issues
   has_many :labels, -> { distinct.reorder('labels.title') },  through: :issues
@@ -33,11 +40,14 @@ class Milestone < ActiveRecord::Base
 
   scope :for_projects_and_groups, -> (project_ids, group_ids) do
     conditions = []
-    conditions << arel_table[:project_id].in(project_ids) if project_ids.compact.any?
-    conditions << arel_table[:group_id].in(group_ids) if group_ids.compact.any?
+    conditions << arel_table[:project_id].in(project_ids) if project_ids&.compact&.any?
+    conditions << arel_table[:group_id].in(group_ids) if group_ids&.compact&.any?
 
     where(conditions.reduce(:or))
   end
+
+  scope :order_by_name_asc, -> { order(Arel::Nodes::Ascending.new(arel_table[:title].lower)) }
+  scope :reorder_by_due_date_asc, -> { reorder(Gitlab::Database.nulls_last_order('due_date', 'ASC')) }
 
   validates :group, presence: true, unless: :project
   validates :project, presence: true, unless: :group
@@ -73,10 +83,7 @@ class Milestone < ActiveRecord::Base
     #
     # Returns an ActiveRecord::Relation.
     def search(query)
-      t = arel_table
-      pattern = "%#{query}%"
-
-      where(t[:title].matches(pattern).or(t[:description].matches(pattern)))
+      fuzzy_search(query, [:title, :description])
     end
 
     def filter_by_state(milestones, state)
@@ -85,6 +92,17 @@ class Milestone < ActiveRecord::Base
       when 'all' then milestones
       else milestones.active
       end
+    end
+
+    def count_by_state
+      reorder(nil).group(:state).count
+    end
+
+    def predefined?(milestone)
+      milestone == Any ||
+        milestone == None ||
+        milestone == Upcoming ||
+        milestone == Started
     end
   end
 
@@ -122,30 +140,54 @@ class Milestone < ActiveRecord::Base
       rel.order(:project_id, :due_date).select('DISTINCT ON (project_id) id')
     else
       rel
-        .group(:project_id)
+        .group(:project_id, :due_date, :id)
         .having('due_date = MIN(due_date)')
         .pluck(:id, :project_id, :due_date)
+        .uniq(&:second)
         .map(&:first)
     end
   end
 
   def participants
-    User.joins(assigned_issues: :milestone).where("milestones.id = ?", id).uniq
+    User.joins(assigned_issues: :milestone).where("milestones.id = ?", id).distinct
   end
 
-  def self.sort(method)
-    case method.to_s
-    when 'due_date_asc'
-      reorder(Gitlab::Database.nulls_last_order('due_date', 'ASC'))
-    when 'due_date_desc'
-      reorder(Gitlab::Database.nulls_last_order('due_date', 'DESC'))
-    when 'start_date_asc'
-      reorder(Gitlab::Database.nulls_last_order('start_date', 'ASC'))
-    when 'start_date_desc'
-      reorder(Gitlab::Database.nulls_last_order('start_date', 'DESC'))
-    else
-      order_by(method)
-    end
+  def self.sort_by_attribute(method)
+    sorted =
+      case method.to_s
+      when 'due_date_asc'
+        reorder_by_due_date_asc
+      when 'due_date_desc'
+        reorder(Gitlab::Database.nulls_last_order('due_date', 'DESC'))
+      when 'name_asc'
+        reorder(Arel::Nodes::Ascending.new(arel_table[:title].lower))
+      when 'name_desc'
+        reorder(Arel::Nodes::Descending.new(arel_table[:title].lower))
+      when 'start_date_asc'
+        reorder(Gitlab::Database.nulls_last_order('start_date', 'ASC'))
+      when 'start_date_desc'
+        reorder(Gitlab::Database.nulls_last_order('start_date', 'DESC'))
+      else
+        order_by(method)
+      end
+
+    sorted.with_order_id_desc
+  end
+
+  def self.states_count(projects, groups = nil)
+    return STATE_COUNT_HASH unless projects || groups
+
+    counts = Milestone
+               .for_projects_and_groups(projects&.map(&:id), groups&.map(&:id))
+               .reorder(nil)
+               .group(:state)
+               .count
+
+    {
+        opened: counts['active'] || 0,
+        closed: counts['closed'] || 0,
+        all: counts.values.sum
+    }
   end
 
   ##
@@ -162,22 +204,22 @@ class Milestone < ActiveRecord::Base
   #   Milestone.first.to_reference(cross_namespace_project)  # => "gitlab-org/gitlab-ce%1"
   #   Milestone.first.to_reference(same_namespace_project)   # => "gitlab-ce%1"
   #
-  def to_reference(from_project = nil, format: :name, full: false)
+  def to_reference(from = nil, format: :name, full: false)
     format_reference = milestone_format_reference(format)
     reference = "#{self.class.reference_prefix}#{format_reference}"
 
     if project
-      "#{project.to_reference(from_project, full: full)}#{reference}"
+      "#{project.to_reference(from, full: full)}#{reference}"
     else
       reference
     end
   end
 
-  def reference_link_text(from_project = nil)
-    self.title
+  def reference_link_text(from = nil)
+    self.class.reference_prefix + self.title
   end
 
-  def milestoneish_ids
+  def milestoneish_id
     id
   end
 
@@ -256,7 +298,7 @@ class Milestone < ActiveRecord::Base
 
   def start_date_should_be_less_than_due_date
     if due_date <= start_date
-      errors.add(:start_date, "Can't be greater than due date")
+      errors.add(:due_date, "must be greater than start date")
     end
   end
 

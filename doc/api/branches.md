@@ -13,9 +13,10 @@ GET /projects/:id/repository/branches
 | Attribute | Type | Required | Description |
 | --------- | ---- | -------- | ----------- |
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
+| `search` | string | no | Return list of branches matching the search criteria.  |
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects/5/repository/branches
+curl --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/repository/branches
 ```
 
 Example response:
@@ -26,8 +27,10 @@ Example response:
     "name": "master",
     "merged": false,
     "protected": true,
+    "default": true,
     "developers_can_push": false,
     "developers_can_merge": false,
+    "can_push": true,
     "commit": {
       "author_email": "john@example.com",
       "author_name": "John Smith",
@@ -63,7 +66,7 @@ GET /projects/:id/repository/branches/:branch
 | `branch` | string | yes | The name of the branch |
 
 ```bash
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects/5/repository/branches/master
+curl --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/repository/branches/master
 ```
 
 Example response:
@@ -73,8 +76,10 @@ Example response:
   "name": "master",
   "merged": false,
   "protected": true,
+  "default": true,
   "developers_can_push": false,
   "developers_can_merge": false,
+  "can_push": true,
   "commit": {
     "author_email": "john@example.com",
     "author_name": "John Smith",
@@ -106,7 +111,7 @@ PUT /projects/:id/repository/branches/:branch/protect
 ```
 
 ```bash
-curl --request PUT --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects/5/repository/branches/master/protect?developers_can_push=true&developers_can_merge=true
+curl --request PUT --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/repository/branches/master/protect?developers_can_push=true&developers_can_merge=true
 ```
 
 | Attribute | Type | Required | Description |
@@ -138,8 +143,10 @@ Example response:
   "name": "master",
   "merged": false,
   "protected": true,
+  "default": true,
   "developers_can_push": true,
-  "developers_can_merge": true
+  "developers_can_merge": true,
+  "can_push": true
 }
 ```
 
@@ -156,7 +163,7 @@ PUT /projects/:id/repository/branches/:branch/unprotect
 ```
 
 ```bash
-curl --request PUT --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects/5/repository/branches/master/unprotect
+curl --request PUT --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/repository/branches/master/unprotect
 ```
 
 | Attribute | Type | Required | Description |
@@ -186,8 +193,10 @@ Example response:
   "name": "master",
   "merged": false,
   "protected": false,
+  "default": true,
   "developers_can_push": false,
-  "developers_can_merge": false
+  "developers_can_merge": false,
+  "can_push": true
 }
 ```
 
@@ -204,7 +213,7 @@ POST /projects/:id/repository/branches
 | `ref`         | string  | yes | The branch name or commit SHA to create branch from |
 
 ```bash
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/repository/branches?branch=newbranch&ref=master"
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/repository/branches?branch=newbranch&ref=master"
 ```
 
 Example response:
@@ -229,8 +238,10 @@ Example response:
   "name": "newbranch",
   "merged": false,
   "protected": false,
+  "default": false,
   "developers_can_push": false,
-  "developers_can_merge": false
+  "developers_can_merge": false,
+  "can_push": true
 }
 ```
 
@@ -248,7 +259,7 @@ DELETE /projects/:id/repository/branches/:branch
 In case of an error, an explaining message is provided.
 
 ```bash
-curl --request DELETE --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/repository/branches/newbranch"
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/repository/branches/newbranch"
 ```
 
 ## Delete merged branches
@@ -267,5 +278,5 @@ DELETE /projects/:id/repository/merged_branches
 
 
 ```bash
-curl --request DELETE --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/5/repository/merged_branches"
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/5/repository/merged_branches"
 ```

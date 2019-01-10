@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module Projects
   # Service class for counting and caching the number of open merge requests of
   # a project.
-  class OpenMergeRequestsCountService < CountService
+  class OpenMergeRequestsCountService < Projects::CountService
     def relation_for_count
       @project.merge_requests.opened
     end

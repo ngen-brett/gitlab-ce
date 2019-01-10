@@ -1,5 +1,6 @@
 export default {
-  small: { // Covers both xs and sm screen sizes
+  small: {
+    // Covers both xs and sm screen sizes
     margin: {
       top: 40,
       right: 40,
@@ -7,17 +8,19 @@ export default {
       left: 40,
     },
     legends: {
-      width: 10,
+      width: 15,
       height: 3,
+      offsetX: 20,
+      offsetY: 32,
     },
     backgroundLegend: {
       width: 30,
       height: 50,
     },
     axisLabelLineOffset: -20,
-    legendOffset: 33,
   },
-  large: { // This covers both md and lg screen sizes
+  large: {
+    // This covers both md and lg screen sizes
     margin: {
       top: 80,
       right: 80,
@@ -27,13 +30,14 @@ export default {
     legends: {
       width: 15,
       height: 3,
+      offsetX: 20,
+      offsetY: 34,
     },
     backgroundLegend: {
       width: 30,
       height: 150,
     },
     axisLabelLineOffset: 20,
-    legendOffset: 36,
   },
   xTicks: 8,
   yTicks: 3,

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module SlashCommands
     module Presenters
@@ -38,7 +40,7 @@ module Gitlab
         end
 
         def project_link
-          "[#{project.name_with_namespace}](#{project.web_url})"
+          "[#{project.full_name}](#{project.web_url})"
         end
 
         def author_profile_link

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'Discussion Comments Merge Request', :js do
+describe 'Discussion Comments Commit', :js do
   include RepoHelpers
 
   let(:user) { create(:user) }
@@ -8,7 +8,7 @@ describe 'Discussion Comments Merge Request', :js do
   let(:merge_request) { create(:merge_request, source_project: project) }
 
   before do
-    project.add_master(user)
+    project.add_maintainer(user)
     sign_in(user)
 
     visit project_commit_path(project, sample_commit.id)

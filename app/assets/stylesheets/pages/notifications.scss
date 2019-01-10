@@ -2,7 +2,7 @@
   line-height: 34px;
 
   .dropdown-menu {
-    @extend .dropdown-menu-align-right;
+    @extend .dropdown-menu-right;
   }
 }
 
@@ -13,8 +13,4 @@
   .fa {
     font-size: 18px;
   }
-}
-
-.notification-form {
-  @include new-style-dropdown;
 }

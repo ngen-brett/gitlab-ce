@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Regex
     extend self
@@ -25,7 +27,7 @@ module Gitlab
     # See https://github.com/docker/distribution/blob/master/reference/regexp.go.
     #
     def container_repository_name_regex
-      @container_repository_regex ||= %r{\A[a-z0-9]+(?:[-._/][a-z0-9]+)*\Z}
+      @container_repository_regex ||= %r{\A[a-z0-9]+((?:[._/]|__|[-])[a-z0-9]+)*\Z}
     end
 
     ##
@@ -37,15 +39,19 @@ module Gitlab
     end
 
     def environment_name_regex_chars
-      'a-zA-Z0-9_/\\$\\{\\}\\. -'
+      'a-zA-Z0-9_/\\$\\{\\}\\. \\-'
+    end
+
+    def environment_name_regex_chars_without_slash
+      'a-zA-Z0-9_\\$\\{\\}\\. -'
     end
 
     def environment_name_regex
-      @environment_name_regex ||= /\A[#{environment_name_regex_chars}]+\z/.freeze
+      @environment_name_regex ||= /\A[#{environment_name_regex_chars_without_slash}]([#{environment_name_regex_chars}]*[#{environment_name_regex_chars_without_slash}])?\z/.freeze
     end
 
     def environment_name_regex_message
-      "can contain only letters, digits, '-', '_', '/', '$', '{', '}', '.', and spaces"
+      "can contain only letters, digits, '-', '_', '/', '$', '{', '}', '.', and spaces, but it cannot start or end with '/'"
     end
 
     def kubernetes_namespace_regex
@@ -64,6 +70,40 @@ module Gitlab
     def environment_slug_regex_message
       "can contain only lowercase letters, digits, and '-'. " \
       "Must start with a letter, and cannot end with '-'"
+    end
+
+    def build_trace_section_regex
+      @build_trace_section_regexp ||= /section_((?:start)|(?:end)):(\d+):([a-zA-Z0-9_.-]+)\r\033\[0K/.freeze
+    end
+
+    def markdown_code_or_html_blocks
+      @markdown_code_or_html_blocks ||= %r{
+          (?<code>
+            # Code blocks:
+            # ```
+            # Anything, including `>>>` blocks which are ignored by this filter
+            # ```
+
+            ^```
+            .+?
+            \n```\ *$
+          )
+        |
+          (?<html>
+            # HTML block:
+            # <tag>
+            # Anything, including `>>>` blocks which are ignored by this filter
+            # </tag>
+
+            ^<[^>]+?>\ *\n
+            .+?
+            \n<\/[^>]+?>\ *$
+          )
+      }mx
+    end
+
+    def jira_transition_id_regex
+      @jira_transition_id_regex ||= /\d+/
     end
   end
 end

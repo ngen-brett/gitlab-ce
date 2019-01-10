@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Projects::TransferService class
 #
 # Used for transfer project to another namespace
@@ -24,6 +26,8 @@ module Projects
 
       transfer(project)
 
+      current_user.invalidate_personal_projects_count
+
       true
     rescue Projects::TransferService::TransferError => ex
       project.reload
@@ -33,14 +37,15 @@ module Projects
 
     private
 
+    # rubocop: disable CodeReuse/ActiveRecord
     def transfer(project)
       @old_path = project.full_path
       @old_group = project.group
       @new_path = File.join(@new_namespace.try(:full_path) || '', project.path)
       @old_namespace = project.namespace
 
-      if Project.where(path: project.path, namespace_id: @new_namespace.try(:id)).exists?
-        raise TransferError.new("Project with same path in target namespace already exists")
+      if Project.where(namespace_id: @new_namespace.try(:id)).where('path = ? or name = ?', project.path, project.name).exists?
+        raise TransferError.new("Project with same name or path in target namespace already exists")
       end
 
       if project.has_container_registry_tags?
@@ -49,7 +54,9 @@ module Projects
       end
 
       attempt_transfer_transaction
+      configure_group_clusters_for_project
     end
+    # rubocop: enable CodeReuse/ActiveRecord
 
     def attempt_transfer_transaction
       Project.transaction do
@@ -60,27 +67,21 @@ module Projects
         # Notifications
         project.send_move_instructions(@old_path)
 
-        # Move main repository
-        # TODO: check storage type and NOOP when not using Legacy
-        unless move_repo_folder(@old_path, @new_path)
-          raise TransferError.new('Cannot move project')
-        end
-
-        # Move wiki repo also if present
-        # TODO: check storage type and NOOP when not using Legacy
-        move_repo_folder("#{@old_path}.wiki", "#{@new_path}.wiki")
+        # Directories on disk
+        move_project_folders(project)
 
         # Move missing group labels to project
         Labels::TransferService.new(current_user, @old_group, project).execute
 
         # Move uploads
-        Gitlab::UploadsTransfer.new.move_project(project.path, @old_namespace.full_path, @new_namespace.full_path)
+        move_project_uploads(project)
 
         # Move pages
         Gitlab::PagesTransfer.new.move_project(project.path, @old_namespace.full_path, @new_namespace.full_path)
 
         project.old_path_with_namespace = @old_path
-        project.expires_full_path_cache
+
+        update_repository_configuration(@new_path)
 
         execute_system_hooks
       end
@@ -105,6 +106,11 @@ module Projects
       project.save!
     end
 
+    def update_repository_configuration(full_path)
+      project.write_repository_config(gl_full_path: full_path)
+      project.track_project_repository
+    end
+
     def refresh_permissions
       # This ensures we only schedule 1 job for every user that has access to
       # the namespaces.
@@ -116,7 +122,9 @@ module Projects
 
     def rollback_side_effects
       rollback_folder_move
+      project.reload
       update_namespace_and_visibility(@old_namespace)
+      update_repository_configuration(@old_path)
     end
 
     def rollback_folder_move
@@ -125,11 +133,40 @@ module Projects
     end
 
     def move_repo_folder(from_name, to_name)
-      gitlab_shell.mv_repository(project.repository_storage_path, from_name, to_name)
+      gitlab_shell.mv_repository(project.repository_storage, from_name, to_name)
     end
 
     def execute_system_hooks
       SystemHooksService.new.execute_hooks_for(project, :transfer)
+    end
+
+    def move_project_folders(project)
+      return if project.hashed_storage?(:repository)
+
+      # Move main repository
+      unless move_repo_folder(@old_path, @new_path)
+        raise TransferError.new("Cannot move project")
+      end
+
+      # Disk path is changed; we need to ensure we reload it
+      project.reload_repository!
+
+      # Move wiki repo also if present
+      move_repo_folder("#{@old_path}.wiki", "#{@new_path}.wiki")
+    end
+
+    def move_project_uploads(project)
+      return if project.hashed_storage?(:attachments)
+
+      Gitlab::UploadsTransfer.new.move_project(
+        project.path,
+        @old_namespace.full_path,
+        @new_namespace.full_path
+      )
+    end
+
+    def configure_group_clusters_for_project
+      ClusterProjectConfigureWorker.perform_async(project.id)
     end
   end
 end

@@ -1,4 +1,5 @@
-import Vue from 'vue';
+import MockAdapter from 'axios-mock-adapter';
+import axios from '~/lib/utils/axios_utils';
 import renderNotebook from '~/blob/notebook';
 
 describe('iPython notebook renderer', () => {
@@ -11,33 +12,28 @@ describe('iPython notebook renderer', () => {
   it('shows loading icon', () => {
     renderNotebook();
 
-    expect(
-      document.querySelector('.loading'),
-    ).not.toBeNull();
+    expect(document.querySelector('.loading')).not.toBeNull();
   });
 
   describe('successful response', () => {
-    const response = (request, next) => {
-      next(request.respondWith(JSON.stringify({
-        cells: [{
-          cell_type: 'markdown',
-          source: ['# test'],
-        }, {
-          cell_type: 'code',
-          execution_count: 1,
-          source: [
-            'def test(str)',
-            '  return str',
-          ],
-          outputs: [],
-        }],
-      }), {
-        status: 200,
-      }));
-    };
+    let mock;
 
-    beforeEach((done) => {
-      Vue.http.interceptors.push(response);
+    beforeEach(done => {
+      mock = new MockAdapter(axios);
+      mock.onGet('/test').reply(200, {
+        cells: [
+          {
+            cell_type: 'markdown',
+            source: ['# test'],
+          },
+          {
+            cell_type: 'code',
+            execution_count: 1,
+            source: ['def test(str)', '  return str'],
+            outputs: [],
+          },
+        ],
+      });
 
       renderNotebook();
 
@@ -47,53 +43,39 @@ describe('iPython notebook renderer', () => {
     });
 
     afterEach(() => {
-      Vue.http.interceptors = _.without(
-        Vue.http.interceptors, response,
-      );
+      mock.restore();
     });
 
     it('does not show loading icon', () => {
-      expect(
-        document.querySelector('.loading'),
-      ).toBeNull();
+      expect(document.querySelector('.loading')).toBeNull();
     });
 
     it('renders the notebook', () => {
-      expect(
-        document.querySelector('.md'),
-      ).not.toBeNull();
+      expect(document.querySelector('.md')).not.toBeNull();
     });
 
     it('renders the markdown cell', () => {
-      expect(
-        document.querySelector('h1'),
-      ).not.toBeNull();
+      expect(document.querySelector('h1')).not.toBeNull();
 
-      expect(
-        document.querySelector('h1').textContent.trim(),
-      ).toBe('test');
+      expect(document.querySelector('h1').textContent.trim()).toBe('test');
     });
 
     it('highlights code', () => {
-      expect(
-        document.querySelector('.token'),
-      ).not.toBeNull();
+      expect(document.querySelector('.token')).not.toBeNull();
 
-      expect(
-        document.querySelector('.language-python'),
-      ).not.toBeNull();
+      expect(document.querySelector('.language-python')).not.toBeNull();
     });
   });
 
   describe('error in JSON response', () => {
-    const response = (request, next) => {
-      next(request.respondWith('{ "cells": [{"cell_type": "markdown"} }', {
-        status: 200,
-      }));
-    };
+    let mock;
 
-    beforeEach((done) => {
-      Vue.http.interceptors.push(response);
+    beforeEach(done => {
+      mock = new MockAdapter(axios);
+      mock.onGet('/test').reply(() =>
+        // eslint-disable-next-line prefer-promise-reject-errors
+        Promise.reject({ status: 200, data: '{ "cells": [{"cell_type": "markdown"} }' }),
+      );
 
       renderNotebook();
 
@@ -103,33 +85,26 @@ describe('iPython notebook renderer', () => {
     });
 
     afterEach(() => {
-      Vue.http.interceptors = _.without(
-        Vue.http.interceptors, response,
-      );
+      mock.restore();
     });
 
     it('does not show loading icon', () => {
-      expect(
-        document.querySelector('.loading'),
-      ).toBeNull();
+      expect(document.querySelector('.loading')).toBeNull();
     });
 
     it('shows error message', () => {
-      expect(
-        document.querySelector('.md').textContent.trim(),
-      ).toBe('An error occured whilst parsing the file.');
+      expect(document.querySelector('.md').textContent.trim()).toBe(
+        'An error occurred whilst parsing the file.',
+      );
     });
   });
 
   describe('error getting file', () => {
-    const response = (request, next) => {
-      next(request.respondWith('', {
-        status: 500,
-      }));
-    };
+    let mock;
 
-    beforeEach((done) => {
-      Vue.http.interceptors.push(response);
+    beforeEach(done => {
+      mock = new MockAdapter(axios);
+      mock.onGet('/test').reply(500, '');
 
       renderNotebook();
 
@@ -139,21 +114,17 @@ describe('iPython notebook renderer', () => {
     });
 
     afterEach(() => {
-      Vue.http.interceptors = _.without(
-        Vue.http.interceptors, response,
-      );
+      mock.restore();
     });
 
     it('does not show loading icon', () => {
-      expect(
-        document.querySelector('.loading'),
-      ).toBeNull();
+      expect(document.querySelector('.loading')).toBeNull();
     });
 
     it('shows error message', () => {
-      expect(
-        document.querySelector('.md').textContent.trim(),
-      ).toBe('An error occured whilst loading the file. Please try again later.');
+      expect(document.querySelector('.md').textContent.trim()).toBe(
+        'An error occurred whilst loading the file. Please try again later.',
+      );
     });
   });
 });

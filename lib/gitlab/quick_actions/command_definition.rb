@@ -1,14 +1,17 @@
+# frozen_string_literal: true
+
 module Gitlab
   module QuickActions
     class CommandDefinition
       attr_accessor :name, :aliases, :description, :explanation, :params,
-        :condition_block, :parse_params_block, :action_block
+        :condition_block, :parse_params_block, :action_block, :warning
 
       def initialize(name, attributes = {})
         @name = name
 
         @aliases = attributes[:aliases] || []
         @description = attributes[:description] || ''
+        @warning = attributes[:warning] || ''
         @explanation = attributes[:explanation] || ''
         @params = attributes[:params] || []
         @condition_block = attributes[:condition_block]
@@ -24,32 +27,31 @@ module Gitlab
         action_block.nil?
       end
 
-      def available?(opts)
+      def available?(context)
         return true unless condition_block
 
-        context = OpenStruct.new(opts)
         context.instance_exec(&condition_block)
       end
 
-      def explain(context, opts, arg)
-        return unless available?(opts)
+      def explain(context, arg)
+        return unless available?(context)
 
-        if explanation.respond_to?(:call)
-          execute_block(explanation, context, arg)
-        else
-          explanation
-        end
+        message = if explanation.respond_to?(:call)
+                    execute_block(explanation, context, arg)
+                  else
+                    explanation
+                  end
+
+        warning.empty? ? message : "#{message} (#{warning})"
       end
 
-      def execute(context, opts, arg)
-        return if noop? || !available?(opts)
+      def execute(context, arg)
+        return if noop? || !available?(context)
 
         execute_block(action_block, context, arg)
       end
 
-      def to_h(opts)
-        context = OpenStruct.new(opts)
-
+      def to_h(context)
         desc = description
         if desc.respond_to?(:call)
           desc = context.instance_exec(&desc) rescue ''
@@ -64,6 +66,7 @@ module Gitlab
           name: name,
           aliases: aliases,
           description: desc,
+          warning: warning,
           params: prms
         }
       end

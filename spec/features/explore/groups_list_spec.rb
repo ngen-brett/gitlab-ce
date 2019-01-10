@@ -13,6 +13,7 @@ describe 'Explore Groups page', :js do
     sign_in(user)
 
     visit explore_groups_path
+    wait_for_requests
   end
 
   it 'shows groups user is member of' do
@@ -22,7 +23,7 @@ describe 'Explore Groups page', :js do
   end
 
   it 'filters groups' do
-    fill_in 'filter_groups', with: group.name
+    fill_in 'filter', with: group.name
     wait_for_requests
 
     expect(page).to have_content(group.full_name)
@@ -31,10 +32,14 @@ describe 'Explore Groups page', :js do
   end
 
   it 'resets search when user cleans the input' do
-    fill_in 'filter_groups', with: group.name
+    fill_in 'filter', with: group.name
     wait_for_requests
 
-    fill_in 'filter_groups', with: ""
+    expect(page).to have_content(group.full_name)
+    expect(page).not_to have_content(public_group.full_name)
+
+    fill_in 'filter', with: ""
+    page.find('[name="filter"]').send_keys(:enter)
     wait_for_requests
 
     expect(page).to have_content(group.full_name)
@@ -45,21 +50,21 @@ describe 'Explore Groups page', :js do
 
   it 'shows non-archived projects count' do
     # Initially project is not archived
-    expect(find('.js-groups-list-holder .content-list li:first-child .stats span:first-child')).to have_text("1")
+    expect(find('.js-groups-list-holder .content-list li:first-child .stats .number-projects')).to have_text("1")
 
     # Archive project
-    empty_project.archive!
+    ::Projects::UpdateService.new(empty_project, user, archived: true).execute
     visit explore_groups_path
 
     # Check project count
-    expect(find('.js-groups-list-holder .content-list li:first-child .stats span:first-child')).to have_text("0")
+    expect(find('.js-groups-list-holder .content-list li:first-child .stats .number-projects')).to have_text("0")
 
     # Unarchive project
-    empty_project.unarchive!
+    ::Projects::UpdateService.new(empty_project, user, archived: false).execute
     visit explore_groups_path
 
     # Check project count
-    expect(find('.js-groups-list-holder .content-list li:first-child .stats span:first-child')).to have_text("1")
+    expect(find('.js-groups-list-holder .content-list li:first-child .stats .number-projects')).to have_text("1")
   end
 
   describe 'landing component' do

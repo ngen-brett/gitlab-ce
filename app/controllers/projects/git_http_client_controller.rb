@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file should be identical in GitLab Community Edition and Enterprise Edition
 
 class Projects::GitHttpClientController < Projects::ApplicationController
@@ -7,8 +9,10 @@ class Projects::GitHttpClientController < Projects::ApplicationController
   attr_reader :authentication_result, :redirected_path
 
   delegate :actor, :authentication_abilities, to: :authentication_result, allow_nil: true
+  delegate :type, to: :authentication_result, allow_nil: true, prefix: :auth_result
 
   alias_method :user, :actor
+  alias_method :authenticated_user, :actor
 
   # Git clients will not know what authenticity token to send along
   skip_before_action :verify_authenticity_token
@@ -51,9 +55,9 @@ class Projects::GitHttpClientController < Projects::ApplicationController
     end
 
     send_challenges
-    render plain: "HTTP Basic: Access denied\n", status: 401
-  rescue Gitlab::Auth::MissingPersonalTokenError
-    render_missing_personal_token
+    render plain: "HTTP Basic: Access denied\n", status: :unauthorized
+  rescue Gitlab::Auth::MissingPersonalAccessTokenError
+    render_missing_personal_access_token
   end
 
   def basic_auth_provided?
@@ -77,11 +81,11 @@ class Projects::GitHttpClientController < Projects::ApplicationController
     @project, @wiki, @redirected_path = Gitlab::RepoPath.parse("#{params[:namespace_id]}/#{params[:project_id]}")
   end
 
-  def render_missing_personal_token
+  def render_missing_personal_access_token
     render plain: "HTTP Basic: Access denied\n" \
                   "You must use a personal access token with 'api' scope for Git over HTTP.\n" \
                   "You can generate one at #{profile_personal_access_tokens_url}",
-           status: 401
+           status: :unauthorized
   end
 
   def repository

@@ -19,7 +19,7 @@ describe Group, 'Routable' do
     end
 
     it 'updates route record on path change' do
-      group.update_attributes(path: 'wow', name: 'much')
+      group.update(path: 'wow', name: 'much')
 
       expect(group.route.path).to eq('wow')
       expect(group.route.name).to eq('much')
@@ -29,7 +29,7 @@ describe Group, 'Routable' do
       create(:group, parent: group, path: 'xyz')
       duplicate = build(:project, namespace: group, path: 'xyz')
 
-      expect { duplicate.save! }.to raise_error(ActiveRecord::RecordInvalid, 'Validation failed: Route path has already been taken, Route is invalid')
+      expect { duplicate.save! }.to raise_error(ActiveRecord::RecordInvalid, 'Validation failed: Path has already been taken')
     end
   end
 
@@ -121,28 +121,6 @@ describe Group, 'Routable' do
 
     it { expect(group.full_path).to eq(group.path) }
     it { expect(nested_group.full_path).to eq("#{group.full_path}/#{nested_group.path}") }
-
-    context 'with RequestStore active', :request_store do
-      it 'does not load the route table more than once' do
-        expect(group).to receive(:uncached_full_path).once.and_call_original
-
-        3.times { group.full_path }
-        expect(group.full_path).to eq(group.path)
-      end
-    end
-  end
-
-  describe '#expires_full_path_cache' do
-    context 'with RequestStore active', :request_store do
-      it 'expires the full_path cache' do
-        expect(group.full_path).to eq('foo')
-
-        group.route.update(path: 'bar', name: 'bar')
-        group.expires_full_path_cache
-
-        expect(group.full_path).to eq('bar')
-      end
-    end
   end
 
   describe '#full_name' do

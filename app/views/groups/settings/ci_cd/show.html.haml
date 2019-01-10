@@ -1,5 +1,21 @@
 - breadcrumb_title "CI / CD Settings"
 - page_title "CI / CD"
-= render "groups/settings_head"
 
-= render 'ci/variables/index'
+- expanded = Rails.env.test?
+
+%section.settings#ci-variables.no-animate{ class: ('expanded' if expanded) }
+  .settings-header
+    = render 'ci/variables/header', expanded: expanded
+  .settings-content
+    = render 'ci/variables/index', save_endpoint: group_variables_path
+
+%section.settings#runners-settings.no-animate{ class: ('expanded' if expanded) }
+  .settings-header
+    %h4
+      = _('Runners')
+    %button.btn.btn-default.js-settings-toggle{ type: "button" }
+      = expanded ? _('Collapse') : _('Expand')
+    %p
+      = _('Register and see your runners for this group.')
+  .settings-content
+    = render 'groups/runners/index'

@@ -1,12 +1,12 @@
-require_relative '../support/repo_helpers'
+require_relative '../support/helpers/repo_helpers'
 
 include ActionDispatch::TestProcess
 
-FactoryGirl.define do
+FactoryBot.define do
   factory :note do
     project
     note { generate(:title) }
-    author
+    author { project&.creator || create(:user) }
     on_issue
 
     factory :note_on_commit,             traits: [:on_commit]
@@ -15,6 +15,8 @@ FactoryGirl.define do
     factory :note_on_project_snippet,    traits: [:on_project_snippet]
     factory :note_on_personal_snippet,   traits: [:on_personal_snippet]
     factory :system_note,                traits: [:system]
+
+    factory :discussion_note, class: DiscussionNote
 
     factory :discussion_note_on_merge_request, traits: [:on_merge_request], class: DiscussionNote do
       association :project, :repository
@@ -31,10 +33,13 @@ FactoryGirl.define do
 
     factory :discussion_note_on_personal_snippet, traits: [:on_personal_snippet], class: DiscussionNote
 
+    factory :discussion_note_on_snippet, traits: [:on_snippet], class: DiscussionNote
+
     factory :legacy_diff_note_on_commit, traits: [:on_commit, :legacy_diff_note], class: LegacyDiffNote
 
     factory :legacy_diff_note_on_merge_request, traits: [:on_merge_request, :legacy_diff_note], class: LegacyDiffNote do
       association :project, :repository
+      position ''
     end
 
     factory :diff_note_on_merge_request, traits: [:on_merge_request], class: DiffNote do
@@ -59,17 +64,38 @@ FactoryGirl.define do
         resolved_at { Time.now }
         resolved_by { create(:user) }
       end
+
+      factory :image_diff_note_on_merge_request do
+        position do
+          Gitlab::Diff::Position.new(
+            old_path: "files/images/any_image.png",
+            new_path: "files/images/any_image.png",
+            width: 10,
+            height: 10,
+            x: 1,
+            y: 1,
+            diff_refs: diff_refs,
+            position_type: "image"
+          )
+        end
+      end
     end
 
     factory :diff_note_on_commit, traits: [:on_commit], class: DiffNote do
       association :project, :repository
+
+      transient do
+        line_number 14
+        diff_refs { project.commit(commit_id).try(:diff_refs) }
+      end
+
       position do
         Gitlab::Diff::Position.new(
           old_path: "files/ruby/popen.rb",
           new_path: "files/ruby/popen.rb",
           old_line: nil,
-          new_line: 14,
-          diff_refs: project.commit(commit_id).try(:diff_refs)
+          new_line: line_number,
+          diff_refs: diff_refs
         )
       end
     end
@@ -79,7 +105,7 @@ FactoryGirl.define do
       noteable nil
       noteable_type 'Commit'
       noteable_id nil
-      commit_id RepoHelpers.sample_commit.id
+      commit_id { RepoHelpers.sample_commit.id }
     end
 
     trait :legacy_diff_note do
@@ -88,6 +114,10 @@ FactoryGirl.define do
 
     trait :on_issue do
       noteable { create(:issue, project: project) }
+    end
+
+    trait :on_snippet do
+      noteable { create(:snippet, project: project) }
     end
 
     trait :on_merge_request do
@@ -116,11 +146,11 @@ FactoryGirl.define do
     end
 
     trait :with_attachment do
-      attachment { fixture_file_upload(Rails.root + "spec/fixtures/dk.png", "image/png") }
+      attachment { fixture_file_upload("spec/fixtures/dk.png", "image/png") }
     end
 
     trait :with_svg_attachment do
-      attachment { fixture_file_upload(Rails.root + "spec/fixtures/unsanitized.svg", "image/svg+xml") }
+      attachment { fixture_file_upload("spec/fixtures/unsanitized.svg", "image/svg+xml") }
     end
 
     transient do
@@ -130,6 +160,7 @@ FactoryGirl.define do
     before(:create) do |note, evaluator|
       discussion = evaluator.in_reply_to
       next unless discussion
+
       discussion = discussion.to_discussion if discussion.is_a?(Note)
       next unless discussion
 

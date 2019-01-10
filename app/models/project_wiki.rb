@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ProjectWiki
   include Gitlab::ShellAdapter
   include Storage::LegacyProjectWiki
@@ -9,6 +11,7 @@ class ProjectWiki
   }.freeze unless defined?(MARKUPS)
 
   CouldNotCreateWikiError = Class.new(StandardError)
+  SIDEBAR = '_sidebar'
 
   # Returns a string describing what went wrong after
   # an operation fails.
@@ -20,8 +23,7 @@ class ProjectWiki
     @user = user
   end
 
-  delegate :empty?, to: :pages
-  delegate :repository_storage_path, to: :project
+  delegate :repository_storage, :hashed_storage?, to: :project
 
   def path
     @project.path + '.wiki'
@@ -54,12 +56,15 @@ class ProjectWiki
     [Gitlab.config.gitlab.relative_url_root, '/', @project.full_path, '/wikis'].join('')
   end
 
-  # Returns the Gollum::Wiki object.
+  # Returns the Gitlab::Git::Wiki object.
   def wiki
     @wiki ||= begin
-      Gollum::Wiki.new(path_to_repo)
-    rescue Rugged::OSError
-      create_repo!
+      gl_repository = Gitlab::GlRepository.gl_repository(project, true)
+      raw_repository = Gitlab::Git::Repository.new(project.repository_storage, disk_path + '.git', gl_repository)
+
+      create_repo!(raw_repository) unless raw_repository.exists?
+
+      Gitlab::Git::Wiki.new(raw_repository)
     end
   end
 
@@ -71,10 +76,14 @@ class ProjectWiki
     !!find_page('home')
   end
 
-  # Returns an Array of Gitlab WikiPage instances or an
+  def empty?
+    pages(limit: 1).empty?
+  end
+
+  # Returns an Array of GitLab WikiPage instances or an
   # empty Array if this Wiki has no pages.
-  def pages
-    wiki.pages.map { |page| WikiPage.new(self, page, true) }
+  def pages(limit: 0)
+    wiki.pages(limit: limit).map { |page| WikiPage.new(self, page, true) }
   end
 
   # Finds a page within the repository based on a tile
@@ -86,20 +95,18 @@ class ProjectWiki
   # Returns an initialized WikiPage instance or nil
   def find_page(title, version = nil)
     page_title, page_dir = page_title_and_dir(title)
-    if page = wiki.page(page_title, version, page_dir)
+
+    if page = wiki.page(title: page_title, version: version, dir: page_dir)
       WikiPage.new(self, page, true)
-    else
-      nil
     end
   end
 
-  def find_file(name, version = nil, try_on_disk = true)
-    version = wiki.ref if version.nil? # Gollum::Wiki#file ?
-    if wiki_file = wiki.file(name, version, try_on_disk)
-      wiki_file
-    else
-      nil
-    end
+  def find_sidebar(version = nil)
+    find_page(SIDEBAR, version)
+  end
+
+  def find_file(name, version = nil)
+    wiki.file(name, version)
   end
 
   def create_page(title, content, format = :markdown, message = nil)
@@ -108,57 +115,51 @@ class ProjectWiki
     wiki.write_page(title, format.to_sym, content, commit)
 
     update_project_activity
-  rescue Gollum::DuplicatePageError => e
+  rescue Gitlab::Git::Wiki::DuplicatePageError => e
     @error_message = "Duplicate page: #{e.message}"
-    return false
+    false
   end
 
   def update_page(page, content:, title: nil, format: :markdown, message: nil)
     commit = commit_details(:updated, message, page.title)
 
-    wiki.update_page(page, title || page.name, format.to_sym, content, commit)
+    wiki.update_page(page.path, title || page.name, format.to_sym, content, commit)
 
     update_project_activity
   end
 
   def delete_page(page, message = nil)
-    wiki.delete_page(page, commit_details(:deleted, message, page.title))
+    return unless page
+
+    wiki.delete_page(page.path, commit_details(:deleted, message, page.title))
 
     update_project_activity
   end
 
+  def page_formatted_data(page)
+    page_title, page_dir = page_title_and_dir(page.title)
+
+    wiki.page_formatted_data(title: page_title, dir: page_dir, version: page.version)
+  end
+
   def page_title_and_dir(title)
+    return unless title
+
     title_array = title.split("/")
     title = title_array.pop
     [title, title_array.join("/")]
   end
 
-  def search_files(query)
-    repository.search_files_by_content(query, default_branch)
-  end
-
   def repository
-    @repository ||= Repository.new(full_path, @project, disk_path: disk_path)
+    @repository ||= Repository.new(full_path, @project, disk_path: disk_path, is_wiki: true)
   end
 
   def default_branch
     wiki.class.default_ref
   end
 
-  def create_repo!
-    if init_repo(disk_path)
-      wiki = Gollum::Wiki.new(path_to_repo)
-    else
-      raise CouldNotCreateWikiError
-    end
-
-    repository.after_create
-
-    wiki
-  end
-
   def ensure_repository
-    create_repo! unless repository_exists?
+    raise CouldNotCreateWikiError unless wiki.repository_exists?
   end
 
   def hook_attrs
@@ -173,22 +174,27 @@ class ProjectWiki
 
   private
 
-  def init_repo(disk_path)
-    gitlab_shell.add_repository(project.repository_storage_path, disk_path)
+  def create_repo!(raw_repository)
+    gitlab_shell.create_repository(project.repository_storage, disk_path)
+
+    raise CouldNotCreateWikiError unless raw_repository.exists?
+
+    repository.after_create
   end
 
   def commit_details(action, message = nil, title = nil)
     commit_message = message || default_message(action, title)
+    git_user = Gitlab::Git::User.from_gitlab(@user)
 
-    { email: @user.email, name: @user.name, message: commit_message }
+    Gitlab::Git::Wiki::CommitDetails.new(@user.id,
+                                         git_user.username,
+                                         git_user.name,
+                                         git_user.email,
+                                         commit_message)
   end
 
   def default_message(action, title)
     "#{@user.username} #{action} page: #{title}"
-  end
-
-  def path_to_repo
-    @path_to_repo ||= File.join(project.repository_storage_path, "#{disk_path}.git")
   end
 
   def update_project_activity

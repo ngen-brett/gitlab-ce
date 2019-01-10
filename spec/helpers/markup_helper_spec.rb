@@ -11,7 +11,7 @@ describe MarkupHelper do
 
   before do
     # Ensure the generated reference links aren't redacted
-    project.team << [user, :master]
+    project.add_maintainer(user)
 
     # Helper expects a @project instance variable
     helper.instance_variable_set(:@project, project)
@@ -25,17 +25,17 @@ describe MarkupHelper do
       let(:actual) { "#{merge_request.to_reference} -> #{commit.to_reference} -> #{issue.to_reference}" }
 
       it "links to the merge request" do
-        expected = project_merge_request_path(project, merge_request)
+        expected = urls.project_merge_request_path(project, merge_request)
         expect(helper.markdown(actual)).to match(expected)
       end
 
       it "links to the commit" do
-        expected = project_commit_path(project, commit)
+        expected = urls.project_commit_path(project, commit)
         expect(helper.markdown(actual)).to match(expected)
       end
 
       it "links to the issue" do
-        expected = project_issue_path(project, issue)
+        expected = urls.project_issue_path(project, issue)
         expect(helper.markdown(actual)).to match(expected)
       end
     end
@@ -46,7 +46,7 @@ describe MarkupHelper do
       let(:second_issue) { create(:issue, project: second_project) }
 
       it 'links to the issue' do
-        expected = project_issue_path(second_project, second_issue)
+        expected = urls.project_issue_path(second_project, second_issue)
         expect(markdown(actual, project: second_project)).to match(expected)
       end
     end
@@ -67,7 +67,7 @@ describe MarkupHelper do
 
     describe 'without redacted attribute' do
       it 'renders the markdown value' do
-        expect(Banzai).to receive(:render_field).with(commit, attribute).and_call_original
+        expect(Banzai).to receive(:render_field).with(commit, attribute, {}).and_call_original
 
         helper.markdown_field(commit, attribute)
       end
@@ -93,7 +93,7 @@ describe MarkupHelper do
 
       # First issue link
       expect(doc.css('a')[1].attr('href'))
-        .to eq project_issue_path(project, issues[0])
+        .to eq urls.project_issue_path(project, issues[0])
       expect(doc.css('a')[1].text).to eq issues[0].to_reference
 
       # Internal commit link
@@ -102,7 +102,7 @@ describe MarkupHelper do
 
       # Second issue link
       expect(doc.css('a')[3].attr('href'))
-        .to eq project_issue_path(project, issues[1])
+        .to eq urls.project_issue_path(project, issues[1])
       expect(doc.css('a')[3].text).to eq issues[1].to_reference
 
       # Trailing commit link
@@ -128,7 +128,7 @@ describe MarkupHelper do
 
       # First issue link
       expect(doc.css('a')[1].attr('href'))
-        .to eq project_issue_path(project, issues[0])
+        .to eq urls.project_issue_path(project, issues[0])
       expect(doc.css('a')[1].text).to eq issues[0].to_reference
 
       # Internal commit link
@@ -137,7 +137,7 @@ describe MarkupHelper do
 
       # Second issue link
       expect(doc.css('a')[3].attr('href'))
-        .to eq project_issue_path(project, issues[1])
+        .to eq urls.project_issue_path(project, issues[1])
       expect(doc.css('a')[3].text).to eq issues[1].to_reference
 
       # Trailing commit link
@@ -183,7 +183,7 @@ describe MarkupHelper do
       doc = Nokogiri::HTML.parse(rendered)
 
       expect(doc.css('a')[0].attr('href'))
-        .to eq project_issue_path(project, issue)
+        .to eq urls.project_issue_path(project, issue)
       expect(doc.css('a')[0].text).to eq issue.to_reference
 
       wrapped = helper.link_to_html(rendered, link)
@@ -205,7 +205,20 @@ describe MarkupHelper do
     it "uses Wiki pipeline for markdown files" do
       allow(@wiki).to receive(:format).and_return(:markdown)
 
-      expect(helper).to receive(:markdown_unsafe).with('wiki content', pipeline: :wiki, project: project, project_wiki: @wiki, page_slug: "nested/page")
+      expect(helper).to receive(:markdown_unsafe).with('wiki content',
+        pipeline: :wiki, project: project, project_wiki: @wiki, page_slug: "nested/page",
+        issuable_state_filter_enabled: true)
+
+      helper.render_wiki_content(@wiki)
+    end
+
+    it 'uses Wiki pipeline for markdown files with RedCarpet if feature disabled' do
+      stub_feature_flags(commonmark_for_repositories: false)
+      allow(@wiki).to receive(:format).and_return(:markdown)
+
+      expect(helper).to receive(:markdown_unsafe).with('wiki content',
+        pipeline: :wiki, project: project, project_wiki: @wiki, page_slug: "nested/page",
+        issuable_state_filter_enabled: true, markdown_engine: :redcarpet)
 
       helper.render_wiki_content(@wiki)
     end
@@ -236,54 +249,192 @@ describe MarkupHelper do
       expect(helper.markup('foo.rst', content).encoding.name).to eq('UTF-8')
     end
 
-    it "delegates to #markdown_unsafe when file name corresponds to Markdown" do
+    it 'delegates to #markdown_unsafe when file name corresponds to Markdown' do
       expect(helper).to receive(:gitlab_markdown?).with('foo.md').and_return(true)
       expect(helper).to receive(:markdown_unsafe).and_return('NOEL')
 
       expect(helper.markup('foo.md', content)).to eq('NOEL')
     end
 
-    it "delegates to #asciidoc_unsafe when file name corresponds to AsciiDoc" do
+    it 'delegates to #asciidoc_unsafe when file name corresponds to AsciiDoc' do
       expect(helper).to receive(:asciidoc?).with('foo.adoc').and_return(true)
       expect(helper).to receive(:asciidoc_unsafe).and_return('NOEL')
 
       expect(helper.markup('foo.adoc', content)).to eq('NOEL')
     end
+
+    it 'uses passed in rendered content' do
+      expect(helper).not_to receive(:gitlab_markdown?)
+      expect(helper).not_to receive(:markdown_unsafe)
+
+      expect(helper.markup('foo.md', content, rendered: '<p>NOEL</p>')).to eq('<p>NOEL</p>')
+    end
+
+    it 'defaults to CommonMark' do
+      expect(helper.markup('foo.md', 'x^2')).to include('x^2')
+    end
+
+    it 'honors markdown_engine for RedCarpet' do
+      expect(helper.markup('foo.md', 'x^2', { markdown_engine: :redcarpet })).to include('x<sup>2</sup>')
+    end
+
+    it 'uses RedCarpet if feature disabled' do
+      stub_feature_flags(commonmark_for_repositories: false)
+
+      expect(helper.markup('foo.md', 'x^2', { markdown_engine: :redcarpet })).to include('x<sup>2</sup>')
+    end
   end
 
   describe '#first_line_in_markdown' do
-    it 'truncates Markdown properly' do
-      text = "@#{user.username}, can you look at this?\nHello world\n"
-      actual = first_line_in_markdown(text, 100, project: project)
+    shared_examples_for 'common markdown examples' do
+      let(:project_base) { build(:project, :repository) }
 
-      doc = Nokogiri::HTML.parse(actual)
+      it 'displays inline code' do
+        object = create_object('Text with `inline code`')
+        expected = 'Text with <code>inline code</code>'
 
-      # Make sure we didn't create invalid markup
-      expect(doc.errors).to be_empty
+        expect(first_line_in_markdown(object, attribute, 100, project: project)).to match(expected)
+      end
 
-      # Leading user link
-      expect(doc.css('a').length).to eq(1)
-      expect(doc.css('a')[0].attr('href')).to eq user_path(user)
-      expect(doc.css('a')[0].text).to eq "@#{user.username}"
+      it 'truncates the text with multiple paragraphs' do
+        object = create_object("Paragraph 1\n\nParagraph 2")
+        expected = 'Paragraph 1...'
 
-      expect(doc.content).to eq "@#{user.username}, can you look at this?..."
+        expect(first_line_in_markdown(object, attribute, 100, project: project)).to match(expected)
+      end
+
+      it 'displays the first line of a code block' do
+        object = create_object("```\nCode block\nwith two lines\n```")
+        expected = %r{<pre.+><code><span class="line">Code block\.\.\.</span>\n</code></pre>}
+
+        expect(first_line_in_markdown(object, attribute, 100, project: project)).to match(expected)
+      end
+
+      it 'truncates a single long line of text' do
+        text = 'The quick brown fox jumped over the lazy dog twice' # 50 chars
+        object = create_object(text * 4)
+        expected = (text * 2).sub(/.{3}/, '...')
+
+        expect(first_line_in_markdown(object, attribute, 150, project: project)).to match(expected)
+      end
+
+      it 'preserves a link href when link text is truncated' do
+        text = 'The quick brown fox jumped over the lazy dog' # 44 chars
+        input = "#{text}#{text}#{text} " # 133 chars
+        link_url = 'http://example.com/foo/bar/baz' # 30 chars
+        input << link_url
+        object = create_object(input)
+        expected_link_text = 'http://example...</a>'
+
+        expect(first_line_in_markdown(object, attribute, 150, project: project)).to match(link_url)
+        expect(first_line_in_markdown(object, attribute, 150, project: project)).to match(expected_link_text)
+      end
+
+      it 'preserves code color scheme' do
+        object = create_object("```ruby\ndef test\n  'hello world'\nend\n```")
+        expected = "<pre class=\"code highlight js-syntax-highlight ruby\">" \
+          "<code><span class=\"line\"><span class=\"k\">def</span> <span class=\"nf\">test</span>...</span>\n" \
+          "</code></pre>"
+
+        expect(first_line_in_markdown(object, attribute, 150, project: project)).to eq(expected)
+      end
+
+      context 'when images are allowed' do
+        it 'preserves data-src for lazy images' do
+          object    = create_object("![ImageTest](/uploads/test.png)")
+          image_url = "data-src=\".*/uploads/test.png\""
+          text      = first_line_in_markdown(object, attribute, 150, project: project, allow_images: true)
+
+          expect(text).to match(image_url)
+          expect(text).to match('<a')
+        end
+      end
+
+      context 'when images are not allowed' do
+        it 'removes any images' do
+          object = create_object("![ImageTest](/uploads/test.png)")
+          text   = first_line_in_markdown(object, attribute, 150, project: project)
+
+          expect(text).not_to match('<img')
+          expect(text).not_to match('<a')
+        end
+      end
+
+      context 'labels formatting' do
+        let(:label_title) { 'this should be ~label_1' }
+
+        def create_and_format_label(project)
+          create(:label, title: 'label_1', project: project)
+          object = create_object(label_title, project: project)
+
+          first_line_in_markdown(object, attribute, 150, project: project)
+        end
+
+        it 'preserves style attribute for a label that can be accessed by current_user' do
+          project = create(:project, :public)
+
+          expect(create_and_format_label(project)).to match(/span class=.*style=.*/)
+        end
+
+        it 'does not style a label that can not be accessed by current_user' do
+          project = create(:project, :private)
+
+          expect(create_and_format_label(project)).to eq("<p>#{label_title}</p>")
+        end
+      end
+
+      it 'truncates Markdown properly' do
+        object = create_object("@#{user.username}, can you look at this?\nHello world\n")
+        actual = first_line_in_markdown(object, attribute, 100, project: project)
+
+        doc = Nokogiri::HTML.parse(actual)
+
+        # Make sure we didn't create invalid markup
+        expect(doc.errors).to be_empty
+
+        # Leading user link
+        expect(doc.css('a').length).to eq(1)
+        expect(doc.css('a')[0].attr('href')).to eq user_path(user)
+        expect(doc.css('a')[0].text).to eq "@#{user.username}"
+
+        expect(doc.content).to eq "@#{user.username}, can you look at this?..."
+      end
+
+      it 'truncates Markdown with emoji properly' do
+        object = create_object("foo :wink:\nbar :grinning:")
+        actual = first_line_in_markdown(object, attribute, 100, project: project)
+
+        doc = Nokogiri::HTML.parse(actual)
+
+        # Make sure we didn't create invalid markup
+        # But also account for the 2 errors caused by the unknown `gl-emoji` elements
+        expect(doc.errors.length).to eq(2)
+
+        expect(doc.css('gl-emoji').length).to eq(2)
+        expect(doc.css('gl-emoji')[0].attr('data-name')).to eq 'wink'
+        expect(doc.css('gl-emoji')[1].attr('data-name')).to eq 'grinning'
+
+        expect(doc.content).to eq "foo 😉\nbar 😀"
+      end
     end
 
-    it 'truncates Markdown with emoji properly' do
-      text = "foo :wink:\nbar :grinning:"
-      actual = first_line_in_markdown(text, 100, project: project)
+    context 'when the asked attribute can be redacted' do
+      include_examples 'common markdown examples' do
+        let(:attribute) { :note }
+        def create_object(title, project: project_base)
+          build(:note, note: title, project: project)
+        end
+      end
+    end
 
-      doc = Nokogiri::HTML.parse(actual)
-
-      # Make sure we didn't create invalid markup
-      # But also account for the 2 errors caused by the unknown `gl-emoji` elements
-      expect(doc.errors.length).to eq(2)
-
-      expect(doc.css('gl-emoji').length).to eq(2)
-      expect(doc.css('gl-emoji')[0].attr('data-name')).to eq 'wink'
-      expect(doc.css('gl-emoji')[1].attr('data-name')).to eq 'grinning'
-
-      expect(doc.content).to eq "foo 😉\nbar 😀"
+    context 'when the asked attribute can not be redacted' do
+      include_examples 'common markdown examples' do
+        let(:attribute) { :body }
+        def create_object(title, project: project_base)
+          issue = build(:issue, title: title)
+          build(:todo, :done, project: project_base, author: user, target: issue)
+        end
+      end
     end
   end
 
@@ -295,5 +446,9 @@ describe MarkupHelper do
     it 'shows the full issue reference' do
       expect(helper.cross_project_reference(project, issue)).to include(project.full_path)
     end
+  end
+
+  def urls
+    Gitlab::Routing.url_helpers
   end
 end

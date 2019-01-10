@@ -1,11 +1,14 @@
+import $ from 'jquery';
+
 /**
  * Instances of SmartInterval extend the functionality of `setInterval`, make it configurable
  * and controllable by a public API.
  */
 
-class SmartInterval {
+export default class SmartInterval {
   /**
-   * @param { function } opts.callback Function to be called on each iteration (required)
+   * @param { function } opts.callback Function that returns a promise, called on each iteration
+   *                     unless still in progress (required)
    * @param { milliseconds } opts.startingInterval `currentInterval` is set to this initially
    * @param { milliseconds } opts.maxInterval `currentInterval` will be incremented to this
    * @param { milliseconds } opts.hiddenInterval `currentInterval` is set to this
@@ -39,16 +42,18 @@ class SmartInterval {
   /* public */
 
   start() {
-    const cfg = this.cfg;
-    const state = this.state;
+    const { cfg, state } = this;
 
-    if (cfg.immediateExecution) {
+    if (cfg.immediateExecution && !this.isLoading) {
       cfg.immediateExecution = false;
-      cfg.callback();
+      this.triggerCallback();
     }
 
     state.intervalId = window.setInterval(() => {
-      cfg.callback();
+      if (this.isLoading) {
+        return;
+      }
+      this.triggerCallback();
 
       if (this.getCurrentInterval() === cfg.maxInterval) {
         return;
@@ -76,7 +81,7 @@ class SmartInterval {
 
   // start a timer, using the existing interval
   resume() {
-    this.stopTimer(); // stop exsiting timer, in case timer was not previously stopped
+    this.stopTimer(); // stop existing timer, in case timer was not previously stopped
     this.start();
   }
 
@@ -88,13 +93,15 @@ class SmartInterval {
   destroy() {
     this.cancel();
     document.removeEventListener('visibilitychange', this.handleVisibilityChange);
-    $(document).off('visibilitychange').off('beforeunload');
+    $(document)
+      .off('visibilitychange')
+      .off('beforeunload');
   }
 
   /* private */
 
   initInterval() {
-    const cfg = this.cfg;
+    const { cfg } = this;
 
     if (!cfg.lazyStart) {
       this.start();
@@ -102,6 +109,19 @@ class SmartInterval {
 
     this.initVisibilityChangeHandling();
     this.initPageUnloadHandling();
+  }
+
+  triggerCallback() {
+    this.isLoading = true;
+    this.cfg
+      .callback()
+      .then(() => {
+        this.isLoading = false;
+      })
+      .catch(err => {
+        this.isLoading = false;
+        throw err;
+      });
   }
 
   initVisibilityChangeHandling() {
@@ -117,9 +137,9 @@ class SmartInterval {
 
   handleVisibilityChange(e) {
     this.state.pageVisibility = e.target.visibilityState;
-    const intervalAction = this.isPageVisible() ?
-      this.onVisibilityVisible :
-      this.onVisibilityHidden;
+    const intervalAction = this.isPageVisible()
+      ? this.onVisibilityVisible
+      : this.onVisibilityHidden;
 
     intervalAction.apply(this);
   }
@@ -133,7 +153,7 @@ class SmartInterval {
   }
 
   incrementInterval() {
-    const cfg = this.cfg;
+    const { cfg } = this;
     const currentInterval = this.getCurrentInterval();
     if (cfg.hiddenInterval && !this.isPageVisible()) return;
     let nextInterval = currentInterval * cfg.incrementByFactorOf;
@@ -145,13 +165,13 @@ class SmartInterval {
     this.setCurrentInterval(nextInterval);
   }
 
-  isPageVisible() { return this.state.pageVisibility === 'visible'; }
+  isPageVisible() {
+    return this.state.pageVisibility === 'visible';
+  }
 
   stopTimer() {
-    const state = this.state;
+    const { state } = this;
 
     state.intervalId = window.clearInterval(state.intervalId);
   }
 }
-
-window.gl.SmartInterval = SmartInterval;

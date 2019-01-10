@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Gpg
     extend self
@@ -34,12 +36,31 @@ module Gitlab
       end
     end
 
+    def subkeys_from_key(key)
+      using_tmp_keychain do
+        fingerprints = CurrentKeyChain.fingerprints_from_key(key)
+        raw_keys     = GPGME::Key.find(:public, fingerprints)
+
+        raw_keys.each_with_object({}) do |raw_key, grouped_subkeys|
+          primary_subkey_id = raw_key.primary_subkey.keyid
+
+          grouped_subkeys[primary_subkey_id] = raw_key.subkeys[1..-1].map do |s|
+            { keyid: s.keyid, fingerprint: s.fingerprint }
+          end
+        end
+      end
+    end
+
     def user_infos_from_key(key)
       using_tmp_keychain do
         fingerprints = CurrentKeyChain.fingerprints_from_key(key)
 
         GPGME::Key.find(:public, fingerprints).flat_map do |raw_key|
-          raw_key.uids.map { |uid| { name: uid.name, email: uid.email.downcase } }
+          raw_key.uids.each_with_object([]) do |uid, arr|
+            name = uid.name.force_encoding('UTF-8')
+            email = uid.email.force_encoding('UTF-8')
+            arr << { name: name, email: email.downcase } if name.valid_encoding? && email.valid_encoding?
+          end
         end
       end
     end
@@ -52,8 +73,10 @@ module Gitlab
       if MUTEX.locked? && MUTEX.owned?
         optimistic_using_tmp_keychain(&block)
       else
-        MUTEX.synchronize do
-          optimistic_using_tmp_keychain(&block)
+        ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+          MUTEX.synchronize do
+            optimistic_using_tmp_keychain(&block)
+          end
         end
       end
     end

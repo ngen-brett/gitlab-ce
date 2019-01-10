@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module QuickActions
     # This class takes an array of commands that should be extracted from a
@@ -29,7 +31,7 @@ module Gitlab
       # commands = extractor.extract_commands(msg) #=> [['labels', '~foo ~"bar baz"']]
       # msg #=> "hello\nworld"
       # ```
-      def extract_commands(content, opts = {})
+      def extract_commands(content, only: nil)
         return [content, []] unless content
 
         content = content.dup
@@ -37,9 +39,9 @@ module Gitlab
         commands = []
 
         content.delete!("\r")
-        content.gsub!(commands_regex(opts)) do
+        content.gsub!(commands_regex(only: only)) do
           if $~[:cmd]
-            commands << [$~[:cmd], $~[:arg]].reject(&:blank?)
+            commands << [$~[:cmd].downcase, $~[:arg]].reject(&:blank?)
             ''
           else
             $~[0]
@@ -60,8 +62,8 @@ module Gitlab
       # It looks something like:
       #
       #   /^\/(?<cmd>close|reopen|...)(?:( |$))(?<arg>[^\/\n]*)(?:\n|$)/
-      def commands_regex(opts)
-        names = command_names(opts).map(&:to_s)
+      def commands_regex(only:)
+        names = command_names(limit_to_commands: only).map(&:to_s)
 
         @commands_regex ||= %r{
             (?<code>
@@ -102,14 +104,14 @@ module Gitlab
               # /close
 
               ^\/
-              (?<cmd>#{Regexp.union(names)})
+              (?<cmd>#{Regexp.new(Regexp.union(names).source, Regexp::IGNORECASE)})
               (?:
                 [ ]
                 (?<arg>[^\n]*)
               )?
               (?:\n|$)
             )
-        }mx
+        }mix
       end
 
       def perform_substitutions(content, commands)
@@ -120,21 +122,26 @@ module Gitlab
         end
 
         substitution_definitions.each do |substitution|
-          match_data = substitution.match(content)
+          match_data = substitution.match(content.downcase)
           if match_data
             command = [substitution.name.to_s]
             command << match_data[1] unless match_data[1].empty?
             commands << command
           end
+
           content = substitution.perform_substitution(self, content)
         end
 
         [content, commands]
       end
 
-      def command_names(opts)
+      def command_names(limit_to_commands:)
         command_definitions.flat_map do |command|
           next if command.noop?
+
+          if limit_to_commands && (command.all_names & limit_to_commands).empty?
+            next
+          end
 
           command.all_names
         end.compact

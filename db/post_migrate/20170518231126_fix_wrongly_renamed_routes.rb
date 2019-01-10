@@ -1,7 +1,8 @@
+# rubocop:disable Migration/UpdateLargeTable
 # See http://doc.gitlab.com/ce/development/migration_style_guide.html
 # for more information on how to write migrations for GitLab.
 
-class FixWronglyRenamedRoutes < ActiveRecord::Migration
+class FixWronglyRenamedRoutes < ActiveRecord::Migration[4.2]
   include Gitlab::Database::RenameReservedPathsMigration::V1
 
   DOWNTIME = false

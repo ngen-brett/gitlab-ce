@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module EncodingHelper
     extend self
@@ -14,10 +16,7 @@ module Gitlab
     ENCODING_CONFIDENCE_THRESHOLD = 50
 
     def encode!(message)
-      return nil unless message.respond_to? :force_encoding
-
-      # if message is utf-8 encoding, just return it
-      message.force_encoding("UTF-8")
+      message = force_encode_utf8(message)
       return message if message.valid_encoding?
 
       # return message if message type is binary
@@ -31,7 +30,9 @@ module Gitlab
 
       # encode and clean the bad chars
       message.replace clean(message)
-    rescue
+    rescue ArgumentError => e
+      return unless e.message.include?('unknown encoding name')
+
       encoding = detect ? detect[:encoding] : "unknown"
       "--broken encoding: #{encoding}"
     end
@@ -50,6 +51,9 @@ module Gitlab
     end
 
     def encode_utf8(message)
+      message = force_encode_utf8(message)
+      return message if message.valid_encoding?
+
       detect = CharlockHolmes::EncodingDetector.detect(message)
       if detect && detect[:encoding]
         begin
@@ -62,12 +66,33 @@ module Gitlab
       else
         clean(message)
       end
+    rescue ArgumentError
+      nil
+    end
+
+    def encode_binary(str)
+      return "" if str.nil?
+
+      str.dup.force_encoding(Encoding::ASCII_8BIT)
+    end
+
+    def binary_stringio(str)
+      StringIO.new(str.freeze || '').tap { |io| io.set_encoding(Encoding::ASCII_8BIT) }
     end
 
     private
 
+    def force_encode_utf8(message)
+      raise ArgumentError unless message.respond_to?(:force_encoding)
+      return message if message.encoding == Encoding::UTF_8 && message.valid_encoding?
+
+      message = message.dup if message.respond_to?(:frozen?) && message.frozen?
+
+      message.force_encoding("UTF-8")
+    end
+
     def clean(message)
-      message.encode("UTF-16BE", undef: :replace, invalid: :replace, replace: "")
+      message.encode("UTF-16BE", undef: :replace, invalid: :replace, replace: "".encode("UTF-16BE"))
         .encode("UTF-8")
         .gsub("\0".encode("UTF-8"), "")
     end

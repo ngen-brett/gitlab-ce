@@ -6,15 +6,17 @@ describe Projects::CycleAnalyticsController do
 
   before do
     sign_in(user)
-    project.team << [user, :master]
+    project.add_maintainer(user)
   end
 
   describe 'cycle analytics not set up flag' do
     context 'with no data' do
       it 'is true' do
         get(:show,
-            namespace_id: project.namespace,
-            project_id: project)
+            params: {
+              namespace_id: project.namespace,
+              project_id: project
+            })
 
         expect(response).to be_success
         expect(assigns(:cycle_analytics_no_data)).to eq(true)
@@ -27,13 +29,15 @@ describe Projects::CycleAnalyticsController do
         milestone = create(:milestone, project: project, created_at: 5.days.ago)
         issue.update(milestone: milestone)
 
-        create_merge_request_closing_issue(issue)
+        create_merge_request_closing_issue(user, project, issue)
       end
 
       it 'is false' do
         get(:show,
-            namespace_id: project.namespace,
-            project_id: project)
+            params: {
+              namespace_id: project.namespace,
+              project_id: project
+            })
 
         expect(response).to be_success
         expect(assigns(:cycle_analytics_no_data)).to eq(false)

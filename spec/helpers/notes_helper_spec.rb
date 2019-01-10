@@ -6,41 +6,42 @@ describe NotesHelper do
   let(:owner) { create(:owner) }
   let(:group) { create(:group) }
   let(:project) { create(:project, namespace: group) }
-  let(:master) { create(:user) }
+  let(:maintainer) { create(:user) }
   let(:reporter) { create(:user) }
   let(:guest) { create(:user) }
 
   let(:owner_note) { create(:note, author: owner, project: project) }
-  let(:master_note) { create(:note, author: master, project: project) }
+  let(:maintainer_note) { create(:note, author: maintainer, project: project) }
   let(:reporter_note) { create(:note, author: reporter, project: project) }
-  let!(:notes) { [owner_note, master_note, reporter_note] }
+  let!(:notes) { [owner_note, maintainer_note, reporter_note] }
 
   before do
     group.add_owner(owner)
-    project.team << [master, :master]
-    project.team << [reporter, :reporter]
-    project.team << [guest, :guest]
+    project.add_maintainer(maintainer)
+    project.add_reporter(reporter)
+    project.add_guest(guest)
   end
 
   describe "#notes_max_access_for_users" do
     it 'returns access levels' do
       expect(helper.note_max_access_for_user(owner_note)).to eq(Gitlab::Access::OWNER)
-      expect(helper.note_max_access_for_user(master_note)).to eq(Gitlab::Access::MASTER)
+      expect(helper.note_max_access_for_user(maintainer_note)).to eq(Gitlab::Access::MAINTAINER)
       expect(helper.note_max_access_for_user(reporter_note)).to eq(Gitlab::Access::REPORTER)
     end
 
     it 'handles access in different projects' do
       second_project = create(:project)
-      second_project.team << [master, :reporter]
-      other_note = create(:note, author: master, project: second_project)
+      second_project.add_reporter(maintainer)
+      other_note = create(:note, author: maintainer, project: second_project)
 
-      expect(helper.note_max_access_for_user(master_note)).to eq(Gitlab::Access::MASTER)
+      expect(helper.note_max_access_for_user(maintainer_note)).to eq(Gitlab::Access::MAINTAINER)
       expect(helper.note_max_access_for_user(other_note)).to eq(Gitlab::Access::REPORTER)
     end
   end
 
   describe '#discussion_path' do
     let(:project) { create(:project, :repository) }
+    let(:anchor) { discussion.line_code }
 
     context 'for a merge request discusion' do
       let(:merge_request) { create(:merge_request, source_project: project, target_project: project, importing: true) }
@@ -151,6 +152,15 @@ describe NotesHelper do
           expect(helper.discussion_path(discussion)).to be_nil
         end
       end
+
+      context 'for a contextual commit discussion' do
+        let(:commit) { merge_request.commits.last }
+        let(:discussion) { create(:diff_note_on_merge_request, noteable: merge_request, project: project, commit_id: commit.id).to_discussion }
+
+        it 'returns the merge request diff discussion scoped in the commit' do
+          expect(helper.discussion_path(discussion)).to eq(diffs_project_merge_request_path(project, merge_request, commit_id: commit.id, anchor: anchor))
+        end
+      end
     end
 
     context 'for a commit discussion' do
@@ -160,7 +170,7 @@ describe NotesHelper do
         let(:discussion) { create(:diff_note_on_commit, project: project).to_discussion }
 
         it 'returns the commit path with the line code' do
-          expect(helper.discussion_path(discussion)).to eq(project_commit_path(project, commit, anchor: discussion.line_code))
+          expect(helper.discussion_path(discussion)).to eq(project_commit_path(project, commit, anchor: anchor))
         end
       end
 
@@ -168,7 +178,7 @@ describe NotesHelper do
         let(:discussion) { create(:legacy_diff_note_on_commit, project: project).to_discussion }
 
         it 'returns the commit path with the line code' do
-          expect(helper.discussion_path(discussion)).to eq(project_commit_path(project, commit, anchor: discussion.line_code))
+          expect(helper.discussion_path(discussion)).to eq(project_commit_path(project, commit, anchor: anchor))
         end
       end
 

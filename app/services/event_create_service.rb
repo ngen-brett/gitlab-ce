@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # EventCreateService class
 #
 # Used for creating events feed on dashboard after certain user action
@@ -103,6 +105,6 @@ class EventCreateService
       author_id: current_user.id
     )
 
-    Event.create(attributes)
+    Event.create!(attributes)
   end
 end

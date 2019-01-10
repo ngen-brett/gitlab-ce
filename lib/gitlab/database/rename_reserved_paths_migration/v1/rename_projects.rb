@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Database
     module RenameReservedPathsMigration
@@ -22,9 +24,12 @@ module Gitlab
           end
 
           def move_project_folders(project, old_full_path, new_full_path)
-            move_repository(project, old_full_path, new_full_path)
-            move_repository(project, "#{old_full_path}.wiki", "#{new_full_path}.wiki")
-            move_uploads(old_full_path, new_full_path)
+            unless project.hashed_storage?(:repository)
+              move_repository(project, old_full_path, new_full_path)
+              move_repository(project, "#{old_full_path}.wiki", "#{new_full_path}.wiki")
+            end
+
+            move_uploads(old_full_path, new_full_path) unless project.hashed_storage?(:attachments)
             move_pages(old_full_path, new_full_path)
           end
 
@@ -48,7 +53,7 @@ module Gitlab
           end
 
           def move_repository(project, old_path, new_path)
-            unless gitlab_shell.mv_repository(project.repository_storage_path,
+            unless gitlab_shell.mv_repository(project.repository_storage,
                                               old_path,
                                               new_path)
               Rails.logger.error "Error moving #{old_path} to #{new_path}"

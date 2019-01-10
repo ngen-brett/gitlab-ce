@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 class RepositoryArchiveCacheWorker
-  include Sidekiq::Worker
+  include ApplicationWorker
   include CronjobQueue
 
   def perform

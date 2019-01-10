@@ -10,12 +10,15 @@ Gets a list of all notes for a single issue.
 
 ```
 GET /projects/:id/issues/:issue_iid/notes
+GET /projects/:id/issues/:issue_iid/notes?sort=asc&order_by=updated_at
 ```
 
-Parameters:
-
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
-- `issue_iid` (required) - The IID of an issue
+| Attribute           | Type             | Required   | Description                                                                                                                                         |
+| ------------------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                | integer/string   | yes        | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
+| `issue_iid`         | integer          | yes        | The IID of an issue
+| `sort`              | string           | no         | Return issue notes sorted in `asc` or `desc` order. Default is `desc`
+| `order_by`          | string           | no         | Return issue notes ordered by `created_at` or `updated_at` fields. Default is `created_at`
 
 ```json
 [
@@ -36,7 +39,8 @@ Parameters:
     "system": true,
     "noteable_id": 377,
     "noteable_type": "Issue",
-    "noteable_iid": 377
+    "noteable_iid": 377,
+    "resolvable": false
   },
   {
     "id": 305,
@@ -55,9 +59,14 @@ Parameters:
     "system": true,
     "noteable_id": 121,
     "noteable_type": "Issue",
-    "noteable_iid": 121
+    "noteable_iid": 121,
+    "resolvable": false
   }
 ]
+```
+
+```bash
+curl --request GET --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/issues/11/notes
 ```
 
 ### Get single issue note
@@ -70,14 +79,17 @@ GET /projects/:id/issues/:issue_iid/notes/:note_id
 
 Parameters:
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
 - `issue_iid` (required) - The IID of a project issue
 - `note_id` (required) - The ID of an issue note
 
+```bash
+curl --request GET --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/issues/11/notes/1
+```
+
 ### Create new issue note
 
-Creates a new note to a single project issue. If you create a note where the body
-only contains an Award Emoji, you'll receive this object back.
+Creates a new note to a single project issue.
 
 ```
 POST /projects/:id/issues/:issue_iid/notes
@@ -85,10 +97,14 @@ POST /projects/:id/issues/:issue_iid/notes
 
 Parameters:
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
-- `issue_id` (required) - The IID of an issue
+- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
+- `issue_iid` (required) - The IID of an issue
 - `body` (required) - The content of a note
-- `created_at` (optional) - Date time string, ISO 8601 formatted, e.g. 2016-03-11T03:45:40Z
+- `created_at` (optional) - Date time string, ISO 8601 formatted, e.g. 2016-03-11T03:45:40Z (requires admin or project/group owner rights)
+
+```bash
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/issues/11/notes?body=note
+```
 
 ### Modify existing issue note
 
@@ -100,10 +116,14 @@ PUT /projects/:id/issues/:issue_iid/notes/:note_id
 
 Parameters:
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
 - `issue_iid` (required) - The IID of an issue
 - `note_id` (required) - The ID of a note
 - `body` (required) - The content of a note
+
+```bash
+curl --request PUT --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/issues/11/notes?body=note
+```
 
 ### Delete an issue note
 
@@ -117,12 +137,12 @@ Parameters:
 
 | Attribute | Type | Required | Description |
 | --------- | ---- | -------- | ----------- |
-| `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
+| `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 | `issue_iid` | integer | yes | The IID of an issue |
 | `note_id` | integer | yes | The ID of a note |
 
 ```bash
-curl --request DELETE --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects/5/issues/11/notes/636
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/issues/11/notes/636
 ```
 
 ## Snippets
@@ -133,12 +153,19 @@ Gets a list of all notes for a single snippet. Snippet notes are comments users 
 
 ```
 GET /projects/:id/snippets/:snippet_id/notes
+GET /projects/:id/snippets/:snippet_id/notes?sort=asc&order_by=updated_at
 ```
 
-Parameters:
+| Attribute           | Type             | Required   | Description                                                                                                                                         |
+| ------------------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                | integer/string   | yes        | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
+| `snippet_id`        | integer          | yes        | The ID of a project snippet
+| `sort`              | string           | no         | Return snippet notes sorted in `asc` or `desc` order. Default is `desc`
+| `order_by`          | string           | no         | Return snippet notes ordered by `created_at` or `updated_at` fields. Default is `created_at`
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
-- `snippet_id` (required) - The ID of a project snippet
+```bash
+curl --request GET --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/snippets/11/notes
+```
 
 ### Get single snippet note
 
@@ -150,9 +177,9 @@ GET /projects/:id/snippets/:snippet_id/notes/:note_id
 
 Parameters:
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
 - `snippet_id` (required) - The ID of a project snippet
-- `note_id` (required) - The ID of an snippet note
+- `note_id` (required) - The ID of a snippet note
 
 ```json
 {
@@ -173,6 +200,10 @@ Parameters:
 }
 ```
 
+```bash
+curl --request GET --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/snippets/11/notes/11
+```
+
 ### Create new snippet note
 
 Creates a new note for a single snippet. Snippet notes are comments users can post to a snippet.
@@ -184,9 +215,14 @@ POST /projects/:id/snippets/:snippet_id/notes
 
 Parameters:
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
 - `snippet_id` (required) - The ID of a snippet
 - `body` (required) - The content of a note
+- `created_at` (optional) - Date time string, ISO 8601 formatted, e.g. 2016-03-11T03:45:40Z
+
+```bash
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/snippet/11/notes?body=note
+```
 
 ### Modify existing snippet note
 
@@ -198,10 +234,14 @@ PUT /projects/:id/snippets/:snippet_id/notes/:note_id
 
 Parameters:
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
 - `snippet_id` (required) - The ID of a snippet
 - `note_id` (required) - The ID of a note
 - `body` (required) - The content of a note
+
+```bash
+curl --request PUT --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/snippets/11/notes?body=note
+```
 
 ### Delete a snippet note
 
@@ -215,12 +255,12 @@ Parameters:
 
 | Attribute | Type | Required | Description |
 | --------- | ---- | -------- | ----------- |
-| `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
+| `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 | `snippet_id` | integer | yes | The ID of a snippet |
 | `note_id` | integer | yes | The ID of a note |
 
 ```bash
-curl --request DELETE --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects/5/snippets/52/notes/1659
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/snippets/52/notes/1659
 ```
 
 ## Merge Requests
@@ -231,12 +271,19 @@ Gets a list of all notes for a single merge request.
 
 ```
 GET /projects/:id/merge_requests/:merge_request_iid/notes
+GET /projects/:id/merge_requests/:merge_request_iid/notes?sort=asc&order_by=updated_at
 ```
 
-Parameters:
+| Attribute           | Type             | Required   | Description                                                                                                                                         |
+| ------------------- | ---------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                | integer/string   | yes        | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
+| `merge_request_iid` | integer          | yes        | The IID of a project merge request
+| `sort`              | string           | no         | Return merge request notes sorted in `asc` or `desc` order. Default is `desc`
+| `order_by`          | string           | no         | Return merge request notes ordered by `created_at` or `updated_at` fields. Default is `created_at`
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
-- `merge_request_iid` (required) - The IID of a project merge request
+```bash
+curl --request GET --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/merge_requests/11/notes
+```
 
 ### Get single merge request note
 
@@ -248,7 +295,7 @@ GET /projects/:id/merge_requests/:merge_request_iid/notes/:note_id
 
 Parameters:
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
 - `merge_request_iid` (required) - The IID of a project merge request
 - `note_id` (required) - The ID of a merge request note
 
@@ -270,8 +317,13 @@ Parameters:
   "system": false,
   "noteable_id": 2,
   "noteable_type": "MergeRequest",
-  "noteable_iid": 2
+  "noteable_iid": 2,
+  "resolvable": false
 }
+```
+
+```bash
+curl --request GET --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/merge_requests/11/notes/1
 ```
 
 ### Create new merge request note
@@ -286,9 +338,10 @@ POST /projects/:id/merge_requests/:merge_request_iid/notes
 
 Parameters:
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
 - `merge_request_iid` (required) - The IID of a merge request
 - `body` (required) - The content of a note
+- `created_at` (optional) - Date time string, ISO 8601 formatted, e.g. 2016-03-11T03:45:40Z
 
 ### Modify existing merge request note
 
@@ -300,10 +353,14 @@ PUT /projects/:id/merge_requests/:merge_request_iid/notes/:note_id
 
 Parameters:
 
-- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user
+- `id` (required) - The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding)
 - `merge_request_iid` (required) - The IID of a merge request
 - `note_id` (required) - The ID of a note
 - `body` (required) - The content of a note
+
+```bash
+curl --request PUT --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/merge_requests/11/notes?body=note
+```
 
 ### Delete a merge request note
 
@@ -317,10 +374,10 @@ Parameters:
 
 | Attribute | Type | Required | Description |
 | --------- | ---- | -------- | ----------- |
-| `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
+| `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 | `merge_request_iid` | integer | yes | The IID of a merge request |
 | `note_id` | integer | yes | The ID of a note |
 
 ```bash
-curl --request DELETE --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" https://gitlab.example.com/api/v4/projects/5/merge_requests/7/notes/1602
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" https://gitlab.example.com/api/v4/projects/5/merge_requests/7/notes/1602
 ```

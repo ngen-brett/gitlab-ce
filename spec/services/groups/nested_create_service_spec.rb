@@ -30,7 +30,7 @@ describe Groups::NestedCreateService do
     let(:params) { { group_path: 'a-group' } }
 
     before do
-      allow(Group).to receive(:supports_nested_groups?) { false }
+      allow(Group).to receive(:supports_nested_objects?) { false }
     end
 
     it 'creates the group' do
@@ -59,8 +59,11 @@ describe Groups::NestedCreateService do
 
     describe "#execute" do
       it 'returns the group if it already existed' do
-        parent = create(:group, path: 'a-group', owner: user)
-        child = create(:group, path: 'a-sub-group', parent: parent, owner: user)
+        parent = create(:group, path: 'a-group')
+        child = create(:group, path: 'a-sub-group', parent: parent)
+
+        parent.add_owner(user)
+        child.add_owner(user)
 
         expect(service.execute).to eq(child)
       end

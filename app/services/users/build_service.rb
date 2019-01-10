@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
 module Users
   class BuildService < BaseService
-    include Gitlab::CurrentSettings
+    delegate :user_default_internal_regex_enabled?,
+             :user_default_internal_regex_instance,
+             to: :'Gitlab::CurrentSettings.current_application_settings'
 
     def initialize(current_user, params = {})
       @current_user = current_user
@@ -24,7 +28,7 @@ module Users
 
       identity_attrs = params.slice(:extern_uid, :provider)
 
-      if identity_attrs.any?
+      unless identity_attrs.empty?
         user.identities.build(identity_attrs)
       end
 
@@ -34,7 +38,7 @@ module Users
     private
 
     def can_create_user?
-      (current_user.nil? && current_application_settings.signup_enabled?) || current_user&.admin?
+      (current_user.nil? && Gitlab::CurrentSettings.allow_signup?) || current_user&.admin?
     end
 
     # Allowed params for creating a user (admins only)
@@ -51,7 +55,6 @@ module Users
         :force_random_password,
         :hide_no_password,
         :hide_no_ssh_key,
-        :key_id,
         :linkedin,
         :name,
         :password,
@@ -64,7 +67,11 @@ module Users
         :theme_id,
         :twitter,
         :username,
-        :website_url
+        :website_url,
+        :private_profile,
+        :organization,
+        :location,
+        :public_email
       ]
     end
 
@@ -98,11 +105,19 @@ module Users
         end
       end
 
+      if user_default_internal_regex_enabled? && !user_params.key?(:external)
+        user_params[:external] = user_external?
+      end
+
       user_params
     end
 
     def skip_user_confirmation_email_from_setting
-      !current_application_settings.send_user_confirmation_email
+      !Gitlab::CurrentSettings.send_user_confirmation_email
+    end
+
+    def user_external?
+      user_default_internal_regex_instance.match(params[:email]).nil?
     end
   end
 end

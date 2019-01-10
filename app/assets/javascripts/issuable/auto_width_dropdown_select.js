@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 let instanceCount = 0;
 
 class AutoWidthDropdownSelect {
@@ -8,16 +10,27 @@ class AutoWidthDropdownSelect {
   }
 
   init() {
-    const dropdownClass = this.dropdownClass;
+    const { dropdownClass } = this;
     this.$selectElement.select2({
       dropdownCssClass: dropdownClass,
+      ...AutoWidthDropdownSelect.selectOptions(this.dropdownClass),
+    });
+
+    return this;
+  }
+
+  static selectOptions(dropdownClass) {
+    return {
       dropdownCss() {
         let resultantWidth = 'auto';
         const $dropdown = $(`.${dropdownClass}`);
 
         // We have to look at the parent because
         // `offsetParent` on a `display: none;` is `null`
-        const offsetParentWidth = $(this).parent().offsetParent().width();
+        const offsetParentWidth = $(this)
+          .parent()
+          .offsetParent()
+          .width();
         // Reset any width to let it naturally flow
         $dropdown.css('width', 'auto');
         if ($dropdown.outerWidth(false) > offsetParentWidth) {
@@ -29,9 +42,7 @@ class AutoWidthDropdownSelect {
           maxWidth: offsetParentWidth,
         };
       },
-    });
-
-    return this;
+    };
   }
 }
 

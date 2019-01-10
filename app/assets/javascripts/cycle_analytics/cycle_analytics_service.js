@@ -1,41 +1,31 @@
-/* eslint-disable no-param-reassign */
+import axios from '~/lib/utils/axios_utils';
 
-const global = window.gl || (window.gl = {});
-global.cycleAnalytics = global.cycleAnalytics || {};
-
-class CycleAnalyticsService {
+export default class CycleAnalyticsService {
   constructor(options) {
-    this.requestPath = options.requestPath;
+    this.axios = axios.create({
+      baseURL: options.requestPath,
+    });
   }
 
-  fetchCycleAnalyticsData(options) {
-    options = options || { startDate: 30 };
-
-    return $.ajax({
-      url: this.requestPath,
-      method: 'GET',
-      dataType: 'json',
-      contentType: 'application/json',
-      data: {
-        cycle_analytics: {
-          start_date: options.startDate,
+  fetchCycleAnalyticsData(options = { startDate: 30 }) {
+    return this.axios
+      .get('', {
+        params: {
+          'cycle_analytics[start_date]': options.startDate,
         },
-      },
-    });
+      })
+      .then(x => x.data);
   }
 
   fetchStageData(options) {
-    const {
-      stage,
-      startDate,
-    } = options;
+    const { stage, startDate } = options;
 
-    return $.get(`${this.requestPath}/events/${stage.name}.json`, {
-      cycle_analytics: {
-        start_date: startDate,
-      },
-    });
+    return this.axios
+      .get(`events/${stage.name}.json`, {
+        params: {
+          'cycle_analytics[start_date]': startDate,
+        },
+      })
+      .then(x => x.data);
   }
 }
-
-global.cycleAnalytics.CycleAnalyticsService = CycleAnalyticsService;

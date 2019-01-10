@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module HasVariable
   extend ActiveSupport::Concern
 
@@ -13,8 +15,12 @@ module HasVariable
     attr_encrypted :value,
        mode: :per_attribute_iv_and_salt,
        insecure_mode: true,
-       key: Gitlab::Application.secrets.db_key_base,
+       key: Settings.attr_encrypted_db_key_base,
        algorithm: 'aes-256-cbc'
+
+    def key=(new_key)
+      super(new_key.to_s.strip)
+    end
 
     def to_runner_variable
       { key: key, value: value, public: false }

@@ -1,127 +1,5 @@
-# rubocop:disable GitlabSecurity/PublicSend
-
-require_dependency Rails.root.join('lib/gitlab') # Load Gitlab as soon as possible
-
-class Settings < Settingslogic
-  source ENV.fetch('GITLAB_CONFIG') { "#{Rails.root}/config/gitlab.yml" }
-  namespace Rails.env
-
-  class << self
-    def gitlab_on_standard_port?
-      on_standard_port?(gitlab)
-    end
-
-    def host_without_www(url)
-      host(url).sub('www.', '')
-    end
-
-    def build_gitlab_ci_url
-      custom_port =
-        if on_standard_port?(gitlab)
-          nil
-        else
-          ":#{gitlab.port}"
-        end
-
-      [
-        gitlab.protocol,
-        "://",
-        gitlab.host,
-        custom_port,
-        gitlab.relative_url_root
-      ].join('')
-    end
-
-    def build_pages_url
-      base_url(pages).join('')
-    end
-
-    def build_gitlab_shell_ssh_path_prefix
-      user_host = "#{gitlab_shell.ssh_user}@#{gitlab_shell.ssh_host}"
-
-      if gitlab_shell.ssh_port != 22
-        "ssh://#{user_host}:#{gitlab_shell.ssh_port}/"
-      else
-        if gitlab_shell.ssh_host.include? ':'
-          "[#{user_host}]:"
-        else
-          "#{user_host}:"
-        end
-      end
-    end
-
-    def build_base_gitlab_url
-      base_url(gitlab).join('')
-    end
-
-    def build_gitlab_url
-      (base_url(gitlab) + [gitlab.relative_url_root]).join('')
-    end
-
-    # check that values in `current` (string or integer) is a contant in `modul`.
-    def verify_constant_array(modul, current, default)
-      values = default || []
-      unless current.nil?
-        values = []
-        current.each do |constant|
-          values.push(verify_constant(modul, constant, nil))
-        end
-        values.delete_if { |value| value.nil? }
-      end
-      values
-    end
-
-    # check that `current` (string or integer) is a contant in `modul`.
-    def verify_constant(modul, current, default)
-      constant = modul.constants.find { |name| modul.const_get(name) == current }
-      value = constant.nil? ? default : modul.const_get(constant)
-      if current.is_a? String
-        value = modul.const_get(current.upcase) rescue default
-      end
-      value
-    end
-
-    def absolute(path)
-      File.expand_path(path, Rails.root)
-    end
-
-    private
-
-    def base_url(config)
-      custom_port = on_standard_port?(config) ? nil : ":#{config.port}"
-
-      [
-        config.protocol,
-        "://",
-        config.host,
-        custom_port
-      ]
-    end
-
-    def on_standard_port?(config)
-      config.port.to_i == (config.https ? 443 : 80)
-    end
-
-    # Extract the host part of the given +url+.
-    def host(url)
-      url = url.downcase
-      url = "http://#{url}" unless url.start_with?('http')
-
-      # Get rid of the path so that we don't even have to encode it
-      url_without_path = url.sub(%r{(https?://[^\/]+)/?.*}, '\1')
-
-      URI.parse(url_without_path).host
-    end
-
-    # Random cron time every Sunday to load balance usage pings
-    def cron_random_weekly_time
-      hour = rand(24)
-      minute = rand(60)
-
-      "#{minute} #{hour} * * 0"
-    end
-  end
-end
+require_relative '../settings'
+require_relative '../object_store_settings'
 
 # Default settings
 Settings['ldap'] ||= Settingslogic.new({})
@@ -147,6 +25,7 @@ if Settings.ldap['enabled'] || Rails.env.test?
     server['allow_username_or_email_login'] = false if server['allow_username_or_email_login'].nil?
     server['active_directory'] = true if server['active_directory'].nil?
     server['attributes'] = {} if server['attributes'].nil?
+    server['lowercase_usernames'] = false if server['lowercase_usernames'].nil?
     server['provider_name'] ||= "ldap#{key}".downcase
     server['provider_class'] = OmniAuth::Utils.camelize(server['provider_name'])
 
@@ -166,7 +45,7 @@ if Settings.ldap['enabled'] || Rails.env.test?
 end
 
 Settings['omniauth'] ||= Settingslogic.new({})
-Settings.omniauth['enabled'] = false if Settings.omniauth['enabled'].nil?
+Settings.omniauth['enabled'] = true if Settings.omniauth['enabled'].nil?
 Settings.omniauth['auto_sign_in_with_provider'] = false if Settings.omniauth['auto_sign_in_with_provider'].nil?
 Settings.omniauth['allow_single_sign_on'] = false if Settings.omniauth['allow_single_sign_on'].nil?
 Settings.omniauth['external_providers'] = [] if Settings.omniauth['external_providers'].nil?
@@ -254,14 +133,15 @@ rescue ArgumentError # no user configured
 end
 Settings.gitlab['time_zone'] ||= nil
 Settings.gitlab['signup_enabled'] ||= true if Settings.gitlab['signup_enabled'].nil?
-Settings.gitlab['password_authentication_enabled'] ||= true if Settings.gitlab['password_authentication_enabled'].nil?
+Settings.gitlab['signin_enabled'] ||= true if Settings.gitlab['signin_enabled'].nil?
 Settings.gitlab['restricted_visibility_levels'] = Settings.__send__(:verify_constant_array, Gitlab::VisibilityLevel, Settings.gitlab['restricted_visibility_levels'], [])
 Settings.gitlab['username_changing_enabled'] = true if Settings.gitlab['username_changing_enabled'].nil?
-Settings.gitlab['issue_closing_pattern'] = '((?:[Cc]los(?:e[sd]?|ing)|[Ff]ix(?:e[sd]|ing)?|[Rr]esolv(?:e[sd]?|ing))(:?) +(?:(?:issues? +)?%{issue_ref}(?:(?:, *| +and +)?)|([A-Z][A-Z0-9_]+-\d+))+)' if Settings.gitlab['issue_closing_pattern'].nil?
+Settings.gitlab['issue_closing_pattern'] = '\b((?:[Cc]los(?:e[sd]?|ing)|\b[Ff]ix(?:e[sd]|ing)?|\b[Rr]esolv(?:e[sd]?|ing)|\b[Ii]mplement(?:s|ed|ing)?)(:?) +(?:(?:issues? +)?%{issue_ref}(?:(?: *,? +and +| *,? *)?)|([A-Z][A-Z0-9_]+-\d+))+)' if Settings.gitlab['issue_closing_pattern'].nil?
 Settings.gitlab['default_projects_features'] ||= {}
 Settings.gitlab['webhook_timeout'] ||= 10
 Settings.gitlab['max_attachment_size'] ||= 10
 Settings.gitlab['session_expire_delay'] ||= 10080
+Settings.gitlab['unauthenticated_session_expire_delay'] ||= 2.hours.to_i
 Settings.gitlab.default_projects_features['issues']             = true if Settings.gitlab.default_projects_features['issues'].nil?
 Settings.gitlab.default_projects_features['merge_requests']     = true if Settings.gitlab.default_projects_features['merge_requests'].nil?
 Settings.gitlab.default_projects_features['wiki']               = true if Settings.gitlab.default_projects_features['wiki'].nil?
@@ -273,6 +153,7 @@ Settings.gitlab['domain_whitelist'] ||= []
 Settings.gitlab['import_sources'] ||= Gitlab::ImportSources.values
 Settings.gitlab['trusted_proxies'] ||= []
 Settings.gitlab['no_todos_messages'] ||= YAML.load_file(Rails.root.join('config', 'no_todos_messages.yml'))
+Settings.gitlab['impersonation_enabled'] ||= true if Settings.gitlab['impersonation_enabled'].nil?
 Settings.gitlab['usage_ping_enabled'] = true if Settings.gitlab['usage_ping_enabled'].nil?
 
 #
@@ -296,8 +177,11 @@ Settings.incoming_email['enabled'] = false if Settings.incoming_email['enabled']
 #
 Settings['artifacts'] ||= Settingslogic.new({})
 Settings.artifacts['enabled']      = true if Settings.artifacts['enabled'].nil?
-Settings.artifacts['path']         = Settings.absolute(Settings.artifacts['path'] || File.join(Settings.shared['path'], "artifacts"))
-Settings.artifacts['max_size']   ||= 100 # in megabytes
+Settings.artifacts['storage_path'] = Settings.absolute(Settings.artifacts.values_at('path', 'storage_path').compact.first || File.join(Settings.shared['path'], "artifacts"))
+# Settings.artifact['path'] is deprecated, use `storage_path` instead
+Settings.artifacts['path']         = Settings.artifacts['storage_path']
+Settings.artifacts['max_size'] ||= 100 # in megabytes
+Settings.artifacts['object_store'] = ObjectStoreSettings.parse(Settings.artifacts['object_store'])
 
 #
 # Registry
@@ -316,15 +200,20 @@ Settings.registry['path']            = Settings.absolute(Settings.registry['path
 # Pages
 #
 Settings['pages'] ||= Settingslogic.new({})
-Settings.pages['enabled']         = false if Settings.pages['enabled'].nil?
-Settings.pages['path']            = Settings.absolute(Settings.pages['path'] || File.join(Settings.shared['path'], "pages"))
-Settings.pages['https']           = false if Settings.pages['https'].nil?
-Settings.pages['host']            ||= "example.com"
-Settings.pages['port']            ||= Settings.pages.https ? 443 : 80
-Settings.pages['protocol']        ||= Settings.pages.https ? "https" : "http"
-Settings.pages['url']             ||= Settings.__send__(:build_pages_url)
-Settings.pages['external_http']   ||= false unless Settings.pages['external_http'].present?
-Settings.pages['external_https']  ||= false unless Settings.pages['external_https'].present?
+Settings.pages['enabled']           = false if Settings.pages['enabled'].nil?
+Settings.pages['access_control']    = false if Settings.pages['access_control'].nil?
+Settings.pages['path']              = Settings.absolute(Settings.pages['path'] || File.join(Settings.shared['path'], "pages"))
+Settings.pages['https']             = false if Settings.pages['https'].nil?
+Settings.pages['host']              ||= "example.com"
+Settings.pages['port']              ||= Settings.pages.https ? 443 : 80
+Settings.pages['protocol']          ||= Settings.pages.https ? "https" : "http"
+Settings.pages['url']               ||= Settings.__send__(:build_pages_url)
+Settings.pages['external_http']     ||= false unless Settings.pages['external_http'].present?
+Settings.pages['external_https']    ||= false unless Settings.pages['external_https'].present?
+Settings.pages['artifacts_server']  ||= Settings.pages['enabled'] if Settings.pages['artifacts_server'].nil?
+
+Settings.pages['admin'] ||= Settingslogic.new({})
+Settings.pages.admin['certificate'] ||= ''
 
 #
 # Git LFS
@@ -332,6 +221,16 @@ Settings.pages['external_https']  ||= false unless Settings.pages['external_http
 Settings['lfs'] ||= Settingslogic.new({})
 Settings.lfs['enabled']      = true if Settings.lfs['enabled'].nil?
 Settings.lfs['storage_path'] = Settings.absolute(Settings.lfs['storage_path'] || File.join(Settings.shared['path'], "lfs-objects"))
+Settings.lfs['object_store'] = ObjectStoreSettings.parse(Settings.lfs['object_store'])
+
+#
+# Uploads
+#
+Settings['uploads'] ||= Settingslogic.new({})
+Settings.uploads['storage_path'] = Settings.absolute(Settings.uploads['storage_path'] || 'public')
+Settings.uploads['base_dir'] = Settings.uploads['base_dir'] || 'uploads/-/system'
+Settings.uploads['object_store'] = ObjectStoreSettings.parse(Settings.uploads['object_store'])
+Settings.uploads['object_store']['remote_directory'] ||= 'uploads'
 
 #
 # Mattermost
@@ -345,7 +244,7 @@ Settings.mattermost['host'] = nil unless Settings.mattermost.enabled
 #
 Settings['gravatar'] ||= Settingslogic.new({})
 Settings.gravatar['enabled']      = true if Settings.gravatar['enabled'].nil?
-Settings.gravatar['plain_url']  ||= 'http://www.gravatar.com/avatar/%{hash}?s=%{size}&d=identicon'
+Settings.gravatar['plain_url']  ||= 'https://www.gravatar.com/avatar/%{hash}?s=%{size}&d=identicon'
 Settings.gravatar['ssl_url']    ||= 'https://secure.gravatar.com/avatar/%{hash}?s=%{size}&d=identicon'
 Settings.gravatar['host']         = Settings.host_without_www(Settings.gravatar['plain_url'])
 
@@ -364,7 +263,7 @@ Settings.cron_jobs['expire_build_artifacts_worker']['cron'] ||= '50 * * * *'
 Settings.cron_jobs['expire_build_artifacts_worker']['job_class'] = 'ExpireBuildArtifactsWorker'
 Settings.cron_jobs['repository_check_worker'] ||= Settingslogic.new({})
 Settings.cron_jobs['repository_check_worker']['cron'] ||= '20 * * * *'
-Settings.cron_jobs['repository_check_worker']['job_class'] = 'RepositoryCheck::BatchWorker'
+Settings.cron_jobs['repository_check_worker']['job_class'] = 'RepositoryCheck::DispatchWorker'
 Settings.cron_jobs['admin_email_worker'] ||= Settingslogic.new({})
 Settings.cron_jobs['admin_email_worker']['cron'] ||= '0 0 * * 0'
 Settings.cron_jobs['admin_email_worker']['job_class'] = 'AdminEmailWorker'
@@ -374,6 +273,9 @@ Settings.cron_jobs['repository_archive_cache_worker']['job_class'] = 'Repository
 Settings.cron_jobs['import_export_project_cleanup_worker'] ||= Settingslogic.new({})
 Settings.cron_jobs['import_export_project_cleanup_worker']['cron'] ||= '0 * * * *'
 Settings.cron_jobs['import_export_project_cleanup_worker']['job_class'] = 'ImportExportProjectCleanupWorker'
+Settings.cron_jobs['ci_archive_traces_cron_worker'] ||= Settingslogic.new({})
+Settings.cron_jobs['ci_archive_traces_cron_worker']['cron'] ||= '17 * * * *'
+Settings.cron_jobs['ci_archive_traces_cron_worker']['job_class'] = 'Ci::ArchiveTracesCronWorker'
 Settings.cron_jobs['requests_profiles_worker'] ||= Settingslogic.new({})
 Settings.cron_jobs['requests_profiles_worker']['cron'] ||= '0 0 * * *'
 Settings.cron_jobs['requests_profiles_worker']['job_class'] = 'RequestsProfilesWorker'
@@ -397,20 +299,30 @@ Settings.cron_jobs['stuck_import_jobs_worker'] ||= Settingslogic.new({})
 Settings.cron_jobs['stuck_import_jobs_worker']['cron'] ||= '15 * * * *'
 Settings.cron_jobs['stuck_import_jobs_worker']['job_class'] = 'StuckImportJobsWorker'
 Settings.cron_jobs['gitlab_usage_ping_worker'] ||= Settingslogic.new({})
-Settings.cron_jobs['gitlab_usage_ping_worker']['cron'] ||= Settings.__send__(:cron_random_weekly_time)
+Settings.cron_jobs['gitlab_usage_ping_worker']['cron'] ||= Settings.__send__(:cron_for_usage_ping)
 Settings.cron_jobs['gitlab_usage_ping_worker']['job_class'] = 'GitlabUsagePingWorker'
-
-Settings.cron_jobs['schedule_update_user_activity_worker'] ||= Settingslogic.new({})
-Settings.cron_jobs['schedule_update_user_activity_worker']['cron'] ||= '30 0 * * *'
-Settings.cron_jobs['schedule_update_user_activity_worker']['job_class'] = 'ScheduleUpdateUserActivityWorker'
-
-Settings.cron_jobs['remove_old_web_hook_logs_worker'] ||= Settingslogic.new({})
-Settings.cron_jobs['remove_old_web_hook_logs_worker']['cron'] ||= '40 0 * * *'
-Settings.cron_jobs['remove_old_web_hook_logs_worker']['job_class'] = 'RemoveOldWebHookLogsWorker'
 
 Settings.cron_jobs['stuck_merge_jobs_worker'] ||= Settingslogic.new({})
 Settings.cron_jobs['stuck_merge_jobs_worker']['cron'] ||= '0 */2 * * *'
 Settings.cron_jobs['stuck_merge_jobs_worker']['job_class'] = 'StuckMergeJobsWorker'
+
+Settings.cron_jobs['pages_domain_verification_cron_worker'] ||= Settingslogic.new({})
+Settings.cron_jobs['pages_domain_verification_cron_worker']['cron'] ||= '*/15 * * * *'
+Settings.cron_jobs['pages_domain_verification_cron_worker']['job_class'] = 'PagesDomainVerificationCronWorker'
+
+Settings.cron_jobs['issue_due_scheduler_worker'] ||= Settingslogic.new({})
+Settings.cron_jobs['issue_due_scheduler_worker']['cron'] ||= '50 00 * * *'
+Settings.cron_jobs['issue_due_scheduler_worker']['job_class'] = 'IssueDueSchedulerWorker'
+
+Settings.cron_jobs['prune_web_hook_logs_worker'] ||= Settingslogic.new({})
+Settings.cron_jobs['prune_web_hook_logs_worker']['cron'] ||= '0 */1 * * *'
+Settings.cron_jobs['prune_web_hook_logs_worker']['job_class'] = 'PruneWebHookLogsWorker'
+
+#
+# Sidekiq
+#
+Settings['sidekiq'] ||= Settingslogic.new({})
+Settings['sidekiq']['log_format'] ||= 'default'
 
 #
 # GitLab Shell
@@ -426,7 +338,7 @@ Settings.gitlab_shell['ssh_port']     ||= 22
 Settings.gitlab_shell['ssh_user']     ||= Settings.gitlab.user
 Settings.gitlab_shell['owner_group']  ||= Settings.gitlab.user
 Settings.gitlab_shell['ssh_path_prefix'] ||= Settings.__send__(:build_gitlab_shell_ssh_path_prefix)
-Settings.gitlab_shell['git_timeout'] ||= 800
+Settings.gitlab_shell['git_timeout'] ||= 10800
 
 #
 # Workhorse
@@ -448,23 +360,7 @@ unless Settings.repositories.storages['default']
 end
 
 Settings.repositories.storages.each do |key, storage|
-  storage = Settingslogic.new(storage)
-
-  # Expand relative paths
-  storage['path'] = Settings.absolute(storage['path'])
-  # Set failure defaults
-  storage['failure_count_threshold'] ||= 10
-  storage['failure_wait_time'] ||= 30
-  storage['failure_reset_time'] ||= 1800
-  storage['storage_timeout'] ||= 5
-  # Set turn strings into numbers
-  storage['failure_count_threshold'] = storage['failure_count_threshold'].to_i
-  storage['failure_wait_time'] = storage['failure_wait_time'].to_i
-  storage['failure_reset_time'] = storage['failure_reset_time'].to_i
-  # We might want to have a timeout shorter than 1 second.
-  storage['storage_timeout'] = storage['storage_timeout'].to_f
-
-  Settings.repositories.storages[key] = storage
+  Settings.repositories.storages[key] = Gitlab::GitalyClient::StorageSettings.new(storage)
 end
 
 #
@@ -475,11 +371,14 @@ end
 # repository_downloads_path value.
 #
 repositories_storages          = Settings.repositories.storages.values
-repository_downloads_path      = Settings.gitlab['repository_downloads_path'].to_s.gsub(/\/$/, '')
+repository_downloads_path      = Settings.gitlab['repository_downloads_path'].to_s.gsub(%r{/$}, '')
 repository_downloads_full_path = File.expand_path(repository_downloads_path, Settings.gitlab['user_home'])
 
-if repository_downloads_path.blank? || repositories_storages.any? { |rs| [repository_downloads_path, repository_downloads_full_path].include?(rs['path'].gsub(/\/$/, '')) }
-  Settings.gitlab['repository_downloads_path'] = File.join(Settings.shared['path'], 'cache/archive')
+# Gitaly migration: https://gitlab.com/gitlab-org/gitaly/issues/1255
+Gitlab::GitalyClient::StorageSettings.allow_disk_access do
+  if repository_downloads_path.blank? || repositories_storages.any? { |rs| [repository_downloads_path, repository_downloads_full_path].include?(rs.legacy_disk_path.gsub(%r{/$}, '')) }
+    Settings.gitlab['repository_downloads_path'] = File.join(Settings.shared['path'], 'cache/archive')
+  end
 end
 
 #
@@ -493,15 +392,14 @@ Settings.backup['archive_permissions'] ||= 0600
 Settings.backup['upload'] ||= Settingslogic.new({ 'remote_directory' => nil, 'connection' => nil })
 Settings.backup['upload']['multipart_chunk_size'] ||= 104857600
 Settings.backup['upload']['encryption'] ||= nil
+Settings.backup['upload']['encryption_key'] ||= ENV['GITLAB_BACKUP_ENCRYPTION_KEY']
 Settings.backup['upload']['storage_class'] ||= nil
 
 #
 # Git
 #
 Settings['git'] ||= Settingslogic.new({})
-Settings.git['max_size']  ||= 20971520 # 20.megabytes
-Settings.git['bin_path']  ||= '/usr/bin/git'
-Settings.git['timeout']   ||= 10
+Settings.git['bin_path'] ||= '/usr/bin/git'
 
 # Important: keep the satellites.path setting until GitLab 9.0 at
 # least. This setting is fed to 'rm -rf' in
@@ -519,7 +417,7 @@ Settings['extra'] ||= Settingslogic.new({})
 #
 Settings['rack_attack'] ||= Settingslogic.new({})
 Settings.rack_attack['git_basic_auth'] ||= Settingslogic.new({})
-Settings.rack_attack.git_basic_auth['enabled'] = true if Settings.rack_attack.git_basic_auth['enabled'].nil?
+Settings.rack_attack.git_basic_auth['enabled'] = false if Settings.rack_attack.git_basic_auth['enabled'].nil?
 Settings.rack_attack.git_basic_auth['ip_whitelist'] ||= %w{127.0.0.1}
 Settings.rack_attack.git_basic_auth['maxretry'] ||= 10
 Settings.rack_attack.git_basic_auth['findtime'] ||= 1.minute
@@ -545,6 +443,7 @@ Settings.webpack.dev_server['port']    ||= 3808
 Settings['monitoring'] ||= Settingslogic.new({})
 Settings.monitoring['ip_whitelist'] ||= ['127.0.0.1/8']
 Settings.monitoring['unicorn_sampler_interval'] ||= 10
+Settings.monitoring['ruby_sampler_interval'] ||= 60
 Settings.monitoring['sidekiq_exporter'] ||= Settingslogic.new({})
 Settings.monitoring.sidekiq_exporter['enabled'] ||= false
 Settings.monitoring.sidekiq_exporter['address'] ||= 'localhost'
@@ -558,6 +457,3 @@ if Rails.env.test?
   Settings.gitlab['default_can_create_group'] = true
   Settings.gitlab['default_can_create_team']  = false
 end
-
-# Force a refresh of application settings at startup
-ApplicationSetting.expire

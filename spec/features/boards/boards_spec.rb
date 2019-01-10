@@ -1,7 +1,8 @@
 require 'rails_helper'
 
-describe 'Issue Boards', js: true do
+describe 'Issue Boards', :js do
   include DragTo
+  include MobileHelpers
 
   let(:group) { create(:group, :nested) }
   let(:project) { create(:project, :public, namespace: group) }
@@ -10,10 +11,10 @@ describe 'Issue Boards', js: true do
   let!(:user2)  { create(:user) }
 
   before do
-    project.team << [user, :master]
-    project.team << [user2, :master]
+    project.add_maintainer(user)
+    project.add_maintainer(user2)
 
-    page.driver.set_cookie('sidebar_collapsed', 'true')
+    set_cookie('sidebar_collapsed', 'true')
 
     sign_in(user)
   end
@@ -43,7 +44,7 @@ describe 'Issue Boards', js: true do
     end
 
     it 'creates default lists' do
-      lists = ['Backlog', 'To Do', 'Doing', 'Closed']
+      lists = ['Open', 'To Do', 'Doing', 'Closed']
 
       page.within(find('.board-blank-state')) do
         click_button('Add default lists')
@@ -68,6 +69,7 @@ describe 'Issue Boards', js: true do
     let!(:backlog)    { create(:label, project: project, name: 'Backlog') }
     let!(:closed)       { create(:label, project: project, name: 'Closed') }
     let!(:accepting)  { create(:label, project: project, name: 'Accepting Merge Requests') }
+    let!(:a_plus) { create(:label, project: project, name: 'A+') }
 
     let!(:list1) { create(:list, board: board, label: planning, position: 0) }
     let!(:list2) { create(:list, board: board, label: development, position: 1) }
@@ -82,6 +84,7 @@ describe 'Issue Boards', js: true do
     let!(:issue7) { create(:labeled_issue, project: project, title: 'ggg', description: '777', labels: [development], relative_position: 2) }
     let!(:issue8) { create(:closed_issue, project: project, title: 'hhh', description: '888') }
     let!(:issue9) { create(:labeled_issue, project: project, title: 'iii', description: '999', labels: [planning, testing, bug, accepting], relative_position: 1) }
+    let!(:issue10) { create(:labeled_issue, project: project, title: 'issue +', description: 'A+ great issue', labels: [a_plus]) }
 
     before do
       visit project_board_path(project, board)
@@ -89,9 +92,9 @@ describe 'Issue Boards', js: true do
       wait_for_requests
 
       expect(page).to have_selector('.board', count: 4)
-      expect(find('.board:nth-child(2)')).to have_selector('.card')
-      expect(find('.board:nth-child(3)')).to have_selector('.card')
-      expect(find('.board:nth-child(4)')).to have_selector('.card')
+      expect(find('.board:nth-child(2)')).to have_selector('.board-card')
+      expect(find('.board:nth-child(3)')).to have_selector('.board-card')
+      expect(find('.board:nth-child(4)')).to have_selector('.board-card')
     end
 
     it 'shows description tooltip on list title' do
@@ -117,9 +120,9 @@ describe 'Issue Boards', js: true do
 
       wait_for_requests
 
-      expect(find('.board:nth-child(2)')).to have_selector('.card', count: 0)
-      expect(find('.board:nth-child(3)')).to have_selector('.card', count: 0)
-      expect(find('.board:nth-child(4)')).to have_selector('.card', count: 1)
+      expect(find('.board:nth-child(2)')).to have_selector('.board-card', count: 0)
+      expect(find('.board:nth-child(3)')).to have_selector('.board-card', count: 0)
+      expect(find('.board:nth-child(4)')).to have_selector('.board-card', count: 1)
     end
 
     it 'search list' do
@@ -128,14 +131,14 @@ describe 'Issue Boards', js: true do
 
       wait_for_requests
 
-      expect(find('.board:nth-child(2)')).to have_selector('.card', count: 1)
-      expect(find('.board:nth-child(3)')).to have_selector('.card', count: 0)
-      expect(find('.board:nth-child(4)')).to have_selector('.card', count: 0)
+      expect(find('.board:nth-child(2)')).to have_selector('.board-card', count: 1)
+      expect(find('.board:nth-child(3)')).to have_selector('.board-card', count: 0)
+      expect(find('.board:nth-child(4)')).to have_selector('.board-card', count: 0)
     end
 
     it 'allows user to delete board' do
       page.within(find('.board:nth-child(2)')) do
-        find('.board-delete').click
+        accept_confirm { find('.board-delete').click }
       end
 
       wait_for_requests
@@ -147,10 +150,10 @@ describe 'Issue Boards', js: true do
       click_button 'Add list'
       wait_for_requests
 
-      find('.dropdown-menu-close').click
+      find('.js-new-board-list').click
 
       page.within(find('.board:nth-child(2)')) do
-        find('.board-delete').click
+        accept_confirm { find('.board-delete').click }
       end
 
       wait_for_requests
@@ -168,19 +171,21 @@ describe 'Issue Boards', js: true do
 
       page.within(find('.board:nth-child(2)')) do
         expect(page.find('.board-header')).to have_content('58')
-        expect(page).to have_selector('.card', count: 20)
+        expect(page).to have_selector('.board-card', count: 20)
         expect(page).to have_content('Showing 20 of 58 issues')
 
+        find('.board .board-list')
         evaluate_script("document.querySelectorAll('.board .board-list')[1].scrollTop = document.querySelectorAll('.board .board-list')[1].scrollHeight")
         wait_for_requests
 
-        expect(page).to have_selector('.card', count: 40)
+        expect(page).to have_selector('.board-card', count: 40)
         expect(page).to have_content('Showing 40 of 58 issues')
 
+        find('.board .board-list')
         evaluate_script("document.querySelectorAll('.board .board-list')[1].scrollTop = document.querySelectorAll('.board .board-list')[1].scrollHeight")
         wait_for_requests
 
-        expect(page).to have_selector('.card', count: 58)
+        expect(page).to have_selector('.board-card', count: 58)
         expect(page).to have_content('Showing all issues')
       end
     end
@@ -199,7 +204,7 @@ describe 'Issue Boards', js: true do
         wait_for_board_cards(4, 2)
 
         expect(find('.board:nth-child(2)')).not_to have_content(issue9.title)
-        expect(find('.board:nth-child(4)')).to have_selector('.card', count: 2)
+        expect(find('.board:nth-child(4)')).to have_selector('.board-card', count: 2)
         expect(find('.board:nth-child(4)')).to have_content(issue9.title)
         expect(find('.board:nth-child(4)')).not_to have_content(planning.title)
       end
@@ -237,7 +242,7 @@ describe 'Issue Boards', js: true do
         wait_for_board_cards(4, 1)
 
         expect(find('.board:nth-child(3)')).to have_content(issue6.title)
-        expect(find('.board:nth-child(3)').all('.card').last).to have_content(development.title)
+        expect(find('.board:nth-child(3)').all('.board-card').last).to have_content(development.title)
       end
 
       it 'issue moves between lists' do
@@ -248,7 +253,7 @@ describe 'Issue Boards', js: true do
         wait_for_board_cards(4, 1)
 
         expect(find('.board:nth-child(2)')).to have_content(issue7.title)
-        expect(find('.board:nth-child(2)').all('.card').first).to have_content(planning.title)
+        expect(find('.board:nth-child(2)').all('.board-card').first).to have_content(planning.title)
       end
 
       it 'issue moves from closed' do
@@ -330,7 +335,7 @@ describe 'Issue Boards', js: true do
 
           wait_for_requests
 
-          expect(page).to have_css('#js-add-list.open')
+          expect(page).to have_css('#js-add-list.show')
         end
 
         it 'creates new list from a new label' do
@@ -338,7 +343,7 @@ describe 'Issue Boards', js: true do
 
           wait_for_requests
 
-          click_link 'Create new label'
+          click_link 'Create project label'
 
           fill_in('new_label_name', with: 'Testing New Label')
 
@@ -377,7 +382,7 @@ describe 'Issue Boards', js: true do
       end
 
       it 'filters by milestone' do
-        set_filter("milestone", "\"#{milestone.title}\"")
+        set_filter("milestone", "\"#{milestone.title}")
         click_filter_link(milestone.title)
         submit_filter
 
@@ -397,8 +402,17 @@ describe 'Issue Boards', js: true do
         wait_for_empty_boards((3..4))
       end
 
+      it 'filters by label with encoded character' do
+        set_filter("label", a_plus.title)
+        click_filter_link(a_plus.title)
+        submit_filter
+
+        wait_for_board_cards(1, 1)
+        wait_for_empty_boards((2..4))
+      end
+
       it 'filters by label with space after reload' do
-        set_filter("label", "\"#{accepting.title}\"")
+        set_filter("label", "\"#{accepting.title}")
         click_filter_link(accepting.title)
         submit_filter
 
@@ -411,12 +425,12 @@ describe 'Issue Boards', js: true do
 
         page.within(find('.board:nth-child(2)')) do
           expect(page.find('.board-header')).to have_content('1')
-          expect(page).to have_selector('.card', count: 1)
+          expect(page).to have_selector('.board-card', count: 1)
         end
 
         page.within(find('.board:nth-child(3)')) do
           expect(page.find('.board-header')).to have_content('0')
-          expect(page).to have_selector('.card', count: 0)
+          expect(page).to have_selector('.board-card', count: 0)
         end
       end
 
@@ -446,17 +460,19 @@ describe 'Issue Boards', js: true do
 
         page.within(find('.board:nth-child(2)')) do
           expect(page.find('.board-header')).to have_content('51')
-          expect(page).to have_selector('.card', count: 20)
+          expect(page).to have_selector('.board-card', count: 20)
           expect(page).to have_content('Showing 20 of 51 issues')
 
+          find('.board .board-list')
           evaluate_script("document.querySelectorAll('.board .board-list')[1].scrollTop = document.querySelectorAll('.board .board-list')[1].scrollHeight")
 
-          expect(page).to have_selector('.card', count: 40)
+          expect(page).to have_selector('.board-card', count: 40)
           expect(page).to have_content('Showing 40 of 51 issues')
 
+          find('.board .board-list')
           evaluate_script("document.querySelectorAll('.board .board-list')[1].scrollTop = document.querySelectorAll('.board .board-list')[1].scrollHeight")
 
-          expect(page).to have_selector('.card', count: 51)
+          expect(page).to have_selector('.board-card', count: 51)
           expect(page).to have_content('Showing all issues')
         end
       end
@@ -478,8 +494,8 @@ describe 'Issue Boards', js: true do
 
       it 'filters by clicking label button on issue' do
         page.within(find('.board:nth-child(2)')) do
-          expect(page).to have_selector('.card', count: 8)
-          expect(find('.card', match: :first)).to have_content(bug.title)
+          expect(page).to have_selector('.board-card', count: 8)
+          expect(find('.board-card', match: :first)).to have_content(bug.title)
           click_button(bug.title)
           wait_for_requests
         end
@@ -496,13 +512,13 @@ describe 'Issue Boards', js: true do
 
       it 'removes label filter by clicking label button on issue' do
         page.within(find('.board:nth-child(2)')) do
-          page.within(find('.card', match: :first)) do
+          page.within(find('.board-card', match: :first)) do
             click_button(bug.title)
           end
 
           wait_for_requests
 
-          expect(page).to have_selector('.card', count: 1)
+          expect(page).to have_selector('.board-card', count: 1)
         end
 
         wait_for_requests
@@ -517,7 +533,7 @@ describe 'Issue Boards', js: true do
     end
 
     it 'allows user to use keyboard shortcuts' do
-      find('.boards-list').native.send_keys('i')
+      find('body').native.send_keys('i')
       expect(page).to have_content('New Issue')
     end
   end
@@ -534,7 +550,7 @@ describe 'Issue Boards', js: true do
     end
 
     it 'does not show create new list' do
-      expect(page).not_to have_selector('.js-new-board-list')
+      expect(page).not_to have_button('.js-new-board-list')
     end
 
     it 'does not allow dragging' do
@@ -546,7 +562,7 @@ describe 'Issue Boards', js: true do
     let(:user_guest) { create(:user) }
 
     before do
-      project.team << [user_guest, :guest]
+      project.add_guest(user_guest)
       sign_out(:user)
       sign_in(user_guest)
       visit project_board_path(project, board)
@@ -559,6 +575,9 @@ describe 'Issue Boards', js: true do
   end
 
   def drag(selector: '.board-list', list_from_index: 0, from_index: 0, to_index: 0, list_to_index: 0)
+    # ensure there is enough horizontal space for four boards
+    resize_window(2000, 800)
+
     drag_to(selector: selector,
             scrollable: '#board-app',
             list_from_index: list_from_index,
@@ -570,7 +589,7 @@ describe 'Issue Boards', js: true do
   def wait_for_board_cards(board_number, expected_cards)
     page.within(find(".board:nth-child(#{board_number})")) do
       expect(page.find('.board-header')).to have_content(expected_cards.to_s)
-      expect(page).to have_selector('.card', count: expected_cards)
+      expect(page).to have_selector('.board-card', count: expected_cards)
     end
   end
 

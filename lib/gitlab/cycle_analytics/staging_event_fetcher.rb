@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module CycleAnalytics
     class StagingEventFetcher < BaseEventFetcher
@@ -21,6 +23,10 @@ module Gitlab
       end
 
       private
+
+      def allowed_ids
+        nil
+      end
 
       def serialize(event)
         AnalyticsBuildSerializer.new.represent(event['build'])

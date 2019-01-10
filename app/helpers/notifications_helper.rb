@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module NotificationsHelper
   include IconsHelper
 
@@ -78,25 +80,16 @@ module NotificationsHelper
   # Create hidden field to send notification setting source to controller
   def hidden_setting_source_input(notification_setting)
     return unless notification_setting.source_type
+
     hidden_field_tag "#{notification_setting.source_type.downcase}_id", notification_setting.source_id
   end
 
   def notification_event_name(event)
-    # All values from NotificationSetting::EMAIL_EVENTS
+    # All values from NotificationSetting.email_events
     case event
     when :success_pipeline
       s_('NotificationEvent|Successful pipeline')
     else
-      N_('NotificationEvent|New note')
-      N_('NotificationEvent|New issue')
-      N_('NotificationEvent|Reopen issue')
-      N_('NotificationEvent|Close issue')
-      N_('NotificationEvent|Reassign issue')
-      N_('NotificationEvent|New merge request')
-      N_('NotificationEvent|Close merge request')
-      N_('NotificationEvent|Reassign merge request')
-      N_('NotificationEvent|Merge merge request')
-      N_('NotificationEvent|Failed pipeline')
       s_(event.to_s.humanize)
     end
   end

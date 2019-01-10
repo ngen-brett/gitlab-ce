@@ -1,7 +1,11 @@
+# frozen_string_literal: true
+
 module Gitlab
   class UrlSanitizer
+    ALLOWED_SCHEMES = %w[http https ssh git].freeze
+
     def self.sanitize(content)
-      regexp = URI::Parser.new.make_regexp(%w(http https ssh git))
+      regexp = URI::DEFAULT_PARSER.make_regexp(ALLOWED_SCHEMES)
 
       content.gsub(regexp) { |url| new(url).masked_url }
     rescue Addressable::URI::InvalidURIError
@@ -10,10 +14,11 @@ module Gitlab
 
     def self.valid?(url)
       return false unless url.present?
+      return false unless url.is_a?(String)
 
-      Addressable::URI.parse(url.strip)
+      uri = Addressable::URI.parse(url.strip)
 
-      true
+      ALLOWED_SCHEMES.include?(uri.scheme)
     rescue Addressable::URI::InvalidURIError
       false
     end
@@ -56,7 +61,7 @@ module Gitlab
       if raw_credentials.present?
         url.sub!("#{raw_credentials}@", '')
 
-        user, password = raw_credentials.split(':')
+        user, _, password = raw_credentials.partition(':')
         @credentials ||= { user: user.presence, password: password.presence }
       end
 
@@ -68,12 +73,11 @@ module Gitlab
 
     def generate_full_url
       return @url unless valid_credentials?
-      @full_url = @url.dup
 
-      @full_url.password = credentials[:password] if credentials[:password].present?
-      @full_url.user = credentials[:user] if credentials[:user].present?
-
-      @full_url
+      @url.dup.tap do |generated|
+        generated.password = encode_percent(credentials[:password]) if credentials[:password].present?
+        generated.user = encode_percent(credentials[:user]) if credentials[:user].present?
+      end
     end
 
     def safe_url
@@ -85,6 +89,11 @@ module Gitlab
 
     def valid_credentials?
       credentials && credentials.is_a?(Hash) && credentials.any?
+    end
+
+    def encode_percent(string)
+      # CGI.escape converts spaces to +, but this doesn't work for git clone
+      CGI.escape(string).gsub('+', '%20')
     end
   end
 end

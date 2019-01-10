@@ -1,27 +1,16 @@
-/* eslint-disable func-names, space-before-function-paren, no-var, prefer-rest-params, wrap-iife, one-var, no-underscore-dangle, one-var-declaration-per-line, object-shorthand, no-unused-vars, no-new, comma-dangle, consistent-return, quotes, dot-notation, quote-props, prefer-arrow-callback, max-len */
-/* global Flash */
+/* eslint-disable no-var, one-var, no-unused-vars, consistent-return */
 
-import 'vendor/jquery.waitforimages';
-import '~/lib/utils/text_utility';
-import './flash';
+import $ from 'jquery';
+import axios from './lib/utils/axios_utils';
+import { addDelimiter } from './lib/utils/text_utility';
+import flash from './flash';
 import TaskList from './task_list';
 import CreateMergeRequestDropdown from './create_merge_request_dropdown';
 import IssuablesHelper from './helpers/issuables_helper';
 
-class Issue {
+export default class Issue {
   constructor() {
-    if ($('a.btn-close').length) {
-      this.taskList = new TaskList({
-        dataType: 'issue',
-        fieldName: 'description',
-        selector: '.detail-page-description',
-        onSuccess: (result) => {
-          document.querySelector('#task_status').innerText = result.task_status;
-          document.querySelector('#task_status_short').innerText = result.task_status_short;
-        }
-      });
-      this.initIssueBtnEventListeners();
-    }
+    if ($('a.btn-close').length) this.initIssueBtnEventListeners();
 
     Issue.$btnNewBranch = $('#new-branch');
     Issue.createMrDropdownWrap = document.querySelector('.create-mr-dropdown-wrap');
@@ -37,63 +26,90 @@ class Issue {
     if (Issue.createMrDropdownWrap) {
       this.createMergeRequestDropdown = new CreateMergeRequestDropdown(Issue.createMrDropdownWrap);
     }
+
+    // Listen to state changes in the Vue app
+    document.addEventListener('issuable_vue_app:change', event => {
+      this.updateTopState(event.detail.isClosed, event.detail.data);
+    });
+  }
+
+  /**
+   * This method updates the top area of the issue.
+   *
+   * Once the issue state changes, either through a click on the top area (jquery)
+   * or a click on the bottom area (Vue) we need to update the top area.
+   *
+   * @param {Boolean} isClosed
+   * @param {Array} data
+   * @param {String} issueFailMessage
+   */
+  updateTopState(isClosed, data, issueFailMessage = 'Unable to update this issue at this time.') {
+    if ('id' in data) {
+      const isClosedBadge = $('div.status-box-issue-closed');
+      const isOpenBadge = $('div.status-box-open');
+      const projectIssuesCounter = $('.issue_counter');
+
+      isClosedBadge.toggleClass('hidden', !isClosed);
+      isOpenBadge.toggleClass('hidden', isClosed);
+
+      $(document).trigger('issuable:change', isClosed);
+      this.toggleCloseReopenButton(isClosed);
+
+      let numProjectIssues = Number(
+        projectIssuesCounter
+          .first()
+          .text()
+          .trim()
+          .replace(/[^\d]/, ''),
+      );
+      numProjectIssues = isClosed ? numProjectIssues - 1 : numProjectIssues + 1;
+      projectIssuesCounter.text(addDelimiter(numProjectIssues));
+
+      if (this.createMergeRequestDropdown) {
+        if (isClosed) {
+          this.createMergeRequestDropdown.unavailable();
+          this.createMergeRequestDropdown.disable();
+        } else {
+          // We should check in case a branch was created in another tab
+          this.createMergeRequestDropdown.checkAbilityToCreateBranch();
+        }
+      }
+    } else {
+      flash(issueFailMessage);
+    }
   }
 
   initIssueBtnEventListeners() {
     const issueFailMessage = 'Unable to update this issue at this time.';
 
-    return $(document).on('click', '.js-issuable-actions a.btn-close, .js-issuable-actions a.btn-reopen', (e) => {
-      var $button, shouldSubmit, url;
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      $button = $(e.currentTarget);
-      shouldSubmit = $button.hasClass('btn-comment');
-      if (shouldSubmit) {
-        Issue.submitNoteForm($button.closest('form'));
-      }
-
-      this.disableCloseReopenButton($button);
-
-      url = $button.attr('href');
-      return $.ajax({
-        type: 'PUT',
-        url: url
-      })
-      .fail(() => new Flash(issueFailMessage))
-      .done((data) => {
-        const isClosedBadge = $('div.status-box-closed');
-        const isOpenBadge = $('div.status-box-open');
-        const projectIssuesCounter = $('.issue_counter');
-
-        if ('id' in data) {
-          const isClosed = $button.hasClass('btn-close');
-          isClosedBadge.toggleClass('hidden', !isClosed);
-          isOpenBadge.toggleClass('hidden', isClosed);
-
-          $(document).trigger('issuable:change', isClosed);
-          this.toggleCloseReopenButton(isClosed);
-
-          let numProjectIssues = Number(projectIssuesCounter.first().text().trim().replace(/[^\d]/, ''));
-          numProjectIssues = isClosed ? numProjectIssues - 1 : numProjectIssues + 1;
-          projectIssuesCounter.text(gl.text.addDelimiter(numProjectIssues));
-
-          if (this.createMergeRequestDropdown) {
-            if (isClosed) {
-              this.createMergeRequestDropdown.unavailable();
-              this.createMergeRequestDropdown.disable();
-            } else {
-              // We should check in case a branch was created in another tab
-              this.createMergeRequestDropdown.checkAbilityToCreateBranch();
-            }
-          }
-        } else {
-          new Flash(issueFailMessage);
+    return $(document).on(
+      'click',
+      '.js-issuable-actions a.btn-close, .js-issuable-actions a.btn-reopen',
+      e => {
+        var $button, shouldSubmit, url;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        $button = $(e.currentTarget);
+        shouldSubmit = $button.hasClass('btn-comment');
+        if (shouldSubmit) {
+          Issue.submitNoteForm($button.closest('form'));
         }
-      })
-      .then(() => {
-        this.disableCloseReopenButton($button, false);
-      });
-    });
+
+        this.disableCloseReopenButton($button);
+
+        url = $button.attr('href');
+        return axios
+          .put(url)
+          .then(({ data }) => {
+            const isClosed = $button.hasClass('btn-close');
+            this.updateTopState(isClosed, data);
+          })
+          .catch(() => flash(issueFailMessage))
+          .then(() => {
+            this.disableCloseReopenButton($button, false);
+          });
+      },
+    );
   }
 
   initCloseReopenReport() {
@@ -119,7 +135,7 @@ class Issue {
 
   static submitNoteForm(form) {
     var noteText;
-    noteText = form.find("textarea.js-note-text").val();
+    noteText = form.find('textarea.js-note-text').val();
     if (noteText && noteText.trim().length > 0) {
       return form.submit();
     }
@@ -128,26 +144,26 @@ class Issue {
   static initMergeRequests() {
     var $container;
     $container = $('#merge-requests');
-    return $.getJSON($container.data('url')).fail(function() {
-      return new Flash('Failed to load referenced merge requests');
-    }).done(function(data) {
-      if ('html' in data) {
-        return $container.html(data.html);
-      }
-    });
+    return axios
+      .get($container.data('url'))
+      .then(({ data }) => {
+        if ('html' in data) {
+          $container.html(data.html);
+        }
+      })
+      .catch(() => flash('Failed to load referenced merge requests'));
   }
 
   static initRelatedBranches() {
     var $container;
     $container = $('#related-branches');
-    return $.getJSON($container.data('url')).fail(function() {
-      return new Flash('Failed to load related branches');
-    }).done(function(data) {
-      if ('html' in data) {
-        return $container.html(data.html);
-      }
-    });
+    return axios
+      .get($container.data('url'))
+      .then(({ data }) => {
+        if ('html' in data) {
+          $container.html(data.html);
+        }
+      })
+      .catch(() => flash('Failed to load related branches'));
   }
 }
-
-export default Issue;

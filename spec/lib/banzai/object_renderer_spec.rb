@@ -3,8 +3,15 @@ require 'spec_helper'
 describe Banzai::ObjectRenderer do
   let(:project) { create(:project, :repository) }
   let(:user) { project.owner }
-  let(:renderer) { described_class.new(project, user, custom_value: 'value') }
-  let(:object) { Note.new(note: 'hello', note_html: '<p dir="auto">hello</p>', cached_markdown_version: CacheMarkdownField::CACHE_VERSION) }
+  let(:renderer) do
+    described_class.new(
+      default_project: project,
+      user: user,
+      redaction_context: { custom_value: 'value' }
+    )
+  end
+
+  let(:object) { Note.new(note: 'hello', note_html: '<p dir="auto">hello</p>', cached_markdown_version: CacheMarkdownField::CACHE_COMMONMARK_VERSION) }
 
   describe '#render' do
     context 'with cache' do
@@ -22,7 +29,7 @@ describe Banzai::ObjectRenderer do
       end
 
       it 'retrieves field content using Banzai::Renderer.render_field' do
-        expect(Banzai::Renderer).to receive(:render_field).with(object, :note).and_call_original
+        expect(Banzai::Renderer).to receive(:render_field).with(object, :note, {}).and_call_original
 
         renderer.render([object], :note)
       end
@@ -68,7 +75,7 @@ describe Banzai::ObjectRenderer do
       end
 
       it 'retrieves field content using Banzai::Renderer.cacheless_render_field' do
-        expect(Banzai::Renderer).to receive(:cacheless_render_field).with(commit, :title).and_call_original
+        expect(Banzai::Renderer).to receive(:cacheless_render_field).with(commit, :title, {}).and_call_original
 
         renderer.render([commit], :title)
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # TodosFinder
 #
 # Used to filter Todos by set of params
@@ -13,7 +15,15 @@
 #
 
 class TodosFinder
+  prepend FinderWithCrossProjectAccess
+  include FinderMethods
+  include Gitlab::Utils::StrongMemoize
+
+  requires_cross_project_access unless: -> { project? }
+
   NONE = '0'.freeze
+
+  TODO_TYPES = Set.new(%w(Issue MergeRequest Epic)).freeze
 
   attr_accessor :current_user, :params
 
@@ -29,11 +39,19 @@ class TodosFinder
     items = by_author(items)
     items = by_state(items)
     items = by_type(items)
+    items = by_group(items)
     # Filtering by project HAS TO be the last because we use
     # the project IDs yielded by the todos query thus far
     items = by_project(items)
 
     sort(items)
+  end
+
+  # Returns `true` if the current user has any todos for the given target.
+  #
+  # target - The value of the `target_type` column, such as `Issue`.
+  def any_for_target?(target)
+    current_user.todos.any_for_target?(target)
   end
 
   private
@@ -63,54 +81,35 @@ class TodosFinder
   end
 
   def author
-    return @author if defined?(@author)
-
-    @author =
+    strong_memoize(:author) do
       if author? && params[:author_id] != NONE
         User.find(params[:author_id])
-      else
-        nil
       end
+    end
   end
 
   def project?
     params[:project_id].present?
   end
 
+  def group?
+    params[:group_id].present?
+  end
+
   def project
-    return @project if defined?(@project)
-
-    if project?
-      @project = Project.find(params[:project_id])
-
-      @project = nil if @project.pending_delete?
-
-      unless Ability.allowed?(current_user, :read_project, @project)
-        @project = nil
-      end
-    else
-      @project = nil
+    strong_memoize(:project) do
+      Project.find_without_deleted(params[:project_id]) if project?
     end
-
-    @project
   end
 
-  def project_ids(items)
-    ids = items.except(:order).select(:project_id)
-    if Gitlab::Database.mysql?
-      # To make UPDATE work on MySQL, wrap it in a SELECT with an alias
-      ids = Todo.except(:order).select('*').from("(#{ids.to_sql}) AS t")
+  def group
+    strong_memoize(:group) do
+      Group.find(params[:group_id])
     end
-
-    ids
-  end
-
-  def projects(items)
-    ProjectsFinder.new(current_user: current_user, project_ids_relation: project_ids(items)).execute
   end
 
   def type?
-    type.present? && %w(Issue MergeRequest).include?(type)
+    type.present? && TODO_TYPES.include?(type)
   end
 
   def type
@@ -118,47 +117,55 @@ class TodosFinder
   end
 
   def sort(items)
-    params[:sort] ? items.sort(params[:sort]) : items.order_id_desc
+    if params[:sort]
+      items.sort_by_attribute(params[:sort])
+    else
+      items.order_id_desc
+    end
   end
 
   def by_action(items)
     if action?
-      items = items.where(action: to_action_id)
+      items.for_action(to_action_id)
+    else
+      items
     end
-
-    items
   end
 
   def by_action_id(items)
     if action_id?
-      items = items.where(action: action_id)
+      items.for_action(action_id)
+    else
+      items
     end
-
-    items
   end
 
   def by_author(items)
     if author?
-      items = items.where(author_id: author.try(:id))
+      items.for_author(author)
+    else
+      items
     end
-
-    items
   end
 
   def by_project(items)
     if project?
-      items = items.where(project: project)
+      items.for_project(project)
     else
-      item_projects = projects(items)
-      items = items.merge(item_projects).joins(:project)
+      items
     end
+  end
 
-    items
+  def by_group(items)
+    if group?
+      items.for_group_and_descendants(group)
+    else
+      items
+    end
   end
 
   def by_state(items)
-    case params[:state].to_s
-    when 'done'
+    if params[:state].to_s == 'done'
       items.done
     else
       items.pending
@@ -167,9 +174,9 @@ class TodosFinder
 
   def by_type(items)
     if type?
-      items = items.where(target_type: type)
+      items.for_type(type)
+    else
+      items
     end
-
-    items
   end
 end

@@ -40,7 +40,7 @@ issues around that same idea.
 You do that as explained above, when
 [mentioning an issue from a commit message](#from-commit-messages).
 
-When mentioning the issue "A" in a issue "B", the issue "A" will also
+When mentioning the issue "A" in issue "B", the issue "A" will also
 display a notification in its tracker. The same is valid for mentioning
 issues in merge requests.
 
@@ -60,4 +60,4 @@ or simply link both issue and merge request as described in the
 
 ### Close an issue by merging a merge request
 
-To [close an issue when a merge request is merged](closing_issues.md#via-merge-request), use the [automatic issue closing patern](automatic_issue_closing.md).
+To [close an issue when a merge request is merged](closing_issues.md#via-merge-request), use the [automatic issue closing pattern](automatic_issue_closing.md).

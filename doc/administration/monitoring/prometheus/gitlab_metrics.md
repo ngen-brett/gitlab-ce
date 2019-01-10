@@ -1,7 +1,7 @@
 # GitLab Prometheus metrics
 
 >**Note:**
-Available since [Omnibus GitLab 9.3][29118]. Currently experimental. For
+Available since [Omnibus GitLab 9.3][29118]. For
 installations from source you'll have to configure it yourself.
 
 To enable the GitLab Prometheus metrics:
@@ -20,11 +20,11 @@ it, the client IP needs to be [included in a whitelist][whitelist].
 Currently the embedded Prometheus server is not automatically configured to
 collect metrics from this endpoint. We recommend setting up another Prometheus
 server, because the embedded server configuration is overwritten once every
-[reconfigure of GitLab][reconfigure]. In the future this will not be required. 
+[reconfigure of GitLab][reconfigure]. In the future this will not be required.
 
-## Metrics available
+## Unicorn Metrics available
 
-In this experimental phase, only a few metrics are available:
+The following metrics are available:
 
 | Metric                            | Type      | Since | Description |
 |:--------------------------------- |:--------- |:----- |:----------- |
@@ -45,6 +45,23 @@ In this experimental phase, only a few metrics are available:
 | redis_ping_success                | Gauge     | 9.4   | Whether or not the last redis ping succeeded |
 | redis_ping_latency_seconds        | Gauge     | 9.4   | Round trip time of the redis ping |
 | user_session_logins_total         | Counter   | 9.4   | Counter of how many users have logged in |
+| upload_file_does_not_exist        | Counter   | 10.7 in EE, 11.5 in CE  | Number of times an upload record could not find its file |
+| failed_login_captcha_total        | Gauge | 11.0 | Counter of failed CAPTCHA attempts during login |
+| successful_login_captcha_total    | Gauge | 11.0 | Counter of successful CAPTCHA attempts during login |
+
+### Ruby metrics
+
+Some basic Ruby runtime metrics are available:
+
+| Metric                                 | Type      | Since | Description |
+|:-------------------------------------- |:--------- |:----- |:----------- |
+| ruby_gc_duration_seconds_total         | Counter   | 11.1  | Time spent by Ruby in GC |
+| ruby_gc_stat_...                       | Gauge     | 11.1  | Various metrics from [GC.stat] |
+| ruby_file_descriptors                  | Gauge     | 11.1  | File descriptors per process |
+| ruby_memory_bytes                      | Gauge     | 11.1  | Memory usage by process |
+| ruby_sampler_duration_seconds_total    | Counter   | 11.1  | Time spent collecting stats |
+
+[GC.stat]: https://ruby-doc.org/core-2.3.0/GC.html#method-c-stat
 
 ## Metrics shared directory
 

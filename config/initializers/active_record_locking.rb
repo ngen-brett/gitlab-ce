@@ -1,7 +1,9 @@
 # rubocop:disable Lint/RescueException
 
-# This patch fixes https://github.com/rails/rails/issues/26024
-# TODO: Remove it when it's no longer necessary
+# Remove this monkey patch when we move to Rails 5.1, because the bug has been fixed in https://github.com/rails/rails/pull/26050.
+if Rails.gem_version >= Gem::Version.new("5.1")
+  raise "Remove this monkey patch: #{__FILE__}"
+end
 
 module ActiveRecord
   module Locking
@@ -17,12 +19,7 @@ module ActiveRecord
         return 0 if attribute_names.empty?
 
         lock_col = self.class.locking_column
-
-        previous_lock_value = send(lock_col).to_i # rubocop:disable GitlabSecurity/PublicSend
-
-        # This line is added as a patch
-        previous_lock_value = nil if previous_lock_value == '0' || previous_lock_value == 0
-
+        previous_lock_value = send(lock_col).to_i
         increment_lock
 
         attribute_names += [lock_col]
@@ -33,7 +30,8 @@ module ActiveRecord
 
           affected_rows = relation.where(
             self.class.primary_key => id,
-            lock_col => previous_lock_value
+            # Patched because when `lock_version` is read as `0`, it may actually be `NULL` in the DB.
+            lock_col => previous_lock_value == 0 ? [nil, 0] : previous_lock_value
           ).update_all(
             attributes_for_update(attribute_names).map do |name|
               [name, _read_attribute(name)]
@@ -48,7 +46,7 @@ module ActiveRecord
 
         # If something went wrong, revert the version.
         rescue Exception
-          send(lock_col + '=', previous_lock_value)  # rubocop:disable GitlabSecurity/PublicSend
+          send(lock_col + '=', previous_lock_value)
           raise
         end
       end
@@ -65,8 +63,12 @@ module ActiveRecord
 
     # This is patched because we want `lock_version` default to `NULL`
     # rather than `0`
-    class LockingType < SimpleDelegator
-      def type_cast_from_database(value)
+    class LockingType
+      def deserialize(value)
+        super
+      end
+
+      def serialize(value)
         super
       end
     end

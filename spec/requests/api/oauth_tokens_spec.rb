@@ -3,7 +3,7 @@ require 'spec_helper'
 describe 'OAuth tokens' do
   context 'Resource Owner Password Credentials' do
     def request_oauth_token(user)
-      post '/oauth/token', username: user.username, password: user.password, grant_type: 'password'
+      post '/oauth/token', params: { username: user.username, password: user.password, grant_type: 'password' }
     end
 
     context 'when user has 2FA enabled' do
@@ -12,7 +12,7 @@ describe 'OAuth tokens' do
 
         request_oauth_token(user)
 
-        expect(response).to have_http_status(401)
+        expect(response).to have_gitlab_http_status(401)
         expect(json_response['error']).to eq('invalid_grant')
       end
     end
@@ -23,7 +23,7 @@ describe 'OAuth tokens' do
 
         request_oauth_token(user)
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
         expect(json_response['access_token']).not_to be_nil
       end
     end
@@ -35,7 +35,7 @@ describe 'OAuth tokens' do
 
         request_oauth_token(user)
 
-        expect(response).to have_http_status(401)
+        expect(response).to have_gitlab_http_status(401)
       end
     end
 
@@ -46,7 +46,7 @@ describe 'OAuth tokens' do
 
         request_oauth_token(user)
 
-        expect(response).to have_http_status(401)
+        expect(response).to have_gitlab_http_status(401)
       end
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class InvitesController < ApplicationController
   before_action :member
   skip_before_action :authenticate_user!, only: :decline
@@ -50,9 +52,9 @@ class InvitesController < ApplicationController
   def authenticate_user!
     return if current_user
 
-    notice = "To accept this invitation, sign in"
-    notice << " or create an account" if current_application_settings.signup_enabled?
-    notice << "."
+    notice = ["To accept this invitation, sign in"]
+    notice << "or create an account" if Gitlab::CurrentSettings.allow_signup?
+    notice = notice.join(' ') + "."
 
     store_location_for :user, request.fullpath
     redirect_to new_user_session_path, notice: notice
@@ -62,7 +64,7 @@ class InvitesController < ApplicationController
     case source
     when Project
       project = member.source
-      label = "project #{project.name_with_namespace}"
+      label = "project #{project.full_name}"
       path = project_path(project)
     when Group
       group = member.source

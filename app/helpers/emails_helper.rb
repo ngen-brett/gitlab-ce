@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module EmailsHelper
   include AppearancesHelper
 
@@ -24,6 +26,7 @@ module EmailsHelper
 
   def action_title(url)
     return unless url
+
     %w(merge_requests issues commit).each do |action|
       if url.split("/").include?(action)
         return "View #{action.humanize.singularize}"
@@ -48,14 +51,14 @@ module EmailsHelper
 
   def reset_token_expire_message
     link_tag = link_to('request a new one', new_user_password_url(user_email: @user.email))
-    msg = "This link is valid for #{password_reset_token_valid_time}.  "
-    msg << "After it expires, you can #{link_tag}."
+    "This link is valid for #{password_reset_token_valid_time}.  " \
+    "After it expires, you can #{link_tag}."
   end
 
   def header_logo
-    if brand_item && brand_item.header_logo?
+    if current_appearance&.header_logo?
       image_tag(
-        brand_item.header_logo,
+        current_appearance.header_logo_path,
         style: 'height: 50px'
       )
     else
@@ -78,5 +81,46 @@ module EmailsHelper
       'margin:0',
       'text-align:center'
     ].join(';')
+  end
+
+  # "You are receiving this email because #{reason}"
+  def notification_reason_text(reason)
+    string = case reason
+             when NotificationReason::OWN_ACTIVITY
+               'of your activity'
+             when NotificationReason::ASSIGNED
+               'you have been assigned an item'
+             when NotificationReason::MENTIONED
+               'you have been mentioned'
+             else
+               'of your account'
+             end
+
+    "#{string} on #{Gitlab.config.gitlab.host}"
+  end
+
+  def create_list_id_string(project, list_id_max_length = 255)
+    project_path_as_domain = project.full_path.downcase
+      .split('/').reverse.join('/')
+      .gsub(%r{[^a-z0-9\/]}, '-')
+      .gsub(%r{\/+}, '.')
+      .gsub(/(\A\.+|\.+\z)/, '')
+
+    max_domain_length = list_id_max_length - Gitlab.config.gitlab.host.length - project.id.to_s.length - 2
+
+    if max_domain_length < 3
+      return project.id.to_s + "..." + Gitlab.config.gitlab.host
+    end
+
+    if project_path_as_domain.length > max_domain_length
+      project_path_as_domain = project_path_as_domain.slice(0, max_domain_length)
+
+      last_dot_index = project_path_as_domain[0..-2].rindex(".")
+      last_dot_index ||= max_domain_length - 2
+
+      project_path_as_domain = project_path_as_domain.slice(0, last_dot_index).concat("..")
+    end
+
+    project.id.to_s + "." + project_path_as_domain + "." + Gitlab.config.gitlab.host
   end
 end

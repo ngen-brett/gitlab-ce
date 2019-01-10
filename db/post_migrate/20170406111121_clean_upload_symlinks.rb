@@ -1,7 +1,7 @@
 # See http://doc.gitlab.com/ce/development/migration_style_guide.html
 # for more information on how to write migrations for GitLab.
 
-class CleanUploadSymlinks < ActiveRecord::Migration
+class CleanUploadSymlinks < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
   disable_ddl_transaction!
 
@@ -14,6 +14,7 @@ class CleanUploadSymlinks < ActiveRecord::Migration
     DIRECTORIES_TO_MOVE.each do |dir|
       symlink_location = File.join(old_upload_dir, dir)
       next unless File.symlink?(symlink_location)
+
       say "removing symlink: #{symlink_location}"
       FileUtils.rm(symlink_location)
     end

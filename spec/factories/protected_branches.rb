@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :protected_branch do
     name
     project
@@ -39,22 +39,23 @@ FactoryGirl.define do
       end
     end
 
-    trait :masters_can_push do
+    trait :maintainers_can_push do
       transient do
         default_push_level false
       end
 
       after(:build) do |protected_branch|
-        protected_branch.push_access_levels.new(access_level: Gitlab::Access::MASTER)
+        protected_branch.push_access_levels.new(access_level: Gitlab::Access::MAINTAINER)
       end
     end
 
     after(:build) do |protected_branch, evaluator|
       if evaluator.default_access_level && evaluator.default_push_level
-        protected_branch.push_access_levels.new(access_level: Gitlab::Access::MASTER)
+        protected_branch.push_access_levels.new(access_level: Gitlab::Access::MAINTAINER)
       end
+
       if evaluator.default_access_level && evaluator.default_merge_level
-        protected_branch.merge_access_levels.new(access_level: Gitlab::Access::MASTER)
+        protected_branch.merge_access_levels.new(access_level: Gitlab::Access::MAINTAINER)
       end
     end
 

@@ -1,9 +1,12 @@
-/* global Flash */
+import $ from 'jquery';
+import Flash from '../../flash';
 import { handleLocationHash } from '../../lib/utils/common_utils';
+import axios from '../../lib/utils/axios_utils';
 
 export default class BlobViewer {
   constructor() {
     BlobViewer.initAuxiliaryViewer();
+    BlobViewer.initRichViewer();
 
     this.initMainViewers();
   }
@@ -13,6 +16,39 @@ export default class BlobViewer {
     if (!auxiliaryViewer) return;
 
     BlobViewer.loadViewer(auxiliaryViewer);
+  }
+
+  static initRichViewer() {
+    const viewer = document.querySelector('.blob-viewer[data-type="rich"]');
+    if (!viewer || !viewer.dataset.richType) return;
+
+    const initViewer = promise =>
+      promise
+        .then(module => module.default(viewer))
+        .catch(error => {
+          Flash('Error loading file viewer.');
+          throw error;
+        });
+
+    switch (viewer.dataset.richType) {
+      case 'balsamiq':
+        initViewer(import(/* webpackChunkName: 'balsamiq_viewer' */ '../balsamiq_viewer'));
+        break;
+      case 'notebook':
+        initViewer(import(/* webpackChunkName: 'notebook_viewer' */ '../notebook_viewer'));
+        break;
+      case 'pdf':
+        initViewer(import(/* webpackChunkName: 'pdf_viewer' */ '../pdf_viewer'));
+        break;
+      case 'sketch':
+        initViewer(import(/* webpackChunkName: 'sketch_viewer' */ '../sketch_viewer'));
+        break;
+      case 'stl':
+        initViewer(import(/* webpackChunkName: 'stl_viewer' */ '../stl_viewer'));
+        break;
+      default:
+        break;
+    }
   }
 
   initMainViewers() {
@@ -35,7 +71,7 @@ export default class BlobViewer {
     const initialViewer = this.$fileHolder[0].querySelector('.blob-viewer:not(.hidden)');
     let initialViewerName = initialViewer.getAttribute('data-type');
 
-    if (this.switcher && location.hash.indexOf('#L') === 0) {
+    if (this.switcher && window.location.hash.indexOf('#L') === 0) {
       initialViewerName = 'simple';
     }
 
@@ -44,10 +80,9 @@ export default class BlobViewer {
 
   initBindings() {
     if (this.switcherBtns.length) {
-      Array.from(this.switcherBtns)
-        .forEach((el) => {
-          el.addEventListener('click', this.switchViewHandler.bind(this));
-        });
+      Array.from(this.switcherBtns).forEach(el => {
+        el.addEventListener('click', this.switchViewHandler.bind(this));
+      });
     }
 
     if (this.copySourceBtn) {
@@ -74,14 +109,17 @@ export default class BlobViewer {
       this.copySourceBtn.setAttribute('title', 'Copy source to clipboard');
       this.copySourceBtn.classList.remove('disabled');
     } else if (this.activeViewer === this.simpleViewer) {
-      this.copySourceBtn.setAttribute('title', 'Wait for the source to load to copy it to the clipboard');
+      this.copySourceBtn.setAttribute(
+        'title',
+        'Wait for the source to load to copy it to the clipboard',
+      );
       this.copySourceBtn.classList.add('disabled');
     } else {
       this.copySourceBtn.setAttribute('title', 'Switch to the source to copy it to the clipboard');
       this.copySourceBtn.classList.add('disabled');
     }
 
-    $(this.copySourceBtn).tooltip('fixTitle');
+    $(this.copySourceBtn).tooltip('_fixTitle');
   }
 
   switchToViewer(name) {
@@ -112,40 +150,32 @@ export default class BlobViewer {
     this.toggleCopyButtonState();
 
     BlobViewer.loadViewer(newViewer)
-    .then((viewer) => {
-      $(viewer).renderGFM();
+      .then(viewer => {
+        $(viewer).renderGFM();
 
-      this.$fileHolder.trigger('highlight:line');
-      handleLocationHash();
+        this.$fileHolder.trigger('highlight:line');
+        handleLocationHash();
 
-      this.toggleCopyButtonState();
-    })
-    .catch(() => new Flash('Error loading viewer'));
+        this.toggleCopyButtonState();
+      })
+      .catch(() => new Flash('Error loading viewer'));
   }
 
   static loadViewer(viewerParam) {
     const viewer = viewerParam;
     const url = viewer.getAttribute('data-url');
 
-    return new Promise((resolve, reject) => {
-      if (!url || viewer.getAttribute('data-loaded') || viewer.getAttribute('data-loading')) {
-        resolve(viewer);
-        return;
-      }
+    if (!url || viewer.getAttribute('data-loaded') || viewer.getAttribute('data-loading')) {
+      return Promise.resolve(viewer);
+    }
 
-      viewer.setAttribute('data-loading', 'true');
+    viewer.setAttribute('data-loading', 'true');
 
-      $.ajax({
-        url,
-        dataType: 'JSON',
-      })
-      .fail(reject)
-      .done((data) => {
-        viewer.innerHTML = data.html;
-        viewer.setAttribute('data-loaded', 'true');
+    return axios.get(url).then(({ data }) => {
+      viewer.innerHTML = data.html;
+      viewer.setAttribute('data-loaded', 'true');
 
-        resolve(viewer);
-      });
+      return viewer;
     });
   }
 }

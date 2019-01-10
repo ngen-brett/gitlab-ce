@@ -22,14 +22,14 @@ group and grant access to all their projects at once
 - Create a group, include members of your team, and make it easier to
 `@mention` all the team at once in issues and merge requests
   - Create a group for your company members, and create [subgroups](subgroups/index.md)
-  for each individual team. Let's say you create a group called `company-team`, and among others,
-      you created subgroups in this group for each individual team `backend-team`,
-      `frontend-team`, and `production-team`:
-        1. When you start a new implementation from an issue, you add a comment:
+    for each individual team. Let's say you create a group called `company-team`, and among others,
+    you created subgroups in this group for each individual team `backend-team`,
+    `frontend-team`, and `production-team`:
+     1. When you start a new implementation from an issue, you add a comment:
         _"`@company-team`, let's do it! `@company-team/backend-team` you're good to go!"_
-        1. When your backend team needs help from frontend, they add a comment:
+     1. When your backend team needs help from frontend, they add a comment:
         _"`@company-team/frontend-team` could you help us here please?"_
-        1. When the frontend team completes their implementation, they comment:
+     1. When the frontend team completes their implementation, they comment:
         _"`@company-team/backend-team`, it's done! Let's ship it `@company-team/production-team`!"_
 
 ## Namespaces
@@ -40,20 +40,20 @@ In GitLab, a namespace is a unique name to be used as a user name, a group name,
 - `http://gitlab.example.com/groupname`
 - `http://gitlab.example.com/groupname/subgroup_name`
 
-For example, consider a user called John:
+For example, consider a user named Alex:
 
-1. John creates his account on GitLab.com with the username `john`;
-his profile will be accessed under `https://gitlab.example.com/john`
-1. John creates a group for his team with the groupname `john-team`;
-his group and its projects will be accessed under `https://gitlab.example.com/john-team`
-1. John creates a subgroup of `john-team` with the subgroup name `marketing`;
-his subgroup and its projects will be accessed under `https://gitlab.example.com/john-team/marketing`
+1. Alex creates an account on GitLab.com with the username `alex`;
+their profile will be accessed under `https://gitlab.example.com/alex`
+1. Alex creates a group for their team with the groupname `alex-team`;
+the group and its projects will be accessed under `https://gitlab.example.com/alex-team`
+1. Alex creates a subgroup of `alex-team` with the subgroup name `marketing`;
+this subgroup and its projects will be accessed under `https://gitlab.example.com/alex-team/marketing`
 
 By doing so:
 
-- Any team member mentions John with `@john`
-- John mentions everyone from his team with `@john-team`
-- John mentions only his marketing team with `@john-team/marketing`
+- Any team member mentions Alex with `@alex`
+- Alex mentions everyone from their team with `@alex-team`
+- Alex mentions only the marketing team with `@alex-team/marketing`
 
 ## Issues and merge requests within a group
 
@@ -64,8 +64,8 @@ together in a single list view.
 ## Create a new group
 
 > **Notes:**
-- For a list of words that are not allowed to be used as group names see the
-  [reserved names][reserved].
+> - For a list of words that are not allowed to be used as group names see the
+>   [reserved names](../reserved_names.md).
 
 You can create a group in GitLab from:
 
@@ -97,7 +97,7 @@ Add members to a group by navigating to the group's dashboard, and clicking **Me
 
 ![add members to group](img/add_new_members.png)
 
-Select the [permission level][permissions] and add the new member. You can also set the expiring
+Select the [permission level](../permissions.md#permissions) and add the new member. You can also set the expiring
 date for that user, from which they will no longer have access to your group.
 
 One of the benefits of putting multiple projects in one group is that you can
@@ -125,7 +125,7 @@ side of your screen.
 
 ---
 
-Group owners and masters will be notified of your request and will be able to approve or
+Group owners and maintainers will be notified of your request and will be able to approve or
 decline it on the members page.
 
 ![Manage access requests](img/access_requests_management.png)
@@ -152,16 +152,9 @@ There are two different ways to add a new project to a group:
 
     ![Select group](img/select_group_dropdown.png)
 
-## Transfer an existing project into a group
+## Transfer projects into groups
 
-You can transfer an existing project into a group as long as you have at least **Master** [permissions][permissions] to that group
-and if you are an **Owner** of the project.
-
-![Transfer a project to a new namespace](img/transfer_project_to_other_group.png)
-
-Find this option under your project's settings.
-
-GitLab administrators can use the admin interface to move any project to any namespace if needed.
+Learn how to [transfer a project into a group](../project/index.md#transfer-an-existing-project-into-a-group).
 
 ## Sharing a project with a group
 
@@ -174,6 +167,20 @@ Alternatively, you can [lock the sharing with group feature](#share-with-group-l
 
 In GitLab Enterprise Edition it is possible to manage GitLab group memberships using LDAP groups.
 See [the GitLab Enterprise Edition documentation](../../integration/ldap.md) for more information.
+
+## Transfer groups to another group
+
+From 10.5 there are two different ways to transfer a group:
+
+- Either by transferring a group into another group (making it a subgroup of that group).
+- Or by converting a subgroup into a root group (a group with no parent).
+
+Please make sure to understand that:
+
+- Changing a group's parent can have unintended side effects. See [Redirects when changing repository paths](https://docs.gitlab.com/ce/user/project/index.html#redirects-when-changing-repository-paths)
+- You can only transfer the group to a group you manage.
+- You will need to update your local repositories to point to the new location.
+- If the parent group's visibility is lower than the group current visibility, visibility levels for subgroups and projects will be changed to match the new parent group's visibility.
 
 ## Group settings
 
@@ -190,24 +197,29 @@ access further configurations for your group.
 
 #### Changing a group's path
 
-> **Note:** If you want to retain ownership over the original namespace and
+Changing a group's path can have unintended side effects. Read
+[how redirects will behave](../project/index.md#redirects-when-changing-repository-paths)
+before proceeding.
+
+If you are vacating the path so it can be claimed by another group or user,
+you may need to rename the group name as well since both names and paths must
+be unique.
+
+To change your group path:
+
+1. Navigate to your group's **Settings > General**.
+1. Enter a new name under "Group path".
+1. Hit **Save group**.
+
+CAUTION: **Caution:**
+It is currently not possible to rename a namespace if it contains a
+project with [Container Registry](../project/container_registry.md) tags,
+because the project cannot be moved.
+
+TIP: **TIP:**
+If you want to retain ownership over the original namespace and
 protect the URL redirects, then instead of changing a group's path or renaming a
 username, you can create a new group and transfer projects to it.
-
-Changing a group's path can have unintended side effects.
-
-* Existing web URLs for the group and anything under it (i.e. projects) will
-redirect to the new URLs
-* Existing Git remote URLs for projects under the group will no longer work, but
-Git responses will show an error with the new remote URL
-* The original namespace can be claimed again by any group or user, which will
-destroy web redirects and Git remote warnings
-* If you are vacating the path so it can be claimed by another group or user,
-you may need to rename the group name as well since both names and paths must be
-unique
-
-> It is currently not possible to rename a namespace if it contains a
-project with container registry tags, because the project cannot be moved.
 
 #### Enforce 2FA to group members
 
@@ -233,24 +245,31 @@ To enable this feature, navigate to the group settings page. Select
 
 ![Checkbox for share with group lock](img/share_with_group_lock.png)
 
-#### Member Lock (EES/EEP)
+#### Member Lock **[STARTER]**
 
-Available in [GitLab Enterprise Edition Starter](https://about.gitlab.com/gitlab-ee/),
-with **Member Lock** it is possible to lock membership in project to the
+With **Member Lock** it is possible to lock membership in project to the
 level of members in group.
 
-Learn more about [Member Lock](https://docs.gitlab.com/ee/user/group/index.html#member-lock-ees-eep).
+Learn more about [Member Lock](https://docs.gitlab.com/ee/user/group/index.html#member-lock).
+
+#### Group-level file templates **[PREMIUM]**
+
+Group-level file templates allow you to share a set of templates for common file
+types with every project in a group.
+
+Learn more about [Group-level file templates](https://docs.gitlab.com/ee/user/group/index.html#group-level-file-templates-premium).
+
+#### Group-level project templates **[PREMIUM]**
+
+Define project templates at a group-level by setting a group as a template source.
+[Learn more about group-level project templates](custom_project_templates.md).
 
 ### Advanced settings
 
 - **Projects**: view all projects within that group, add members to each project,
 access each project's settings, and remove any project from the same screen.
-- **Webhooks**: configure [webhooks](../project/integrations/webhooks.md)
-and [push rules](https://docs.gitlab.com/ee/push_rules/push_rules.html#push-rules) to your group (Push Rules is available in [GitLab Enteprise Edition Starter][ee].)
+- **Webhooks**: configure [webhooks](../project/integrations/webhooks.md) to your group.
+- **Kubernetes cluster integration**: connect your GitLab group with [Kubernetes clusters](clusters/index.md).
 - **Audit Events**: view [Audit Events](https://docs.gitlab.com/ee/administration/audit_events.html#audit-events)
-for the group (GitLab admins only, available in [GitLab Enterprise Edition Starter][ee]).
-- **Pipelines quota**: keep track of the [pipeline quota](../admin_area/settings/continuous_integration.md) for the group
-
-[permissions]: ../permissions.md#permissions
-[ee]: https://about.gitlab.com/products/
-[reserved]:  ../reserved_names.md
+for the group. **[STARTER ONLY]**
+- **Pipelines quota**: keep track of the [pipeline quota](../admin_area/settings/continuous_integration.md) for the group.

@@ -2,12 +2,12 @@
  * Note Form
  */
 .comment-btn {
-  @extend .btn-create;
+  @extend .btn-success;
 }
 
 .diff-file .diff-content {
   tr.line_holder:hover > td .line_note_link {
-    opacity: 1.0;
+    opacity: 1;
     filter: alpha(opacity = 100);
   }
 }
@@ -16,15 +16,13 @@
 .discussion {
   .new-note {
     margin: 0;
-    border: none;
+    border: 0;
   }
 }
 
 .new-note,
 .note-edit-form {
   .note-form-actions {
-    @include new-style-dropdown;
-
     position: relative;
     margin: $gl-padding 0 0;
   }
@@ -44,7 +42,7 @@
   display: block;
   padding: 10px 0;
   color: $gl-text-color;
-  font-family: $regular_font;
+  font-family: $regular-font;
   border: 0;
 
   &:focus {
@@ -53,7 +51,7 @@
 }
 
 .note-image-attach {
-  @extend .col-md-4;
+  @extend .col-lg-4;
   margin-left: 45px;
   float: none;
 }
@@ -71,18 +69,18 @@
 
       .comment-toolbar,
       .nav-links {
-        border-color: $focus-border-color;
+        border-color: $blue-300;
       }
     }
 
     &.is-dropzone-hover {
-      border-color: $gl-success;
+      border-color: $green-500;
       box-shadow: 0 0 2px $black-transparent,
-                  0 0 4px $gl-success-focus;
+                  0 0 4px $green-500-focus;
 
       .comment-toolbar,
       .nav-links {
-        border-color: $gl-success;
+        border-color: $green-500;
       }
     }
   }
@@ -95,50 +93,93 @@
   -webkit-flex-flow: row wrap;
   width: 100%;
 
-  .pull-right {
+  .float-right {
     // Flexbox quirk to make sure right-aligned items stay right-aligned.
     margin-left: auto;
   }
 }
 
-.confidential-issue-warning {
+.issuable-note-warning {
   color: $orange-600;
-  background-color: $orange-50;
+  background-color: $orange-100;
   border-radius: $border-radius-default $border-radius-default 0 0;
   border: 1px solid $border-gray-normal;
-  border-bottom: none;
+  border-bottom: 0;
   padding: 3px 12px;
   margin: auto;
   align-items: center;
-}
 
-.confidential-value {
-  .fa {
-    background-color: inherit;
+  .icon {
+    margin-right: $issuable-warning-icon-margin;
+    vertical-align: text-bottom;
+    fill: $orange-600;
+  }
+
+  + .md-area {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  .disabled-comment {
+    border: 0;
+    border-radius: $label-border-radius;
+    padding-top: $gl-vert-padding;
+    padding-bottom: $gl-vert-padding;
+
+    .icon svg {
+      position: relative;
+      top: 2px;
+      margin-right: $btn-margin-5;
+      width: $gl-font-size;
+      height: $gl-font-size;
+      fill: $orange-600;
+    }
   }
 }
 
-.confidential-warning-message {
+.sidebar-item-icon {
+  border-radius: $border-radius-default;
+  margin: 0 5px 0 0;
+  vertical-align: text-bottom;
+
+  &.is-active {
+    fill: $orange-600;
+  }
+
+  .sidebar-collapsed-icon & {
+    margin: 0;
+  }
+
+  .sidebar-item-value & {
+    fill: $theme-gray-700;
+  }
+}
+
+.sidebar-item-warning-message {
   line-height: 1.5;
   padding: 16px;
 
-  .confidential-warning-message-actions {
+  .text {
+    color: $text-color;
+  }
+
+  .sidebar-item-warning-message-actions {
     display: flex;
 
-    button {
+    .btn {
       flex-grow: 1;
     }
   }
 }
 
-.confidential-issue-warning + .md-area {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
+.discussion-form {
+  background-color: $white-light;
 }
 
-.discussion-form {
-  padding: $gl-padding-top $gl-padding $gl-padding;
-  background-color: $white-light;
+table {
+  .discussion-form-container {
+    padding: $gl-padding;
+  }
 }
 
 .discussion-notes .disabled-comment {
@@ -146,12 +187,12 @@
 }
 
 .notes.notes-form > li.timeline-entry {
-  @include notes-media('max', $screen-sm-max) {
+  @include notes-media('max', map-get($grid-breakpoints, md) - 1) {
     padding: 0;
   }
 
   .timeline-content {
-    @include notes-media('max', $screen-sm-max) {
+    @include notes-media('max', map-get($grid-breakpoints, md) - 1) {
       margin: 0;
     }
   }
@@ -196,10 +237,12 @@
 }
 
 .discussion-body,
-.diff-file {
+.diff-file,
+.commit-diff {
   .discussion-reply-holder {
     background-color: $white-light;
-    padding: 10px 16px;
+    border-radius: 0 0 3px 3px;
+    padding: $gl-padding;
 
     &.is-replying {
       padding-bottom: $gl-padding;
@@ -208,27 +251,14 @@
 }
 
 .discussion-with-resolve-btn {
-  display: table;
-  width: 100%;
-  border-collapse: separate;
-  table-layout: auto;
-
-  .btn-group {
-    display: table-cell;
-    float: none;
-    width: 1%;
-
-    &:first-child {
-      width: 100%;
-      padding-right: 5px;
-    }
-
+  @include media-breakpoint-up(sm) {
+    display: flex;
   }
 
   .discussion-actions {
     display: table;
 
-    .new-issue-for-discussion path {
+    svg {
       fill: $gray-darkest;
     }
 
@@ -245,8 +275,16 @@
     }
   }
 
-  .btn {
-    width: 100%;
+  @include media-breakpoint-down(xs) {
+    .btn {
+      width: 100%;
+    }
+  }
+
+  .btn-text-field {
+    @include media-breakpoint-down(xs) {
+      margin-bottom: $gl-padding-8;
+    }
   }
 }
 
@@ -284,11 +322,11 @@
 
   &:hover,
   &:focus {
-    color: $gl-link-color;
+    color: $blue-600;
     outline: 0;
   }
 
-  @media (min-width: $screen-md-min) {
+  @include media-breakpoint-up(md) {
     float: left;
     margin-right: $gl-padding;
 
@@ -312,13 +350,15 @@
   line-height: 16px;
   margin-top: 2px;
 
-  @media (min-width: $screen-md-min) {
+  @include media-breakpoint-up(md) {
     float: left;
   }
 }
 
 .note-form-actions {
-  @media (max-width: $screen-xs-max) {
+  color: $gl-text-color;
+
+  @include media-breakpoint-down(xs) {
     .btn {
       float: none;
       width: 100%;
@@ -337,7 +377,7 @@
   left: 127px;
   top: 2px;
 
-  @media (max-width: $screen-xs-max) {
+  @include media-breakpoint-down(xs) {
     position: relative;
     top: 0;
     left: 0;
@@ -353,21 +393,26 @@
   .dropdown-toggle {
     float: right;
 
-    .toggle-icon {
+    i {
       color: $white-light;
       padding-right: 2px;
       margin-top: 2px;
+    }
+
+    &[disabled] {
+      i {
+        color: $gl-text-color-disabled;
+      }
     }
   }
 
   .dropdown-menu {
     top: initial;
-    bottom: 40px;
+    bottom: 100%;
     width: 298px;
   }
 
-
-  @media (max-width: $screen-xs-max) {
+  @include media-breakpoint-down(xs) {
     display: flex;
     width: 100%;
     margin-bottom: 10px;
@@ -389,7 +434,7 @@
 .uploading-container {
   float: right;
 
-  @media (max-width: $screen-xs-max) {
+  @include media-breakpoint-down(xs) {
     float: left;
     margin-top: 5px;
   }
@@ -397,11 +442,11 @@
 
 .uploading-error-icon,
 .uploading-error-message {
-  color: $gl-text-red;
+  color: $red-500;
 }
 
 .uploading-error-message {
-  @media (max-width: $screen-xs-max) {
+  @include media-breakpoint-down(xs) {
     &::after {
       content: "\a";
       white-space: pre;
@@ -416,7 +461,7 @@
 .attach-new-file,
 .button-attach-file,
 .retry-uploading-link {
-  color: $gl-link-color;
+  color: $blue-600;
   padding: 0;
   background: none;
   border: 0;
@@ -425,5 +470,5 @@
 }
 
 .markdown-selector {
-  color: $gl-link-color;
+  color: $blue-600;
 }

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Diff
     class Highlight
@@ -14,6 +16,7 @@ module Gitlab
         else
           @diff_lines = diff_lines
         end
+
         @raw_lines = @diff_lines.map(&:text)
       end
 
@@ -23,13 +26,20 @@ module Gitlab
           # ignore highlighting for "match" lines
           next diff_line if diff_line.meta?
 
-          rich_line = highlight_line(diff_line) || diff_line.text
+          rich_line = highlight_line(diff_line) || ERB::Util.html_escape(diff_line.text)
 
           if line_inline_diffs = inline_diffs[i]
-            rich_line = InlineDiffMarker.new(diff_line.text, rich_line).mark(line_inline_diffs)
+            begin
+              rich_line = InlineDiffMarker.new(diff_line.text, rich_line).mark(line_inline_diffs)
+            # This should only happen when the encoding of the diff doesn't
+            # match the blob, which is a bug. But we shouldn't fail to render
+            # completely in that case, even though we want to report the error.
+            rescue RangeError => e
+              Gitlab::Sentry.track_exception(e, issue_url: 'https://gitlab.com/gitlab-org/gitlab-ce/issues/45441')
+            end
           end
 
-          diff_line.text = rich_line
+          diff_line.rich_text = rich_line
 
           diff_line
         end
@@ -71,7 +81,7 @@ module Gitlab
         return [] unless blob
 
         blob.load_all_data!
-        Gitlab::Highlight.highlight(blob.path, blob.data, repository: repository).lines
+        blob.present.highlight.lines
       end
     end
   end

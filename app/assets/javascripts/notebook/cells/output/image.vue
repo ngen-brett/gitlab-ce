@@ -1,15 +1,10 @@
-<template>
-  <div class="output">
-    <prompt />
-    <img
-      :src="'data:' + outputType + ';base64,' + rawCode" />
-  </div>
-</template>
-
 <script>
 import Prompt from '../prompt.vue';
 
 export default {
+  components: {
+    prompt: Prompt,
+  },
   props: {
     outputType: {
       type: String,
@@ -20,8 +15,9 @@ export default {
       required: true,
     },
   },
-  components: {
-    prompt: Prompt,
-  },
 };
 </script>
+
+<template>
+  <div class="output"><prompt /> <img :src="'data:' + outputType + ';base64,' + rawCode" /></div>
+</template>

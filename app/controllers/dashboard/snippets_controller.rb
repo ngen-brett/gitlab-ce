@@ -1,4 +1,8 @@
+# frozen_string_literal: true
+
 class Dashboard::SnippetsController < Dashboard::ApplicationController
+  skip_cross_project_access_check :index
+
   def index
     @snippets = SnippetsFinder.new(
       current_user,

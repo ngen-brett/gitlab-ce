@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Search for milestones
 #
 # params - Hash
@@ -8,6 +10,8 @@
 #   state - filters by state.
 
 class MilestonesFinder
+  include FinderMethods
+
   attr_reader :params, :project_ids, :group_ids
 
   def initialize(params = {})
@@ -33,6 +37,7 @@ class MilestonesFinder
     items.for_projects_and_groups(project_ids, group_ids)
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def by_title(items)
     if params[:title]
       items.where(title: params[:title])
@@ -40,17 +45,16 @@ class MilestonesFinder
       items
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def by_state(items)
     Milestone.filter_by_state(items, params[:state])
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def order(items)
-    if params.has_key?(:order)
-      items.reorder(params[:order])
-    else
-      order_statement = Gitlab::Database.nulls_last_order('due_date', 'ASC')
-      items.reorder(order_statement)
-    end
+    order_statement = Gitlab::Database.nulls_last_order('due_date', 'ASC')
+    items.reorder(order_statement).order('title ASC')
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 end

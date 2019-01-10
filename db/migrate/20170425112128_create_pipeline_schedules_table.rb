@@ -1,6 +1,5 @@
-# rubocop:disable Migration/Datetime
 # rubocop:disable Migration/Timestamps
-class CreatePipelineSchedulesTable < ActiveRecord::Migration
+class CreatePipelineSchedulesTable < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
 
   DOWNTIME = false
@@ -17,7 +16,7 @@ class CreatePipelineSchedulesTable < ActiveRecord::Migration
       t.boolean :active, default: true
       t.datetime :deleted_at
 
-      t.timestamps
+      t.timestamps null: true
     end
 
     add_index(:ci_pipeline_schedules, :project_id)

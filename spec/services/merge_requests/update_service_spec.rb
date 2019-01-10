@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 describe MergeRequests::UpdateService, :mailer do
+  include ProjectForksHelper
+
   let(:project) { create(:project, :repository) }
   let(:user) { create(:user) }
   let(:user2) { create(:user) }
@@ -12,13 +14,14 @@ describe MergeRequests::UpdateService, :mailer do
     create(:merge_request, :simple, title: 'Old title',
                                     description: "FYI #{user2.to_reference}",
                                     assignee_id: user3.id,
-                                    source_project: project)
+                                    source_project: project,
+                                    author: create(:user))
   end
 
   before do
-    project.team << [user, :master]
-    project.team << [user2, :developer]
-    project.team << [user3, :developer]
+    project.add_maintainer(user)
+    project.add_developer(user2)
+    project.add_developer(user3)
   end
 
   describe 'execute' do
@@ -49,7 +52,8 @@ describe MergeRequests::UpdateService, :mailer do
           state_event: 'close',
           label_ids: [label.id],
           target_branch: 'target',
-          force_remove_source_branch: '1'
+          force_remove_source_branch: '1',
+          discussion_locked: true
         }
       end
 
@@ -64,7 +68,7 @@ describe MergeRequests::UpdateService, :mailer do
         end
       end
 
-      it 'mathces base expectations' do
+      it 'matches base expectations' do
         expect(@merge_request).to be_valid
         expect(@merge_request.title).to eq('New title')
         expect(@merge_request.assignee).to eq(user2)
@@ -73,11 +77,21 @@ describe MergeRequests::UpdateService, :mailer do
         expect(@merge_request.labels.first.title).to eq(label.name)
         expect(@merge_request.target_branch).to eq('target')
         expect(@merge_request.merge_params['force_remove_source_branch']).to eq('1')
+        expect(@merge_request.discussion_locked).to be_truthy
       end
 
       it 'executes hooks with update action' do
         expect(service).to have_received(:execute_hooks)
-                               .with(@merge_request, 'update')
+          .with(
+            @merge_request,
+            'update',
+            old_associations: {
+              labels: [],
+              mentioned_users: [user2],
+              assignees: [user3],
+              total_time_spent: 0
+            }
+          )
       end
 
       it 'sends email to user2 about assign of new merge request and email to user3 about merge request unassignment' do
@@ -95,11 +109,12 @@ describe MergeRequests::UpdateService, :mailer do
         expect(note.note).to include "assigned to #{user2.to_reference}"
       end
 
-      it 'creates system note about merge_request label edit' do
-        note = find_note('added ~')
+      it 'creates a resource label event' do
+        event = merge_request.resource_label_events.last
 
-        expect(note).not_to be_nil
-        expect(note.note).to include "added #{label.to_reference} label"
+        expect(event).not_to be_nil
+        expect(event.label_id).to eq label.id
+        expect(event.user_id).to eq user.id
       end
 
       it 'creates system note about title change' do
@@ -121,6 +136,13 @@ describe MergeRequests::UpdateService, :mailer do
 
         expect(note).not_to be_nil
         expect(note.note).to eq 'changed target branch from `master` to `target`'
+      end
+
+      it 'creates system note about discussion lock' do
+        note = find_note('locked this merge request')
+
+        expect(note).not_to be_nil
+        expect(note.note).to eq 'locked this merge request'
       end
 
       context 'when not including source branch removal options' do
@@ -293,7 +315,42 @@ describe MergeRequests::UpdateService, :mailer do
         end
       end
 
-      context 'when the milestone change' do
+      context 'when the milestone is removed' do
+        let!(:non_subscriber) { create(:user) }
+
+        let!(:subscriber) do
+          create(:user) do |u|
+            merge_request.toggle_subscription(u, project)
+            project.add_developer(u)
+          end
+        end
+
+        it_behaves_like 'system notes for milestones'
+
+        it 'sends notifications for subscribers of changed milestone' do
+          merge_request.milestone = create(:milestone)
+
+          merge_request.save
+
+          perform_enqueued_jobs do
+            update_merge_request(milestone_id: "")
+          end
+
+          should_email(subscriber)
+          should_not_email(non_subscriber)
+        end
+      end
+
+      context 'when the milestone is changed' do
+        let!(:non_subscriber) { create(:user) }
+
+        let!(:subscriber) do
+          create(:user) do |u|
+            merge_request.toggle_subscription(u, project)
+            project.add_developer(u)
+          end
+        end
+
         it 'marks pending todos as done' do
           update_merge_request({ milestone: create(:milestone) })
 
@@ -301,15 +358,30 @@ describe MergeRequests::UpdateService, :mailer do
         end
 
         it_behaves_like 'system notes for milestones'
+
+        it 'sends notifications for subscribers of changed milestone' do
+          perform_enqueued_jobs do
+            update_merge_request(milestone: create(:milestone))
+          end
+
+          should_email(subscriber)
+          should_not_email(non_subscriber)
+        end
       end
 
       context 'when the labels change' do
         before do
-          update_merge_request({ label_ids: [label.id] })
+          Timecop.freeze(1.minute.from_now) do
+            update_merge_request({ label_ids: [label.id] })
+          end
         end
 
         it 'marks pending todos as done' do
           expect(pending_todo.reload).to be_done
+        end
+
+        it 'updates updated_at' do
+          expect(merge_request.reload.updated_at).to be > Time.now
         end
       end
 
@@ -338,8 +410,8 @@ describe MergeRequests::UpdateService, :mailer do
       let!(:subscriber) { create(:user) { |u| label.toggle_subscription(u, project) } }
 
       before do
-        project.team << [non_subscriber, :developer]
-        project.team << [subscriber, :developer]
+        project.add_developer(non_subscriber)
+        project.add_developer(subscriber)
       end
 
       it 'sends notifications for subscribers of newly added labels' do
@@ -518,6 +590,41 @@ describe MergeRequests::UpdateService, :mailer do
     include_examples 'issuable update service' do
       let(:open_issuable) { merge_request }
       let(:closed_issuable) { create(:closed_merge_request, source_project: project) }
+    end
+
+    context 'setting `allow_collaboration`' do
+      let(:target_project) { create(:project, :repository, :public) }
+      let(:source_project) { fork_project(target_project, nil, repository: true) }
+      let(:user) { create(:user) }
+      let(:merge_request) do
+        create(:merge_request,
+               source_project: source_project,
+               source_branch: 'fixes',
+               target_project: target_project)
+      end
+
+      before do
+        allow(ProtectedBranch).to receive(:protected?).with(source_project, 'fixes') { false }
+      end
+
+      it 'does not allow a maintainer of the target project to set `allow_collaboration`' do
+        target_project.add_developer(user)
+
+        update_merge_request(allow_collaboration: true, title: 'Updated title')
+
+        expect(merge_request.title).to eq('Updated title')
+        expect(merge_request.allow_collaboration).to be_falsy
+      end
+
+      it 'is allowed by a user that can push to the source and can update the merge request' do
+        merge_request.update!(assignee: user)
+        source_project.add_developer(user)
+
+        update_merge_request(allow_collaboration: true, title: 'Updated title')
+
+        expect(merge_request.title).to eq('Updated title')
+        expect(merge_request.allow_collaboration).to be_truthy
+      end
     end
   end
 end

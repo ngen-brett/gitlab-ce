@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 class AccessTokenValidationService
   # Results:
   VALID = :valid
   EXPIRED = :expired
   REVOKED = :revoked
   INSUFFICIENT_SCOPE = :insufficient_scope
+  IMPERSONATION_DISABLED = :impersonation_disabled
 
   attr_reader :token, :request
 
@@ -22,6 +25,11 @@ class AccessTokenValidationService
     elsif !self.include_any_scope?(scopes)
       return INSUFFICIENT_SCOPE
 
+    elsif token.respond_to?(:impersonation) &&
+        token.impersonation &&
+        !Gitlab.config.gitlab.impersonation_enabled
+      return IMPERSONATION_DISABLED
+
     else
       return VALID
     end
@@ -39,11 +47,8 @@ class AccessTokenValidationService
       token_scopes = token.scopes.map(&:to_sym)
 
       required_scopes.any? do |scope|
-        if scope.respond_to?(:sufficient?)
-          scope.sufficient?(token_scopes, request)
-        else
-          API::Scope.new(scope).sufficient?(token_scopes, request)
-        end
+        scope = API::Scope.new(scope) unless scope.is_a?(API::Scope)
+        scope.sufficient?(token_scopes, request)
       end
     end
   end

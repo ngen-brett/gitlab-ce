@@ -37,7 +37,7 @@ when using the migration helper method
 `Gitlab::Database::MigrationHelpers#add_column_with_default`. This method works
 similar to `add_column` except it updates existing rows in batches without
 blocking access to the table being modified. See ["Adding Columns With Default
-Values"](migration_style_guide.html#adding-columns-with-default-values) for more
+Values"](migration_style_guide.md#adding-columns-with-default-values) for more
 information on how to use this method.
 
 ## Dropping Columns
@@ -88,7 +88,7 @@ renaming. For example
 
 ```ruby
 # A regular migration in db/migrate
-class RenameUsersUpdatedAtToUpdatedAtTimestamp < ActiveRecord::Migration
+class RenameUsersUpdatedAtToUpdatedAtTimestamp < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
 
   disable_ddl_transaction!
@@ -118,7 +118,7 @@ We can perform this cleanup using
 
 ```ruby
 # A post-deployment migration in db/post_migrate
-class CleanupUsersUpdatedAtRename < ActiveRecord::Migration
+class CleanupUsersUpdatedAtRename < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
 
   disable_ddl_transaction!
@@ -157,7 +157,7 @@ as follows:
 
 ```ruby
 # A regular migration in db/migrate
-class ChangeUsersUsernameStringToText < ActiveRecord::Migration
+class ChangeUsersUsernameStringToText < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
 
   disable_ddl_transaction!
@@ -178,7 +178,7 @@ Next we need to clean up our changes using a post-deployment migration:
 
 ```ruby
 # A post-deployment migration in db/post_migrate
-class ChangeUsersUsernameStringToTextCleanup < ActiveRecord::Migration
+class ChangeUsersUsernameStringToTextCleanup < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
 
   disable_ddl_transaction!
@@ -195,10 +195,123 @@ end
 
 And that's it, we're done!
 
+## Changing The Schema For Large Tables
+
+While `change_column_type_concurrently` and `rename_column_concurrently` can be
+used for changing the schema of a table without downtime, it doesn't work very
+well for large tables. Because all of the work happens in sequence the migration
+can take a very long time to complete, preventing a deployment from proceeding.
+They can also produce a lot of pressure on the database due to it rapidly
+updating many rows in sequence.
+
+To reduce database pressure you should instead use
+`change_column_type_using_background_migration` or `rename_column_using_background_migration`
+when migrating a column in a large table (e.g. `issues`). These methods work
+similarly to the concurrent counterparts but uses background migration to spread
+the work / load over a longer time period, without slowing down deployments.
+
+For example, to change the column type using a background migration:
+
+```ruby
+class ExampleMigration < ActiveRecord::Migration[4.2]
+  include Gitlab::Database::MigrationHelpers
+
+  disable_ddl_transaction!
+
+  class Issue < ActiveRecord::Base
+    self.table_name = 'issues'
+
+    include EachBatch
+
+    def self.to_migrate
+      where('closed_at IS NOT NULL')
+    end
+  end
+
+  def up
+    change_column_type_using_background_migration(
+      Issue.to_migrate,
+      :closed_at,
+      :datetime_with_timezone
+    )
+  end
+
+  def down
+    change_column_type_using_background_migration(
+      Issue.to_migrate,
+      :closed_at,
+      :datetime
+    )
+  end
+end
+```
+
+This would change the type of `issues.closed_at` to `timestamp with time zone`.
+
+Keep in mind that the relation passed to
+`change_column_type_using_background_migration` _must_ include `EachBatch`,
+otherwise it will raise a `TypeError`.
+
+This migration then needs to be followed in a separate release (_not_ a patch
+release) by a cleanup migration, which should steal from the queue and handle
+any remaining rows. For example:
+
+```ruby
+class MigrateRemainingIssuesClosedAt < ActiveRecord::Migration[4.2]
+  include Gitlab::Database::MigrationHelpers
+
+  DOWNTIME = false
+
+  disable_ddl_transaction!
+
+  class Issue < ActiveRecord::Base
+    self.table_name = 'issues'
+    include EachBatch
+  end
+
+  def up
+    Gitlab::BackgroundMigration.steal('CopyColumn')
+    Gitlab::BackgroundMigration.steal('CleanupConcurrentTypeChange')
+
+    migrate_remaining_rows if migrate_column_type?
+  end
+
+  def down
+    # Previous migrations already revert the changes made here.
+  end
+
+  def migrate_remaining_rows
+    Issue.where('closed_at_for_type_change IS NULL AND closed_at IS NOT NULL').each_batch do |batch|
+      batch.update_all('closed_at_for_type_change = closed_at')
+    end
+
+    cleanup_concurrent_column_type_change(:issues, :closed_at)
+  end
+
+  def migrate_column_type?
+    # Some environments may have already executed the previous version of this
+    # migration, thus we don't need to migrate those environments again.
+    column_for('issues', 'closed_at').type == :datetime # rubocop:disable Migration/Datetime
+  end
+end
+```
+
+The same applies to `rename_column_using_background_migration`:
+
+1. Create a migration using the helper, which will schedule background
+   migrations to spread the writes over a longer period of time.
+1. In the next monthly release, create a clean-up migration to steal from the
+   Sidekiq queues, migrate any missing rows, and cleanup the rename. This
+   migration should skip the steps after stealing from the Sidekiq queues if the
+   column has already been renamed.
+
+For more information, see [the documentation on cleaning up background
+migrations](background_migrations.md#cleaning-up).
+
 ## Adding Indexes
 
 Adding indexes is an expensive process that blocks INSERT and UPDATE queries for
-the duration. When using PostgreSQL one can work arounds this by using the
+the duration. When using PostgreSQL one can work around this by using the
 `CONCURRENTLY` option:
 
 ```sql
@@ -209,7 +322,7 @@ Migrations can take advantage of this by using the method
 `add_concurrent_index`. For example:
 
 ```ruby
-class MyMigration < ActiveRecord::Migration
+class MyMigration < ActiveRecord::Migration[4.2]
   def up
     add_concurrent_index :projects, :column_name
   end

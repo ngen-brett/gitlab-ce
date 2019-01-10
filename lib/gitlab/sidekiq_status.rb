@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   # The SidekiqStatus module and its child classes can be used for checking if a
   # Sidekiq job has been processed or not.
@@ -49,6 +51,13 @@ module Gitlab
     # Returns true or false.
     def self.all_completed?(job_ids)
       self.num_running(job_ids).zero?
+    end
+
+    # Returns true if the given job is running
+    #
+    # job_id - The Sidekiq job ID to check.
+    def self.running?(job_id)
+      num_running([job_id]) > 0
     end
 
     # Returns the number of jobs that are running.

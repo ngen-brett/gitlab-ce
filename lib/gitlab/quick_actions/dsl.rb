@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module QuickActions
     module Dsl
@@ -31,6 +33,10 @@ module Gitlab
           @description = block_given? ? block : text
         end
 
+        def warning(message = '')
+          @warning = message
+        end
+
         # Allows to define params for the next quick action.
         # These params are shown in the autocomplete menu.
         #
@@ -62,9 +68,8 @@ module Gitlab
 
         # Allows to define conditions that must be met in order for the command
         # to be returned by `.command_names` & `.command_definitions`.
-        # It accepts a block that will be evaluated with the context given to
-        # `CommandDefintion#to_h`.
-        #
+        # It accepts a block that will be evaluated with the context
+        # of a QuickActions::InterpretService instance
         # Example:
         #
         #   condition do
@@ -134,6 +139,7 @@ module Gitlab
             name,
             aliases: aliases,
             description: @description,
+            warning: @warning,
             explanation: @explanation,
             params: @params,
             condition_block: @condition_block,
@@ -151,6 +157,7 @@ module Gitlab
           @explanation = nil
           @params = nil
           @condition_block = nil
+          @warning = nil
           @parse_params_block = nil
         end
       end

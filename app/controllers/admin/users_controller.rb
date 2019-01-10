@@ -1,10 +1,13 @@
+# frozen_string_literal: true
+
 class Admin::UsersController < Admin::ApplicationController
   before_action :user, except: [:index, :new, :create]
+  before_action :check_impersonation_availability, only: :impersonate
 
   def index
     @users = User.order_name_asc.filter(params[:filter])
     @users = @users.search_with_secondary_emails(params[:search_query]) if params[:search_query].present?
-    @users = @users.sort(@sort = params[:sort])
+    @users = @users.sort_by_attribute(@sort = params[:sort])
     @users = @users.page(params[:page])
   end
 
@@ -128,7 +131,7 @@ class Admin::UsersController < Admin::ApplicationController
     end
 
     respond_to do |format|
-      result = Users::UpdateService.new(user, user_params_with_pass).execute do |user|
+      result = Users::UpdateService.new(current_user, user_params_with_pass.merge(user: user)).execute do |user|
         user.skip_reconfirmation!
       end
 
@@ -155,7 +158,7 @@ class Admin::UsersController < Admin::ApplicationController
 
   def remove_email
     email = user.emails.find(params[:email_id])
-    success = Emails::DestroyService.new(user, email: email.email).execute
+    success = Emails::DestroyService.new(current_user, user: user).execute(email)
 
     respond_to do |format|
       if success
@@ -163,7 +166,7 @@ class Admin::UsersController < Admin::ApplicationController
         format.json { head :ok }
       else
         format.html { redirect_back_or_admin_user(alert: 'There was an error removing the e-mail.') }
-        format.json { render json: 'There was an error removing the e-mail.', status: 400 }
+        format.json { render json: 'There was an error removing the e-mail.', status: :bad_request }
       end
     end
   end
@@ -174,9 +177,11 @@ class Admin::UsersController < Admin::ApplicationController
     user == current_user
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def user
     @user ||= User.find_by!(username: params[:id])
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def redirect_back_or_admin_user(options = {})
     redirect_back_or_default(default: default_route, options: options)
@@ -187,10 +192,10 @@ class Admin::UsersController < Admin::ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(user_params_ce)
+    params.require(:user).permit(allowed_user_params)
   end
 
-  def user_params_ce
+  def allowed_user_params
     [
       :access_level,
       :avatar,
@@ -219,8 +224,12 @@ class Admin::UsersController < Admin::ApplicationController
   end
 
   def update_user(&block)
-    result = Users::UpdateService.new(user).execute(&block)
+    result = Users::UpdateService.new(current_user, user: user).execute(&block)
 
     result[:status] == :success
+  end
+
+  def check_impersonation_availability
+    access_denied! unless Gitlab.config.gitlab.impersonation_enabled
   end
 end

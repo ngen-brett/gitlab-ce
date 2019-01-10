@@ -12,66 +12,38 @@ const LAST = s__('Pagination|Last »');
 export default {
   props: {
     /**
-      This function will take the information given by the pagination component
+        This function will take the information given by the pagination component
 
-      Here is an example `change` method:
+        Here is an example `change` method:
 
-      change(pagenum) {
-        gl.utils.visitUrl(`?page=${pagenum}`);
-      },
-    */
+        change(pagenum) {
+          gl.utils.visitUrl(`?page=${pagenum}`);
+        },
+      */
     change: {
       type: Function,
       required: true,
     },
 
     /**
-      pageInfo will come from the headers of the API call
-      in the `.then` clause of the VueResource API call
-      there should be a function that contructs the pageInfo for this component
+        pageInfo will come from the headers of the API call
+        in the `.then` clause of the VueResource API call
+        there should be a function that contructs the pageInfo for this component
 
-      This is an example:
+        This is an example:
 
-      const pageInfo = headers => ({
-        perPage: +headers['X-Per-Page'],
-        page: +headers['X-Page'],
-        total: +headers['X-Total'],
-        totalPages: +headers['X-Total-Pages'],
-        nextPage: +headers['X-Next-Page'],
-        previousPage: +headers['X-Prev-Page'],
-      });
-    */
+        const pageInfo = headers => ({
+          perPage: +headers['X-Per-Page'],
+          page: +headers['X-Page'],
+          total: +headers['X-Total'],
+          totalPages: +headers['X-Total-Pages'],
+          nextPage: +headers['X-Next-Page'],
+          previousPage: +headers['X-Prev-Page'],
+        });
+      */
     pageInfo: {
       type: Object,
       required: true,
-    },
-  },
-  methods: {
-    changePage(e) {
-      if (e.target.parentElement.classList.contains('disabled')) return;
-
-      const text = e.target.innerText;
-      const { totalPages, nextPage, previousPage } = this.pageInfo;
-
-      switch (text) {
-        case SPREAD:
-          break;
-        case LAST:
-          this.change(totalPages);
-          break;
-        case NEXT:
-          this.change(nextPage);
-          break;
-        case PREV:
-          this.change(previousPage);
-          break;
-        case FIRST:
-          this.change(1);
-          break;
-        default:
-          this.change(+text);
-          break;
-      }
     },
   },
   computed: {
@@ -83,7 +55,7 @@ export default {
     },
     getItems() {
       const total = this.pageInfo.totalPages;
-      const page = this.pageInfo.page;
+      const { page } = this.pageInfo;
       const items = [];
 
       if (page > 1) {
@@ -122,25 +94,64 @@ export default {
 
       return items;
     },
+    showPagination() {
+      return this.pageInfo.totalPages > 1;
+    },
+  },
+  methods: {
+    changePage(text, isDisabled) {
+      if (isDisabled) return;
+
+      const { totalPages, nextPage, previousPage } = this.pageInfo;
+
+      switch (text) {
+        case SPREAD:
+          break;
+        case LAST:
+          this.change(totalPages);
+          break;
+        case NEXT:
+          this.change(nextPage);
+          break;
+        case PREV:
+          this.change(previousPage);
+          break;
+        case FIRST:
+          this.change(1);
+          break;
+        default:
+          this.change(+text);
+          break;
+      }
+    },
+    hideOnSmallScreen(item) {
+      return !item.first && !item.last && !item.next && !item.prev && !item.active;
+    },
   },
 };
 </script>
 <template>
-  <div class="gl-pagination">
-    <ul class="pagination clearfix">
+  <div v-if="showPagination" class="gl-pagination prepend-top-default">
+    <ul class="pagination justify-content-center">
       <li
-        v-for="item in getItems"
+        v-for="(item, index) in getItems"
+        :key="index"
         :class="{
           page: item.page,
           'js-previous-button': item.prev,
           'js-next-button': item.next,
           'js-last-button': item.last,
           'js-first-button': item.first,
+          'd-none d-md-block': hideOnSmallScreen(item),
           separator: item.separator,
           active: item.active,
-          disabled: item.disabled
-        }">
-        <a @click.prevent="changePage($event)">{{item.title}}</a>
+          disabled: item.disabled || item.separator,
+        }"
+        class="page-item"
+      >
+        <a class="page-link" @click.prevent="changePage(item.title, item.disabled);">
+          {{ item.title }}
+        </a>
       </li>
     </ul>
   </div>

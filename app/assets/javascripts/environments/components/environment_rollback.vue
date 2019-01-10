@@ -5,10 +5,19 @@
  *
  * Makes a post request when the button is clicked.
  */
+import { s__ } from '~/locale';
+import { GlTooltipDirective, GlLoadingIcon } from '@gitlab/ui';
+import Icon from '~/vue_shared/components/icon.vue';
 import eventHub from '../event_hub';
-import loadingIcon from '../../vue_shared/components/loading_icon.vue';
 
 export default {
+  components: {
+    Icon,
+    GlLoadingIcon,
+  },
+  directives: {
+    GlTooltip: GlTooltipDirective,
+  },
   props: {
     retryUrl: {
       type: String,
@@ -20,40 +29,39 @@ export default {
       default: true,
     },
   },
-
-  components: {
-    loadingIcon,
-  },
-
   data() {
     return {
       isLoading: false,
     };
   },
 
+  computed: {
+    title() {
+      return this.isLastDeployment
+        ? s__('Environments|Re-deploy to environment')
+        : s__('Environments|Rollback environment');
+    },
+  },
+
   methods: {
     onClick() {
       this.isLoading = true;
 
-      eventHub.$emit('postAction', this.retryUrl);
+      eventHub.$emit('postAction', { endpoint: this.retryUrl });
     },
   },
 };
 </script>
 <template>
   <button
+    v-gl-tooltip
+    :disabled="isLoading"
+    :title="title"
     type="button"
-    class="btn hidden-xs hidden-sm"
+    class="btn d-none d-sm-none d-md-block"
     @click="onClick"
-    :disabled="isLoading">
-
-    <span v-if="isLastDeployment">
-      Re-deploy
-    </span>
-    <span v-else>
-      Rollback
-    </span>
-
-    <loading-icon v-if="isLoading" />
+  >
+    <icon v-if="isLastDeployment" name="repeat" /> <icon v-else name="redo" />
+    <gl-loading-icon v-if="isLoading" />
   </button>
 </template>

@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 class DeleteMergedBranchesWorker
-  include Sidekiq::Worker
-  include DedicatedSidekiqQueue
+  include ApplicationWorker
 
   def perform(project_id, user_id)
     begin

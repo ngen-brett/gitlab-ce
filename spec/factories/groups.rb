@@ -1,9 +1,17 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :group, class: Group, parent: :namespace do
     sequence(:name) { |n| "group#{n}" }
     path { name.downcase.gsub(/\s/, '_') }
     type 'Group'
     owner nil
+
+    after(:create) do |group|
+      if group.owner
+        # We could remove this after we have proper constraint:
+        # https://gitlab.com/gitlab-org/gitlab-ce/issues/43292
+        raise "Don't set owner for groups, use `group.add_owner(user)` instead"
+      end
+    end
 
     trait :public do
       visibility_level Gitlab::VisibilityLevel::PUBLIC
@@ -18,7 +26,7 @@ FactoryGirl.define do
     end
 
     trait :with_avatar do
-      avatar { File.open(Rails.root.join('spec/fixtures/dk.png')) }
+      avatar { fixture_file_upload('spec/fixtures/dk.png') }
     end
 
     trait :access_requestable do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Noteable
   # Names of all implementers of `Noteable` that support resolvable notes.
   RESOLVABLE_TYPES = %w(MergeRequest).freeze
@@ -21,10 +23,18 @@ module Noteable
   end
 
   def supports_discussions?
-    DiscussionNote::NOTEABLE_TYPES.include?(base_class_name)
+    DiscussionNote.noteable_types.include?(base_class_name)
+  end
+
+  def supports_suggestion?
+    false
   end
 
   def discussions_rendered_on_frontend?
+    false
+  end
+
+  def preloads_discussion_diff_highlighting?
     false
   end
 
@@ -46,6 +56,7 @@ module Noteable
     notes.inc_relations_for_view.grouped_diff_discussions(*args)
   end
 
+  # rubocop:disable Gitlab/ModuleWithInstanceVariables
   def resolvable_discussions
     @resolvable_discussions ||=
       if defined?(@discussions)
@@ -54,6 +65,7 @@ module Noteable
         discussion_notes.resolvable.discussions(self)
       end
   end
+  # rubocop:enable Gitlab/ModuleWithInstanceVariables
 
   def discussions_resolvable?
     resolvable_discussions.any?(&:resolvable?)
@@ -73,5 +85,28 @@ module Noteable
 
   def discussions_can_be_resolved_by?(user)
     discussions_to_be_resolved.all? { |discussion| discussion.can_resolve?(user) }
+  end
+
+  def lockable?
+    [MergeRequest, Issue].include?(self.class)
+  end
+
+  def etag_caching_enabled?
+    false
+  end
+
+  def expire_note_etag_cache
+    return unless discussions_rendered_on_frontend?
+    return unless etag_caching_enabled?
+
+    Gitlab::EtagCaching::Store.new.touch(note_etag_key)
+  end
+
+  def note_etag_key
+    Gitlab::Routing.url_helpers.project_noteable_notes_path(
+      project,
+      target_type: self.class.name.underscore,
+      target_id: id
+    )
   end
 end

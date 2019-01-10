@@ -1,8 +1,8 @@
+# frozen_string_literal: true
+
 module Gitlab
   module CycleAnalytics
     class ReviewEventFetcher < BaseEventFetcher
-      include MergeRequestAllowed
-
       def initialize(*args)
         @projections = [mr_table[:title],
                         mr_table[:iid],
@@ -14,8 +14,14 @@ module Gitlab
         super(*args)
       end
 
+      private
+
       def serialize(event)
         AnalyticsMergeRequestSerializer.new(project: @project).represent(event)
+      end
+
+      def allowed_ids_finder_class
+        MergeRequestsFinder
       end
     end
   end

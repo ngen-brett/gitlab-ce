@@ -1,19 +1,27 @@
+# frozen_string_literal: true
+
 class Admin::GroupsController < Admin::ApplicationController
+  include MembersPresentation
+
   before_action :group, only: [:edit, :update, :destroy, :project_update, :members_update]
 
   def index
     @groups = Group.with_statistics.with_route
-    @groups = @groups.sort(@sort = params[:sort])
+    @groups = @groups.sort_by_attribute(@sort = params[:sort])
     @groups = @groups.search(params[:name]) if params[:name].present?
     @groups = @groups.page(params[:page])
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def show
     @group = Group.with_statistics.joins(:route).group('routes.path').find_by_full_path(params[:id])
-    @members = @group.members.order("access_level DESC").page(params[:members_page])
-    @requesters = AccessRequestsFinder.new(@group).execute(current_user)
+    @members = present_members(
+      @group.members.order("access_level DESC").page(params[:members_page]))
+    @requesters = present_members(
+      AccessRequestsFinder.new(@group).execute(current_user))
     @projects = @group.projects.with_statistics.page(params[:projects_page])
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def new
     @group = Group.new
@@ -35,7 +43,7 @@ class Admin::GroupsController < Admin::ApplicationController
   end
 
   def update
-    if @group.update_attributes(group_params)
+    if @group.update(group_params)
       redirect_to [:admin, @group], notice: 'Group was successfully updated.'
     else
       render "edit"
@@ -44,7 +52,7 @@ class Admin::GroupsController < Admin::ApplicationController
 
   def members_update
     member_params = params.permit(:user_ids, :access_level, :expires_at)
-    result = Members::CreateService.new(@group, current_user, member_params.merge(limit: -1)).execute
+    result = Members::CreateService.new(current_user, member_params.merge(limit: -1)).execute(@group)
 
     if result[:status] == :success
       redirect_to [:admin, @group], notice: 'Users were successfully added.'
@@ -68,10 +76,10 @@ class Admin::GroupsController < Admin::ApplicationController
   end
 
   def group_params
-    params.require(:group).permit(group_params_ce)
+    params.require(:group).permit(allowed_group_params)
   end
 
-  def group_params_ce
+  def allowed_group_params
     [
       :avatar,
       :description,

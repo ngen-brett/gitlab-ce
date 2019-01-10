@@ -7,7 +7,7 @@ describe Projects::TreeController do
   before do
     sign_in(user)
 
-    project.team << [user, :master]
+    project.add_maintainer(user)
     controller.instance_variable_set(:@project, project)
   end
 
@@ -17,9 +17,11 @@ describe Projects::TreeController do
 
     before do
       get(:show,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          id: id)
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            id: id
+          })
     end
 
     context "valid branch, no path" do
@@ -64,7 +66,7 @@ describe Projects::TreeController do
 
     context "valid SHA commit ID with path" do
       let(:id) { '6d39438/.gitignore' }
-      it { expect(response).to have_http_status(302) }
+      it { expect(response).to have_gitlab_http_status(302) }
     end
   end
 
@@ -73,9 +75,11 @@ describe Projects::TreeController do
 
     before do
       get(:show,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          id: id)
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            id: id
+          })
     end
 
     context 'redirect to blob' do
@@ -93,12 +97,14 @@ describe Projects::TreeController do
 
     before do
       post(:create_dir,
-           namespace_id: project.namespace.to_param,
-           project_id: project,
-           id: 'master',
-           dir_name: path,
-           branch_name: branch_name,
-           commit_message: 'Test commit message')
+           params: {
+             namespace_id: project.namespace.to_param,
+             project_id: project,
+             id: 'master',
+             dir_name: path,
+             branch_name: branch_name,
+             commit_message: 'Test commit message'
+           })
     end
 
     context 'successful creation' do

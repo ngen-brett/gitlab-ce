@@ -1,10 +1,14 @@
 <script>
+import { GlLoadingIcon } from '@gitlab/ui';
 import ciHeader from '../../vue_shared/components/header_ci_component.vue';
 import eventHub from '../event_hub';
-import loadingIcon from '../../vue_shared/components/loading_icon.vue';
 
 export default {
   name: 'PipelineHeaderSection',
+  components: {
+    ciHeader,
+    GlLoadingIcon,
+  },
   props: {
     pipeline: {
       type: Object,
@@ -15,11 +19,6 @@ export default {
       required: true,
     },
   },
-  components: {
-    ciHeader,
-    loadingIcon,
-  },
-
   data() {
     return {
       actions: this.getActions(),
@@ -32,6 +31,12 @@ export default {
     },
     shouldRenderContent() {
       return !this.isLoading && Object.keys(this.pipeline).length;
+    },
+  },
+
+  watch: {
+    pipeline() {
+      this.actions = this.getActions();
     },
   },
 
@@ -70,12 +75,6 @@ export default {
       return actions;
     },
   },
-
-  watch: {
-    pipeline() {
-      this.actions = this.getActions();
-    },
-  },
 };
 </script>
 <template>
@@ -83,15 +82,13 @@ export default {
     <ci-header
       v-if="shouldRenderContent"
       :status="status"
-      item-name="Pipeline"
       :item-id="pipeline.id"
       :time="pipeline.created_at"
       :user="pipeline.user"
       :actions="actions"
+      item-name="Pipeline"
       @actionClicked="postAction"
-      />
-    <loading-icon
-      v-if="isLoading"
-      size="2"/>
+    />
+    <gl-loading-icon v-if="isLoading" :size="2" class="prepend-top-default append-bottom-default" />
   </div>
 </template>

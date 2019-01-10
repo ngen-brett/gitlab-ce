@@ -18,7 +18,7 @@ describe Gitlab::Ci::Status::Build::Common do
   describe '#has_details?' do
     context 'when user has access to read build' do
       before do
-        project.team << [user, :developer]
+        project.add_developer(user)
       end
 
       it { is_expected.to have_details }
@@ -36,6 +36,12 @@ describe Gitlab::Ci::Status::Build::Common do
   describe '#details_path' do
     it 'links to the build details page' do
       expect(subject.details_path).to include "jobs/#{build.id}"
+    end
+  end
+
+  describe '#illustration' do
+    it 'provides a fallback empty state illustration' do
+      expect(subject.illustration).not_to be_empty
     end
   end
 end

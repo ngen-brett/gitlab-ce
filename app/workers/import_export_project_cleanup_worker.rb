@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 class ImportExportProjectCleanupWorker
-  include Sidekiq::Worker
+  include ApplicationWorker
   include CronjobQueue
 
   def perform

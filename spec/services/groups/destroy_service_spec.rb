@@ -6,7 +6,7 @@ describe Groups::DestroyService do
   let!(:user)         { create(:user) }
   let!(:group)        { create(:group) }
   let!(:nested_group) { create(:group, parent: group) }
-  let!(:project)      { create(:project, namespace: group) }
+  let!(:project)      { create(:project, :legacy_storage, namespace: group) }
   let!(:notification_setting) { create(:notification_setting, source: group)}
   let(:gitlab_shell) { Gitlab::Shell.new }
   let(:remove_path)  { group.path + "+#{group.id}+deleted" }
@@ -49,12 +49,12 @@ describe Groups::DestroyService do
       context 'Sidekiq inline' do
         before do
           # Run sidekiq immediately to check that renamed dir will be removed
-          Sidekiq::Testing.inline! { destroy_group(group, user, async) }
+          perform_enqueued_jobs { destroy_group(group, user, async) }
         end
 
         it 'verifies that paths have been deleted' do
-          expect(gitlab_shell.exists?(project.repository_storage_path, group.path)).to be_falsey
-          expect(gitlab_shell.exists?(project.repository_storage_path, remove_path)).to be_falsey
+          expect(gitlab_shell.exists?(project.repository_storage, group.path)).to be_falsey
+          expect(gitlab_shell.exists?(project.repository_storage, remove_path)).to be_falsey
         end
       end
     end
@@ -71,13 +71,13 @@ describe Groups::DestroyService do
 
       after do
         # Clean up stale directories
-        gitlab_shell.rm_namespace(project.repository_storage_path, group.path)
-        gitlab_shell.rm_namespace(project.repository_storage_path, remove_path)
+        gitlab_shell.rm_namespace(project.repository_storage, group.path)
+        gitlab_shell.rm_namespace(project.repository_storage, remove_path)
       end
 
       it 'verifies original paths and projects still exist' do
-        expect(gitlab_shell.exists?(project.repository_storage_path, group.path)).to be_truthy
-        expect(gitlab_shell.exists?(project.repository_storage_path, remove_path)).to be_falsey
+        expect(gitlab_shell.exists?(project.repository_storage, group.path)).to be_truthy
+        expect(gitlab_shell.exists?(project.repository_storage, remove_path)).to be_falsey
         expect(Project.unscoped.count).to eq(1)
         expect(Group.unscoped.count).to eq(2)
       end
@@ -135,24 +135,35 @@ describe Groups::DestroyService do
     it_behaves_like 'group destruction', false
   end
 
+  context 'repository removal status is taken into account' do
+    it 'raises exception' do
+      expect_next_instance_of(::Projects::DestroyService) do |destroy_service|
+        expect(destroy_service).to receive(:execute).and_return(false)
+      end
+
+      expect { destroy_group(group, user, false) }
+        .to raise_error(Groups::DestroyService::DestroyError, "Project #{project.id} can't be deleted" )
+    end
+  end
+
   describe 'repository removal' do
     before do
       destroy_group(group, user, false)
     end
 
     context 'legacy storage' do
-      let!(:project) { create(:project, :empty_repo, namespace: group) }
+      let!(:project) { create(:project, :legacy_storage, :empty_repo, namespace: group) }
 
       it 'removes repository' do
-        expect(gitlab_shell.exists?(project.repository_storage_path, "#{project.disk_path}.git")).to be_falsey
+        expect(gitlab_shell.exists?(project.repository_storage, "#{project.disk_path}.git")).to be_falsey
       end
     end
 
     context 'hashed storage' do
-      let!(:project) { create(:project, :hashed, :empty_repo, namespace: group) }
+      let!(:project) { create(:project, :empty_repo, namespace: group) }
 
       it 'removes repository' do
-        expect(gitlab_shell.exists?(project.repository_storage_path, "#{project.disk_path}.git")).to be_falsey
+        expect(gitlab_shell.exists?(project.repository_storage, "#{project.disk_path}.git")).to be_falsey
       end
     end
   end

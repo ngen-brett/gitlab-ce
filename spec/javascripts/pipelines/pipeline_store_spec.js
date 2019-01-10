@@ -8,7 +8,6 @@ describe('Pipeline Store', () => {
   });
 
   it('should set defaults', () => {
-    expect(store.state).toEqual({ pipeline: {} });
     expect(store.state.pipeline).toEqual({});
   });
 
@@ -21,6 +20,7 @@ describe('Pipeline Store', () => {
 
     it('should store received object', () => {
       store.storePipeline({ foo: 'bar' });
+
       expect(store.state.pipeline).toEqual({ foo: 'bar' });
     });
   });

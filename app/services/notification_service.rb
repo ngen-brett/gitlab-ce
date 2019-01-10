@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # rubocop:disable GitlabSecurity/PublicSend
 
 # NotificationService class
@@ -7,7 +9,32 @@
 # Ex.
 #   NotificationService.new.new_issue(issue, current_user)
 #
+# When calculating the recipients of a notification is expensive (for instance,
+# in the new issue case), `#async` will make that calculation happen in Sidekiq
+# instead:
+#
+#   NotificationService.new.async.new_issue(issue, current_user)
+#
 class NotificationService
+  class Async
+    attr_reader :parent
+    delegate :respond_to_missing, to: :parent
+
+    def initialize(parent)
+      @parent = parent
+    end
+
+    def method_missing(meth, *args)
+      return super unless parent.respond_to?(meth)
+
+      MailScheduler::NotificationServiceWorker.perform_async(meth.to_s, *args)
+    end
+  end
+
+  def async
+    @async ||= Async.new(self)
+  end
+
   # Always notify user about ssh key added
   # only if ssh key is not deploy key
   #
@@ -23,18 +50,11 @@ class NotificationService
 
   # Always notify the user about gpg key added
   #
-  # This is a security email so it will be sent even if the user user disabled
+  # This is a security email so it will be sent even if the user disabled
   # notifications
   def new_gpg_key(gpg_key)
     if gpg_key.user&.can?(:receive_notifications)
       mailer.new_gpg_key_email(gpg_key.id).deliver_later
-    end
-  end
-
-  # Always notify user about email added to profile
-  def new_email(email)
-    if email.user&.can?(:receive_notifications)
-      mailer.new_email_email(email.id).deliver_later
     end
   end
 
@@ -92,10 +112,11 @@ class NotificationService
     recipients.each do |recipient|
       mailer.send(
         :reassigned_issue_email,
-        recipient.id,
+        recipient.user.id,
         issue.id,
         previous_assignee_ids,
-        current_user.id
+        current_user.id,
+        recipient.reason
       ).deliver_later
     end
   end
@@ -108,15 +129,44 @@ class NotificationService
     relabeled_resource_email(issue, added_labels, current_user, :relabeled_issue_email)
   end
 
+  def removed_milestone_issue(issue, current_user)
+    removed_milestone_resource_email(issue, current_user, :removed_milestone_issue_email)
+  end
+
+  def changed_milestone_issue(issue, new_milestone, current_user)
+    changed_milestone_resource_email(issue, new_milestone, current_user, :changed_milestone_issue_email)
+  end
+
   # When create a merge request we should send an email to:
   #
+  #  * mr author
   #  * mr assignee if their notification level is not Disabled
   #  * project team members with notification level higher then Participating
   #  * watchers of the mr's labels
   #  * users with custom level checked with "new merge request"
   #
+  # In EE, approvers of the merge request are also included
   def new_merge_request(merge_request, current_user)
     new_resource_email(merge_request, :new_merge_request_email)
+  end
+
+  def push_to_merge_request(merge_request, current_user, new_commits: [], existing_commits: [])
+    new_commits = new_commits.map { |c| { short_id: c.short_id, title: c.title } }
+    existing_commits = existing_commits.map { |c| { short_id: c.short_id, title: c.title } }
+    recipients = NotificationRecipientService.build_recipients(merge_request, current_user, action: "push_to")
+
+    recipients.each do |recipient|
+      mailer.send(:push_to_merge_request_email, recipient.user.id, merge_request.id, current_user.id, recipient.reason, new_commits: new_commits, existing_commits: existing_commits).deliver_later
+    end
+  end
+
+  # When a merge request is found to be unmergeable, we should send an email to:
+  #
+  #  * mr author
+  #  * mr merge user if set
+  #
+  def merge_request_unmergeable(merge_request)
+    merge_request_unmergeable_email(merge_request)
   end
 
   # When merge request text is updated, we should send an email to:
@@ -138,8 +188,23 @@ class NotificationService
   #  * merge_request assignee if their notification level is not Disabled
   #  * users with custom level checked with "reassign merge request"
   #
-  def reassigned_merge_request(merge_request, current_user)
-    reassign_resource_email(merge_request, current_user, :reassigned_merge_request_email)
+  def reassigned_merge_request(merge_request, current_user, previous_assignee = nil)
+    recipients = NotificationRecipientService.build_recipients(
+      merge_request,
+      current_user,
+      action: "reassign",
+      previous_assignee: previous_assignee
+    )
+
+    recipients.each do |recipient|
+      mailer.reassigned_merge_request_email(
+        recipient.user.id,
+        merge_request.id,
+        previous_assignee&.id,
+        current_user.id,
+        recipient.reason
+      ).deliver_later
+    end
   end
 
   # When we add labels to a merge request we should send an email to:
@@ -148,6 +213,14 @@ class NotificationService
   #
   def relabeled_merge_request(merge_request, added_labels, current_user)
     relabeled_resource_email(merge_request, added_labels, current_user, :relabeled_merge_request_email)
+  end
+
+  def removed_milestone_merge_request(merge_request, current_user)
+    removed_milestone_resource_email(merge_request, current_user, :removed_milestone_merge_request_email)
+  end
+
+  def changed_milestone_merge_request(merge_request, new_milestone, current_user)
+    changed_milestone_resource_email(merge_request, new_milestone, current_user, :changed_milestone_merge_request_email)
   end
 
   def close_mr(merge_request, current_user)
@@ -183,7 +256,7 @@ class NotificationService
       action: "resolve_all_discussions")
 
     recipients.each do |recipient|
-      mailer.resolved_all_discussions_email(recipient.id, merge_request.id, current_user.id).deliver_later
+      mailer.resolved_all_discussions_email(recipient.user.id, merge_request.id, current_user.id, recipient.reason).deliver_later
     end
   end
 
@@ -202,11 +275,15 @@ class NotificationService
     # ignore gitlab service messages
     return true if note.cross_reference? && note.system?
 
+    send_new_note_notifications(note)
+  end
+
+  def send_new_note_notifications(note)
     notify_method = "note_#{note.to_ability_name}_email".to_sym
 
     recipients = NotificationRecipientService.build_new_note_recipients(note)
     recipients.each do |recipient|
-      mailer.send(notify_method, recipient.id, note.id).deliver_later
+      mailer.send(notify_method, recipient.user.id, note.id).deliver_later
     end
   end
 
@@ -214,7 +291,12 @@ class NotificationService
   def new_access_request(member)
     return true unless member.notifiable?(:subscription)
 
-    mailer.member_access_requested_email(member.real_source_type, member.id).deliver_later
+    recipients = member.source.members.active_without_invites_and_requests.owners_and_maintainers
+    if fallback_to_group_owners_maintainers?(recipients, member)
+      recipients = member.source.group.members.active_without_invites_and_requests.owners_and_maintainers
+    end
+
+    recipients.each { |recipient| deliver_access_request_email(recipient, member) }
   end
 
   def decline_access_request(member)
@@ -306,7 +388,7 @@ class NotificationService
     recipients = NotificationRecipientService.build_recipients(issue, current_user, action: 'moved')
 
     recipients.map do |recipient|
-      email = mailer.issue_moved_email(recipient, issue, new_issue, current_user)
+      email = mailer.issue_moved_email(recipient.user, issue, new_issue, current_user, recipient.reason)
       email.deliver_later
       email
     end
@@ -340,22 +422,82 @@ class NotificationService
     end
   end
 
+  def autodevops_disabled(pipeline, recipients)
+    recipients.each do |recipient|
+      mailer.autodevops_disabled_email(pipeline, recipient).deliver_later
+    end
+  end
+
+  def pages_domain_verification_succeeded(domain)
+    project_maintainers_recipients(domain, action: 'succeeded').each do |recipient|
+      mailer.pages_domain_verification_succeeded_email(domain, recipient.user).deliver_later
+    end
+  end
+
+  def pages_domain_verification_failed(domain)
+    project_maintainers_recipients(domain, action: 'failed').each do |recipient|
+      mailer.pages_domain_verification_failed_email(domain, recipient.user).deliver_later
+    end
+  end
+
+  def pages_domain_enabled(domain)
+    project_maintainers_recipients(domain, action: 'enabled').each do |recipient|
+      mailer.pages_domain_enabled_email(domain, recipient.user).deliver_later
+    end
+  end
+
+  def pages_domain_disabled(domain)
+    project_maintainers_recipients(domain, action: 'disabled').each do |recipient|
+      mailer.pages_domain_disabled_email(domain, recipient.user).deliver_later
+    end
+  end
+
+  def issue_due(issue)
+    recipients = NotificationRecipientService.build_recipients(
+      issue,
+      issue.author,
+      action: 'due',
+      custom_action: :issue_due,
+      skip_current_user: false
+    )
+
+    recipients.each do |recipient|
+      mailer.send(:issue_due_email, recipient.user.id, issue.id, recipient.reason).deliver_later
+    end
+  end
+
+  def repository_cleanup_success(project, user)
+    mailer.send(:repository_cleanup_success_email, project, user).deliver_later
+  end
+
+  def repository_cleanup_failure(project, user, error)
+    mailer.send(:repository_cleanup_failure_email, project, user, error).deliver_later
+  end
+
+  def remote_mirror_update_failed(remote_mirror)
+    recipients = project_maintainers_recipients(remote_mirror, action: 'update_failed')
+
+    recipients.each do |recipient|
+      mailer.remote_mirror_update_failed_email(remote_mirror.id, recipient.user.id).deliver_later
+    end
+  end
+
   protected
 
   def new_resource_email(target, method)
     recipients = NotificationRecipientService.build_recipients(target, target.author, action: "new")
 
     recipients.each do |recipient|
-      mailer.send(method, recipient.id, target.id).deliver_later
+      mailer.send(method, recipient.user.id, target.id, recipient.reason).deliver_later
     end
   end
 
   def new_mentions_in_resource_email(target, new_mentioned_users, current_user, method)
     recipients = NotificationRecipientService.build_recipients(target, current_user, action: "new")
-    recipients = recipients & new_mentioned_users
+    recipients = recipients.select {|r| new_mentioned_users.include?(r.user) }
 
     recipients.each do |recipient|
-      mailer.send(method, recipient.id, target.id, current_user.id).deliver_later
+      mailer.send(method, recipient.user.id, target.id, current_user.id, recipient.reason).deliver_later
     end
   end
 
@@ -370,34 +512,12 @@ class NotificationService
     )
 
     recipients.each do |recipient|
-      mailer.send(method, recipient.id, target.id, current_user.id).deliver_later
-    end
-  end
-
-  def reassign_resource_email(target, current_user, method)
-    previous_assignee_id = previous_record(target, 'assignee_id')
-    previous_assignee = User.find_by(id: previous_assignee_id) if previous_assignee_id
-
-    recipients = NotificationRecipientService.build_recipients(
-      target,
-      current_user,
-      action: "reassign",
-      previous_assignee: previous_assignee
-    )
-
-    recipients.each do |recipient|
-      mailer.send(
-        method,
-        recipient.id,
-        target.id,
-        previous_assignee_id,
-        current_user.id
-      ).deliver_later
+      mailer.send(method, recipient.user.id, target.id, current_user.id, recipient.reason).deliver_later
     end
   end
 
   def relabeled_resource_email(target, labels, current_user, method)
-    recipients = labels.flat_map { |l| l.subscribers(target.project) }
+    recipients = labels.flat_map { |l| l.subscribers(target.project) }.uniq
     recipients = notifiable_users(
       recipients, :subscription,
       target: target,
@@ -411,11 +531,43 @@ class NotificationService
     end
   end
 
+  def removed_milestone_resource_email(target, current_user, method)
+    recipients = NotificationRecipientService.build_recipients(
+      target,
+      current_user,
+      action: 'removed_milestone'
+    )
+
+    recipients.each do |recipient|
+      mailer.send(method, recipient.user.id, target.id, current_user.id).deliver_later
+    end
+  end
+
+  def changed_milestone_resource_email(target, milestone, current_user, method)
+    recipients = NotificationRecipientService.build_recipients(
+      target,
+      current_user,
+      action: 'changed_milestone'
+    )
+
+    recipients.each do |recipient|
+      mailer.send(method, recipient.user.id, target.id, milestone, current_user.id).deliver_later
+    end
+  end
+
   def reopen_resource_email(target, current_user, method, status)
     recipients = NotificationRecipientService.build_recipients(target, current_user, action: "reopen")
 
     recipients.each do |recipient|
-      mailer.send(method, recipient.id, target.id, status, current_user.id).deliver_later
+      mailer.send(method, recipient.user.id, target.id, status, current_user.id, recipient.reason).deliver_later
+    end
+  end
+
+  def merge_request_unmergeable_email(merge_request)
+    recipients = NotificationRecipientService.build_merge_request_unmergeable_recipients(merge_request)
+
+    recipients.each do |recipient|
+      mailer.merge_request_unmergeable_email(recipient.user.id, merge_request.id).deliver_later
     end
   end
 
@@ -423,15 +575,11 @@ class NotificationService
     Notify
   end
 
-  def previous_record(object, attribute)
-    return unless object && attribute
-
-    if object.previous_changes.include?(attribute)
-      object.previous_changes[attribute].first
-    end
-  end
-
   private
+
+  def project_maintainers_recipients(target, action:)
+    NotificationRecipientService.build_project_maintainers_recipients(target, action: action)
+  end
 
   def notifiable?(*args)
     NotificationRecipientService.notifiable?(*args)
@@ -439,5 +587,15 @@ class NotificationService
 
   def notifiable_users(*args)
     NotificationRecipientService.notifiable_users(*args)
+  end
+
+  def deliver_access_request_email(recipient, member)
+    mailer.member_access_requested_email(member.real_source_type, member.id, recipient.user.notification_email).deliver_later
+  end
+
+  def fallback_to_group_owners_maintainers?(recipients, member)
+    return false if recipients.present?
+
+    member.source.respond_to?(:group) && member.source.group
   end
 end

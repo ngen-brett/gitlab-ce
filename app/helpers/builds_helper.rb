@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module BuildsHelper
   def build_summary(build, skip: false)
     if build.has_trace?
@@ -12,16 +14,15 @@ module BuildsHelper
   end
 
   def sidebar_build_class(build, current_build)
-    build_class = ''
-    build_class += ' active' if build.id === current_build.id
-    build_class += ' retried' if build.retried?
-    build_class
+    build_class = []
+    build_class << 'active' if build.id === current_build.id
+    build_class << 'retried' if build.retried?
+    build_class.join(' ')
   end
 
   def javascript_build_options
     {
-      page_url: project_job_url(@project, @build),
-      build_url: project_job_url(@project, @build, :json),
+      page_path: project_job_path(@project, @build),
       build_status: @build.status,
       build_stage: @build.stage,
       log_state: ''

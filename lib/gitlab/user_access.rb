@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   class UserAccess
     extend Gitlab::Cache::RequestCache
@@ -6,7 +8,8 @@ module Gitlab
       [user&.id, project&.id]
     end
 
-    attr_reader :user, :project
+    attr_reader :user
+    attr_accessor :project
 
     def initialize(user, project: nil)
       @user = user
@@ -16,8 +19,10 @@ module Gitlab
     def can_do_action?(action)
       return false unless can_access_git?
 
-      @permission_cache ||= {}
-      @permission_cache[action] ||= user.can?(action, project)
+      permission_cache[action] =
+        permission_cache.fetch(action) do
+          user.can?(action, project)
+        end
     end
 
     def cannot_do_action?(action)
@@ -28,7 +33,7 @@ module Gitlab
       return false unless can_access_git?
 
       if user.requires_ldap_check? && user.try_obtain_ldap_lease
-        return false unless Gitlab::LDAP::Access.allowed?(user)
+        return false unless Gitlab::Auth::LDAP::Access.allowed?(user)
       end
 
       true
@@ -48,7 +53,7 @@ module Gitlab
       return false unless can_access_git?
 
       if protected?(ProtectedBranch, project, ref)
-        user.can?(:delete_protected_branch, project)
+        user.can?(:push_to_delete_protected_branch, project)
       else
         user.can?(:push_code, project)
       end
@@ -60,13 +65,14 @@ module Gitlab
 
     request_cache def can_push_to_branch?(ref)
       return false unless can_access_git?
+      return false unless project
+
+      return false if !user.can?(:push_code, project) && !project.branch_allows_collaboration?(user, ref)
 
       if protected?(ProtectedBranch, project, ref)
-        return true if project.empty_repo? && project.user_can_push_to_empty_repo?(user)
-
         protected_branch_accessible_to?(ref, action: :push)
       else
-        user.can?(:push_code, project)
+        true
       end
     end
 
@@ -88,6 +94,10 @@ module Gitlab
 
     private
 
+    def permission_cache
+      @permission_cache ||= {}
+    end
+
     def can_access_git?
       user && user.can?(:access_git)
     end
@@ -95,6 +105,7 @@ module Gitlab
     def protected_branch_accessible_to?(ref, action:)
       ProtectedBranch.protected_ref_accessible_to?(
         ref, user,
+        project: project,
         action: action,
         protected_refs: project.protected_branches)
     end
@@ -102,6 +113,7 @@ module Gitlab
     def protected_tag_accessible_to?(ref, action:)
       ProtectedTag.protected_ref_accessible_to?(
         ref, user,
+        project: project,
         action: action,
         protected_refs: project.protected_tags)
     end

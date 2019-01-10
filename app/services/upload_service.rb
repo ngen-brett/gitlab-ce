@@ -1,22 +1,22 @@
-class UploadService
-  include Gitlab::CurrentSettings
+# frozen_string_literal: true
 
-  def initialize(model, file, uploader_class = FileUploader)
-    @model, @file, @uploader_class = model, file, uploader_class
+class UploadService
+  def initialize(model, file, uploader_class = FileUploader, **uploader_context)
+    @model, @file, @uploader_class, @uploader_context = model, file, uploader_class, uploader_context
   end
 
   def execute
     return nil unless @file && @file.size <= max_attachment_size
 
-    uploader = @uploader_class.new(@model)
+    uploader = @uploader_class.new(@model, nil, @uploader_context)
     uploader.store!(@file)
 
-    uploader.to_h
+    uploader
   end
 
   private
 
   def max_attachment_size
-    current_application_settings.max_attachment_size.megabytes.to_i
+    Gitlab::CurrentSettings.max_attachment_size.megabytes.to_i
   end
 end

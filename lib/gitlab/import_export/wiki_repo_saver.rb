@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module ImportExport
     class WikiRepoSaver < RepoSaver
@@ -10,7 +12,7 @@ module Gitlab
 
       def bundle_to_disk(full_path)
         mkdir_p(@shared.export_path)
-        git_bundle(repo_path: path_to_repo, bundle_path: full_path)
+        @wiki.repository.bundle_to_disk(full_path)
       rescue => e
         @shared.error(e)
         false
@@ -22,12 +24,8 @@ module Gitlab
         "project.wiki.bundle"
       end
 
-      def path_to_repo
-        @wiki.repository.path_to_repo
-      end
-
       def wiki_repository_exists?
-        File.exist?(@wiki.repository.path_to_repo) && !@wiki.repository.empty?
+        @wiki.repository.exists? && !@wiki.repository.empty?
       end
     end
   end

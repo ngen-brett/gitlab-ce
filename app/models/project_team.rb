@@ -1,40 +1,35 @@
+# frozen_string_literal: true
+
 class ProjectTeam
+  include BulkMemberAccessLoad
+
   attr_accessor :project
 
   def initialize(project)
     @project = project
   end
 
-  # Shortcut to add users
-  #
-  # Use:
-  #   @team << [@user, :master]
-  #   @team << [@users, :master]
-  #
-  def <<(args)
-    users, access, current_user = *args
-
-    if users.respond_to?(:each)
-      add_users(users, access, current_user: current_user)
-    else
-      add_user(users, access, current_user: current_user)
-    end
-  end
-
   def add_guest(user, current_user: nil)
-    self << [user, :guest, current_user]
+    add_user(user, :guest, current_user: current_user)
   end
 
   def add_reporter(user, current_user: nil)
-    self << [user, :reporter, current_user]
+    add_user(user, :reporter, current_user: current_user)
   end
 
   def add_developer(user, current_user: nil)
-    self << [user, :developer, current_user]
+    add_user(user, :developer, current_user: current_user)
   end
 
-  def add_master(user, current_user: nil)
-    self << [user, :master, current_user]
+  def add_maintainer(user, current_user: nil)
+    add_user(user, :maintainer, current_user: current_user)
+  end
+
+  # @deprecated
+  alias_method :add_master, :add_maintainer
+
+  def add_role(user, role, current_user: nil)
+    public_send(:"add_#{role}", user, current_user: current_user) # rubocop:disable GitlabSecurity/PublicSend
   end
 
   def find_member(user_id)
@@ -91,8 +86,20 @@ class ProjectTeam
     @developers ||= fetch_members(Gitlab::Access::DEVELOPER)
   end
 
-  def masters
-    @masters ||= fetch_members(Gitlab::Access::MASTER)
+  def maintainers
+    @maintainers ||= fetch_members(Gitlab::Access::MAINTAINER)
+  end
+
+  # @deprecated
+  alias_method :masters, :maintainers
+
+  def owners
+    @owners ||=
+      if group
+        group.owners
+      else
+        [project.owner]
+      end
   end
 
   def import(source_project, current_user = nil)
@@ -137,9 +144,12 @@ class ProjectTeam
     max_member_access(user.id) == Gitlab::Access::DEVELOPER
   end
 
-  def master?(user)
-    max_member_access(user.id) == Gitlab::Access::MASTER
+  def maintainer?(user)
+    max_member_access(user.id) == Gitlab::Access::MAINTAINER
   end
+
+  # @deprecated
+  alias_method :master?, :maintainer?
 
   # Checks if `user` is authorized for this project, with at least the
   # `min_access_level` (if given).
@@ -157,39 +167,16 @@ class ProjectTeam
   #
   # Returns a Hash mapping user ID -> maximum access level.
   def max_member_access_for_user_ids(user_ids)
-    user_ids = user_ids.uniq
-    key = "max_member_access:#{project.id}"
-
-    access = {}
-
-    if RequestStore.active?
-      RequestStore.store[key] ||= {}
-      access = RequestStore.store[key]
+    max_member_access_for_resource_ids(User, user_ids, project.id) do |user_ids|
+      project.project_authorizations
+             .where(user: user_ids)
+             .group(:user_id)
+             .maximum(:access_level)
     end
-
-    # Look up only the IDs we need
-    user_ids = user_ids - access.keys
-
-    return access if user_ids.empty?
-
-    users_access = project.project_authorizations
-      .where(user: user_ids)
-      .group(:user_id)
-      .maximum(:access_level)
-
-    access.merge!(users_access)
-
-    missing_user_ids = user_ids - users_access.keys
-
-    missing_user_ids.each do |user_id|
-      access[user_id] = Gitlab::Access::NO_ACCESS
-    end
-
-    access
   end
 
   def max_member_access(user_id)
-    max_member_access_for_user_ids([user_id])[user_id] || Gitlab::Access::NO_ACCESS
+    max_member_access_for_user_ids([user_id])[user_id]
   end
 
   private

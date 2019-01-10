@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 class NewMergeRequestWorker
-  include Sidekiq::Worker
-  include DedicatedSidekiqQueue
+  include ApplicationWorker
   include NewIssuable
 
   def perform(merge_request_id, user_id)
@@ -8,6 +9,8 @@ class NewMergeRequestWorker
 
     EventCreateService.new.open_mr(issuable, user)
     NotificationService.new.new_merge_request(issuable, user)
+
+    issuable.diffs(include_stats: false).write_cache
     issuable.create_cross_references!(user)
   end
 

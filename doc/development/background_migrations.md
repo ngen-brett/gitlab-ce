@@ -5,12 +5,15 @@ otherwise take a very long time (hours, days, years, etc) to complete. For
 example, you can use background migrations to migrate data so that instead of
 storing data in a single JSON column the data is stored in a separate table.
 
+If the database cluster is considered to be in an unhealthy state, background
+migrations automatically reschedule themselves for a later point in time.
+
 ## When To Use Background Migrations
 
->**Note:**
-When adding background migrations _you must_ make sure they are announced in the
-monthly release post along with an estimate of how long it will take to complete
-the migrations.
+> **Note:**
+> When adding background migrations _you must_ make sure they are announced in the
+> monthly release post along with an estimate of how long it will take to complete
+> the migrations.
 
 In the vast majority of cases you will want to use a regular Rails migration
 instead. Background migrations should _only_ be used when migrating _data_ in
@@ -22,9 +25,9 @@ should only be used for data migrations.
 
 Some examples where background migrations can be useful:
 
-* Migrating events from one table to multiple separate tables.
-* Populating one column based on JSON stored in another column.
-* Migrating data that depends on the output of exernal services (e.g. an API).
+- Migrating events from one table to multiple separate tables.
+- Populating one column based on JSON stored in another column.
+- Migrating data that depends on the output of external services (e.g. an API).
 
 ## Isolation
 
@@ -46,7 +49,7 @@ See [Sidekiq best practices guidelines](https://github.com/mperham/sidekiq/wiki/
 for more details.
 
 Make sure that in case that your migration job is going to be retried data
-integrity is guarateed.
+integrity is guaranteed.
 
 ## How It Works
 
@@ -68,10 +71,10 @@ BackgroundMigrationWorker.perform_async('BackgroundMigrationClassName', [arg1, a
 ```
 
 Usually it's better to enqueue jobs in bulk, for this you can use
-`BackgroundMigrationWorker.perform_bulk`:
+`BackgroundMigrationWorker.bulk_perform_async`:
 
 ```ruby
-BackgroundMigrationWorker.perform_bulk(
+BackgroundMigrationWorker.bulk_perform_async(
   [['BackgroundMigrationClassName', [1]],
    ['BackgroundMigrationClassName', [2]]]
 )
@@ -85,14 +88,26 @@ updates. Removals in turn can be handled by simply defining foreign keys with
 cascading deletes.
 
 If you would like to schedule jobs in bulk with a delay, you can use
-`BackgroundMigrationWorker.perform_bulk_in`:
+`BackgroundMigrationWorker.bulk_perform_in`:
 
 ```ruby
 jobs = [['BackgroundMigrationClassName', [1]],
         ['BackgroundMigrationClassName', [2]]]
 
-BackgroundMigrationWorker.perform_bulk_in(5.minutes, jobs)
+BackgroundMigrationWorker.bulk_perform_in(5.minutes, jobs)
 ```
+
+### Rescheduling background migrations
+
+If one of the background migrations contains a bug that is fixed in a patch
+release, the background migration needs to be rescheduled so the migration would
+be repeated on systems that already performed the initial migration.
+
+When you reschedule the background migration, make sure to turn the original
+scheduling into a no-op by clearing up the `#up` and `#down` methods of the
+migration performing the scheduling. Otherwise the background migration would be
+scheduled multiple times on systems that are upgrading multiple patch releases at
+once.
 
 ## Cleaning Up
 
@@ -112,19 +127,27 @@ big JSON blob) to column `bar` (containing a string). The process for this would
 roughly be as follows:
 
 1. Release A:
-  1. Create a migration class that perform the migration for a row with a given ID.
-  1. Deploy the code for this release, this should include some code that will
-     schedule jobs for newly created data (e.g. using an `after_create` hook).
-  1. Schedule jobs for all existing rows in a post-deployment migration. It's
-     possible some newly created rows may be scheduled twice so your migration
-     should take care of this.
+   1. Create a migration class that perform the migration for a row with a given ID.
+   1. Deploy the code for this release, this should include some code that will
+      schedule jobs for newly created data (e.g. using an `after_create` hook).
+   1. Schedule jobs for all existing rows in a post-deployment migration. It's
+      possible some newly created rows may be scheduled twice so your migration
+      should take care of this.
 1. Release B:
-  1. Deploy code so that the application starts using the new column and stops
-     scheduling jobs for newly created data.
-  1. In a post-deployment migration you'll need to ensure no jobs remain. To do
-     so you can use `Gitlab::BackgroundMigration.steal` to process any remaining
-     jobs before continueing.
-  1. Remove the old column.
+   1. Deploy code so that the application starts using the new column and stops
+      scheduling jobs for newly created data.
+   1. In a post-deployment migration you'll need to ensure no jobs remain.
+      1. Use `Gitlab::BackgroundMigration.steal` to process any remaining
+         jobs in Sidekiq.
+      1. Reschedule the migration to be run directly (i.e. not through Sidekiq)
+         on any rows that weren't migrated by Sidekiq. This can happen if, for
+         instance, Sidekiq received a SIGKILL, or if a particular batch failed
+         enough times to be marked as dead.
+   1. Remove the old column.
+
+This may also require a bump to the [import/export version][import-export], if
+importing a project from a prior version of GitLab requires the data to be in
+the new format.
 
 ## Example
 
@@ -188,7 +211,7 @@ existing data. Since we're dealing with a lot of rows we'll schedule jobs in
 batches instead of doing this one by one:
 
 ```ruby
-class ScheduleExtractServicesUrl < ActiveRecord::Migration
+class ScheduleExtractServicesUrl < ActiveRecord::Migration[4.2]
   disable_ddl_transaction!
 
   class Service < ActiveRecord::Base
@@ -201,7 +224,7 @@ class ScheduleExtractServicesUrl < ActiveRecord::Migration
         ['ExtractServicesUrl', [id]]
       end
 
-      BackgroundMigrationWorker.perform_bulk(jobs)
+      BackgroundMigrationWorker.bulk_perform_async(jobs)
     end
   end
 
@@ -215,20 +238,44 @@ same time will ensure that both existing and new data is migrated.
 
 In the next release we can remove the `after_commit` hooks and related code. We
 will also need to add a post-deployment migration that consumes any remaining
-jobs. Such a migration would look like this:
+jobs and manually run on any un-migrated rows. Such a migration would look like
+this:
 
 ```ruby
-class ConsumeRemainingExtractServicesUrlJobs < ActiveRecord::Migration
+class ConsumeRemainingExtractServicesUrlJobs < ActiveRecord::Migration[4.2]
   disable_ddl_transaction!
 
+  class Service < ActiveRecord::Base
+    include ::EachBatch
+
+    self.table_name = 'services'
+  end
+
   def up
+    # This must be included
     Gitlab::BackgroundMigration.steal('ExtractServicesUrl')
+
+    # This should be included, but can be skipped - see below
+    Service.where(url: nil).each_batch(of: 50) do |batch|
+      range = batch.pluck('MIN(id)', 'MAX(id)').first
+
+      Gitlab::BackgroundMigration::ExtractServicesUrl.new.perform(*range)
+    end
   end
 
   def down
   end
 end
 ```
+
+The final step runs for any un-migrated rows after all of the jobs have been
+processed. This is in case a Sidekiq process running the background migrations
+received SIGKILL, leading to the jobs being lost. (See
+[more reliable Sidekiq queue][reliable-sidekiq] for more information.)
+
+If the application does not depend on the data being 100% migrated (for
+instance, the data is advisory, and not mission-critical), then this final step
+can be skipped.
 
 This migration will then process any jobs for the ExtractServicesUrl migration
 and continue once all jobs have been processed. Once done you can safely remove
@@ -252,8 +299,20 @@ for more details.
 
 ## Best practices
 
+1. Make sure to know how much data you're dealing with
 1. Make sure that background migration jobs are idempotent.
 1. Make sure that tests you write are not false positives.
+1. Make sure that if the data being migrated is critical and cannot be lost, the
+   clean-up migration also checks the final state of the data before completing.
+1. Make sure to know how much time it'll take to run all scheduled migrations
+1. When migrating many columns, make sure it won't generate too many
+   dead tuples in the process (you may need to directly query the number of dead tuples
+   and adjust the scheduling according to this piece of data)
+1. Make sure to discuss the numbers with a database specialist, the migration may add
+   more pressure on DB than you expect (measure on staging,
+   or ask someone to measure on production)
 
 [migrations-readme]: https://gitlab.com/gitlab-org/gitlab-ce/blob/master/spec/migrations/README.md
 [issue-rspec-hooks]: https://gitlab.com/gitlab-org/gitlab-ce/issues/35351
+[reliable-sidekiq]: https://gitlab.com/gitlab-org/gitlab-ce/issues/36791
+[import-export]: ../user/project/settings/import_export.md

@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 module Ci
   class PipelineSchedule < ActiveRecord::Base
     extend Gitlab::Ci::Model
     include Importable
+    include IgnorableColumn
 
-    acts_as_paranoid
+    ignore_column :deleted_at
 
     belongs_to :project
     belongs_to :owner, class_name: 'User'

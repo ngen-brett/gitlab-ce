@@ -1,4 +1,4 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :ci_stage, class: Ci::LegacyStage do
     skip_create
 
@@ -21,6 +21,7 @@ FactoryGirl.define do
     pipeline factory: :ci_empty_pipeline
 
     name 'test'
+    position 1
     status 'pending'
   end
 end

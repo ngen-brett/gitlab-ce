@@ -1,7 +1,7 @@
 # See http://doc.gitlab.com/ce/development/migration_style_guide.html
 # for more information on how to write migrations for GitLab.
 
-class PostDeployMigrateUserExternalMailData < ActiveRecord::Migration
+class PostDeployMigrateUserExternalMailData < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
 
   DOWNTIME = false
@@ -33,7 +33,7 @@ class PostDeployMigrateUserExternalMailData < ActiveRecord::Migration
           SELECT true
           FROM user_synced_attributes_metadata
           WHERE user_id = users.id
-          AND provider = users.email_provider OR (provider IS NULL AND users.email_provider IS NULL)
+          AND (provider = users.email_provider OR (provider IS NULL AND users.email_provider IS NULL))
         )
         AND id BETWEEN #{start_id} AND #{end_id}
       EOF

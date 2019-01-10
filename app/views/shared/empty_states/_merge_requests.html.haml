@@ -3,20 +3,24 @@
 - has_button = button_path || project_select_button
 
 .row.empty-state.merge-requests
-  .col-xs-12
+  .col-12
     .svg-content
       = image_tag 'illustrations/merge_requests.svg'
-  .col-xs-12.text-center
+  .col-12
     .text-content
-      - if has_button
-        %h4
-          Merge requests are a place to propose changes you've made to a project and discuss those changes with others.
-        %p
-          Interested parties can even contribute by pushing commits if they want to.
-        - if project_select_button
-          = render 'shared/new_project_item_select', path: 'merge_requests/new', label: 'New merge request', type: :merge_requests
-        - else
-          = link_to 'New merge request', button_path, class: 'btn btn-new', title: 'New merge request', id: 'new_merge_request_link'
-      - else
+      - if has_filter_bar_param?
         %h4.text-center
-          There are no merge requests to show.
+          = _("Sorry, your filter produced no results")
+        %p.text-center
+          = _("To widen your search, change or remove filters above")
+      - else
+        %h4
+          = _("Merge requests are a place to propose changes you've made to a project and discuss those changes with others")
+        %p
+          = _("Interested parties can even contribute by pushing commits if they want to.")
+        - if has_button
+          .text-center
+            - if project_select_button
+              = render 'shared/new_project_item_select', path: 'merge_requests/new', label: _('New merge request'), type: :merge_requests, with_feature_enabled: 'merge_requests'
+            - else
+              = link_to _('New merge request'), button_path, class: 'btn btn-success', title: _('New merge request'), id: 'new_merge_request_link'

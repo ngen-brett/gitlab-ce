@@ -7,7 +7,8 @@ describe SystemHook do
     it 'sets defined default parameters' do
       attrs = {
         push_events: false,
-        repository_update_events: true
+        repository_update_events: true,
+        merge_requests_events: false
       }
       expect(system_hook).to have_attributes(attrs)
     end
@@ -62,7 +63,7 @@ describe SystemHook do
     end
 
     it "project_create hook" do
-      project.team << [user, :master]
+      project.add_maintainer(user)
 
       expect(WebMock).to have_requested(:post, system_hook.url).with(
         body: /user_add_to_team/,
@@ -71,8 +72,8 @@ describe SystemHook do
     end
 
     it "project_destroy hook" do
-      project.team << [user, :master]
-      project.project_members.destroy_all
+      project.add_maintainer(user)
+      project.project_members.destroy_all # rubocop: disable DestroyAll
 
       expect(WebMock).to have_requested(:post, system_hook.url).with(
         body: /user_remove_from_team/,
@@ -99,7 +100,7 @@ describe SystemHook do
     end
 
     it 'group member create hook' do
-      group.add_master(user)
+      group.add_maintainer(user)
 
       expect(WebMock).to have_requested(:post, system_hook.url).with(
         body: /user_add_to_group/,
@@ -108,8 +109,8 @@ describe SystemHook do
     end
 
     it 'group member destroy hook' do
-      group.add_master(user)
-      group.group_members.destroy_all
+      group.add_maintainer(user)
+      group.group_members.destroy_all # rubocop: disable DestroyAll
 
       expect(WebMock).to have_requested(:post, system_hook.url).with(
         body: /user_remove_from_group/,

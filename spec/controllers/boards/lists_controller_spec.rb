@@ -7,15 +7,15 @@ describe Boards::ListsController do
   let(:guest)   { create(:user) }
 
   before do
-    project.team << [user, :master]
-    project.team << [guest, :guest]
+    project.add_maintainer(user)
+    project.add_guest(guest)
   end
 
   describe 'GET index' do
     it 'returns a successful 200 response' do
       read_board_list user: user, board: board
 
-      expect(response).to have_http_status(200)
+      expect(response).to have_gitlab_http_status(200)
       expect(response.content_type).to eq 'application/json'
     end
 
@@ -39,16 +39,18 @@ describe Boards::ListsController do
       it 'returns a forbidden 403 response' do
         read_board_list user: user, board: board
 
-        expect(response).to have_http_status(403)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
 
     def read_board_list(user:, board:)
       sign_in(user)
 
-      get :index, namespace_id: project.namespace.to_param,
-                  project_id: project,
-                  board_id: board.to_param,
+      get :index, params: {
+                    namespace_id: project.namespace.to_param,
+                    project_id: project,
+                    board_id: board.to_param
+                  },
                   format: :json
     end
   end
@@ -60,7 +62,7 @@ describe Boards::ListsController do
       it 'returns a successful 200 response' do
         create_board_list user: user, board: board, label_id: label.id
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
       end
 
       it 'returns the created list' do
@@ -75,7 +77,7 @@ describe Boards::ListsController do
         it 'returns a not found 404 response' do
           create_board_list user: user, board: board, label_id: nil
 
-          expect(response).to have_http_status(404)
+          expect(response).to have_gitlab_http_status(404)
         end
       end
 
@@ -85,7 +87,7 @@ describe Boards::ListsController do
 
           create_board_list user: user, board: board, label_id: label.id
 
-          expect(response).to have_http_status(404)
+          expect(response).to have_gitlab_http_status(404)
         end
       end
     end
@@ -96,17 +98,19 @@ describe Boards::ListsController do
 
         create_board_list user: guest, board: board, label_id: label.id
 
-        expect(response).to have_http_status(403)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
 
     def create_board_list(user:, board:, label_id:)
       sign_in(user)
 
-      post :create, namespace_id: project.namespace.to_param,
-                    project_id: project,
-                    board_id: board.to_param,
-                    list: { label_id: label_id },
+      post :create, params: {
+                      namespace_id: project.namespace.to_param,
+                      project_id: project,
+                      board_id: board.to_param,
+                      list: { label_id: label_id }
+                    },
                     format: :json
     end
   end
@@ -119,7 +123,7 @@ describe Boards::ListsController do
       it 'returns a successful 200 response' do
         move user: user, board: board, list: planning, position: 1
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
       end
 
       it 'moves the list to the desired position' do
@@ -133,7 +137,7 @@ describe Boards::ListsController do
       it 'returns an unprocessable entity 422 response' do
         move user: user, board: board, list: planning, position: 6
 
-        expect(response).to have_http_status(422)
+        expect(response).to have_gitlab_http_status(422)
       end
     end
 
@@ -141,7 +145,7 @@ describe Boards::ListsController do
       it 'returns a not found 404 response' do
         move user: user, board: board, list: 999, position: 1
 
-        expect(response).to have_http_status(404)
+        expect(response).to have_gitlab_http_status(404)
       end
     end
 
@@ -149,19 +153,21 @@ describe Boards::ListsController do
       it 'returns a forbidden 403 response' do
         move user: guest, board: board, list: planning, position: 6
 
-        expect(response).to have_http_status(403)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
 
     def move(user:, board:, list:, position:)
       sign_in(user)
 
-      patch :update, namespace_id: project.namespace.to_param,
-                     project_id: project,
-                     board_id: board.to_param,
-                     id: list.to_param,
-                     list: { position: position },
-                     format: :json
+      params = { namespace_id: project.namespace.to_param,
+                 project_id: project,
+                 board_id: board.to_param,
+                 id: list.to_param,
+                 list: { position: position },
+                 format: :json }
+
+      patch :update, params: params, as: :json
     end
   end
 
@@ -172,7 +178,7 @@ describe Boards::ListsController do
       it 'returns a successful 200 response' do
         remove_board_list user: user, board: board, list: planning
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
       end
 
       it 'removes list from board' do
@@ -184,7 +190,7 @@ describe Boards::ListsController do
       it 'returns a not found 404 response' do
         remove_board_list user: user, board: board, list: 999
 
-        expect(response).to have_http_status(404)
+        expect(response).to have_gitlab_http_status(404)
       end
     end
 
@@ -192,17 +198,19 @@ describe Boards::ListsController do
       it 'returns a forbidden 403 response' do
         remove_board_list user: guest, board: board, list: planning
 
-        expect(response).to have_http_status(403)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
 
     def remove_board_list(user:, board:, list:)
       sign_in(user)
 
-      delete :destroy, namespace_id: project.namespace.to_param,
-                       project_id: project,
-                       board_id: board.to_param,
-                       id: list.to_param,
+      delete :destroy, params: {
+                         namespace_id: project.namespace.to_param,
+                         project_id: project,
+                         board_id: board.to_param,
+                         id: list.to_param
+                       },
                        format: :json
     end
   end
@@ -212,7 +220,7 @@ describe Boards::ListsController do
       it 'returns a successful 200 response' do
         generate_default_lists user: user, board: board
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
       end
 
       it 'returns the defaults lists' do
@@ -228,7 +236,7 @@ describe Boards::ListsController do
 
         generate_default_lists user: user, board: board
 
-        expect(response).to have_http_status(422)
+        expect(response).to have_gitlab_http_status(422)
       end
     end
 
@@ -236,16 +244,18 @@ describe Boards::ListsController do
       it 'returns a forbidden 403 response' do
         generate_default_lists user: guest, board: board
 
-        expect(response).to have_http_status(403)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
 
     def generate_default_lists(user:, board:)
       sign_in(user)
 
-      post :generate, namespace_id: project.namespace.to_param,
-                      project_id: project,
-                      board_id: board.to_param,
+      post :generate, params: {
+                        namespace_id: project.namespace.to_param,
+                        project_id: project,
+                        board_id: board.to_param
+                      },
                       format: :json
     end
   end

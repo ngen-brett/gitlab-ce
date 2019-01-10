@@ -13,13 +13,14 @@ describe Issues::UpdateService, :mailer do
     create(:issue, title: 'Old title',
                    description: "for #{user2.to_reference}",
                    assignee_ids: [user3.id],
-                   project: project)
+                   project: project,
+                   author: create(:user))
   end
 
   before do
-    project.team << [user, :master]
-    project.team << [user2, :developer]
-    project.team << [user3, :developer]
+    project.add_maintainer(user)
+    project.add_developer(user2)
+    project.add_developer(user3)
   end
 
   describe 'execute' do
@@ -48,11 +49,14 @@ describe Issues::UpdateService, :mailer do
           assignee_ids: [user2.id],
           state_event: 'close',
           label_ids: [label.id],
-          due_date: Date.tomorrow
+          due_date: Date.tomorrow,
+          discussion_locked: true
         }
       end
 
       it 'updates the issue with the given params' do
+        expect(TodosDestroyer::ConfidentialIssueWorker).not_to receive(:perform_in)
+
         update_issue(opts)
 
         expect(issue).to be_valid
@@ -62,6 +66,7 @@ describe Issues::UpdateService, :mailer do
         expect(issue).to be_closed
         expect(issue.labels).to match_array [label]
         expect(issue.due_date).to eq Date.tomorrow
+        expect(issue.discussion_locked).to be_truthy
       end
 
       it 'refreshes the number of open issues when the issue is made confidential', :use_clean_rails_memory_store_caching do
@@ -69,6 +74,21 @@ describe Issues::UpdateService, :mailer do
 
         expect { update_issue(confidential: true) }
           .to change { project.open_issues_count }.from(1).to(0)
+      end
+
+      it 'enqueues ConfidentialIssueWorker when an issue is made confidential' do
+        expect(TodosDestroyer::ConfidentialIssueWorker).to receive(:perform_in).with(Todo::WAIT_FOR_DELETE, issue.id)
+
+        update_issue(confidential: true)
+      end
+
+      it 'does not enqueue ConfidentialIssueWorker when an issue is made non confidential' do
+        # set confidentiality to true before the actual update
+        issue.update!(confidential: true)
+
+        expect(TodosDestroyer::ConfidentialIssueWorker).not_to receive(:perform_in)
+
+        update_issue(confidential: false)
       end
 
       it 'updates open issue counter for assignees when issue is reassigned' do
@@ -94,10 +114,43 @@ describe Issues::UpdateService, :mailer do
         expect(issue.relative_position).to be_between(issue1.relative_position, issue2.relative_position)
       end
 
+      context 'when moving issue between issues from different projects', :nested_groups do
+        let(:group) { create(:group) }
+        let(:subgroup) { create(:group, parent: group) }
+
+        let(:project_1) { create(:project, namespace: group) }
+        let(:project_2) { create(:project, namespace: group) }
+        let(:project_3) { create(:project, namespace: subgroup) }
+
+        let(:issue_1) { create(:issue, project: project_1) }
+        let(:issue_2) { create(:issue, project: project_2) }
+        let(:issue_3) { create(:issue, project: project_3) }
+
+        before do
+          group.add_developer(user)
+        end
+
+        it 'sorts issues as specified by parameters' do
+          # Moving all issues to end here like the last example won't work since
+          # all projects only have the same issue count
+          # so their relative_position will be the same.
+          issue_1.move_to_end
+          issue_2.move_after(issue_1)
+          issue_3.move_after(issue_2)
+          [issue_1, issue_2, issue_3].map(&:save)
+
+          opts[:move_between_ids] = [issue_1.id, issue_2.id]
+          opts[:board_group_id] = group.id
+
+          described_class.new(issue_3.project, user, opts).execute(issue_3)
+          expect(issue_2.relative_position).to be_between(issue_1.relative_position, issue_2.relative_position)
+        end
+      end
+
       context 'when current user cannot admin issues in the project' do
         let(:guest) { create(:user) }
         before do
-          project.team << [guest, :guest]
+          project.add_guest(guest)
         end
 
         it 'filters out params that cannot be set without the :admin_issue permission' do
@@ -110,6 +163,7 @@ describe Issues::UpdateService, :mailer do
           expect(issue.labels).to be_empty
           expect(issue.milestone).to be_nil
           expect(issue.due_date).to be_nil
+          expect(issue.discussion_locked).to be_falsey
         end
       end
 
@@ -135,11 +189,12 @@ describe Issues::UpdateService, :mailer do
           expect(note.note).to include "assigned to #{user2.to_reference}"
         end
 
-        it 'creates system note about issue label edit' do
-          note = find_note('added ~')
+        it 'creates a resource label event' do
+          event = issue.resource_label_events.last
 
-          expect(note).not_to be_nil
-          expect(note.note).to include "added #{label.to_reference} label"
+          expect(event).not_to be_nil
+          expect(event.label_id).to eq label.id
+          expect(event.user_id).to eq user.id
         end
 
         it 'creates system note about title change' do
@@ -147,6 +202,13 @@ describe Issues::UpdateService, :mailer do
 
           expect(note).not_to be_nil
           expect(note.note).to eq 'changed title from **{-Old-} title** to **{+New+} title**'
+        end
+
+        it 'creates system note about discussion lock' do
+          note = find_note('locked this issue')
+
+          expect(note).not_to be_nil
+          expect(note.note).to eq 'locked this issue'
         end
       end
     end
@@ -257,7 +319,66 @@ describe Issues::UpdateService, :mailer do
         end
       end
 
-      context 'when the milestone change' do
+      context 'when a new assignee added' do
+        subject { update_issue(assignees: issue.assignees + [user2]) }
+
+        it 'creates only 1 new todo' do
+          expect { subject }.to change { Todo.count }.by(1)
+        end
+
+        it 'creates a todo for new assignee' do
+          subject
+
+          attributes = {
+            project: project,
+            author: user,
+            user: user2,
+            target_id: issue.id,
+            target_type: issue.class.name,
+            action: Todo::ASSIGNED,
+            state: :pending
+          }
+
+          expect(Todo.where(attributes).count).to eq(1)
+        end
+      end
+
+      context 'when the milestone is removed' do
+        let!(:non_subscriber) { create(:user) }
+
+        let!(:subscriber) do
+          create(:user) do |u|
+            issue.toggle_subscription(u, project)
+            project.add_developer(u)
+          end
+        end
+
+        it_behaves_like 'system notes for milestones'
+
+        it 'sends notifications for subscribers of changed milestone' do
+          issue.milestone = create(:milestone)
+
+          issue.save
+
+          perform_enqueued_jobs do
+            update_issue(milestone_id: "")
+          end
+
+          should_email(subscriber)
+          should_not_email(non_subscriber)
+        end
+      end
+
+      context 'when the milestone is changed' do
+        let!(:non_subscriber) { create(:user) }
+
+        let!(:subscriber) do
+          create(:user) do |u|
+            issue.toggle_subscription(u, project)
+            project.add_developer(u)
+          end
+        end
+
         it 'marks todos as done' do
           update_issue(milestone: create(:milestone))
 
@@ -265,15 +386,30 @@ describe Issues::UpdateService, :mailer do
         end
 
         it_behaves_like 'system notes for milestones'
+
+        it 'sends notifications for subscribers of changed milestone' do
+          perform_enqueued_jobs do
+            update_issue(milestone: create(:milestone))
+          end
+
+          should_email(subscriber)
+          should_not_email(non_subscriber)
+        end
       end
 
       context 'when the labels change' do
         before do
-          update_issue(label_ids: [label.id])
+          Timecop.freeze(1.minute.from_now) do
+            update_issue(label_ids: [label.id])
+          end
         end
 
         it 'marks todos as done' do
           expect(todo.reload.done?).to eq true
+        end
+
+        it 'updates updated_at' do
+          expect(issue.reload.updated_at).to be > Time.now
         end
       end
     end
@@ -282,9 +418,9 @@ describe Issues::UpdateService, :mailer do
       let!(:non_subscriber) { create(:user) }
 
       let!(:subscriber) do
-        create(:user).tap do |u|
+        create(:user) do |u|
           label.toggle_subscription(u, project)
-          project.team << [u, :developer]
+          project.add_developer(u)
         end
       end
 
@@ -427,7 +563,7 @@ describe Issues::UpdateService, :mailer do
         let(:params) { { label_ids: [], remove_label_ids: [label.id] } }
 
         before do
-          issue.update_attributes(labels: [label, label3])
+          issue.update(labels: [label, label3])
         end
 
         it 'ignores the label_ids parameter' do
@@ -443,7 +579,7 @@ describe Issues::UpdateService, :mailer do
         let(:params) { { add_label_ids: [label3.id], remove_label_ids: [label.id] } }
 
         before do
-          issue.update_attributes(labels: [label])
+          issue.update(labels: [label])
         end
 
         it 'adds the passed labels' do
@@ -522,7 +658,7 @@ describe Issues::UpdateService, :mailer do
 
       context 'valid project' do
         before do
-          target_project.team << [user, :master]
+          target_project.add_maintainer(user)
         end
 
         it 'calls the move service with the proper issue and project' do

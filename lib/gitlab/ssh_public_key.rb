@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module Gitlab
   class SSHPublicKey
     Technology = Struct.new(:name, :key_class, :supported_sizes)
 
-    Technologies = [
+    TECHNOLOGIES = [
       Technology.new(:rsa, OpenSSL::PKey::RSA, [1024, 2048, 3072, 4096]),
       Technology.new(:dsa, OpenSSL::PKey::DSA, [1024, 2048, 3072]),
       Technology.new(:ecdsa, OpenSSL::PKey::EC, [256, 384, 521]),
@@ -10,15 +12,31 @@ module Gitlab
     ].freeze
 
     def self.technology(name)
-      Technologies.find { |tech| tech.name.to_s == name.to_s }
+      TECHNOLOGIES.find { |tech| tech.name.to_s == name.to_s }
     end
 
     def self.technology_for_key(key)
-      Technologies.find { |tech| key.is_a?(tech.key_class) }
+      TECHNOLOGIES.find { |tech| key.is_a?(tech.key_class) }
     end
 
     def self.supported_sizes(name)
       technology(name)&.supported_sizes
+    end
+
+    def self.sanitize(key_content)
+      ssh_type, *parts = key_content.strip.split
+
+      return key_content if parts.empty?
+
+      parts.each_with_object(+"#{ssh_type} ").with_index do |(part, content), index|
+        content << part
+
+        if Gitlab::SSHPublicKey.new(content).valid?
+          break [content, parts[index + 1]].compact.join(' ') # Add the comment part if present
+        elsif parts.size == index + 1 # return original content if we've reached the last element
+          break key_content
+        end
+      end
     end
 
     attr_reader :key_text, :key
@@ -37,23 +55,23 @@ module Gitlab
     end
 
     def valid?
-      key.present?
+      SSHKey.valid_ssh_public_key?(key_text)
     end
 
     def type
-      technology.name if valid?
+      technology.name if key.present?
     end
 
     def bits
-      return unless valid?
+      return if key.blank?
 
       case type
       when :rsa
-        key.n.num_bits
+        key.n&.num_bits
       when :dsa
-        key.p.num_bits
+        key.p&.num_bits
       when :ecdsa
-        key.group.order.num_bits
+        key.group.order&.num_bits
       when :ed25519
         256
       else

@@ -1,4 +1,8 @@
-# Merge requests
+---
+comments: false
+---
+
+# Code review and collaboration with Merge Requests
 
 ----------
 

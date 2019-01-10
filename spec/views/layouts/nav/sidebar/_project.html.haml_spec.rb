@@ -12,7 +12,7 @@ describe 'layouts/nav/sidebar/_project' do
   end
 
   describe 'issue boards' do
-    it 'has boards tab when multiple issue boards available' do
+    it 'has board tab' do
       render
 
       expect(rendered).to have_css('a[title="Board"]')
@@ -36,16 +36,43 @@ describe 'layouts/nav/sidebar/_project' do
       expect(rendered).to have_text 'Registry'
     end
 
-    it 'highlights only one tab' do
+    it 'highlights sidebar item and flyout' do
       render
 
-      expect(rendered).to have_css('.active', count: 1)
+      expect(rendered).to have_css('.sidebar-top-level-items > li.active', count: 1)
+      expect(rendered).to have_css('.is-fly-out-only > li.active', count: 1)
     end
 
-    it 'highlights container registry tab only' do
+    it 'highlights container registry tab' do
       render
 
-      expect(rendered).to have_css('.active', text: 'Registry')
+      expect(rendered).to have_css('.sidebar-top-level-items > li.active', text: 'Registry')
+    end
+  end
+
+  describe 'releases entry' do
+    describe 'when releases feature flag is disabled' do
+      before do
+        stub_feature_flags(releases_page: false)
+      end
+
+      it 'does not render releases link' do
+        render
+
+        expect(rendered).not_to have_link('Releases', href: project_releases_path(project))
+      end
+    end
+
+    describe 'when releases feature flags is enabled' do
+      before do
+        stub_feature_flags(releases_page: true)
+      end
+
+      it 'renders releases link' do
+        render
+
+        expect(rendered).to have_link('Releases', href: project_releases_path(project))
+      end
     end
   end
 end

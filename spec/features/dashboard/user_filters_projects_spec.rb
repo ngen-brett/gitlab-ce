@@ -7,14 +7,14 @@ describe 'Dashboard > User filters projects' do
   let(:project2) { create(:project, name: 'Treasure', namespace: user2.namespace) }
 
   before do
-    project.team << [user, :master]
+    project.add_maintainer(user)
 
     sign_in(user)
   end
 
   describe 'filtering personal projects' do
     before do
-      project2.team << [user, :developer]
+      project2.add_developer(user)
 
       visit dashboard_projects_path
     end
@@ -38,7 +38,7 @@ describe 'Dashboard > User filters projects' do
     it 'returns message when starred projects fitler returns no results' do
       fill_in 'project-filter-form-field', with: 'Beta\n'
 
-      expect(page).to have_content('No projects found')
+      expect(page).to have_content('This user doesn\'t have any personal projects')
       expect(page).not_to have_content('You don\'t have starred projects yet')
     end
   end

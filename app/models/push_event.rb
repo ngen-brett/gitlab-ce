@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class PushEvent < Event
   # This validation exists so we can't accidentally use PushEvent with a
   # different "action" value.
@@ -46,10 +48,11 @@ class PushEvent < Event
 
   # Returns PushEvent instances for which no merge requests have been created.
   def self.without_existing_merge_requests
-    existing_mrs = MergeRequest.except(:order)
+    existing_mrs = MergeRequest.except(:order, :where)
       .select(1)
       .where('merge_requests.source_project_id = events.project_id')
       .where('merge_requests.source_branch = push_event_payloads.ref')
+      .where(state: :opened)
 
     # For reasons unknown the use of #eager_load will result in the
     # "push_event_payload" association not being set. Because of this we're

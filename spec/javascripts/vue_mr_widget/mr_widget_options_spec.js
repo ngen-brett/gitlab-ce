@@ -1,31 +1,37 @@
 import Vue from 'vue';
-import MRWidgetService from '~/vue_merge_request_widget/services/mr_widget_service';
-import mrWidgetOptions from '~/vue_merge_request_widget/mr_widget_options';
+import mrWidgetOptions from '~/vue_merge_request_widget/mr_widget_options.vue';
 import eventHub from '~/vue_merge_request_widget/event_hub';
 import notify from '~/lib/utils/notify';
+import { stateKey } from '~/vue_merge_request_widget/stores/state_maps';
+import mountComponent from 'spec/helpers/vue_mount_component_helper';
 import mockData from './mock_data';
+import { faviconDataUrl, overlayDataUrl, faviconWithOverlayDataUrl } from '../lib/utils/mock_data';
 
-const createComponent = () => {
-  delete mrWidgetOptions.el; // Prevent component mounting
-  gl.mrWidgetData = mockData;
-  const Component = Vue.extend(mrWidgetOptions);
-  return new Component();
-};
-
-const returnPromise = data => new Promise((resolve) => {
-  resolve({
-    json() {
-      return data;
-    },
-    body: data,
+const returnPromise = data =>
+  new Promise(resolve => {
+    resolve({
+      data,
+    });
   });
-});
 
 describe('mrWidgetOptions', () => {
   let vm;
+  let MrWidgetOptions;
+
+  const COLLABORATION_MESSAGE = 'Allows commits from members who can merge to the target branch';
 
   beforeEach(() => {
-    vm = createComponent();
+    // Prevent component mounting
+    delete mrWidgetOptions.el;
+
+    MrWidgetOptions = Vue.extend(mrWidgetOptions);
+    vm = mountComponent(MrWidgetOptions, {
+      mrData: { ...mockData },
+    });
+  });
+
+  afterEach(() => {
+    vm.$destroy();
   });
 
   describe('data', () => {
@@ -43,6 +49,7 @@ describe('mrWidgetOptions', () => {
 
       it('should return conflicts component', () => {
         vm.mr.state = 'conflicts';
+
         expect(vm.componentName).toEqual('mr-widget-conflicts');
       });
     });
@@ -54,6 +61,7 @@ describe('mrWidgetOptions', () => {
 
       it('should return true for a state which requires help widget', () => {
         vm.mr.state = 'conflicts';
+
         expect(vm.shouldRenderMergeHelp).toBeTruthy();
       });
     });
@@ -78,26 +86,106 @@ describe('mrWidgetOptions', () => {
       });
 
       it('should return true if there is relatedLinks in MR', () => {
-        vm.mr.relatedLinks = {};
+        Vue.set(vm.mr, 'relatedLinks', {});
+
         expect(vm.shouldRenderRelatedLinks).toBeTruthy();
       });
     });
 
-    describe('shouldRenderDeployments', () => {
-      it('should return false for the initial data', () => {
-        expect(vm.shouldRenderDeployments).toBeFalsy();
+    describe('shouldRenderSourceBranchRemovalStatus', () => {
+      beforeEach(() => {
+        vm.mr.state = 'readyToMerge';
       });
 
-      it('should return true if there is deployments', () => {
-        vm.mr.deployments.push({}, {});
-        expect(vm.shouldRenderDeployments).toBeTruthy();
+      it('should return true when cannot remove source branch and branch will be removed', () => {
+        vm.mr.canRemoveSourceBranch = false;
+        vm.mr.shouldRemoveSourceBranch = true;
+
+        expect(vm.shouldRenderSourceBranchRemovalStatus).toEqual(true);
+      });
+
+      it('should return false when can remove source branch and branch will be removed', () => {
+        vm.mr.canRemoveSourceBranch = true;
+        vm.mr.shouldRemoveSourceBranch = true;
+
+        expect(vm.shouldRenderSourceBranchRemovalStatus).toEqual(false);
+      });
+
+      it('should return false when cannot remove source branch and branch will not be removed', () => {
+        vm.mr.canRemoveSourceBranch = false;
+        vm.mr.shouldRemoveSourceBranch = false;
+
+        expect(vm.shouldRenderSourceBranchRemovalStatus).toEqual(false);
+      });
+
+      it('should return false when in merged state', () => {
+        vm.mr.canRemoveSourceBranch = false;
+        vm.mr.shouldRemoveSourceBranch = true;
+        vm.mr.state = 'merged';
+
+        expect(vm.shouldRenderSourceBranchRemovalStatus).toEqual(false);
+      });
+
+      it('should return false when in nothing to merge state', () => {
+        vm.mr.canRemoveSourceBranch = false;
+        vm.mr.shouldRemoveSourceBranch = true;
+        vm.mr.state = 'nothingToMerge';
+
+        expect(vm.shouldRenderSourceBranchRemovalStatus).toEqual(false);
+      });
+    });
+
+    describe('shouldRenderCollaborationStatus', () => {
+      describe('when collaboration is allowed', () => {
+        beforeEach(() => {
+          vm.mr.allowCollaboration = true;
+        });
+
+        describe('when merge request is opened', () => {
+          beforeEach(done => {
+            vm.mr.isOpen = true;
+            vm.$nextTick(done);
+          });
+
+          it('should render collaboration status', () => {
+            expect(vm.$el.textContent).toContain(COLLABORATION_MESSAGE);
+          });
+        });
+
+        describe('when merge request is not opened', () => {
+          beforeEach(done => {
+            vm.mr.isOpen = false;
+            vm.$nextTick(done);
+          });
+
+          it('should not render collaboration status', () => {
+            expect(vm.$el.textContent).not.toContain(COLLABORATION_MESSAGE);
+          });
+        });
+      });
+
+      describe('when collaboration is not allowed', () => {
+        beforeEach(() => {
+          vm.mr.allowCollaboration = false;
+        });
+
+        describe('when merge request is opened', () => {
+          beforeEach(done => {
+            vm.mr.isOpen = true;
+            vm.$nextTick(done);
+          });
+
+          it('should not render collaboration status', () => {
+            expect(vm.$el.textContent).not.toContain(COLLABORATION_MESSAGE);
+          });
+        });
       });
     });
   });
 
   describe('methods', () => {
     describe('checkStatus', () => {
-      it('should tell service to check status', (done) => {
+      it('should tell service to check status', done => {
         spyOn(vm.service, 'checkStatus').and.returnValue(returnPromise(mockData));
         spyOn(vm.mr, 'setData');
         spyOn(vm, 'handleNotification');
@@ -121,44 +209,48 @@ describe('mrWidgetOptions', () => {
 
     describe('initPolling', () => {
       it('should call SmartInterval', () => {
-        spyOn(gl, 'SmartInterval').and.returnValue({
-          resume() {},
-          stopTimer() {},
-        });
+        spyOn(vm, 'checkStatus').and.returnValue(Promise.resolve());
+        jasmine.clock().install();
         vm.initPolling();
 
+        expect(vm.checkStatus).not.toHaveBeenCalled();
+
+        jasmine.clock().tick(10000);
+
         expect(vm.pollingInterval).toBeDefined();
-        expect(gl.SmartInterval).toHaveBeenCalled();
+        expect(vm.checkStatus).toHaveBeenCalled();
+
+        jasmine.clock().uninstall();
       });
     });
 
     describe('initDeploymentsPolling', () => {
       it('should call SmartInterval', () => {
-        spyOn(gl, 'SmartInterval');
+        spyOn(vm, 'fetchDeployments').and.returnValue(Promise.resolve());
         vm.initDeploymentsPolling();
 
         expect(vm.deploymentsInterval).toBeDefined();
-        expect(gl.SmartInterval).toHaveBeenCalled();
+        expect(vm.fetchDeployments).toHaveBeenCalled();
       });
     });
 
     describe('fetchDeployments', () => {
-      it('should fetch deployments', (done) => {
-        spyOn(vm.service, 'fetchDeployments').and.returnValue(returnPromise([{ deployment: 1 }]));
+      it('should fetch deployments', done => {
+        spyOn(vm.service, 'fetchDeployments').and.returnValue(returnPromise([{ id: 1 }]));
 
-        vm.fetchDeployments();
+        vm.fetchPreMergeDeployments();
 
         setTimeout(() => {
           expect(vm.service.fetchDeployments).toHaveBeenCalled();
           expect(vm.mr.deployments.length).toEqual(1);
-          expect(vm.mr.deployments[0].deployment).toEqual(1);
+          expect(vm.mr.deployments[0].id).toBe(1);
           done();
-        }, 333);
+        });
       });
     });
 
     describe('fetchActionsContent', () => {
-      it('should fetch content of Cherry Pick and Revert modals', (done) => {
+      it('should fetch content of Cherry Pick and Revert modals', done => {
         spyOn(vm.service, 'fetchMergeActionsContent').and.returnValue(returnPromise('hello world'));
 
         vm.fetchActionsContent();
@@ -184,18 +276,23 @@ describe('mrWidgetOptions', () => {
         vm.bindEventHubListeners();
 
         eventHub.$emit('SetBranchRemoveFlag', ['flag']);
+
         expect(vm.mr.isRemovingSourceBranch).toEqual('flag');
 
         eventHub.$emit('FailedToMerge');
+
         expect(vm.mr.state).toEqual('failedToMerge');
 
         eventHub.$emit('UpdateWidgetData', mockData);
+
         expect(vm.mr.setData).toHaveBeenCalledWith(mockData);
 
         eventHub.$emit('EnablePolling');
+
         expect(vm.resumePolling).toHaveBeenCalled();
 
         eventHub.$emit('DisablePolling');
+
         expect(vm.stopPolling).toHaveBeenCalled();
 
         const listenersWithServiceRequest = {
@@ -204,7 +301,7 @@ describe('mrWidgetOptions', () => {
         };
 
         const allArgs = eventHub.$on.calls.allArgs();
-        allArgs.forEach((params) => {
+        allArgs.forEach(params => {
           const eventName = params[0];
           const callback = params[1];
 
@@ -214,22 +311,12 @@ describe('mrWidgetOptions', () => {
         });
 
         listenersWithServiceRequest.MRWidgetUpdateRequested();
+
         expect(vm.checkStatus).toHaveBeenCalled();
 
         listenersWithServiceRequest.FetchActionsContent();
+
         expect(vm.fetchActionsContent).toHaveBeenCalled();
-      });
-    });
-
-    describe('handleMounted', () => {
-      it('should call required methods to do the initial kick-off', () => {
-        spyOn(vm, 'initDeploymentsPolling');
-        spyOn(vm, 'setFaviconHelper');
-
-        vm.handleMounted();
-
-        expect(vm.setFaviconHelper).toHaveBeenCalled();
-        expect(vm.initDeploymentsPolling).toHaveBeenCalled();
       });
     });
 
@@ -239,6 +326,7 @@ describe('mrWidgetOptions', () => {
       beforeEach(() => {
         const favicon = document.createElement('link');
         favicon.setAttribute('id', 'favicon');
+        favicon.setAttribute('data-original-href', faviconDataUrl);
         document.body.appendChild(favicon);
 
         faviconElement = document.getElementById('favicon');
@@ -248,10 +336,14 @@ describe('mrWidgetOptions', () => {
         document.body.removeChild(document.getElementById('favicon'));
       });
 
-      it('should call setFavicon method', () => {
-        vm.setFaviconHelper();
-
-        expect(faviconElement.getAttribute('href')).toEqual(vm.mr.ciStatusFaviconPath);
+      it('should call setFavicon method', done => {
+        vm.mr.ciStatusFaviconPath = overlayDataUrl;
+        vm.setFaviconHelper()
+          .then(() => {
+            expect(faviconElement.getAttribute('href')).toEqual(faviconWithOverlayDataUrl);
+            done();
+          })
+          .catch(done.fail);
       });
 
       it('should not call setFavicon when there is no ciStatusFaviconPath', () => {
@@ -293,6 +385,15 @@ describe('mrWidgetOptions', () => {
 
         expect(notify.notifyMe).not.toHaveBeenCalled();
       });
+
+      it('should not notify if no pipeline provided', () => {
+        vm.handleNotification({
+          ...data,
+          pipeline: undefined,
+        });
+
+        expect(notify.notifyMe).not.toHaveBeenCalled();
+      });
     });
 
     describe('resumePolling', () => {
@@ -300,6 +401,7 @@ describe('mrWidgetOptions', () => {
         spyOn(vm.pollingInterval, 'resume');
 
         vm.resumePolling();
+
         expect(vm.pollingInterval.resume).toHaveBeenCalled();
       });
     });
@@ -309,57 +411,313 @@ describe('mrWidgetOptions', () => {
         spyOn(vm.pollingInterval, 'stopTimer');
 
         vm.stopPolling();
+
         expect(vm.pollingInterval.stopTimer).toHaveBeenCalled();
-      });
-    });
-
-    describe('createService', () => {
-      it('should instantiate a Service', () => {
-        const endpoints = {
-          mergePath: '/nice/path',
-          mergeCheckPath: '/nice/path',
-          cancelAutoMergePath: '/nice/path',
-          removeWIPPath: '/nice/path',
-          sourceBranchPath: '/nice/path',
-          ciEnvironmentsStatusPath: '/nice/path',
-          statusPath: '/nice/path',
-          mergeActionsContentPath: '/nice/path',
-        };
-
-        const serviceInstance = vm.createService(endpoints);
-        const isInstanceOfMRService = serviceInstance instanceof MRWidgetService;
-        expect(isInstanceOfMRService).toBe(true);
-        Object.keys(serviceInstance).forEach((key) => {
-          expect(serviceInstance[key]).toBeDefined();
-        });
       });
     });
   });
 
-  describe('components', () => {
-    it('should register all components', () => {
-      const comps = mrWidgetOptions.components;
-      expect(comps['mr-widget-header']).toBeDefined();
-      expect(comps['mr-widget-merge-help']).toBeDefined();
-      expect(comps['mr-widget-pipeline']).toBeDefined();
-      expect(comps['mr-widget-deployment']).toBeDefined();
-      expect(comps['mr-widget-related-links']).toBeDefined();
-      expect(comps['mr-widget-merged']).toBeDefined();
-      expect(comps['mr-widget-closed']).toBeDefined();
-      expect(comps['mr-widget-merging']).toBeDefined();
-      expect(comps['mr-widget-failed-to-merge']).toBeDefined();
-      expect(comps['mr-widget-wip']).toBeDefined();
-      expect(comps['mr-widget-archived']).toBeDefined();
-      expect(comps['mr-widget-conflicts']).toBeDefined();
-      expect(comps['mr-widget-nothing-to-merge']).toBeDefined();
-      expect(comps['mr-widget-not-allowed']).toBeDefined();
-      expect(comps['mr-widget-missing-branch']).toBeDefined();
-      expect(comps['mr-widget-ready-to-merge']).toBeDefined();
-      expect(comps['mr-widget-checking']).toBeDefined();
-      expect(comps['mr-widget-unresolved-discussions']).toBeDefined();
-      expect(comps['mr-widget-pipeline-blocked']).toBeDefined();
-      expect(comps['mr-widget-pipeline-failed']).toBeDefined();
-      expect(comps['mr-widget-merge-when-pipeline-succeeds']).toBeDefined();
+  describe('rendering relatedLinks', () => {
+    beforeEach(done => {
+      vm.mr.relatedLinks = {
+        assignToMe: null,
+        closing: `
+          <a class="close-related-link" href="#'>
+            Close
+          </a>
+        `,
+        mentioned: '',
+      };
+      Vue.nextTick(done);
+    });
+
+    it('renders if there are relatedLinks', () => {
+      expect(vm.$el.querySelector('.close-related-link')).toBeDefined();
+    });
+
+    it('does not render if state is nothingToMerge', done => {
+      vm.mr.state = stateKey.nothingToMerge;
+      Vue.nextTick(() => {
+        expect(vm.$el.querySelector('.close-related-link')).toBeNull();
+        done();
+      });
+    });
+  });
+
+  describe('rendering source branch removal status', () => {
+    it('renders when user cannot remove branch and branch should be removed', done => {
+      vm.mr.canRemoveSourceBranch = false;
+      vm.mr.shouldRemoveSourceBranch = true;
+      vm.mr.state = 'readyToMerge';
+
+      vm.$nextTick(() => {
+        const tooltip = vm.$el.querySelector('.fa-question-circle');
+
+        expect(vm.$el.textContent).toContain('Removes source branch');
+        expect(tooltip.getAttribute('data-original-title')).toBe(
+          'A user with write access to the source branch selected this option',
+        );
+
+        done();
+      });
+    });
+
+    it('does not render in merged state', done => {
+      vm.mr.canRemoveSourceBranch = false;
+      vm.mr.shouldRemoveSourceBranch = true;
+      vm.mr.state = 'merged';
+
+      vm.$nextTick(() => {
+        expect(vm.$el.textContent).toContain('The source branch has been removed');
+        expect(vm.$el.textContent).not.toContain('Removes source branch');
+
+        done();
+      });
+    });
+  });
+
+  describe('rendering deployments', () => {
+    const changes = [
+      {
+        path: 'index.html',
+        external_url: 'http://root-master-patch-91341.volatile-watch.surge.sh/index.html',
+      },
+      {
+        path: 'imgs/gallery.html',
+        external_url: 'http://root-master-patch-91341.volatile-watch.surge.sh/imgs/gallery.html',
+      },
+      {
+        path: 'about/',
+        external_url: 'http://root-master-patch-91341.volatile-watch.surge.sh/about/',
+      },
+    ];
+    const deploymentMockData = {
+      id: 15,
+      name: 'review/diplo',
+      url: '/root/acets-review-apps/environments/15',
+      stop_url: '/root/acets-review-apps/environments/15/stop',
+      metrics_url: '/root/acets-review-apps/environments/15/deployments/1/metrics',
+      metrics_monitoring_url: '/root/acets-review-apps/environments/15/metrics',
+      external_url: 'http://diplo.',
+      external_url_formatted: 'diplo.',
+      deployed_at: '2017-03-22T22:44:42.258Z',
+      deployed_at_formatted: 'Mar 22, 2017 10:44pm',
+      changes,
+      status: 'success',
+    };
+
+    beforeEach(done => {
+      vm.mr.deployments.push(
+        {
+          ...deploymentMockData,
+        },
+        {
+          ...deploymentMockData,
+          id: deploymentMockData.id + 1,
+        },
+      );
+
+      vm.$nextTick(done);
+    });
+
+    it('renders multiple deployments', () => {
+      expect(vm.$el.querySelectorAll('.deploy-heading').length).toBe(2);
+    });
+
+    it('renders dropdpown with multiple file changes', () => {
+      expect(
+        vm.$el
+          .querySelector('.js-mr-wigdet-deployment-dropdown')
+          .querySelectorAll('.js-filtered-dropdown-result').length,
+      ).toEqual(changes.length);
+    });
+  });
+
+  describe('pipeline for target branch after merge', () => {
+    describe('with information for target branch pipeline', () => {
+      beforeEach(done => {
+        vm.mr.state = 'merged';
+        vm.mr.mergePipeline = {
+          id: 127,
+          user: {
+            id: 1,
+            name: 'Administrator',
+            username: 'root',
+            state: 'active',
+            avatar_url: null,
+            web_url: 'http://localhost:3000/root',
+            status_tooltip_html: null,
+            path: '/root',
+          },
+          active: true,
+          coverage: null,
+          source: 'push',
+          created_at: '2018-10-22T11:41:35.186Z',
+          updated_at: '2018-10-22T11:41:35.433Z',
+          path: '/root/ci-web-terminal/pipelines/127',
+          flags: {
+            latest: true,
+            stuck: true,
+            auto_devops: false,
+            yaml_errors: false,
+            retryable: false,
+            cancelable: true,
+            failure_reason: false,
+          },
+          details: {
+            status: {
+              icon: 'status_pending',
+              text: 'pending',
+              label: 'pending',
+              group: 'pending',
+              tooltip: 'pending',
+              has_details: true,
+              details_path: '/root/ci-web-terminal/pipelines/127',
+              illustration: null,
+              favicon:
+                '/assets/ci_favicons/favicon_status_pending-5bdf338420e5221ca24353b6bff1c9367189588750632e9a871b7af09ff6a2ae.png',
+            },
+            duration: null,
+            finished_at: null,
+            stages: [
+              {
+                name: 'test',
+                title: 'test: pending',
+                status: {
+                  icon: 'status_pending',
+                  text: 'pending',
+                  label: 'pending',
+                  group: 'pending',
+                  tooltip: 'pending',
+                  has_details: true,
+                  details_path: '/root/ci-web-terminal/pipelines/127#test',
+                  illustration: null,
+                  favicon:
+                    '/assets/ci_favicons/favicon_status_pending-5bdf338420e5221ca24353b6bff1c9367189588750632e9a871b7af09ff6a2ae.png',
+                },
+                path: '/root/ci-web-terminal/pipelines/127#test',
+                dropdown_path: '/root/ci-web-terminal/pipelines/127/stage.json?stage=test',
+              },
+            ],
+            artifacts: [],
+            manual_actions: [],
+            scheduled_actions: [],
+          },
+          ref: {
+            name: 'master',
+            path: '/root/ci-web-terminal/commits/master',
+            tag: false,
+            branch: true,
+          },
+          commit: {
+            id: 'aa1939133d373c94879becb79d91828a892ee319',
+            short_id: 'aa193913',
+            title: "Merge branch 'master-test' into 'master'",
+            created_at: '2018-10-22T11:41:33.000Z',
+            parent_ids: [
+              '4622f4dd792468993003caf2e3be978798cbe096',
+              '76598df914cdfe87132d0c3c40f80db9fa9396a4',
+            ],
+            message:
+              "Merge branch 'master-test' into 'master'\n\nUpdate .gitlab-ci.yml\n\nSee merge request root/ci-web-terminal!1",
+            author_name: 'Administrator',
+            author_email: 'admin@example.com',
+            authored_date: '2018-10-22T11:41:33.000Z',
+            committer_name: 'Administrator',
+            committer_email: 'admin@example.com',
+            committed_date: '2018-10-22T11:41:33.000Z',
+            author: {
+              id: 1,
+              name: 'Administrator',
+              username: 'root',
+              state: 'active',
+              avatar_url: null,
+              web_url: 'http://localhost:3000/root',
+              status_tooltip_html: null,
+              path: '/root',
+            },
+            author_gravatar_url: null,
+            commit_url:
+              'http://localhost:3000/root/ci-web-terminal/commit/aa1939133d373c94879becb79d91828a892ee319',
+            commit_path: '/root/ci-web-terminal/commit/aa1939133d373c94879becb79d91828a892ee319',
+          },
+          cancel_path: '/root/ci-web-terminal/pipelines/127/cancel',
+        };
+        vm.$nextTick(done);
+      });
+
+      it('renders pipeline block', () => {
+        expect(vm.$el.querySelector('.js-post-merge-pipeline')).not.toBeNull();
+      });
+
+      describe('with post merge deployments', () => {
+        beforeEach(done => {
+          vm.mr.postMergeDeployments = [
+            {
+              id: 15,
+              name: 'review/diplo',
+              url: '/root/acets-review-apps/environments/15',
+              stop_url: '/root/acets-review-apps/environments/15/stop',
+              metrics_url: '/root/acets-review-apps/environments/15/deployments/1/metrics',
+              metrics_monitoring_url: '/root/acets-review-apps/environments/15/metrics',
+              external_url: 'http://diplo.',
+              external_url_formatted: 'diplo.',
+              deployed_at: '2017-03-22T22:44:42.258Z',
+              deployed_at_formatted: 'Mar 22, 2017 10:44pm',
+              changes: [
+                {
+                  path: 'index.html',
+                  external_url: 'http://root-master-patch-91341.volatile-watch.surge.sh/index.html',
+                },
+                {
+                  path: 'imgs/gallery.html',
+                  external_url:
+                    'http://root-master-patch-91341.volatile-watch.surge.sh/imgs/gallery.html',
+                },
+                {
+                  path: 'about/',
+                  external_url: 'http://root-master-patch-91341.volatile-watch.surge.sh/about/',
+                },
+              ],
+              status: 'success',
+            },
+          ];
+
+          vm.$nextTick(done);
+        });
+
+        it('renders post deployment information', () => {
+          expect(vm.$el.querySelector('.js-post-deployment')).not.toBeNull();
+        });
+      });
+    });
+
+    describe('without information for target branch pipeline', () => {
+      beforeEach(done => {
+        vm.mr.state = 'merged';
+
+        vm.$nextTick(done);
+      });
+
+      it('does not render pipeline block', () => {
+        expect(vm.$el.querySelector('.js-post-merge-pipeline')).toBeNull();
+      });
+    });
+
+    describe('when state is not merged', () => {
+      beforeEach(done => {
+        vm.mr.state = 'archived';
+
+        vm.$nextTick(done);
+      });
+
+      it('does not render pipeline block', () => {
+        expect(vm.$el.querySelector('.js-post-merge-pipeline')).toBeNull();
+      });
+
+      it('does not render post deployment information', () => {
+        expect(vm.$el.querySelector('.js-post-deployment')).toBeNull();
+      });
     });
   });
 });

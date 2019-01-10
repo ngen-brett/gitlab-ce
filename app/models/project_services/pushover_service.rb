@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 class PushoverService < Service
-  include HTTParty
-  base_uri 'https://api.pushover.net/1'
+  BASE_URI = 'https://api.pushover.net/1'.freeze
 
   prop_accessor :api_key, :user_key, :device, :priority, :sound
   validates :api_key, :user_key, :priority, presence: true, if: :activated?
@@ -80,7 +81,7 @@ class PushoverService < Service
       end
 
     if data[:total_commits_count] > 0
-      message << "\nTotal commits count: #{data[:total_commits_count]}"
+      message = [message, "Total commits count: #{data[:total_commits_count]}"].join("\n")
     end
 
     pushover_data = {
@@ -88,10 +89,10 @@ class PushoverService < Service
       user: user_key,
       device: device,
       priority: priority,
-      title: "#{project.name_with_namespace}",
+      title: "#{project.full_name}",
       message: message,
       url: data[:project][:web_url],
-      url_title: "See project #{project.name_with_namespace}"
+      url_title: "See project #{project.full_name}"
     }
 
     # Sound parameter MUST NOT be sent to API if not selected
@@ -99,6 +100,6 @@ class PushoverService < Service
       pushover_data[:sound] = sound
     end
 
-    PushoverService.post('/messages.json', body: pushover_data)
+    Gitlab::HTTP.post('/messages.json', base_uri: BASE_URI, body: pushover_data)
   end
 end

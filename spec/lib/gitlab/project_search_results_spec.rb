@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'spec_helper'
 
 describe Gitlab::ProjectSearchResults do
@@ -21,121 +22,135 @@ describe Gitlab::ProjectSearchResults do
     it { expect(results.query).to eq('hello world') }
   end
 
-  describe 'blob search' do
-    let(:project) { create(:project, :public, :repository) }
+  shared_examples 'general blob search' do |entity_type, blob_kind|
+    let(:query) { 'files' }
+    subject(:results) { described_class.new(user, project, query).objects(blob_type) }
 
-    subject(:results) { described_class.new(user, project, 'files').objects('blobs') }
-
-    context 'when repository is disabled' do
-      let(:project) { create(:project, :public, :repository, :repository_disabled) }
-
-      it 'hides blobs from members' do
+    context "when #{entity_type} is disabled" do
+      let(:project) { disabled_project }
+      it "hides #{blob_kind} from members" do
         project.add_reporter(user)
 
         is_expected.to be_empty
       end
 
-      it 'hides blobs from non-members' do
+      it "hides #{blob_kind} from non-members" do
         is_expected.to be_empty
       end
     end
 
-    context 'when repository is internal' do
-      let(:project) { create(:project, :public, :repository, :repository_private) }
+    context "when #{entity_type} is internal" do
+      let(:project) { private_project }
 
-      it 'finds blobs for members' do
+      it "finds #{blob_kind} for members" do
         project.add_reporter(user)
 
         is_expected.not_to be_empty
       end
 
-      it 'hides blobs from non-members' do
+      it "hides #{blob_kind} from non-members" do
         is_expected.to be_empty
       end
     end
 
     it 'finds by name' do
-      expect(results.map(&:first)).to include('files/images/wm.svg')
+      expect(results.map(&:filename)).to include(expected_file_by_name)
+    end
+
+    it "loads all blobs for filename matches in single batch" do
+      expect(Gitlab::Git::Blob).to receive(:batch).once.and_call_original
+
+      expected = project.repository.search_files_by_name(query, 'master')
+      expect(results.map(&:filename)).to include(*expected)
     end
 
     it 'finds by content' do
-      blob = results.select { |result| result.first == "CHANGELOG" }.flatten.last
+      blob = results.select { |result| result.filename == expected_file_by_content }.flatten.last
 
-      expect(blob.filename).to eq("CHANGELOG")
+      expect(blob.filename).to eq(expected_file_by_content)
+    end
+  end
+
+  shared_examples 'blob search repository ref' do |entity_type|
+    let(:query) { 'files' }
+    let(:file_finder) { double }
+    let(:project_branch) { 'project_branch' }
+
+    subject(:results) { described_class.new(user, project, query, repository_ref).objects(blob_type) }
+
+    before do
+      allow(entity).to receive(:default_branch).and_return(project_branch)
+      allow(file_finder).to receive(:find).and_return([])
     end
 
-    describe 'parsing results' do
-      let(:results) { project.repository.search_files_by_content('feature', 'master') }
-      let(:search_result) { results.first }
+    context 'when repository_ref exists' do
+      let(:repository_ref) { 'ref_branch' }
 
-      subject { described_class.parse_search_result(search_result) }
+      it 'uses it' do
+        expect(Gitlab::FileFinder).to receive(:new).with(project, repository_ref).and_return(file_finder)
 
-      it "returns a valid FoundBlob" do
-        is_expected.to be_an Gitlab::SearchResults::FoundBlob
-        expect(subject.id).to be_nil
-        expect(subject.path).to eq('CHANGELOG')
-        expect(subject.filename).to eq('CHANGELOG')
-        expect(subject.basename).to eq('CHANGELOG')
-        expect(subject.ref).to eq('master')
-        expect(subject.startline).to eq(188)
-        expect(subject.data.lines[2]).to eq("  - Feature: Replace teams with group membership\n")
+        results
       end
+    end
 
-      context "when filename has extension" do
-        let(:search_result) { "master:CONTRIBUTE.md:5:- [Contribute to GitLab](#contribute-to-gitlab)\n" }
+    context 'when repository_ref is not present' do
+      let(:repository_ref) { nil }
 
-        it { expect(subject.path).to eq('CONTRIBUTE.md') }
-        it { expect(subject.filename).to eq('CONTRIBUTE.md') }
-        it { expect(subject.basename).to eq('CONTRIBUTE') }
+      it "uses #{entity_type} repository default reference" do
+        expect(Gitlab::FileFinder).to receive(:new).with(project, project_branch).and_return(file_finder)
+
+        results
       end
+    end
 
-      context "when file under directory" do
-        let(:search_result) { "master:a/b/c.md:5:a b c\n" }
+    context 'when repository_ref is blank' do
+      let(:repository_ref) { '' }
 
-        it { expect(subject.path).to eq('a/b/c.md') }
-        it { expect(subject.filename).to eq('a/b/c.md') }
-        it { expect(subject.basename).to eq('a/b/c') }
+      it "uses #{entity_type} repository default reference" do
+        expect(Gitlab::FileFinder).to receive(:new).with(project, project_branch).and_return(file_finder)
+
+        results
       end
     end
   end
 
+  describe 'blob search' do
+    let(:project) { create(:project, :public, :repository) }
+
+    it_behaves_like 'general blob search', 'repository', 'blobs' do
+      let(:blob_type) { 'blobs' }
+      let(:disabled_project) { create(:project, :public, :repository, :repository_disabled) }
+      let(:private_project) { create(:project, :public, :repository, :repository_private) }
+      let(:expected_file_by_name) { 'files/images/wm.svg' }
+      let(:expected_file_by_content) { 'CHANGELOG' }
+    end
+
+    it_behaves_like 'blob search repository ref', 'project' do
+      let(:blob_type) { 'blobs' }
+      let(:entity) { project }
+    end
+  end
+
   describe 'wiki search' do
-    let(:project) { create(:project, :public) }
+    let(:project) { create(:project, :public, :wiki_repo) }
     let(:wiki) { build(:project_wiki, project: project) }
-    let!(:wiki_page) { wiki.create_page('Title', 'Content') }
 
-    subject(:results) { described_class.new(user, project, 'Content').objects('wiki_blobs') }
-
-    context 'when wiki is disabled' do
-      let(:project) { create(:project, :public, :wiki_disabled) }
-
-      it 'hides wiki blobs from members' do
-        project.add_reporter(user)
-
-        is_expected.to be_empty
-      end
-
-      it 'hides wiki blobs from non-members' do
-        is_expected.to be_empty
-      end
+    before do
+      wiki.create_page('Files/Title', 'Content')
+      wiki.create_page('CHANGELOG', 'Files example')
     end
 
-    context 'when wiki is internal' do
-      let(:project) { create(:project, :public, :wiki_private) }
-
-      it 'finds wiki blobs for guest' do
-        project.add_guest(user)
-
-        is_expected.not_to be_empty
-      end
-
-      it 'hides wiki blobs from non-members' do
-        is_expected.to be_empty
-      end
+    it_behaves_like 'general blob search', 'wiki', 'wiki blobs' do
+      let(:blob_type) { 'wiki_blobs' }
+      let(:disabled_project) { create(:project, :public, :wiki_repo, :wiki_disabled) }
+      let(:private_project) { create(:project, :public, :wiki_repo, :wiki_private) }
+      let(:expected_file_by_name) { 'Files/Title.md' }
+      let(:expected_file_by_content) { 'CHANGELOG.md' }
     end
 
-    it 'finds by content' do
-      expect(results).to include("master:Title.md:1:Content\n")
+    it_behaves_like 'blob search repository ref', 'wiki' do
+      let(:blob_type) { 'wiki_blobs' }
+      let(:entity) { project.wiki }
     end
   end
 
@@ -166,11 +181,11 @@ describe Gitlab::ProjectSearchResults do
       expect(issues).to include issue
       expect(issues).not_to include security_issue_1
       expect(issues).not_to include security_issue_2
-      expect(results.issues_count).to eq 1
+      expect(results.limited_issues_count).to eq 1
     end
 
     it 'does not list project confidential issues for project members with guest role' do
-      project.team << [member, :guest]
+      project.add_guest(member)
 
       results = described_class.new(member, project, query)
       issues = results.objects('issues')
@@ -178,7 +193,7 @@ describe Gitlab::ProjectSearchResults do
       expect(issues).to include issue
       expect(issues).not_to include security_issue_1
       expect(issues).not_to include security_issue_2
-      expect(results.issues_count).to eq 1
+      expect(results.limited_issues_count).to eq 1
     end
 
     it 'lists project confidential issues for author' do
@@ -188,7 +203,7 @@ describe Gitlab::ProjectSearchResults do
       expect(issues).to include issue
       expect(issues).to include security_issue_1
       expect(issues).not_to include security_issue_2
-      expect(results.issues_count).to eq 2
+      expect(results.limited_issues_count).to eq 2
     end
 
     it 'lists project confidential issues for assignee' do
@@ -198,11 +213,11 @@ describe Gitlab::ProjectSearchResults do
       expect(issues).to include issue
       expect(issues).not_to include security_issue_1
       expect(issues).to include security_issue_2
-      expect(results.issues_count).to eq 2
+      expect(results.limited_issues_count).to eq 2
     end
 
     it 'lists project confidential issues for project members' do
-      project.team << [member, :developer]
+      project.add_developer(member)
 
       results = described_class.new(member, project, query)
       issues = results.objects('issues')
@@ -210,7 +225,7 @@ describe Gitlab::ProjectSearchResults do
       expect(issues).to include issue
       expect(issues).to include security_issue_1
       expect(issues).to include security_issue_2
-      expect(results.issues_count).to eq 3
+      expect(results.limited_issues_count).to eq 3
     end
 
     it 'lists all project issues for admin' do
@@ -220,7 +235,7 @@ describe Gitlab::ProjectSearchResults do
       expect(issues).to include issue
       expect(issues).to include security_issue_1
       expect(issues).to include security_issue_2
-      expect(results.issues_count).to eq 3
+      expect(results.limited_issues_count).to eq 3
     end
   end
 
@@ -253,6 +268,35 @@ describe Gitlab::ProjectSearchResults do
     end
   end
 
+  describe '#limited_notes_count' do
+    let(:project) { create(:project, :public) }
+    let(:note) { create(:note_on_issue, project: project) }
+    let(:results) { described_class.new(user, project, note.note) }
+
+    context 'when count_limit is lower than total amount' do
+      before do
+        allow(results).to receive(:count_limit).and_return(1)
+      end
+
+      it 'calls note finder once to get the limited amount of notes' do
+        expect(results).to receive(:notes_finder).once.and_call_original
+        expect(results.limited_notes_count).to eq(1)
+      end
+    end
+
+    context 'when count_limit is higher than total amount' do
+      it 'calls note finder multiple times to get the limited amount of notes' do
+        project = create(:project, :public)
+        note = create(:note_on_issue, project: project)
+
+        results = described_class.new(user, project, note.note)
+
+        expect(results).to receive(:notes_finder).exactly(4).times.and_call_original
+        expect(results.limited_notes_count).to eq(1)
+      end
+    end
+  end
+
   # Examples for commit access level test
   #
   # params:
@@ -281,12 +325,12 @@ describe Gitlab::ProjectSearchResults do
       let!(:private_project) { create(:project, :private, :repository, creator: creator, namespace: creator.namespace) }
       let(:team_master) do
         user = create(:user, username: 'private-project-master')
-        private_project.team << [user, :master]
+        private_project.add_maintainer(user)
         user
       end
       let(:team_reporter) do
         user = create(:user, username: 'private-project-reporter')
-        private_project.team << [user, :reporter]
+        private_project.add_reporter(user)
         user
       end
 

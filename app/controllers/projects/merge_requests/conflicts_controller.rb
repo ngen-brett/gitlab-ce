@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Projects::MergeRequests::ConflictsController < Projects::MergeRequests::ApplicationController
   include IssuableActions
 
@@ -6,7 +8,7 @@ class Projects::MergeRequests::ConflictsController < Projects::MergeRequests::Ap
   def show
     respond_to do |format|
       format.html do
-        labels
+        @issuable_sidebar = serializer.represent(@merge_request, serializer: 'sidebar')
       end
 
       format.json do
@@ -53,14 +55,20 @@ class Projects::MergeRequests::ConflictsController < Projects::MergeRequests::Ap
       flash[:notice] = 'All merge conflicts were resolved. The merge request can now be merged.'
 
       render json: { redirect_to: project_merge_request_url(@project, @merge_request, resolved_conflicts: true) }
-    rescue Gitlab::Conflict::ResolutionError => e
+    rescue Gitlab::Git::Conflict::Resolver::ResolutionError => e
       render status: :bad_request, json: { message: e.message }
     end
   end
+
+  private
 
   def authorize_can_resolve_conflicts!
     @conflicts_list = ::MergeRequests::Conflicts::ListService.new(@merge_request)
 
     return render_404 unless @conflicts_list.can_be_resolved_by?(current_user)
+  end
+
+  def serializer
+    MergeRequestSerializer.new(current_user: current_user, project: project)
   end
 end

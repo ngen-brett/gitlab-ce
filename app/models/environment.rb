@@ -1,14 +1,17 @@
+# frozen_string_literal: true
+
 class Environment < ActiveRecord::Base
+  include Gitlab::Utils::StrongMemoize
   # Used to generate random suffixes for the slug
   LETTERS = 'a'..'z'
   NUMBERS = '0'..'9'
   SUFFIX_CHARS = LETTERS.to_a + NUMBERS.to_a
 
-  belongs_to :project, required: true, validate: true
+  belongs_to :project, required: true
 
-  has_many :deployments, dependent: :destroy # rubocop:disable Cop/ActiveRecordDependent
+  has_many :deployments, -> { success }, dependent: :destroy # rubocop:disable Cop/ActiveRecordDependent
 
-  has_one :last_deployment, -> { order('deployments.id DESC') }, class_name: 'Deployment'
+  has_one :last_deployment, -> { success.order('deployments.id DESC') }, class_name: 'Deployment'
 
   before_validation :nullify_external_url
   before_validation :generate_slug, if: ->(env) { env.slug.blank? }
@@ -30,10 +33,9 @@ class Environment < ActiveRecord::Base
                       message: Gitlab::Regex.environment_slug_regex_message }
 
   validates :external_url,
-            uniqueness: { scope: :project_id },
             length: { maximum: 255 },
             allow_nil: true,
-            addressable_url: true
+            url: true
 
   delegate :stop_action, :manual_actions, to: :last_deployment, allow_nil: true
 
@@ -47,6 +49,9 @@ class Environment < ActiveRecord::Base
     order(Gitlab::Database.nulls_first_order("(#{max_deployment_id_sql})", 'ASC'))
   end
   scope :in_review_folder, -> { where(environment_type: "review") }
+  scope :for_name, -> (name) { where(name: name) }
+  scope :for_project, -> (project) { where(project_id: project) }
+  scope :with_deployment, -> (sha) { where('EXISTS (?)', Deployment.select(1).where('deployments.environment_id = environments.id').where(sha: sha)) }
 
   state_machine :state, initial: :available do
     event :start do
@@ -66,10 +71,9 @@ class Environment < ActiveRecord::Base
   end
 
   def predefined_variables
-    [
-      { key: 'CI_ENVIRONMENT_NAME', value: name, public: true },
-      { key: 'CI_ENVIRONMENT_SLUG', value: slug, public: true }
-    ]
+    Gitlab::Ci::Variables::Collection.new
+      .append(key: 'CI_ENVIRONMENT_NAME', value: name)
+      .append(key: 'CI_ENVIRONMENT_SLUG', value: slug)
   end
 
   def recently_updated_on_branch?(ref)
@@ -100,8 +104,8 @@ class Environment < ActiveRecord::Base
     folder_name == "production"
   end
 
-  def first_deployment_for(commit)
-    ref = project.repository.ref_name_for_sha(ref_path, commit.sha)
+  def first_deployment_for(commit_sha)
+    ref = project.repository.ref_name_for_sha(ref_path, commit_sha)
 
     return nil unless ref
 
@@ -110,16 +114,16 @@ class Environment < ActiveRecord::Base
   end
 
   def ref_path
-    "refs/#{Repository::REF_ENVIRONMENTS}/#{Shellwords.shellescape(name)}"
+    "refs/#{Repository::REF_ENVIRONMENTS}/#{slug}"
   end
 
   def formatted_external_url
     return nil unless external_url
 
-    external_url.gsub(/\A.*?:\/\//, '')
+    external_url.gsub(%r{\A.*?://}, '')
   end
 
-  def stop_action?
+  def stop_action_available?
     available? && stop_action.present?
   end
 
@@ -139,29 +143,33 @@ class Environment < ActiveRecord::Base
   end
 
   def has_terminals?
-    project.deployment_service.present? && available? && last_deployment.present?
+    project.deployment_platform.present? && available? && last_deployment.present?
   end
 
   def terminals
-    project.deployment_service.terminals(self) if has_terminals?
+    project.deployment_platform.terminals(self) if has_terminals?
   end
 
   def has_metrics?
-    project.monitoring_service.present? && available? && last_deployment.present?
+    prometheus_adapter&.can_query? && available?
   end
 
   def metrics
-    project.monitoring_service.environment_metrics(self) if has_metrics?
-  end
-
-  def has_additional_metrics?
-    project.prometheus_service.present? && available? && last_deployment.present?
+    prometheus_adapter.query(:environment, self) if has_metrics?
   end
 
   def additional_metrics
-    if has_additional_metrics?
-      project.prometheus_service.additional_environment_metrics(self)
-    end
+    prometheus_adapter.query(:additional_metrics_environment, self) if has_metrics?
+  end
+
+  # rubocop: disable CodeReuse/ServiceClass
+  def prometheus_adapter
+    @prometheus_adapter ||= Prometheus::AdapterService.new(project, deployment_platform).prometheus_adapter
+  end
+  # rubocop: enable CodeReuse/ServiceClass
+
+  def slug
+    super.presence || generate_slug
   end
 
   # An environment name is not necessarily suitable for use in URLs, DNS
@@ -173,7 +181,7 @@ class Environment < ActiveRecord::Base
   #   * cannot end with `-`
   def generate_slug
     # Lowercase letters and numbers only
-    slugified = name.to_s.downcase.gsub(/[^a-z0-9]/, '-')
+    slugified = +name.to_s.downcase.gsub(/[^a-z0-9]/, '-')
 
     # Must start with a letter
     slugified = 'env-' + slugified unless LETTERS.cover?(slugified[0])
@@ -221,6 +229,12 @@ class Environment < ActiveRecord::Base
 
   def folder_name
     self.environment_type || self.name
+  end
+
+  def deployment_platform
+    strong_memoize(:deployment_platform) do
+      project.deployment_platform(environment: self.name)
+    end
   end
 
   private

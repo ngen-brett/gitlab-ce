@@ -1,10 +1,8 @@
-.project-templates-buttons.import-buttons{ data: { toggle: "buttons" } }
-  .btn.blank-option.active
-    %input{ type: "radio",  autocomplete: "off", name: "project[template_name]", id: "blank", checked: "true", value: "" }
-    = icon('file-o', class: 'btn-template-icon')
-    Blank
-  - Gitlab::ProjectTemplate.all.each do |template|
-    .btn
-      %input{ type: "radio",  autocomplete: "off", name: "project[template_name]", id: template.name, value: template.name }
-      = custom_icon(template.logo)
-      = template.title
+- f ||= local_assigns[:f]
+
+.project-templates-buttons.import-buttons.col-sm-12
+  = render 'projects/project_templates/built_in_templates'
+
+.project-fields-form
+  = render 'projects/project_templates/project_fields_form'
+  = render 'projects/new_project_fields', f: f, project_name_id: "template-project-name", hide_init_with_readme: true, track_label: "create_from_template"

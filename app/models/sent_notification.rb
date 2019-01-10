@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class SentNotification < ActiveRecord::Base
   serialize :position, Gitlab::Diff::Position # rubocop:disable Cop/ActiveRecordSerialize
 
@@ -5,14 +7,14 @@ class SentNotification < ActiveRecord::Base
   belongs_to :noteable, polymorphic: true # rubocop:disable Cop/PolymorphicAssociations
   belongs_to :recipient, class_name: "User"
 
-  validates :project, :recipient, presence: true
+  validates :recipient, presence: true
   validates :reply_key, presence: true, uniqueness: true
   validates :noteable_id, presence: true, unless: :for_commit?
   validates :commit_id, presence: true, if: :for_commit?
   validates :in_reply_to_discussion_id, format: { with: /\A\h{40}\z/, allow_nil: true }
   validate :note_valid
 
-  after_save :keep_around_commit
+  after_save :keep_around_commit, if: :for_commit?
 
   class << self
     def reply_key
@@ -53,11 +55,15 @@ class SentNotification < ActiveRecord::Base
   end
 
   def unsubscribable?
-    !for_commit?
+    !(for_commit? || for_snippet?)
   end
 
   def for_commit?
     noteable_type == "Commit"
+  end
+
+  def for_snippet?
+    noteable_type.end_with?('Snippet')
   end
 
   def noteable

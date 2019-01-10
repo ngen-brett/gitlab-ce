@@ -1,23 +1,21 @@
 include ActionDispatch::TestProcess
 
-FactoryGirl.define do
+FactoryBot.define do
   factory :ci_build, class: Ci::Build do
     name 'test'
     stage 'test'
     stage_idx 0
     ref 'master'
     tag false
-    status 'pending'
-    created_at 'Di 29. Okt 09:50:00 CET 2013'
-    started_at 'Di 29. Okt 09:51:28 CET 2013'
-    finished_at 'Di 29. Okt 09:53:28 CET 2013'
-    commands 'ls -a'
     protected false
+    created_at 'Di 29. Okt 09:50:00 CET 2013'
+    pending
 
     options do
       {
         image: 'ruby:2.1',
-        services: ['postgres']
+        services: ['postgres'],
+        script: ['ls -a']
       }
     end
 
@@ -29,32 +27,64 @@ FactoryGirl.define do
 
     pipeline factory: :ci_pipeline
 
+    trait :degenerated do
+      options nil
+      yaml_variables nil
+    end
+
+    trait :started do
+      started_at 'Di 29. Okt 09:51:28 CET 2013'
+    end
+
+    trait :finished do
+      started
+      finished_at 'Di 29. Okt 09:53:28 CET 2013'
+    end
+
     trait :success do
+      finished
       status 'success'
     end
 
     trait :failed do
+      finished
       status 'failed'
     end
 
     trait :canceled do
+      finished
       status 'canceled'
     end
 
     trait :skipped do
+      started
       status 'skipped'
     end
 
     trait :running do
+      started
       status 'running'
     end
 
     trait :pending do
+      queued_at 'Di 29. Okt 09:50:59 CET 2013'
       status 'pending'
     end
 
     trait :created do
       status 'created'
+    end
+
+    trait :scheduled do
+      schedulable
+      status 'scheduled'
+      scheduled_at  { 1.minute.since }
+    end
+
+    trait :expired_scheduled do
+      schedulable
+      status 'scheduled'
+      scheduled_at { 1.minute.ago }
     end
 
     trait :manual do
@@ -64,9 +94,53 @@ FactoryGirl.define do
 
     trait :teardown_environment do
       environment 'staging'
-      options environment: { name: 'staging',
-                             action: 'stop',
-                             url: 'http://staging.example.com/$CI_JOB_NAME' }
+      options do
+        {
+          script: %w(ls),
+          environment: { name: 'staging',
+                         action: 'stop',
+                         url: 'http://staging.example.com/$CI_JOB_NAME' }
+        }
+      end
+    end
+
+    trait :deploy_to_production do
+      environment 'production'
+
+      options do
+        {
+          script: %w(ls),
+          environment: { name: 'production',
+                         url: 'http://prd.example.com/$CI_JOB_NAME' }
+        }
+      end
+    end
+
+    trait :start_review_app do
+      environment 'review/$CI_COMMIT_REF_NAME'
+
+      options do
+        {
+          script: %w(ls),
+          environment: { name: 'review/$CI_COMMIT_REF_NAME',
+                         url: 'http://staging.example.com/$CI_JOB_NAME',
+                         on_stop: 'stop_review_app' }
+        }
+      end
+    end
+
+    trait :stop_review_app do
+      name 'stop_review_app'
+      environment 'review/$CI_COMMIT_REF_NAME'
+
+      options do
+        {
+          script: %w(ls),
+          environment: { name: 'review/$CI_COMMIT_REF_NAME',
+                         url: 'http://staging.example.com/$CI_JOB_NAME',
+                         action: 'stop' }
+        }
+      end
     end
 
     trait :allowed_to_fail do
@@ -83,6 +157,21 @@ FactoryGirl.define do
 
     trait :retryable do
       success
+    end
+
+    trait :schedulable do
+      self.when 'delayed'
+
+      options do
+        {
+          script: ['ls -a'],
+          start_in: '1 minute'
+        }
+      end
+    end
+
+    trait :actionable do
+      self.when 'manual'
     end
 
     trait :retried do
@@ -114,12 +203,7 @@ FactoryGirl.define do
       build.project ||= build.pipeline.project
     end
 
-    factory :ci_not_started_build do
-      started_at nil
-      finished_at nil
-    end
-
-    factory :ci_build_tag do
+    trait :tag do
       tag true
     end
 
@@ -128,13 +212,19 @@ FactoryGirl.define do
       coverage_regex '/(d+)/'
     end
 
-    trait :trace do
+    trait :trace_live do
       after(:create) do |build, evaluator|
         build.trace.set('BUILD TRACE')
       end
     end
 
-    trait :unicode_trace do
+    trait :trace_artifact do
+      after(:create) do |build, evaluator|
+        create(:ci_job_artifact, :trace, job: build)
+      end
+    end
+
+    trait :unicode_trace_live do
       after(:create) do |build, evaluator|
         trace = File.binread(
           File.expand_path(
@@ -145,43 +235,42 @@ FactoryGirl.define do
     end
 
     trait :erased do
-      erased_at Time.now
+      erased_at { Time.now }
       erased_by factory: :user
     end
 
     trait :queued do
-      queued_at Time.now
+      queued_at { Time.now }
       runner factory: :ci_runner
     end
 
-    trait :artifacts do
+    trait :legacy_artifacts do
       after(:create) do |build, _|
-        build.artifacts_file =
-          fixture_file_upload(Rails.root.join('spec/fixtures/ci_build_artifacts.zip'),
-                             'application/zip')
-
-        build.artifacts_metadata =
-          fixture_file_upload(Rails.root.join('spec/fixtures/ci_build_artifacts_metadata.gz'),
-                             'application/x-gzip')
-
-        build.save!
+        build.update!(
+          legacy_artifacts_file: fixture_file_upload(
+            Rails.root.join('spec/fixtures/ci_build_artifacts.zip'), 'application/zip'),
+          legacy_artifacts_metadata: fixture_file_upload(
+            Rails.root.join('spec/fixtures/ci_build_artifacts_metadata.gz'), 'application/x-gzip')
+        )
       end
     end
 
-    trait :artifacts_expired do
-      after(:create) do |build, _|
-        build.artifacts_file =
-          fixture_file_upload(Rails.root.join('spec/fixtures/ci_build_artifacts.zip'),
-            'application/zip')
-
-        build.artifacts_metadata =
-          fixture_file_upload(Rails.root.join('spec/fixtures/ci_build_artifacts_metadata.gz'),
-            'application/x-gzip')
-
-        build.artifacts_expire_at = 1.minute.ago
-
-        build.save!
+    trait :artifacts do
+      after(:create) do |build|
+        create(:ci_job_artifact, :archive, job: build, expire_at: build.artifacts_expire_at)
+        create(:ci_job_artifact, :metadata, job: build, expire_at: build.artifacts_expire_at)
+        build.reload
       end
+    end
+
+    trait :test_reports do
+      after(:build) do |build|
+        build.job_artifacts << create(:ci_job_artifact, :junit, job: build)
+      end
+    end
+
+    trait :expired do
+      artifacts_expire_at { 1.minute.ago }
     end
 
     trait :with_commit do
@@ -200,7 +289,8 @@ FactoryGirl.define do
       options do
         {
             image: { name: 'ruby:2.1', entrypoint: '/bin/sh' },
-            services: ['postgres', { name: 'docker:dind', entrypoint: '/bin/sh', command: 'sleep 30', alias: 'docker' }],
+            services: ['postgres', { name: 'docker:stable-dind', entrypoint: '/bin/sh', command: 'sleep 30', alias: 'docker' }],
+            script: %w(echo),
             after_script: %w(ls date),
             artifacts: {
                 name: 'artifacts_file',
@@ -230,6 +320,22 @@ FactoryGirl.define do
 
     trait :protected do
       protected true
+    end
+
+    trait :script_failure do
+      failed
+      failure_reason 1
+    end
+
+    trait :api_failure do
+      failed
+      failure_reason 2
+    end
+
+    trait :with_runner_session do
+      after(:build) do |build|
+        build.build_runner_session(url: 'https://localhost')
+      end
     end
   end
 end

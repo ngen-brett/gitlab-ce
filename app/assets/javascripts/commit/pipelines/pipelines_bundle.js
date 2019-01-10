@@ -15,15 +15,17 @@ const CommitPipelinesTable = Vue.extend(commitPipelinesTable);
 window.gl = window.gl || {};
 window.gl.CommitPipelinesTable = CommitPipelinesTable;
 
-document.addEventListener('DOMContentLoaded', () => {
+export default () => {
   const pipelineTableViewEl = document.querySelector('#commit-pipeline-table-view');
 
   if (pipelineTableViewEl) {
-      // Update MR and Commits tabs
-    pipelineTableViewEl.addEventListener('update-pipelines-count', (event) => {
-      if (event.detail.pipelines &&
+    // Update MR and Commits tabs
+    pipelineTableViewEl.addEventListener('update-pipelines-count', event => {
+      if (
+        event.detail.pipelines &&
         event.detail.pipelines.count &&
-        event.detail.pipelines.count.all) {
+        event.detail.pipelines.count.all
+      ) {
         const badge = document.querySelector('.js-pipelines-mr-count');
 
         badge.textContent = event.detail.pipelines.count.all;
@@ -43,4 +45,4 @@ document.addEventListener('DOMContentLoaded', () => {
       pipelineTableViewEl.appendChild(table.$el);
     }
   }
-});
+};

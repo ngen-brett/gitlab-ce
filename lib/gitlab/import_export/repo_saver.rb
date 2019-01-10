@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module ImportExport
     class RepoSaver
@@ -21,14 +23,10 @@ module Gitlab
 
       def bundle_to_disk
         mkdir_p(@shared.export_path)
-        git_bundle(repo_path: path_to_repo, bundle_path: @full_path)
+        @project.repository.bundle_to_disk(@full_path)
       rescue => e
         @shared.error(e)
         false
-      end
-
-      def path_to_repo
-        @project.repository.path_to_repo
       end
     end
   end

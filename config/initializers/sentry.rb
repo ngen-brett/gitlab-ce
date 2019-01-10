@@ -2,7 +2,7 @@
 
 require 'gitlab/current_settings'
 
-if Rails.env.production?
+def configure_sentry
   # allow it to fail: it may do so when create_from_defaults is executed before migrations are actually done
   begin
     sentry_enabled = Gitlab::CurrentSettings.current_application_settings.sentry_enabled
@@ -13,7 +13,7 @@ if Rails.env.production?
   if sentry_enabled
     Raven.configure do |config|
       config.dsn = Gitlab::CurrentSettings.current_application_settings.sentry_dsn
-      config.release = Gitlab::REVISION
+      config.release = Gitlab.revision
 
       # Sanitize fields based on those sanitized from Rails.
       config.sanitize_fields = Rails.application.config.filter_parameters.map(&:to_s)
@@ -23,3 +23,5 @@ if Rails.env.production?
     end
   end
 end
+
+configure_sentry if Rails.env.production? || Rails.env.development?

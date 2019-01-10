@@ -1,72 +1,21 @@
 require 'spec_helper'
 
 describe SnippetsFinder do
-  let(:user) { create :user }
-  let(:user1) { create :user }
-  let(:group) { create :group, :public }
+  include Gitlab::Allowable
+  using RSpec::Parameterized::TableSyntax
 
-  let(:project1) { create(:project, :public,  group: group) }
-  let(:project2) { create(:project, :private, group: group) }
+  describe '#initialize' do
+    it 'raises ArgumentError when a project and author are given' do
+      user = build(:user)
+      project = build(:project)
 
-  context 'all snippets visible to a user' do
-    let!(:snippet1) { create(:personal_snippet, :private) }
-    let!(:snippet2) { create(:personal_snippet, :internal) }
-    let!(:snippet3) { create(:personal_snippet, :public) }
-    let!(:project_snippet1) { create(:project_snippet, :private) }
-    let!(:project_snippet2) { create(:project_snippet, :internal) }
-    let!(:project_snippet3) { create(:project_snippet, :public) }
-
-    it "returns all private and internal snippets" do
-      snippets = described_class.new(user, scope: :all).execute
-      expect(snippets).to include(snippet2, snippet3, project_snippet2, project_snippet3)
-      expect(snippets).not_to include(snippet1, project_snippet1)
-    end
-
-    it "returns all public snippets" do
-      snippets = described_class.new(nil, scope: :all).execute
-      expect(snippets).to include(snippet3, project_snippet3)
-      expect(snippets).not_to include(snippet1, snippet2, project_snippet1, project_snippet2)
-    end
-
-    it "returns all public and internal snippets for normal user" do
-      snippets = described_class.new(user).execute
-
-      expect(snippets).to include(snippet2, snippet3, project_snippet2, project_snippet3)
-      expect(snippets).not_to include(snippet1, project_snippet1)
-    end
-
-    it "returns all public snippets for non authorized user" do
-      snippets = described_class.new(nil).execute
-
-      expect(snippets).to include(snippet3, project_snippet3)
-      expect(snippets).not_to include(snippet1, snippet2, project_snippet1, project_snippet2)
-    end
-
-    it "returns all public and authored snippets for external user" do
-      external_user = create(:user, :external)
-      authored_snippet = create(:personal_snippet, :internal, author: external_user)
-
-      snippets = described_class.new(external_user).execute
-
-      expect(snippets).to include(snippet3, project_snippet3, authored_snippet)
-      expect(snippets).not_to include(snippet1, snippet2, project_snippet1, project_snippet2)
-    end
-  end
-
-  context 'filter by visibility' do
-    let!(:snippet1) { create(:personal_snippet, :private) }
-    let!(:snippet2) { create(:personal_snippet, :internal) }
-    let!(:snippet3) { create(:personal_snippet, :public) }
-
-    it "returns public snippets when visibility is PUBLIC" do
-      snippets = described_class.new(nil, visibility: Snippet::PUBLIC).execute
-
-      expect(snippets).to include(snippet3)
-      expect(snippets).not_to include(snippet1, snippet2)
+      expect { described_class.new(user, author: user, project: project) }
+        .to raise_error(ArgumentError)
     end
   end
 
   context 'filter by scope' do
+    let(:user) { create :user }
     let!(:snippet1) { create(:personal_snippet, :private, author: user) }
     let!(:snippet2) { create(:personal_snippet, :internal, author: user) }
     let!(:snippet3) { create(:personal_snippet, :public, author: user) }
@@ -84,7 +33,7 @@ describe SnippetsFinder do
       expect(snippets).not_to include(snippet2, snippet3)
     end
 
-    it "returns all snippets for 'are_interna;' scope" do
+    it "returns all snippets for 'are_internal' scope" do
       snippets = described_class.new(user, scope: :are_internal).execute
 
       expect(snippets).to include(snippet2)
@@ -100,6 +49,8 @@ describe SnippetsFinder do
   end
 
   context 'filter by author' do
+    let(:user) { create :user }
+    let(:user1) { create :user }
     let!(:snippet1) { create(:personal_snippet, :private, author: user) }
     let!(:snippet2) { create(:personal_snippet, :internal, author: user) }
     let!(:snippet3) { create(:personal_snippet, :public, author: user) }
@@ -112,21 +63,21 @@ describe SnippetsFinder do
     end
 
     it "returns internal snippets" do
-      snippets = described_class.new(user, author: user, visibility: Snippet::INTERNAL).execute
+      snippets = described_class.new(user, author: user, scope: :are_internal).execute
 
       expect(snippets).to include(snippet2)
       expect(snippets).not_to include(snippet1, snippet3)
     end
 
     it "returns private snippets" do
-      snippets = described_class.new(user, author: user, visibility: Snippet::PRIVATE).execute
+      snippets = described_class.new(user, author: user, scope: :are_private).execute
 
       expect(snippets).to include(snippet1)
       expect(snippets).not_to include(snippet2, snippet3)
     end
 
     it "returns public snippets" do
-      snippets = described_class.new(user, author: user, visibility: Snippet::PUBLIC).execute
+      snippets = described_class.new(user, author: user, scope: :are_public).execute
 
       expect(snippets).to include(snippet3)
       expect(snippets).not_to include(snippet1, snippet2)
@@ -144,9 +95,20 @@ describe SnippetsFinder do
       expect(snippets).to include(snippet3)
       expect(snippets).not_to include(snippet2, snippet1)
     end
+
+    it 'returns all snippets for an admin' do
+      admin = create(:user, :admin)
+      snippets = described_class.new(admin, author: user).execute
+
+      expect(snippets).to include(snippet1, snippet2, snippet3)
+    end
   end
 
   context 'filter by project' do
+    let(:user) { create :user }
+    let(:group) { create :group, :public }
+    let(:project1) { create(:project, :public,  group: group) }
+
     before do
       @snippet1 = create(:project_snippet, :private,  project: project1)
       @snippet2 = create(:project_snippet, :internal, project: project1)
@@ -168,27 +130,27 @@ describe SnippetsFinder do
     end
 
     it "returns public snippets for non project members" do
-      snippets = described_class.new(user, project: project1, visibility: Snippet::PUBLIC).execute
+      snippets = described_class.new(user, project: project1, scope: :are_public).execute
 
       expect(snippets).to include(@snippet3)
       expect(snippets).not_to include(@snippet1, @snippet2)
     end
 
     it "returns internal snippets for non project members" do
-      snippets = described_class.new(user, project: project1, visibility: Snippet::INTERNAL).execute
+      snippets = described_class.new(user, project: project1, scope: :are_internal).execute
 
       expect(snippets).to include(@snippet2)
       expect(snippets).not_to include(@snippet1, @snippet3)
     end
 
     it "does not return private snippets for non project members" do
-      snippets = described_class.new(user, project: project1, visibility: Snippet::PRIVATE).execute
+      snippets = described_class.new(user, project: project1, scope: :are_private).execute
 
       expect(snippets).not_to include(@snippet1, @snippet2, @snippet3)
     end
 
     it "returns all snippets for project members" do
-      project1.team << [user, :developer]
+      project1.add_developer(user)
 
       snippets = described_class.new(user, project: project1).execute
 
@@ -196,11 +158,43 @@ describe SnippetsFinder do
     end
 
     it "returns private snippets for project members" do
-      project1.team << [user, :developer]
+      project1.add_developer(user)
 
-      snippets = described_class.new(user, project: project1, visibility: Snippet::PRIVATE).execute
+      snippets = described_class.new(user, project: project1, scope: :are_private).execute
 
       expect(snippets).to include(@snippet1)
     end
+
+    it 'returns all snippets for an admin' do
+      admin = create(:user, :admin)
+      snippets = described_class.new(admin, project: project1).execute
+
+      expect(snippets).to include(@snippet1, @snippet2, @snippet3)
+    end
   end
+
+  describe '#execute' do
+    let(:project) { create(:project, :public) }
+    let!(:project_snippet) { create(:project_snippet, :public, project: project) }
+    let!(:personal_snippet) { create(:personal_snippet, :public) }
+    let(:user) { create(:user) }
+    subject(:finder) { described_class.new(user) }
+
+    it 'returns project- and personal snippets' do
+      expect(finder.execute).to contain_exactly(project_snippet, personal_snippet)
+    end
+
+    context 'when the user cannot read cross project' do
+      before do
+        allow(Ability).to receive(:allowed?).and_call_original
+        allow(Ability).to receive(:allowed?).with(user, :read_cross_project) { false }
+      end
+
+      it 'returns only personal snippets when the user cannot read cross project' do
+        expect(finder.execute).to contain_exactly(personal_snippet)
+      end
+    end
+  end
+
+  it_behaves_like 'snippet visibility'
 end

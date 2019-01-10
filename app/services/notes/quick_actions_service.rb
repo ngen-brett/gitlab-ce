@@ -1,22 +1,23 @@
+# frozen_string_literal: true
+
 module Notes
   class QuickActionsService < BaseService
     UPDATE_SERVICES = {
       'Issue' => Issues::UpdateService,
-      'MergeRequest' => MergeRequests::UpdateService
+      'MergeRequest' => MergeRequests::UpdateService,
+      'Commit' => Commits::TagService
     }.freeze
 
     def self.noteable_update_service(note)
       UPDATE_SERVICES[note.noteable_type]
     end
 
-    def self.supported?(note, current_user)
-      noteable_update_service(note) &&
-        current_user &&
-        current_user.can?(:"update_#{note.to_ability_name}", note.noteable)
+    def self.supported?(note)
+      !!noteable_update_service(note)
     end
 
     def supported?(note)
-      self.class.supported?(note, current_user)
+      self.class.supported?(note)
     end
 
     def extract_commands(note, options = {})
@@ -30,7 +31,7 @@ module Notes
       return if command_params.empty?
       return unless supported?(note)
 
-      self.class.noteable_update_service(note).new(project, current_user, command_params).execute(note.noteable)
+      self.class.noteable_update_service(note).new(note.parent, current_user, command_params).execute(note.noteable)
     end
   end
 end

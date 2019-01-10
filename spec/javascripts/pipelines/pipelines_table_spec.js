@@ -11,9 +11,10 @@ describe('Pipelines Table', () => {
   preloadFixtures(jsonFixtureName);
 
   beforeEach(() => {
+    const { pipelines } = getJSONFixture(jsonFixtureName);
+
     PipelinesTableComponent = Vue.extend(pipelinesTableComp);
-    const pipelines = getJSONFixture(jsonFixtureName).pipelines;
-    pipeline = pipelines.find(p => p.id === 1);
+    pipeline = pipelines.find(p => p.user !== null && p.commit !== null);
   });
 
   describe('table', () => {
@@ -23,6 +24,7 @@ describe('Pipelines Table', () => {
         propsData: {
           pipelines: [],
           autoDevopsHelpPath: 'foo',
+          viewType: 'root',
         },
       }).$mount();
     });
@@ -36,10 +38,21 @@ describe('Pipelines Table', () => {
     });
 
     it('should render table head with correct columns', () => {
-      expect(component.$el.querySelector('.table-section.js-pipeline-status').textContent.trim()).toEqual('Status');
-      expect(component.$el.querySelector('.table-section.js-pipeline-info').textContent.trim()).toEqual('Pipeline');
-      expect(component.$el.querySelector('.table-section.js-pipeline-commit').textContent.trim()).toEqual('Commit');
-      expect(component.$el.querySelector('.table-section.js-pipeline-stages').textContent.trim()).toEqual('Stages');
+      expect(
+        component.$el.querySelector('.table-section.js-pipeline-status').textContent.trim(),
+      ).toEqual('Status');
+
+      expect(
+        component.$el.querySelector('.table-section.js-pipeline-info').textContent.trim(),
+      ).toEqual('Pipeline');
+
+      expect(
+        component.$el.querySelector('.table-section.js-pipeline-commit').textContent.trim(),
+      ).toEqual('Commit');
+
+      expect(
+        component.$el.querySelector('.table-section.js-pipeline-stages').textContent.trim(),
+      ).toEqual('Stages');
     });
   });
 
@@ -49,8 +62,10 @@ describe('Pipelines Table', () => {
         propsData: {
           pipelines: [],
           autoDevopsHelpPath: 'foo',
+          viewType: 'root',
         },
       }).$mount();
+
       expect(component.$el.querySelectorAll('.commit.gl-responsive-table-row').length).toEqual(0);
     });
   });
@@ -61,6 +76,7 @@ describe('Pipelines Table', () => {
         propsData: {
           pipelines: [pipeline],
           autoDevopsHelpPath: 'foo',
+          viewType: 'root',
         },
       }).$mount();
 

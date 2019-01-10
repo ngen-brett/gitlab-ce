@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 describe ProcessCommitWorker do
+  include ProjectForksHelper
+
   let(:worker) { described_class.new }
   let(:user) { create(:user) }
   let(:project) { create(:project, :public, :repository) }
@@ -32,27 +34,59 @@ describe ProcessCommitWorker do
       worker.perform(project.id, user.id, commit.to_hash)
     end
 
-    context 'when commit already exists in upstream project' do
-      let(:forked) { create(:project, :public, :repository) }
+    context 'when the project is forked' do
+      context 'when commit already exists in the upstream project' do
+        it 'does not process the commit message' do
+          forked = fork_project(project, user, repository: true)
 
-      it 'does not process commit message' do
-        create(:forked_project_link, forked_to_project: forked, forked_from_project: project)
+          expect(worker).not_to receive(:process_commit_message)
 
-        expect(worker).not_to receive(:process_commit_message)
+          worker.perform(forked.id, user.id, forked.commit.to_hash)
+        end
+      end
 
-        worker.perform(forked.id, user.id, forked.commit.to_hash)
+      context 'when the commit does not exist in the upstream project' do
+        it 'processes the commit message' do
+          empty_project = create(:project, :public)
+          forked = fork_project(empty_project, user, repository: true)
+
+          TestEnv.copy_repo(forked,
+                            bare_repo: TestEnv.factory_repo_path_bare,
+                            refs: TestEnv::BRANCH_SHA)
+
+          expect(worker).to receive(:process_commit_message)
+
+          worker.perform(forked.id, user.id, forked.commit.to_hash)
+        end
+      end
+
+      context 'when the upstream project no longer exists' do
+        it 'processes the commit message' do
+          forked = fork_project(project, user, repository: true)
+          project.destroy!
+
+          expect(worker).to receive(:process_commit_message)
+
+          worker.perform(forked.id, user.id, forked.commit.to_hash)
+        end
       end
     end
   end
 
   describe '#process_commit_message' do
     context 'when pushing to the default branch' do
-      it 'closes issues that should be closed per the commit message' do
-        allow(commit).to receive(:safe_message)
-          .and_return("Closes #{issue.to_reference}")
+      before do
+        allow(commit).to receive(:safe_message).and_return("Closes #{issue.to_reference}")
+      end
 
-        expect(worker).to receive(:close_issues)
-          .with(project, user, user, commit, [issue])
+      it 'closes issues that should be closed per the commit message' do
+        expect(worker).to receive(:close_issues).with(project, user, user, commit, [issue])
+
+        worker.process_commit_message(project, commit, user, user, true)
+      end
+
+      it 'creates cross references' do
+        expect(commit).to receive(:create_cross_references!).with(user, [issue])
 
         worker.process_commit_message(project, commit, user, user, true)
       end
@@ -60,19 +94,50 @@ describe ProcessCommitWorker do
 
     context 'when pushing to a non-default branch' do
       it 'does not close any issues' do
-        allow(commit).to receive(:safe_message)
-          .and_return("Closes #{issue.to_reference}")
+        allow(commit).to receive(:safe_message).and_return("Closes #{issue.to_reference}")
 
         expect(worker).not_to receive(:close_issues)
 
         worker.process_commit_message(project, commit, user, user, false)
       end
+
+      it 'does not create cross references' do
+        expect(commit).to receive(:create_cross_references!).with(user, [])
+
+        worker.process_commit_message(project, commit, user, user, false)
+      end
     end
 
-    it 'creates cross references' do
-      expect(commit).to receive(:create_cross_references!)
+    context 'when commit is a merge request merge commit to the default branch' do
+      let(:merge_request) do
+        create(:merge_request,
+               description: "Closes #{issue.to_reference}",
+               source_branch: 'feature-merged',
+               target_branch: 'master',
+               source_project: project)
+      end
 
-      worker.process_commit_message(project, commit, user, user)
+      let(:commit) do
+        project.repository.create_branch('feature-merged', 'feature')
+
+        MergeRequests::MergeService
+          .new(project, merge_request.author)
+          .execute(merge_request)
+
+        merge_request.reload.merge_commit
+      end
+
+      it 'does not close any issues from the commit message' do
+        expect(worker).not_to receive(:close_issues)
+
+        worker.process_commit_message(project, commit, user, user, true)
+      end
+
+      it 'still creates cross references' do
+        expect(commit).to receive(:create_cross_references!).with(user, [])
+
+        worker.process_commit_message(project, commit, user, user, true)
+      end
     end
   end
 
@@ -102,8 +167,7 @@ describe ProcessCommitWorker do
 
   describe '#update_issue_metrics' do
     it 'updates any existing issue metrics' do
-      allow(commit).to receive(:safe_message)
-        .and_return("Closes #{issue.to_reference}")
+      allow(commit).to receive(:safe_message).and_return("Closes #{issue.to_reference}")
 
       worker.update_issue_metrics(commit, user)
 
@@ -113,10 +177,10 @@ describe ProcessCommitWorker do
     end
 
     it "doesn't execute any queries with false conditions" do
-      allow(commit).to receive(:safe_message)
-        .and_return("Lorem Ipsum")
+      allow(commit).to receive(:safe_message).and_return("Lorem Ipsum")
 
-      expect { worker.update_issue_metrics(commit, user) }.not_to make_queries_matching(/WHERE (?:1=0|0=1)/)
+      expect { worker.update_issue_metrics(commit, user) }
+        .not_to make_queries_matching(/WHERE (?:1=0|0=1)/)
     end
   end
 
@@ -128,8 +192,9 @@ describe ProcessCommitWorker do
     end
 
     it 'parses date strings into Time instances' do
-      commit = worker
-        .build_commit(project, id: '123', authored_date: Time.now.to_s)
+      commit = worker.build_commit(project,
+                                   id: '123',
+                                   authored_date: Time.now.to_s)
 
       expect(commit.authored_date).to be_an_instance_of(Time)
     end

@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 class ExpirePipelineCacheWorker
-  include Sidekiq::Worker
+  include ApplicationWorker
   include PipelineQueue
 
-  enqueue_in group: :cache
+  queue_namespace :pipeline_cache
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def perform(pipeline_id)
     pipeline = Ci::Pipeline.find_by(id: pipeline_id)
     return unless pipeline
@@ -13,7 +16,7 @@ class ExpirePipelineCacheWorker
 
     store.touch(project_pipelines_path(project))
     store.touch(project_pipeline_path(project, pipeline))
-    store.touch(commit_pipelines_path(project, pipeline.commit)) if pipeline.commit
+    store.touch(commit_pipelines_path(project, pipeline.commit)) unless pipeline.commit.nil?
     store.touch(new_merge_request_pipelines_path(project))
     each_pipelines_merge_request_path(project, pipeline) do |path|
       store.touch(path)
@@ -21,6 +24,7 @@ class ExpirePipelineCacheWorker
 
     Gitlab::Cache::Ci::ProjectPipelineStatus.update_for_pipeline(pipeline)
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   private
 

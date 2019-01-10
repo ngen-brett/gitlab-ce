@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 # A dumb middleware that returns a Go HTML document if the go-get=1 query string
 # is used irrespective if the namespace/project exists
 module Gitlab
   module Middleware
     class Go
       include ActionView::Helpers::TagHelper
+      include ActionController::HttpAuthentication::Basic
 
       PROJECT_PATH_REGEX = %r{\A(#{Gitlab::PathRegex.full_namespace_route_regex}/#{Gitlab::PathRegex.project_route_regex})/}.freeze
 
@@ -12,7 +15,7 @@ module Gitlab
       end
 
       def call(env)
-        request = Rack::Request.new(env)
+        request = ActionDispatch::Request.new(env)
 
         render_go_doc(request) || @app.call(env)
       end
@@ -37,24 +40,34 @@ module Gitlab
       end
 
       def go_body(path)
-        project_url = URI.join(Gitlab.config.gitlab.url, path)
+        config = Gitlab.config
+        project_url = Gitlab::Utils.append_path(config.gitlab.url, path)
         import_prefix = strip_url(project_url.to_s)
 
-        meta_tag = tag :meta, name: 'go-import', content: "#{import_prefix} git #{project_url}.git"
+        repository_url = if Gitlab::CurrentSettings.enabled_git_access_protocol == 'ssh'
+                           shell = config.gitlab_shell
+                           port = ":#{shell.ssh_port}" unless shell.ssh_port == 22
+                           "ssh://#{shell.ssh_user}@#{shell.ssh_host}#{port}/#{path}.git"
+                         else
+                           "#{project_url}.git"
+                         end
+
+        meta_tag = tag :meta, name: 'go-import', content: "#{import_prefix} git #{repository_url}"
         head_tag = content_tag :head, meta_tag
         content_tag :html, head_tag
       end
 
       def strip_url(url)
-        url.gsub(/\Ahttps?:\/\//, '')
+        url.gsub(%r{\Ahttps?://}, '')
       end
 
       def project_path(request)
         path_info = request.env["PATH_INFO"]
-        path_info.sub!(/^\//, '')
+        path_info.sub!(%r{^/}, '')
 
         project_path_match = "#{path_info}/".match(PROJECT_PATH_REGEX)
         return unless project_path_match
+
         path = project_path_match[1]
 
         # Go subpackages may be in the form of `namespace/project/path1/path2/../pathN`.
@@ -98,13 +111,23 @@ module Gitlab
 
       def project_for_paths(paths, request)
         project = Project.where_full_path_in(paths).first
-        return unless Ability.allowed?(current_user(request), :read_project, project)
+        return unless  Ability.allowed?(current_user(request, project), :read_project, project)
 
         project
       end
 
-      def current_user(request)
-        request.env['warden']&.authenticate
+      def current_user(request, project)
+        return unless has_basic_credentials?(request)
+
+        login, password = user_name_and_password(request)
+        auth_result = Gitlab::Auth.find_for_git_client(login, password, project: project, ip: request.ip)
+        return unless auth_result.success?
+
+        return unless auth_result.actor&.can?(:access_git)
+
+        return unless auth_result.authentication_abilities.include?(:read_project)
+
+        auth_result.actor
       end
     end
   end

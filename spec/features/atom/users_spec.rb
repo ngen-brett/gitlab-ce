@@ -4,16 +4,18 @@ describe "User Feed"  do
   describe "GET /" do
     let!(:user) { create(:user) }
 
-    context 'user atom feed via private token' do
+    context 'user atom feed via personal access token' do
       it "renders user atom feed" do
-        visit user_path(user, :atom, private_token: user.private_token)
+        personal_access_token = create(:personal_access_token, user: user)
+
+        visit user_path(user, :atom, private_token: personal_access_token.token)
         expect(body).to have_selector('feed title')
       end
     end
 
-    context 'user atom feed via RSS token' do
+    context 'user atom feed via feed token' do
       it "renders user atom feed" do
-        visit user_path(user, :atom, rss_token: user.rss_token)
+        visit user_path(user, :atom, feed_token: user.feed_token)
         expect(body).to have_selector('feed title')
       end
     end
@@ -45,11 +47,11 @@ describe "User Feed"  do
       let!(:push_event_payload) { create(:push_event_payload, event: push_event) }
 
       before do
-        project.team << [user, :master]
+        project.add_maintainer(user)
         issue_event(issue, user)
         note_event(note, user)
         merge_request_event(merge_request, user)
-        visit user_path(user, :atom, rss_token: user.rss_token)
+        visit user_path(user, :atom, feed_token: user.feed_token)
       end
 
       it 'has issue opened event' do
@@ -62,7 +64,7 @@ describe "User Feed"  do
       end
 
       it 'has XHTML summaries in issue descriptions' do
-        expect(body).to match /<hr ?\/>/
+        expect(body).to match %r{<hr ?/>}
       end
 
       it 'has XHTML summaries in notes' do
@@ -70,7 +72,7 @@ describe "User Feed"  do
       end
 
       it 'has XHTML summaries in merge request descriptions' do
-        expect(body).to match /Here is the fix: <a[^>]*><img[^>]*\/><\/a>/
+        expect(body).to match %r{Here is the fix: <a[^>]*><img[^>]*/></a>}
       end
 
       it 'has push event commit ID' do

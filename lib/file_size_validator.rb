@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class FileSizeValidator < ActiveModel::EachValidator
   MESSAGES = { is: :wrong_size, minimum: :size_too_small, maximum: :size_too_big }.freeze
   CHECKS   = { is: :==, minimum: :>=, maximum: :<= }.freeze
@@ -8,6 +10,7 @@ class FileSizeValidator < ActiveModel::EachValidator
   def initialize(options)
     if range = (options.delete(:in) || options.delete(:within))
       raise ArgumentError, ":in and :within must be a Range" unless range.is_a?(Range)
+
       options[:minimum], options[:maximum] = range.begin, range.end
       options[:maximum] -= 1 if range.exclude_end?
     end
@@ -31,6 +34,7 @@ class FileSizeValidator < ActiveModel::EachValidator
     end
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def validate_each(record, attribute, value)
     raise(ArgumentError, "A CarrierWave::Uploader::Base object was expected") unless value.is_a? CarrierWave::Uploader::Base
 
@@ -61,6 +65,7 @@ class FileSizeValidator < ActiveModel::EachValidator
       record.errors.add(attribute, MESSAGES[key], errors_options)
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def help
     Helper.instance

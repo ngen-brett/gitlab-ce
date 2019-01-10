@@ -1,12 +1,17 @@
-/* global fixture */
-
-import '~/pager';
+import $ from 'jquery';
+import MockAdapter from 'axios-mock-adapter';
+import axios from '~/lib/utils/axios_utils';
+import Pager from '~/pager';
 
 describe('pager', () => {
-  const Pager = window.Pager;
+  let axiosMock;
 
-  it('is defined on window', () => {
-    expect(window.Pager).toBeDefined();
+  beforeEach(() => {
+    axiosMock = new MockAdapter(axios);
+  });
+
+  afterEach(() => {
+    axiosMock.restore();
   });
 
   describe('init', () => {
@@ -14,7 +19,7 @@ describe('pager', () => {
 
     beforeEach(() => {
       setFixtures('<div class="content_list"></div><div class="loading"></div>');
-      spyOn($, 'ajax');
+      spyOn($.fn, 'endlessScroll').and.stub();
     });
 
     afterEach(() => {
@@ -25,66 +30,117 @@ describe('pager', () => {
       const href = `${gl.TEST_HOST}/some_list.json`;
       setFixtures(`<div class="content_list" data-href="${href}"></div>`);
       Pager.init();
+
       expect(Pager.url).toBe(href);
     });
 
     it('should use current url if data-href attribute not provided', () => {
       const href = `${gl.TEST_HOST}/some_list`;
-      spyOn(gl.utils, 'removeParams').and.returnValue(href);
+      spyOnDependency(Pager, 'removeParams').and.returnValue(href);
       Pager.init();
+
       expect(Pager.url).toBe(href);
     });
 
     it('should get initial offset from query parameter', () => {
       window.history.replaceState({}, null, '?offset=100');
       Pager.init();
+
       expect(Pager.offset).toBe(100);
     });
 
     it('keeps extra query parameters from url', () => {
       window.history.replaceState({}, null, '?filter=test&offset=100');
       const href = `${gl.TEST_HOST}/some_list?filter=test`;
-      spyOn(gl.utils, 'removeParams').and.returnValue(href);
+      const removeParams = spyOnDependency(Pager, 'removeParams').and.returnValue(href);
       Pager.init();
-      expect(gl.utils.removeParams).toHaveBeenCalledWith(['limit', 'offset']);
+
+      expect(removeParams).toHaveBeenCalledWith(['limit', 'offset']);
       expect(Pager.url).toEqual(href);
     });
   });
 
   describe('getOld', () => {
+    const urlRegex = /(.*)some_list(.*)$/;
+
+    function mockSuccess() {
+      axiosMock.onGet(urlRegex).reply(200, {
+        count: 0,
+        html: '',
+      });
+    }
+
+    function mockError() {
+      axiosMock.onGet(urlRegex).networkError();
+    }
+
     beforeEach(() => {
-      setFixtures('<div class="content_list" data-href="/some_list"></div><div class="loading"></div>');
+      setFixtures(
+        '<div class="content_list" data-href="/some_list"></div><div class="loading"></div>',
+      );
+      spyOn(axios, 'get').and.callThrough();
+
       Pager.init();
     });
 
-    it('shows loader while loading next page', () => {
+    it('shows loader while loading next page', done => {
+      mockSuccess();
+
       spyOn(Pager.loading, 'show');
       Pager.getOld();
-      expect(Pager.loading.show).toHaveBeenCalled();
+
+      setTimeout(() => {
+        expect(Pager.loading.show).toHaveBeenCalled();
+
+        done();
+      });
     });
 
-    it('hides loader on success', () => {
-      spyOn($, 'ajax').and.callFake(options => options.success({}));
+    it('hides loader on success', done => {
+      mockSuccess();
+
       spyOn(Pager.loading, 'hide');
       Pager.getOld();
-      expect(Pager.loading.hide).toHaveBeenCalled();
+
+      setTimeout(() => {
+        expect(Pager.loading.hide).toHaveBeenCalled();
+
+        done();
+      });
     });
 
-    it('hides loader on error', () => {
-      spyOn($, 'ajax').and.callFake(options => options.error());
+    it('hides loader on error', done => {
+      mockError();
+
       spyOn(Pager.loading, 'hide');
       Pager.getOld();
-      expect(Pager.loading.hide).toHaveBeenCalled();
+
+      setTimeout(() => {
+        expect(Pager.loading.hide).toHaveBeenCalled();
+
+        done();
+      });
     });
 
-    it('sends request to url with offset and limit params', () => {
-      spyOn($, 'ajax');
+    it('sends request to url with offset and limit params', done => {
       Pager.offset = 100;
       Pager.limit = 20;
       Pager.getOld();
-      const [{ data, url }] = $.ajax.calls.argsFor(0);
-      expect(data).toBe('limit=20&offset=100');
-      expect(url).toBe('/some_list');
+
+      setTimeout(() => {
+        const [url, params] = axios.get.calls.argsFor(0);
+
+        expect(params).toEqual({
+          params: {
+            limit: 20,
+            offset: 100,
+          },
+        });
+
+        expect(url).toBe('/some_list');
+
+        done();
+      });
     });
   });
 });

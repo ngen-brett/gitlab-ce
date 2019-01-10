@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Users
   # Service class for caching and retrieving the last push event of a user.
   class LastPushEventService
@@ -16,8 +18,8 @@ module Users
         user_cache_key
       ]
 
-      if event.project.forked?
-        keys << project_cache_key(event.project.forked_from_project)
+      if forked_from = event.project.forked_from_project
+        keys << project_cache_key(forked_from)
       end
 
       keys.each { |key| set_key(key, event.id) }
@@ -56,11 +58,13 @@ module Users
 
     private
 
+    # rubocop: disable CodeReuse/ActiveRecord
     def find_event_in_database(id)
       PushEvent
         .without_existing_merge_requests
         .find_by(id: id)
     end
+    # rubocop: enable CodeReuse/ActiveRecord
 
     def user_cache_key
       "last-push-event/#{@user.id}"

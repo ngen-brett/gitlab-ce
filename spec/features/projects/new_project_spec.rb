@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-feature 'New project' do
+describe 'New project' do
   include Select2Helper
 
   let(:user) { create(:admin) }
@@ -9,11 +9,14 @@ feature 'New project' do
     sign_in(user)
   end
 
-  it 'shows "New project" page' do
+  it 'shows "New project" page', :js do
     visit new_project_path
 
-    expect(page).to have_content('Project path')
     expect(page).to have_content('Project name')
+    expect(page).to have_content('Project URL')
+    expect(page).to have_content('Project slug')
+
+    find('#import-project-tab').click
 
     expect(page).to have_link('GitHub')
     expect(page).to have_link('Bitbucket')
@@ -23,14 +26,31 @@ feature 'New project' do
     expect(page).to have_link('GitLab export')
   end
 
-  context 'Visibility level selector' do
+  describe 'manifest import option' do
+    before do
+      visit new_project_path
+
+      find('#import-project-tab').click
+    end
+
+    context 'when using postgres', :postgresql do
+      it { expect(page).to have_link('Manifest file') }
+    end
+
+    context 'when using mysql', :mysql do
+      it { expect(page).not_to have_link('Manifest file') }
+    end
+  end
+
+  context 'Visibility level selector', :js do
     Gitlab::VisibilityLevel.options.each do |key, level|
       it "sets selector to #{key}" do
         stub_application_setting(default_project_visibility: level)
 
         visit new_project_path
-
-        expect(find_field("project_visibility_level_#{level}")).to be_checked
+        page.within('#blank-project-pane') do
+          expect(find_field("project_visibility_level_#{level}")).to be_checked
+        end
       end
 
       it "saves visibility level #{level} on validation error" do
@@ -38,8 +58,40 @@ feature 'New project' do
 
         choose(s_(key))
         click_button('Create project')
+        page.within('#blank-project-pane') do
+          expect(find_field("project_visibility_level_#{level}")).to be_checked
+        end
+      end
+    end
+  end
 
-        expect(find_field("project_visibility_level_#{level}")).to be_checked
+  context 'Readme selector' do
+    it 'shows the initialize with Readme checkbox on "Blank project" tab' do
+      visit new_project_path
+
+      expect(page).to have_css('input#project_initialize_with_readme')
+      expect(page).to have_content('Initialize repository with a README')
+    end
+
+    it 'does not show the initialize with Readme checkbox on "Create from template" tab' do
+      visit new_project_path
+      find('#create-from-template-pane').click
+      first('.choose-template').click
+
+      page.within '.project-fields-form' do
+        expect(page).not_to have_css('input#project_initialize_with_readme')
+        expect(page).not_to have_content('Initialize repository with a README')
+      end
+    end
+
+    it 'does not show the initialize with Readme checkbox on "Import project" tab' do
+      visit new_project_path
+      find('#import-project-tab').click
+      first('.js-import-git-toggle-button').click
+
+      page.within '.toggle-import-form' do
+        expect(page).not_to have_css('input#project_initialize_with_readme')
+        expect(page).not_to have_content('Initialize repository with a README')
       end
     end
   end
@@ -51,14 +103,16 @@ feature 'New project' do
       end
 
       it 'selects the user namespace' do
-        namespace = find('#project_namespace_id')
+        page.within('#blank-project-pane') do
+          namespace = find('#project_namespace_id')
 
-        expect(namespace.text).to eq user.username
+          expect(namespace.text).to eq user.username
+        end
       end
     end
 
     context 'with group namespace' do
-      let(:group) { create(:group, :private, owner: user) }
+      let(:group) { create(:group, :private) }
 
       before do
         group.add_owner(user)
@@ -66,25 +120,29 @@ feature 'New project' do
       end
 
       it 'selects the group namespace' do
-        namespace = find('#project_namespace_id option[selected]')
+        page.within('#blank-project-pane') do
+          namespace = find('#project_namespace_id option[selected]')
 
-        expect(namespace.text).to eq group.name
+          expect(namespace.text).to eq group.name
+        end
       end
     end
 
     context 'with subgroup namespace' do
-      let(:group) { create(:group, owner: user) }
+      let(:group) { create(:group) }
       let(:subgroup) { create(:group, parent: group) }
 
       before do
-        group.add_master(user)
+        group.add_maintainer(user)
         visit new_project_path(namespace_id: subgroup.id)
       end
 
       it 'selects the group namespace' do
-        namespace = find('#project_namespace_id option[selected]')
+        page.within('#blank-project-pane') do
+          namespace = find('#project_namespace_id option[selected]')
 
-        expect(namespace.text).to eq subgroup.full_path
+          expect(namespace.text).to eq subgroup.full_path
+        end
       end
     end
 
@@ -124,14 +182,15 @@ feature 'New project' do
     end
   end
 
-  context 'Import project options' do
+  context 'Import project options', :js do
     before do
       visit new_project_path
+      find('#import-project-tab').click
     end
 
-    context 'from git repository url' do
+    context 'from git repository url, "Repo by URL"' do
       before do
-        first('.import_git').click
+        first('.js-import-git-toggle-button').click
       end
 
       it 'does not autocomplete sensitive git repo URL' do
@@ -146,15 +205,27 @@ feature 'New project' do
         expect(git_import_instructions).to be_visible
         expect(git_import_instructions).to have_content 'Git repository URL'
       end
+
+      it 'keeps "Import project" tab open after form validation error' do
+        collision_project = create(:project, name: 'test-name-collision', namespace: user.namespace)
+
+        fill_in 'project_import_url', with: collision_project.http_url_to_repo
+        fill_in 'project_name', with: collision_project.name
+
+        click_on 'Create project'
+
+        expect(page).to have_css('#import-project-pane.active')
+        expect(page).not_to have_css('.toggle-import-form.hide')
+      end
     end
 
     context 'from GitHub' do
       before do
-        first('.import_github').click
+        first('.js-import-github').click
       end
 
       it 'shows import instructions' do
-        expect(page).to have_content('Import Projects from GitHub')
+        expect(page).to have_content('Import repositories from GitHub')
         expect(current_path).to eq new_import_github_path
       end
     end
@@ -167,6 +238,17 @@ feature 'New project' do
       it 'shows import instructions' do
         expect(page).to have_content('Import projects from Google Code')
         expect(current_path).to eq new_import_google_code_path
+      end
+    end
+
+    context 'from manifest file', :postgresql do
+      before do
+        first('.import_manifest').click
+      end
+
+      it 'shows import instructions' do
+        expect(page).to have_content('Manifest file import')
+        expect(current_path).to eq new_import_manifest_path
       end
     end
   end

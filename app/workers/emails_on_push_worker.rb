@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 class EmailsOnPushWorker
-  include Sidekiq::Worker
-  include DedicatedSidekiqQueue
+  include ApplicationWorker
 
   attr_reader :email, :skip_premailer
 
@@ -50,7 +51,7 @@ class EmailsOnPushWorker
       end
     end
 
-    recipients.split.each do |recipient|
+    valid_recipients(recipients).each do |recipient|
       begin
         send_email(
           recipient,
@@ -67,7 +68,7 @@ class EmailsOnPushWorker
 
       # These are input errors and won't be corrected even if Sidekiq retries
       rescue Net::SMTPFatalError, Net::SMTPSyntaxError => e
-        logger.info("Failed to send e-mail for project '#{project.name_with_namespace}' to #{recipient}: #{e}")
+        logger.info("Failed to send e-mail for project '#{project.full_name}' to #{recipient}: #{e}")
       end
     end
   ensure
@@ -87,5 +88,11 @@ class EmailsOnPushWorker
     email.add_message_id
     email.header[:skip_premailer] = true if skip_premailer
     email.deliver_now
+  end
+
+  def valid_recipients(recipients)
+    recipients.split.select do |recipient|
+      recipient.include?('@')
+    end
   end
 end

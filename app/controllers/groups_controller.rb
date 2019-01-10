@@ -1,22 +1,34 @@
+# frozen_string_literal: true
+
 class GroupsController < Groups::ApplicationController
+  include API::Helpers::RelatedResourcesHelpers
   include IssuesAction
   include MergeRequestsAction
   include ParamsBackwardCompatibility
+  include PreviewMarkdown
 
   respond_to :html
+
+  prepend_before_action(only: [:show, :issues]) { authenticate_sessionless_user!(:rss) }
+  prepend_before_action(only: [:issues_calendar]) { authenticate_sessionless_user!(:ics) }
 
   before_action :authenticate_user!, only: [:new, :create]
   before_action :group, except: [:index, :new, :create]
 
   # Authorize
-  before_action :authorize_admin_group!, only: [:edit, :update, :destroy, :projects]
+  before_action :authorize_admin_group!, only: [:edit, :update, :destroy, :projects, :transfer]
   before_action :authorize_create_group!, only: [:new]
 
   before_action :group_projects, only: [:projects, :activity, :issues, :merge_requests]
-  before_action :group_merge_requests, only: [:merge_requests]
   before_action :event_filter, only: [:activity]
 
-  before_action :user_actions, only: [:show, :subgroups]
+  before_action :user_actions, only: [:show]
+
+  skip_cross_project_access_check :index, :new, :create, :edit, :update,
+                                  :destroy, :projects
+  # When loading show as an atom feed, we render events that could leak cross
+  # project information
+  skip_cross_project_access_check :show, if: -> { request.format.html? }
 
   layout :determine_layout
 
@@ -45,29 +57,14 @@ class GroupsController < Groups::ApplicationController
   end
 
   def show
-    setup_projects
-
     respond_to do |format|
       format.html
-
-      format.json do
-        render json: {
-          html: view_to_html_string("dashboard/projects/_projects", locals: { projects: @projects })
-        }
-      end
 
       format.atom do
         load_events
         render layout: 'xml.atom'
       end
     end
-  end
-
-  def subgroups
-    return not_found unless Group.supports_nested_groups?
-
-    @nested_groups = GroupsFinder.new(current_user, parent: group).execute
-    @nested_groups = @nested_groups.search(params[:filter_groups]) if params[:filter_groups].present?
   end
 
   def activity
@@ -82,6 +79,7 @@ class GroupsController < Groups::ApplicationController
   end
 
   def edit
+    @badge_api_endpoint = expose_url(api_v4_groups_badges_path(id: @group.id))
   end
 
   def projects
@@ -90,7 +88,7 @@ class GroupsController < Groups::ApplicationController
 
   def update
     if Groups::UpdateService.new(@group, current_user, group_params).execute
-      redirect_to edit_group_path(@group), notice: "Group '#{@group.name}' was successfully updated."
+      redirect_to edit_group_path(@group, anchor: params[:update_section]), notice: "Group '#{@group.name}' was successfully updated."
     else
       @group.restore_path!
 
@@ -104,22 +102,24 @@ class GroupsController < Groups::ApplicationController
     redirect_to root_path, status: 302, alert: "Group '#{@group.name}' was scheduled for deletion."
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
+  def transfer
+    parent_group = Group.find_by(id: params[:new_parent_group_id])
+    service = ::Groups::TransferService.new(@group, current_user)
+
+    if service.execute(parent_group)
+      flash[:notice] = "Group '#{@group.name}' was successfully transferred."
+      redirect_to group_path(@group)
+    else
+      flash.now[:alert] = service.error
+      render :edit
+    end
+  end
+  # rubocop: enable CodeReuse/ActiveRecord
+
   protected
 
-  def setup_projects
-    set_non_archived_param
-    params[:sort] ||= 'latest_activity_desc'
-    @sort = params[:sort]
-
-    options = {}
-    options[:only_owned] = true if params[:shared] == '0'
-    options[:only_shared] = true if params[:shared] == '1'
-
-    @projects = GroupProjectsFinder.new(params: params, group: group, options: options, current_user: current_user).execute
-    @projects = @projects.includes(:namespace)
-    @projects = @projects.page(params[:page]) if params[:name].blank?
-  end
-
+  # rubocop: disable CodeReuse/ActiveRecord
   def authorize_create_group!
     allowed = if params[:parent_id].present?
                 parent = Group.find_by(id: params[:parent_id])
@@ -130,6 +130,7 @@ class GroupsController < Groups::ApplicationController
 
     render_404 unless allowed
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def determine_layout
     if [:new, :create].include?(action_name.to_sym)
@@ -142,10 +143,10 @@ class GroupsController < Groups::ApplicationController
   end
 
   def group_params
-    params.require(:group).permit(group_params_ce)
+    params.require(:group).permit(group_params_attributes)
   end
 
-  def group_params_ce
+  def group_params_attributes
     [
       :avatar,
       :description,
@@ -164,11 +165,27 @@ class GroupsController < Groups::ApplicationController
     ]
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def load_events
+    params[:sort] ||= 'latest_activity_desc'
+
+    options = {}
+    options[:only_owned] = true if params[:shared] == '0'
+    options[:only_shared] = true if params[:shared] == '1'
+
+    @projects = GroupProjectsFinder.new(params: params, group: group, options: options, current_user: current_user)
+                  .execute
+                  .includes(:namespace)
+
     @events = EventCollection
       .new(@projects, offset: params[:offset].to_i, filter: event_filter)
       .to_a
+
+    Events::RenderService
+      .new(current_user)
+      .execute(@events, atom_request: request.format.atom?)
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def user_actions
     if current_user
@@ -181,6 +198,6 @@ class GroupsController < Groups::ApplicationController
 
     params[:id] = group.to_param
 
-    url_for(params)
+    url_for(safe_params)
   end
 end

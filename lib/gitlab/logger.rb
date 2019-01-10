@@ -1,11 +1,21 @@
+# frozen_string_literal: true
+
 module Gitlab
   class Logger < ::Logger
     def self.file_name
       file_name_noext + '.log'
     end
 
+    def self.debug(message)
+      build.debug(message)
+    end
+
     def self.error(message)
       build.error(message)
+    end
+
+    def self.warn(message)
+      build.warn(message)
     end
 
     def self.info(message)
@@ -13,7 +23,7 @@ module Gitlab
     end
 
     def self.read_latest
-      path = Rails.root.join("log", file_name)
+      path = self.full_log_path
 
       return [] unless File.readable?(path)
 
@@ -22,7 +32,15 @@ module Gitlab
     end
 
     def self.build
-      new(Rails.root.join("log", file_name))
+      Gitlab::SafeRequestStore[self.cache_key] ||= new(self.full_log_path)
+    end
+
+    def self.full_log_path
+      Rails.root.join("log", file_name)
+    end
+
+    def self.cache_key
+      'logger:'.freeze + self.full_log_path.to_s
     end
   end
 end

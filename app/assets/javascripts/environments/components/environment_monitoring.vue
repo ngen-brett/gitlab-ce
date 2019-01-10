@@ -2,20 +2,23 @@
 /**
  * Renders the Monitoring (Metrics) link in environments table.
  */
-import tooltip from '../../vue_shared/directives/tooltip';
+import { GlButton, GlTooltipDirective } from '@gitlab/ui';
+import Icon from '~/vue_shared/components/icon.vue';
 
 export default {
+  components: {
+    Icon,
+    GlButton,
+  },
+  directives: {
+    GlTooltip: GlTooltipDirective,
+  },
   props: {
     monitoringUrl: {
       type: String,
       required: true,
     },
   },
-
-  directives: {
-    tooltip,
-  },
-
   computed: {
     title() {
       return 'Monitoring';
@@ -24,16 +27,15 @@ export default {
 };
 </script>
 <template>
-  <a
-    v-tooltip
-    class="btn monitoring-url hidden-xs hidden-sm"
-    data-container="body"
-    rel="noopener noreferrer nofollow"
+  <gl-button
+    v-gl-tooltip
     :href="monitoringUrl"
     :title="title"
-    :aria-label="title">
-    <i
-      class="fa fa-area-chart"
-      aria-hidden="true" />
-  </a>
+    :aria-label="title"
+    class="monitoring-url d-none d-sm-none d-md-block"
+    rel="noopener noreferrer nofollow"
+    variant="default"
+  >
+    <icon name="chart" />
+  </gl-button>
 </template>

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Database
     module RenameReservedPathsMigration
@@ -62,10 +64,10 @@ module Gitlab
                                             old_full_path,
                                             new_full_path)
 
-            update = Arel::UpdateManager.new(ActiveRecord::Base)
-                       .table(routes)
-                       .set([[routes[:path], replace_statement]])
-                       .where(Arel::Nodes::SqlLiteral.new(filter))
+            update = Arel::UpdateManager.new
+              .table(routes)
+              .set([[routes[:path], replace_statement]])
+              .where(Arel::Nodes::SqlLiteral.new(filter))
 
             execute(update.to_sql)
           end

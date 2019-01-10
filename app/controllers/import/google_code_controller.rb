@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Import::GoogleCodeController < Import::BaseController
   before_action :verify_google_code_import_enabled
   before_action :user_map, only: [:new_user_map, :create_user_map]
@@ -65,6 +67,7 @@ class Import::GoogleCodeController < Import::BaseController
     redirect_to status_import_google_code_path
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def status
     unless client.valid?
       return redirect_to new_import_google_code_path
@@ -73,28 +76,28 @@ class Import::GoogleCodeController < Import::BaseController
     @repos = client.repos
     @incompatible_repos = client.incompatible_repos
 
-    @already_added_projects = current_user.created_projects.where(import_type: "google_code")
+    @already_added_projects = find_already_added_projects('google_code')
     already_added_projects_names = @already_added_projects.pluck(:import_source)
 
     @repos.reject! { |repo| already_added_projects_names.include? repo.name }
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def jobs
-    jobs = current_user.created_projects.where(import_type: "google_code").to_json(only: [:id, :import_status])
-    render json: jobs
+    render json: find_jobs('google_code')
   end
 
   def create
-    @repo_id = params[:repo_id]
-    repo = client.repo(@repo_id)
-    @target_namespace = current_user.namespace
-    @project_name = repo.name
-
-    namespace = @target_namespace
-
+    repo = client.repo(params[:repo_id])
     user_map = session[:google_code_user_map]
 
-    @project = Gitlab::GoogleCodeImport::ProjectCreator.new(repo, namespace, current_user, user_map).execute
+    project = Gitlab::GoogleCodeImport::ProjectCreator.new(repo, current_user.namespace, current_user, user_map).execute
+
+    if project.persisted?
+      render json: ProjectSerializer.new.represent(project)
+    else
+      render json: { errors: project_save_error(project) }, status: :unprocessable_entity
+    end
   end
 
   private

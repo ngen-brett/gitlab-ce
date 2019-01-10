@@ -10,7 +10,7 @@ describe Search::GlobalService do
   let!(:public_project)   { create(:project, :public, name: 'searchable_public_project') }
 
   before do
-    found_project.add_master(user)
+    found_project.add_maintainer(user)
   end
 
   describe '#execute' do
@@ -35,8 +35,8 @@ describe Search::GlobalService do
         expect(results.objects('projects')).to match_array [internal_project, public_project]
       end
 
-      it 'namespace name is searchable' do
-        results = described_class.new(user, search: found_project.namespace.path).execute
+      it 'project name is searchable' do
+        results = described_class.new(user, search: found_project.name).execute
 
         expect(results.objects('projects')).to match_array [found_project]
       end

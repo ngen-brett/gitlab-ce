@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Module providing methods for dealing with separating a tree-ish string and a
 # file path string when combined in a request parameter
 module ExtractsPath
@@ -40,7 +42,7 @@ module ExtractsPath
   def extract_ref(id)
     pair = ['', '']
 
-    return pair unless @project
+    return pair unless @project # rubocop:disable Gitlab/ModuleWithInstanceVariables
 
     if id =~ /^(\h{40})(.+)/
       # If the ref appears to be a SHA, we're done, just split the string
@@ -50,13 +52,15 @@ module ExtractsPath
       # branches and tags
 
       # Append a trailing slash if we only get a ref and no file path
-      id += '/' unless id.ends_with?('/')
+      unless id.ends_with?('/')
+        id = [id, '/'].join
+      end
 
       valid_refs = ref_names.select { |v| id.start_with?("#{v}/") }
 
-      if valid_refs.length == 0
+      if valid_refs.empty?
         # No exact ref match, so just try our best
-        pair = id.match(/([^\/]+)(.*)/).captures
+        pair = id.match(%r{([^/]+)(.*)}).captures
       else
         # There is a distinct possibility that multiple refs prefix the ID.
         # Use the longest match to maximize the chance that we have the
@@ -68,7 +72,7 @@ module ExtractsPath
     end
 
     # Remove ending slashes from path
-    pair[1].gsub!(/^\/|\/$/, '')
+    pair[1].gsub!(%r{^/|/$}, '')
 
     pair
   end
@@ -104,12 +108,8 @@ module ExtractsPath
   #
   # Automatically renders `not_found!` if a valid tree path could not be
   # resolved (e.g., when a user inserts an invalid path or ref).
+  # rubocop:disable Gitlab/ModuleWithInstanceVariables
   def assign_ref_vars
-    # assign allowed options
-    allowed_options = ["filter_ref"]
-    @options = params.select {|key, value| allowed_options.include?(key) && !value.blank? }
-    @options = HashWithIndifferentAccess.new(@options)
-
     @id = get_id
     @ref, @path = extract_ref(@id)
     @repo = @project.repository
@@ -127,27 +127,37 @@ module ExtractsPath
 
     @hex_path = Digest::SHA1.hexdigest(@path)
     @logs_path = logs_file_project_ref_path(@project, @ref, @path)
-
   rescue RuntimeError, NoMethodError, InvalidPathError
     render_404
   end
+  # rubocop:enable Gitlab/ModuleWithInstanceVariables
 
   def tree
-    @tree ||= @repo.tree(@commit.id, @path)
+    @tree ||= @repo.tree(@commit.id, @path) # rubocop:disable Gitlab/ModuleWithInstanceVariables
+  end
+
+  def lfs_blob_ids
+    blob_ids = tree.blobs.map(&:id)
+
+    # When current endpoint is a Blob then `tree.blobs` will be empty, it means we need to analyze
+    # the current Blob in order to determine if it's a LFS object
+    blob_ids = Array.wrap(@repo.blob_at(@commit.id, @path)&.id) if blob_ids.empty? # rubocop:disable Gitlab/ModuleWithInstanceVariables
+
+    @lfs_blob_ids = Gitlab::Git::Blob.batch_lfs_pointers(@project.repository, blob_ids).map(&:id) # rubocop:disable Gitlab/ModuleWithInstanceVariables
   end
 
   private
 
-  # overriden in subclasses, do not remove
+  # overridden in subclasses, do not remove
   def get_id
-    id = params[:id] || params[:ref]
-    id += "/" + params[:path] unless params[:path].blank?
-    id
+    id = [params[:id] || params[:ref]]
+    id << "/" + params[:path] unless params[:path].blank?
+    id.join
   end
 
   def ref_names
-    return [] unless @project
+    return [] unless @project # rubocop:disable Gitlab/ModuleWithInstanceVariables
 
-    @ref_names ||= @project.repository.ref_names
+    @ref_names ||= @project.repository.ref_names # rubocop:disable Gitlab/ModuleWithInstanceVariables
   end
 end

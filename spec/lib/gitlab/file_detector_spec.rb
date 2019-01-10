@@ -15,7 +15,24 @@ describe Gitlab::FileDetector do
 
   describe '.type_of' do
     it 'returns the type of a README file' do
-      expect(described_class.type_of('README.md')).to eq(:readme)
+      filenames = Gitlab::MarkupHelper::PLAIN_FILENAMES + Gitlab::MarkupHelper::PLAIN_FILENAMES.map(&:upcase)
+      extensions = Gitlab::MarkupHelper::EXTENSIONS + Gitlab::MarkupHelper::EXTENSIONS.map(&:upcase)
+
+      filenames.each do |filename|
+        expect(described_class.type_of(filename)).to eq(:readme)
+
+        extensions.each do |extname|
+          expect(described_class.type_of("#{filename}.#{extname}")).to eq(:readme)
+        end
+      end
+    end
+
+    it 'returns nil for a README.rb file' do
+      expect(described_class.type_of('README.rb')).to be_nil
+    end
+
+    it 'returns nil for a README file in a directory' do
+      expect(described_class.type_of('foo/README.md')).to be_nil
     end
 
     it 'returns the type of a changelog file' do
@@ -25,9 +42,13 @@ describe Gitlab::FileDetector do
     end
 
     it 'returns the type of a license file' do
-      %w(LICENSE LICENCE COPYING).each do |file|
+      %w(LICENSE LICENCE COPYING UNLICENSE UNLICENCE).each do |file|
         expect(described_class.type_of(file)).to eq(:license)
       end
+    end
+
+    it 'returns nil for an UNCOPYING file' do
+      expect(described_class.type_of('UNCOPYING')).to be_nil
     end
 
     it 'returns the type of a version file' do
@@ -38,10 +59,6 @@ describe Gitlab::FileDetector do
       expect(described_class.type_of('.gitignore')).to eq(:gitignore)
     end
 
-    it 'returns the type of a Koding config file' do
-      expect(described_class.type_of('.koding.yml')).to eq(:koding)
-    end
-
     it 'returns the type of a GitLab CI config file' do
       expect(described_class.type_of('.gitlab-ci.yml')).to eq(:gitlab_ci)
     end
@@ -50,6 +67,14 @@ describe Gitlab::FileDetector do
       %w(logo.gif logo.png logo.jpg).each do |file|
         expect(described_class.type_of(file)).to eq(:avatar)
       end
+    end
+
+    it 'returns the type of an issue template' do
+      expect(described_class.type_of('.gitlab/issue_templates/foo.md')).to eq(:issue_template)
+    end
+
+    it 'returns the type of a merge request template' do
+      expect(described_class.type_of('.gitlab/merge_request_templates/foo.md')).to eq(:merge_request_template)
     end
 
     it 'returns nil for an unknown file' do

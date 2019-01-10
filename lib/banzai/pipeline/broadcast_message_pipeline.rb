@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Banzai
   module Pipeline
     class BroadcastMessagePipeline < DescriptionPipeline
@@ -7,6 +9,7 @@ module Banzai
           Filter::SanitizationFilter,
 
           Filter::EmojiFilter,
+          Filter::ColorFilter,
           Filter::AutolinkFilter,
           Filter::ExternalLinkFilter
         ]

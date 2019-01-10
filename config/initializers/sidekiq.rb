@@ -1,3 +1,9 @@
+require 'sidekiq/web'
+
+# Disable the Sidekiq Rack session since GitLab already has its own session store.
+# CSRF protection still works (https://github.com/mperham/sidekiq/commit/315504e766c4fd88a29b7772169060afc4c40329).
+Sidekiq::Web.set :sessions, false
+
 # Custom Queues configuration
 queues_config_hash = Gitlab::Redis::Queues.params
 queues_config_hash[:namespace] = Gitlab::Redis::Queues::SIDEKIQ_NAMESPACE
@@ -5,24 +11,40 @@ queues_config_hash[:namespace] = Gitlab::Redis::Queues::SIDEKIQ_NAMESPACE
 # Default is to retry 25 times with exponential backoff. That's too much.
 Sidekiq.default_worker_options = { retry: 3 }
 
+enable_json_logs = Gitlab.config.sidekiq.log_format == 'json'
+
 Sidekiq.configure_server do |config|
   config.redis = queues_config_hash
 
   config.server_middleware do |chain|
-    chain.add Gitlab::SidekiqMiddleware::ArgumentsLogger if ENV['SIDEKIQ_LOG_ARGUMENTS']
-    chain.add Gitlab::SidekiqMiddleware::MemoryKiller if ENV['SIDEKIQ_MEMORY_KILLER_MAX_RSS']
+    chain.add Gitlab::SidekiqMiddleware::ArgumentsLogger if ENV['SIDEKIQ_LOG_ARGUMENTS'] && !enable_json_logs
+    chain.add Gitlab::SidekiqMiddleware::Shutdown
     chain.add Gitlab::SidekiqMiddleware::RequestStoreMiddleware unless ENV['SIDEKIQ_REQUEST_STORE'] == '0'
+    chain.add Gitlab::SidekiqMiddleware::BatchLoader
+    chain.add Gitlab::SidekiqMiddleware::CorrelationLogger
     chain.add Gitlab::SidekiqStatus::ServerMiddleware
+  end
+
+  if enable_json_logs
+    Sidekiq.logger.formatter = Gitlab::SidekiqLogging::JSONFormatter.new
+    config.options[:job_logger] = Gitlab::SidekiqLogging::StructuredLogger
   end
 
   config.client_middleware do |chain|
     chain.add Gitlab::SidekiqStatus::ClientMiddleware
+    chain.add Gitlab::SidekiqMiddleware::CorrelationInjector
   end
 
   config.on :startup do
     # Clear any connections that might have been obtained before starting
     # Sidekiq (e.g. in an initializer).
     ActiveRecord::Base.clear_all_connections!
+  end
+
+  if Feature::FlipperFeature.table_exists? && Feature.enabled?(:gitlab_sidekiq_reliable_fetcher)
+    # By default we're going to use Semi Reliable Fetch
+    config.options[:semi_reliable_fetch] = Feature.enabled?(:gitlab_sidekiq_enable_semi_reliable_fetcher, default_enabled: true)
+    Sidekiq::ReliableFetch.setup_reliable_fetch!(config)
   end
 
   # Sidekiq-cron: load recurring jobs from gitlab.yml
@@ -40,12 +62,12 @@ Sidekiq.configure_server do |config|
   end
   Sidekiq::Cron::Job.load_from_hash! cron_jobs
 
-  Gitlab::SidekiqThrottler.execute!
+  Gitlab::SidekiqVersioning.install!
 
-  config = Gitlab::Database.config ||
+  db_config = Gitlab::Database.config ||
     Rails.application.config.database_configuration[Rails.env]
-  config['pool'] = Sidekiq.options[:concurrency]
-  ActiveRecord::Base.establish_connection(config)
+  db_config['pool'] = Sidekiq.options[:concurrency]
+  ActiveRecord::Base.establish_connection(db_config)
   Rails.logger.debug("Connection Pool size for Sidekiq Server is now: #{ActiveRecord::Base.connection.pool.instance_variable_get('@size')}")
 
   # Avoid autoload issue such as 'Mail::Parsers::AddressStruct'
@@ -57,22 +79,7 @@ Sidekiq.configure_client do |config|
   config.redis = queues_config_hash
 
   config.client_middleware do |chain|
+    chain.add Gitlab::SidekiqMiddleware::CorrelationInjector
     chain.add Gitlab::SidekiqStatus::ClientMiddleware
   end
-end
-
-# The Sidekiq client API always adds the queue to the Sidekiq queue
-# list, but mail_room and gitlab-shell do not. This is only necessary
-# for monitoring.
-config = YAML.load_file(Rails.root.join('config', 'sidekiq_queues.yml').to_s)
-
-begin
-  Sidekiq.redis do |conn|
-    conn.pipelined do
-      config[:queues].each do |queue|
-        conn.sadd('queues', queue[0])
-      end
-    end
-  end
-rescue Redis::BaseError, SocketError, Errno::ENOENT, Errno::EADDRNOTAVAIL, Errno::EAFNOSUPPORT, Errno::ECONNRESET, Errno::ECONNREFUSED
 end

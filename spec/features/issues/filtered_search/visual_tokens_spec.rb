@@ -1,8 +1,7 @@
 require 'rails_helper'
 
-describe 'Visual tokens', js: true do
+describe 'Visual tokens', :js do
   include FilteredSearchHelpers
-  include WaitForRequests
 
   let!(:project) { create(:project) }
   let!(:user) { create(:user, name: 'administrator', username: 'root') }
@@ -23,12 +22,12 @@ describe 'Visual tokens', js: true do
   end
 
   before do
-    project.add_user(user, :master)
-    project.add_user(user_rock, :master)
+    project.add_user(user, :maintainer)
+    project.add_user(user_rock, :maintainer)
     sign_in(user)
     create(:issue, project: project)
 
-    page.driver.set_cookie('sidebar_collapsed', 'true')
+    set_cookie('sidebar_collapsed', 'true')
 
     visit project_issues_path(project)
   end
@@ -119,7 +118,7 @@ describe 'Visual tokens', js: true do
 
     describe 'selecting static option from dropdown' do
       before do
-        find("#js-dropdown-assignee").find('.filter-dropdown-item', text: 'No Assignee').click
+        find("#js-dropdown-assignee").find('.filter-dropdown-item', text: 'None').click
       end
 
       it 'changes value in visual token' do

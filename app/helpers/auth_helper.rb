@@ -1,15 +1,15 @@
-module AuthHelper
-  include Gitlab::CurrentSettings
+# frozen_string_literal: true
 
+module AuthHelper
   PROVIDERS_WITH_ICONS = %w(twitter github gitlab bitbucket google_oauth2 facebook azure_oauth2 authentiq).freeze
-  FORM_BASED_PROVIDERS = [/\Aldap/, 'crowd'].freeze
+  LDAP_PROVIDER = /\Aldap/
 
   def ldap_enabled?
-    Gitlab::LDAP::Config.enabled?
+    Gitlab::Auth::LDAP::Config.enabled?
   end
 
   def omniauth_enabled?
-    Gitlab.config.omniauth.enabled
+    Gitlab::Auth.omniauth_enabled?
   end
 
   def provider_has_icon?(name)
@@ -17,15 +17,32 @@ module AuthHelper
   end
 
   def auth_providers
-    Gitlab::OAuth::Provider.providers
+    Gitlab::Auth::OAuth::Provider.providers
   end
 
   def label_for_provider(name)
-    Gitlab::OAuth::Provider.label_for(name)
+    Gitlab::Auth::OAuth::Provider.label_for(name)
+  end
+
+  def form_based_provider_priority
+    ['crowd', /^ldap/, 'kerberos']
+  end
+
+  def form_based_provider_with_highest_priority
+    @form_based_provider_with_highest_priority ||= begin
+      form_based_provider_priority.each do |provider_regexp|
+        highest_priority = form_based_providers.find {  |provider| provider.match?(provider_regexp) }
+        break highest_priority unless highest_priority.nil?
+      end
+    end
+  end
+
+  def form_based_auth_provider_has_active_class?(provider)
+    form_based_provider_with_highest_priority == provider
   end
 
   def form_based_provider?(name)
-    FORM_BASED_PROVIDERS.any? { |pattern| pattern === name.to_s }
+    [LDAP_PROVIDER, 'crowd'].any? { |pattern| pattern === name.to_s }
   end
 
   def form_based_providers
@@ -40,8 +57,16 @@ module AuthHelper
     auth_providers.reject { |provider| form_based_provider?(provider) }
   end
 
+  def display_providers_on_profile?
+    button_based_providers.any?
+  end
+
+  def providers_for_base_controller
+    auth_providers.reject { |provider| LDAP_PROVIDER === provider }
+  end
+
   def enabled_button_based_providers
-    disabled_providers = current_application_settings.disabled_oauth_sign_in_sources || []
+    disabled_providers = Gitlab::CurrentSettings.disabled_oauth_sign_in_sources || []
 
     button_based_providers.map(&:to_s) - disabled_providers
   end
@@ -62,9 +87,11 @@ module AuthHelper
     end
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def auth_active?(provider)
     current_user.identities.exists?(provider: provider.to_s)
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def unlink_allowed?(provider)
     %w(saml cas3).exclude?(provider.to_s)

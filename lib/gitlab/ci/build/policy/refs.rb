@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Ci
     module Build
@@ -7,7 +9,7 @@ module Gitlab
             @patterns = Array(refs)
           end
 
-          def satisfied_by?(pipeline)
+          def satisfied_by?(pipeline, seed = nil)
             @patterns.any? do |pattern|
               pattern, path = pattern.split('@', 2)
 
@@ -30,10 +32,14 @@ module Gitlab
             return true if pipeline.source == pattern
             return true if pipeline.source&.pluralize == pattern
 
-            if pattern.first == "/" && pattern.last == "/"
-              Regexp.new(pattern[1...-1]) =~ pipeline.ref
-            else
-              pattern == pipeline.ref
+            # patterns can be matched only when branch or tag is used
+            # the pattern matching does not work for merge requests pipelines
+            if pipeline.branch? || pipeline.tag?
+              if pattern.first == "/" && pattern.last == "/"
+                Regexp.new(pattern[1...-1]) =~ pipeline.ref
+              else
+                pattern == pipeline.ref
+              end
             end
           end
         end

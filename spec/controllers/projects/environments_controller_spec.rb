@@ -9,7 +9,7 @@ describe Projects::EnvironmentsController do
   end
 
   before do
-    project.add_master(user)
+    project.add_maintainer(user)
 
     sign_in(user)
   end
@@ -17,9 +17,16 @@ describe Projects::EnvironmentsController do
   describe 'GET index' do
     context 'when a request for the HTML is made' do
       it 'responds with status code 200' do
-        get :index, environment_params
+        get :index, params: environment_params
 
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_gitlab_http_status(:ok)
+      end
+
+      it 'expires etag cache to force reload environments list' do
+        expect_any_instance_of(Gitlab::EtagCaching::Store)
+          .to receive(:touch).with(project_environments_path(project, format: :json))
+
+        get :index, params: environment_params
       end
     end
 
@@ -42,7 +49,7 @@ describe Projects::EnvironmentsController do
 
       context 'when requesting available environments scope' do
         before do
-          get :index, environment_params(format: :json, scope: :available)
+          get :index, params: environment_params(format: :json, scope: :available)
         end
 
         it 'responds with a payload describing available environments' do
@@ -59,14 +66,14 @@ describe Projects::EnvironmentsController do
         end
 
         it 'sets the polling interval header' do
-          expect(response).to have_http_status(:ok)
+          expect(response).to have_gitlab_http_status(:ok)
           expect(response.headers['Poll-Interval']).to eq("3000")
         end
       end
 
       context 'when requesting stopped environments scope' do
         before do
-          get :index, environment_params(format: :json, scope: :stopped)
+          get :index, params: environment_params(format: :json, scope: :stopped)
         end
 
         it 'responds with a payload describing stopped environments' do
@@ -96,9 +103,11 @@ describe Projects::EnvironmentsController do
 
     context 'when using default format' do
       it 'responds with HTML' do
-        get :folder, namespace_id: project.namespace,
-                     project_id: project,
-                     id: 'staging-1.0'
+        get :folder, params: {
+                       namespace_id: project.namespace,
+                       project_id: project,
+                       id: 'staging-1.0'
+                     }
 
         expect(response).to be_ok
         expect(response).to render_template 'folder'
@@ -107,9 +116,11 @@ describe Projects::EnvironmentsController do
 
     context 'when using JSON format' do
       it 'sorts the subfolders lexicographically' do
-        get :folder, namespace_id: project.namespace,
-                     project_id: project,
-                     id: 'staging-1.0',
+        get :folder, params: {
+                       namespace_id: project.namespace,
+                       project_id: project,
+                       id: 'staging-1.0'
+                     },
                      format: :json
 
         expect(response).to be_ok
@@ -125,7 +136,7 @@ describe Projects::EnvironmentsController do
   describe 'GET show' do
     context 'with valid id' do
       it 'responds with a status code 200' do
-        get :show, environment_params
+        get :show, params: environment_params
 
         expect(response).to be_ok
       end
@@ -135,16 +146,16 @@ describe Projects::EnvironmentsController do
       it 'responds with a status code 404' do
         params = environment_params
         params[:id] = 12345
-        get :show, params
+        get :show, params: params
 
-        expect(response).to have_http_status(404)
+        expect(response).to have_gitlab_http_status(404)
       end
     end
   end
 
   describe 'GET edit' do
     it 'responds with a status code 200' do
-      get :edit, environment_params
+      get :edit, params: environment_params
 
       expect(response).to be_ok
     end
@@ -153,9 +164,9 @@ describe Projects::EnvironmentsController do
   describe 'PATCH #update' do
     it 'responds with a 302' do
       patch_params = environment_params.merge(environment: { external_url: 'https://git.gitlab.com' })
-      patch :update, patch_params
+      patch :update, params: patch_params
 
-      expect(response).to have_http_status(302)
+      expect(response).to have_gitlab_http_status(302)
     end
   end
 
@@ -164,9 +175,9 @@ describe Projects::EnvironmentsController do
       it 'returns 404' do
         allow_any_instance_of(Environment).to receive(:available?) { false }
 
-        patch :stop, environment_params(format: :json)
+        patch :stop, params: environment_params(format: :json)
 
-        expect(response).to have_http_status(404)
+        expect(response).to have_gitlab_http_status(404)
       end
     end
 
@@ -177,9 +188,9 @@ describe Projects::EnvironmentsController do
         allow_any_instance_of(Environment)
           .to receive_messages(available?: true, stop_with_action!: action)
 
-        patch :stop, environment_params(format: :json)
+        patch :stop, params: environment_params(format: :json)
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
         expect(json_response).to eq(
           { 'redirect_url' =>
               project_job_url(project, action) })
@@ -191,9 +202,9 @@ describe Projects::EnvironmentsController do
         allow_any_instance_of(Environment)
           .to receive_messages(available?: true, stop_with_action!: nil)
 
-        patch :stop, environment_params(format: :json)
+        patch :stop, params: environment_params(format: :json)
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
         expect(json_response).to eq(
           { 'redirect_url' =>
               project_environment_url(project, environment) })
@@ -204,23 +215,26 @@ describe Projects::EnvironmentsController do
   describe 'GET #terminal' do
     context 'with valid id' do
       it 'responds with a status code 200' do
-        get :terminal, environment_params
+        get :terminal, params: environment_params
 
-        expect(response).to have_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
       end
 
-      it 'loads the terminals for the enviroment' do
-        expect_any_instance_of(Environment).to receive(:terminals)
+      it 'loads the terminals for the environment' do
+        # In EE we have to stub EE::Environment since it overwrites the
+        # "terminals" method.
+        expect_any_instance_of(defined?(EE) ? EE::Environment : Environment)
+          .to receive(:terminals)
 
-        get :terminal, environment_params
+        get :terminal, params: environment_params
       end
     end
 
     context 'with invalid id' do
       it 'responds with a status code 404' do
-        get :terminal, environment_params(id: 666)
+        get :terminal, params: environment_params(id: 666)
 
-        expect(response).to have_http_status(404)
+        expect(response).to have_gitlab_http_status(404)
       end
     end
   end
@@ -233,7 +247,9 @@ describe Projects::EnvironmentsController do
 
       context 'and valid id' do
         it 'returns the first terminal for the environment' do
-          expect_any_instance_of(Environment)
+          # In EE we have to stub EE::Environment since it overwrites the
+          # "terminals" method.
+          expect_any_instance_of(defined?(EE) ? EE::Environment : Environment)
             .to receive(:terminals)
             .and_return([:fake_terminal])
 
@@ -242,9 +258,9 @@ describe Projects::EnvironmentsController do
             .with(:fake_terminal)
             .and_return(workhorse: :response)
 
-          get :terminal_websocket_authorize, environment_params
+          get :terminal_websocket_authorize, params: environment_params
 
-          expect(response).to have_http_status(200)
+          expect(response).to have_gitlab_http_status(200)
           expect(response.headers["Content-Type"]).to eq(Gitlab::Workhorse::INTERNAL_API_CONTENT_TYPE)
           expect(response.body).to eq('{"workhorse":"response"}')
         end
@@ -252,9 +268,9 @@ describe Projects::EnvironmentsController do
 
       context 'and invalid id' do
         it 'returns 404' do
-          get :terminal_websocket_authorize, environment_params(id: 666)
+          get :terminal_websocket_authorize, params: environment_params(id: 666)
 
-          expect(response).to have_http_status(404)
+          expect(response).to have_gitlab_http_status(404)
         end
       end
     end
@@ -263,10 +279,29 @@ describe Projects::EnvironmentsController do
       it 'aborts with an exception' do
         allow(Gitlab::Workhorse).to receive(:verify_api_request!).and_raise(JWT::DecodeError)
 
-        expect { get :terminal_websocket_authorize, environment_params }.to raise_error(JWT::DecodeError)
+        expect { get :terminal_websocket_authorize, params: environment_params }.to raise_error(JWT::DecodeError)
         # controller tests don't set the response status correctly. It's enough
         # to check that the action raised an exception
       end
+    end
+  end
+
+  describe 'GET #metrics_redirect' do
+    let(:project) { create(:project) }
+
+    it 'redirects to environment if it exists' do
+      environment = create(:environment, name: 'production', project: project)
+
+      get :metrics_redirect, params: { namespace_id: project.namespace, project_id: project }
+
+      expect(response).to redirect_to(environment_metrics_path(environment))
+    end
+
+    it 'redirects to empty page if no environment exists' do
+      get :metrics_redirect, params: { namespace_id: project.namespace, project_id: project }
+
+      expect(response).to be_ok
+      expect(response).to render_template 'empty'
     end
   end
 
@@ -281,16 +316,16 @@ describe Projects::EnvironmentsController do
       end
 
       it 'returns a metrics page' do
-        get :metrics, environment_params
+        get :metrics, params: environment_params
 
         expect(response).to be_ok
       end
 
       context 'when requesting metrics as JSON' do
         it 'returns a metrics JSON document' do
-          get :metrics, environment_params(format: :json)
+          get :metrics, params: environment_params(format: :json)
 
-          expect(response).to have_http_status(204)
+          expect(response).to have_gitlab_http_status(204)
           expect(json_response).to eq({})
         end
       end
@@ -306,7 +341,7 @@ describe Projects::EnvironmentsController do
       end
 
       it 'returns a metrics JSON document' do
-        get :metrics, environment_params(format: :json)
+        get :metrics, params: environment_params(format: :json)
 
         expect(response).to be_ok
         expect(json_response['success']).to be(true)
@@ -328,9 +363,9 @@ describe Projects::EnvironmentsController do
 
       context 'when requesting metrics as JSON' do
         it 'returns a metrics JSON document' do
-          get :additional_metrics, environment_params(format: :json)
+          get :additional_metrics, params: environment_params(format: :json)
 
-          expect(response).to have_http_status(204)
+          expect(response).to have_gitlab_http_status(204)
           expect(json_response).to eq({})
         end
       end
@@ -348,7 +383,7 @@ describe Projects::EnvironmentsController do
       end
 
       it 'returns a metrics JSON document' do
-        get :additional_metrics, environment_params(format: :json)
+        get :additional_metrics, params: environment_params(format: :json)
 
         expect(response).to be_ok
         expect(json_response['success']).to be(true)

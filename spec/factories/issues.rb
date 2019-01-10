@@ -1,8 +1,9 @@
-FactoryGirl.define do
+FactoryBot.define do
   factory :issue do
     title { generate(:title) }
-    author
     project
+    author { project.creator }
+    updated_by { author }
 
     trait :confidential do
       confidential true
@@ -12,8 +13,13 @@ FactoryGirl.define do
       state :opened
     end
 
+    trait :locked do
+      discussion_locked true
+    end
+
     trait :closed do
       state :closed
+      closed_at { Time.now }
     end
 
     factory :closed_issue, traits: [:closed]
@@ -25,7 +31,7 @@ FactoryGirl.define do
       end
 
       after(:create) do |issue, evaluator|
-        issue.update_attributes(labels: evaluator.labels)
+        issue.update(labels: evaluator.labels)
       end
     end
   end

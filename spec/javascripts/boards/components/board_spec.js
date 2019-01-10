@@ -1,15 +1,14 @@
-/* global mockBoardService */
 import Vue from 'vue';
 import '~/boards/services/board_service';
-import '~/boards/components/board';
+import Board from '~/boards/components/board';
 import '~/boards/models/list';
-import '../mock_data';
+import { mockBoardService } from '../mock_data';
 
 describe('Board component', () => {
   let vm;
   let el;
 
-  beforeEach((done) => {
+  beforeEach(done => {
     loadFixtures('boards/show.html.raw');
 
     el = document.createElement('div');
@@ -22,7 +21,7 @@ describe('Board component', () => {
       boardId: 1,
     });
 
-    vm = new gl.issueBoards.Board({
+    vm = new Board({
       propsData: {
         boardId: '1',
         disabled: false,
@@ -51,56 +50,46 @@ describe('Board component', () => {
   });
 
   it('board is expandable when list type is backlog', () => {
-    expect(
-      vm.$el.classList.contains('is-expandable'),
-    ).toBe(true);
+    expect(vm.$el.classList.contains('is-expandable')).toBe(true);
   });
 
-  it('board is expandable when list type is closed', (done) => {
+  it('board is expandable when list type is closed', done => {
     vm.list.type = 'closed';
 
     Vue.nextTick(() => {
-      expect(
-        vm.$el.classList.contains('is-expandable'),
-      ).toBe(true);
+      expect(vm.$el.classList.contains('is-expandable')).toBe(true);
 
       done();
     });
   });
 
-  it('board is not expandable when list type is label', (done) => {
+  it('board is not expandable when list type is label', done => {
     vm.list.type = 'label';
     vm.list.isExpandable = false;
 
     Vue.nextTick(() => {
-      expect(
-        vm.$el.classList.contains('is-expandable'),
-      ).toBe(false);
+      expect(vm.$el.classList.contains('is-expandable')).toBe(false);
 
       done();
     });
   });
 
-  it('collapses when clicking header', (done) => {
+  it('collapses when clicking header', done => {
     vm.$el.querySelector('.board-header').click();
 
     Vue.nextTick(() => {
-      expect(
-        vm.$el.classList.contains('is-collapsed'),
-      ).toBe(true);
+      expect(vm.$el.classList.contains('is-collapsed')).toBe(true);
 
       done();
     });
   });
 
-  it('created sets isExpanded to true from localStorage', (done) => {
+  it('created sets isExpanded to true from localStorage', done => {
     vm.$el.querySelector('.board-header').click();
 
     return Vue.nextTick()
       .then(() => {
-        expect(
-          vm.$el.classList.contains('is-collapsed'),
-        ).toBe(true);
+        expect(vm.$el.classList.contains('is-collapsed')).toBe(true);
 
         // call created manually
         vm.$options.created[0].call(vm);
@@ -108,11 +97,10 @@ describe('Board component', () => {
         return Vue.nextTick();
       })
       .then(() => {
-        expect(
-          vm.$el.classList.contains('is-collapsed'),
-        ).toBe(true);
+        expect(vm.$el.classList.contains('is-collapsed')).toBe(true);
 
         done();
-      });
+      })
+      .catch(done.fail);
   });
 });

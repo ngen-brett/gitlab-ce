@@ -6,29 +6,34 @@ describe Projects::RefsController do
 
   before do
     sign_in(user)
-    project.team << [user, :developer]
+    project.add_developer(user)
   end
 
   describe 'GET #logs_tree' do
     def default_get(format = :html)
       get :logs_tree,
-          namespace_id: project.namespace.to_param,
-          project_id: project,
-          id: 'master',
-          path: 'foo/bar/baz.html',
+          params: {
+            namespace_id: project.namespace.to_param,
+            project_id: project,
+            id: 'master',
+            path: 'foo/bar/baz.html'
+          },
           format: format
     end
 
     def xhr_get(format = :html)
-      xhr :get,
-          :logs_tree,
-          namespace_id: project.namespace.to_param,
-          project_id: project, id: 'master',
-          path: 'foo/bar/baz.html', format: format
+      get :logs_tree, params: {
+        namespace_id: project.namespace.to_param,
+        project_id: project,
+        id: 'master',
+        path: 'foo/bar/baz.html',
+        format: format
+      }, xhr: true
     end
 
     it 'never throws MissingTemplate' do
       expect { default_get }.not_to raise_error
+      expect { xhr_get(:json) }.not_to raise_error
       expect { xhr_get }.not_to raise_error
     end
 
@@ -41,6 +46,13 @@ describe Projects::RefsController do
     it 'renders JS' do
       xhr_get(:js)
       expect(response).to be_success
+    end
+
+    it 'renders JSON' do
+      xhr_get(:json)
+
+      expect(response).to be_success
+      expect(json_response).to be_kind_of(Array)
     end
   end
 end

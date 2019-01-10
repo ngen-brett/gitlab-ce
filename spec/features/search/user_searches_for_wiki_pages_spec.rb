@@ -2,11 +2,11 @@ require 'spec_helper'
 
 describe 'User searches for wiki pages', :js do
   let(:user) { create(:user) }
-  let(:project) { create(:project, namespace: user.namespace) }
+  let(:project) { create(:project, :repository, :wiki_repo, namespace: user.namespace) }
   let!(:wiki_page) { create(:wiki_page, wiki: project.wiki, attrs: { title: 'test_wiki', content: 'Some Wiki content' }) }
 
   before do
-    project.add_master(user)
+    project.add_maintainer(user)
     sign_in(user)
 
     visit(search_path)
@@ -15,14 +15,14 @@ describe 'User searches for wiki pages', :js do
   include_examples 'top right search form'
 
   it 'finds a page' do
-    find('.js-search-project-dropdown').trigger('click')
+    find('.js-search-project-dropdown').click
 
     page.within('.project-filter') do
-      click_link(project.name_with_namespace)
+      click_link(project.full_name)
     end
 
     fill_in('dashboard_search', with: 'content')
-    find('.btn-search').trigger('click')
+    find('.btn-search').click
 
     page.within('.search-filter') do
       click_link('Wiki')

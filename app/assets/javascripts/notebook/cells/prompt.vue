@@ -1,25 +1,30 @@
+<script>
+export default {
+  props: {
+    type: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    count: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
+  },
+  computed: {
+    hasKeys() {
+      return this.type !== '' && this.count;
+    },
+  },
+};
+</script>
+
 <template>
   <div class="prompt">
-    <span v-if="type && count">
-      {{ type }} [{{ count }}]:
-    </span>
+    <span v-if="hasKeys"> {{ type }} [{{ count }}]: </span>
   </div>
 </template>
-
-<script>
-  export default {
-    props: {
-      type: {
-        type: String,
-        required: false,
-      },
-      count: {
-        type: Number,
-        required: false,
-      },
-    },
-  };
-</script>
 
 <style scoped>
 .prompt {
