@@ -612,6 +612,37 @@ describe('ReadyToMerge', () => {
     });
   });
 
+  describe('Squash checkbox', () => {
+    let customVm;
+
+    it('should be rendered when squash before merge is enabled and there is more than 1 commit', () => {
+      customVm = createComponent({
+        mr: { commitsCount: 3, enableSquashBeforeMerge: true },
+      });
+      const checkboxElement = customVm.$el.querySelector('.qa-squash-checkbox');
+
+      expect(checkboxElement).not.toBeNull();
+    });
+
+    it('should not be rendered when there is only 1 commit', () => {
+      customVm = createComponent({
+        mr: { commitsCount: 1, enableSquashBeforeMerge: true },
+      });
+      const checkboxElement = customVm.$el.querySelector('.qa-squash-checkbox');
+
+      expect(checkboxElement).toBeNull();
+    });
+
+    it('should not be rendered when squash before merge is disabled', () => {
+      customVm = createComponent({
+        mr: { commitsCount: 3, enableSquashBeforeMerge: false },
+      });
+      const checkboxElement = customVm.$el.querySelector('.qa-squash-checkbox');
+
+      expect(checkboxElement).toBeNull();
+    });
+  });
+
   describe('Merge controls', () => {
     describe('when allowed to merge', () => {
       beforeEach(() => {
