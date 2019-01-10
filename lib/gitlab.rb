@@ -52,9 +52,9 @@ module Gitlab
   def self.previous_release
     if version_info.minor.to_i > 0
       if version_info.patch.to_i > 0
-        version_info.major.to_s + '.' + version_info.minor.to_i.to_s
+        "#{version_info.major}.#{version_info.minor}"
       else
-        version_info.major.to_s + '.' + (version_info.minor.to_i - 1).to_s
+        "#{version_info.major}.#{version_info.minor - 1}"
       end
     else
       (version_info.major.to_i - 1).to_s
@@ -62,7 +62,7 @@ module Gitlab
   end
 
   def self.new_major_release?
-    version_info.minor.to_i == 0
+    version_info.minor.to_i.zero?
   end
 
   def self.com?
