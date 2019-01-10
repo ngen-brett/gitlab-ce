@@ -8,6 +8,8 @@ class ContainerRepository < ActiveRecord::Base
 
   delegate :client, to: :registry
 
+  scope :ordered, -> { order(:name) }
+
   # rubocop: disable CodeReuse/ServiceClass
   def registry
     @registry ||= begin
