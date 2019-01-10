@@ -89,7 +89,7 @@ describe Gitlab::ReleaseBlogPost do
 
       it 'returns nil when no blog post is matched' do
         stub_const('Gitlab::VERSION', '9.0.0')
-        
+
         expect(subject).to be(nil)
       end
     end
