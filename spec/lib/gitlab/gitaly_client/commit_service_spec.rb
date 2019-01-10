@@ -184,6 +184,25 @@ describe Gitlab::GitalyClient::CommitService do
     end
   end
 
+  describe '#diverging_commit_count' do
+    before do
+      expect_any_instance_of(Gitaly::CommitService::Stub)
+        .to receive(:count_diverging_commits)
+        .with(gitaly_request_with_path(storage_name, relative_path),
+              kind_of(Hash))
+        .and_return(double(left_count: 0, right_count:0))
+    end
+
+    context do
+      let(:from) { "abc1234" }
+      let(:to) { "1234abc" }
+
+      it 'sends a commit_count message' do
+        client.diverging_commit_count(from, to)
+      end
+    end
+  end
+
   describe '#find_commit' do
     let(:revision) { Gitlab::Git::EMPTY_TREE_ID }
     it 'sends an RPC request' do
