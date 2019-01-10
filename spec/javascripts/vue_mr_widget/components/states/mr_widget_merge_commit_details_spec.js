@@ -13,11 +13,13 @@ describe('MRWidgetMergeCommitDetails', () => {
             'https://www.gravatar.com/avatar/79e8be0c27f341afc67c0ab9f9030d17?s=72&amp;d=identicon',
           id: '12345',
           name: 'Test Name',
+          web_url: 'http://gitlab.com',
         },
         author_name: 'Commit Test Name',
         author_email: 'test@gitlab.com',
         authored_date: '2018-12-05',
         description_html: 'Test description!',
+        avatar_url: 'https://www.gravatar.com/avatar123',
       },
     });
   });
@@ -52,7 +54,7 @@ describe('MRWidgetMergeCommitDetails', () => {
       });
 
       it('should return author name from commit data if no author name present', () => {
-        vm.author.name = null;
+        vm.commit.author.name = null;
 
         expect(vm.authorName).toEqual(vm.commit.author_name);
       });
@@ -64,7 +66,7 @@ describe('MRWidgetMergeCommitDetails', () => {
       });
 
       it('should be an empty string if no author name is present', () => {
-        vm.author.name = null;
+        vm.commit.author.name = null;
 
         expect(vm.authorClass).toEqual('');
       });
@@ -76,9 +78,33 @@ describe('MRWidgetMergeCommitDetails', () => {
       });
 
       it('should be an empty string if no author id is present', () => {
-        vm.author.id = null;
+        vm.commit.author.id = null;
 
         expect(vm.authorId).toEqual('');
+      });
+    });
+
+    describe('authorUrl', () => {
+      it('should be equal to author web url, if present', () => {
+        expect(vm.authorUrl).toEqual(vm.commit.author.web_url);
+      });
+
+      it('should be an empty string if no author id is present', () => {
+        vm.commit.author.web_url = null;
+
+        expect(vm.authorUrl).toEqual(`mailto:${vm.commit.author_email}`);
+      });
+    });
+
+    describe('authorAvatar', () => {
+      it('should be equal to author avatar url, if present', () => {
+        expect(vm.authorAvatar).toEqual(vm.commit.author.avatar_url);
+      });
+
+      it('should be equal to commit author_avatar_url if no avatar url in author object', () => {
+        vm.commit.author.avatar_url = null;
+
+        expect(vm.authorAvatar).toEqual(vm.commit.author_avatar_url);
       });
     });
   });
