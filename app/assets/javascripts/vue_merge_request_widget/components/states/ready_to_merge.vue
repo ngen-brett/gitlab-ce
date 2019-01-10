@@ -28,6 +28,7 @@ export default {
       isMakingRequest: false,
       isMergingImmediately: false,
       commitMessage: this.mr.commitMessage,
+      squashBeforeMerge: this.mr.squash,
       successSvg,
       warningSvg,
     };
@@ -143,7 +144,7 @@ export default {
         commit_message: this.commitMessage,
         merge_when_pipeline_succeeds: this.setToMergeWhenPipelineSucceeds,
         should_remove_source_branch: this.removeSourceBranch === true,
-        squash: this.mr.squash,
+        squash: this.squashBeforeMerge,
       };
 
       this.isMakingRequest = true;
@@ -167,7 +168,7 @@ export default {
         });
     },
     handleUpdateSquash(val) {
-      this.mr.squash = val;
+      this.squashBeforeMerge = val;
     },
     initiateMergePolling() {
       simplePoll((continuePolling, stopPolling) => {
