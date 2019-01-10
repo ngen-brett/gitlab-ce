@@ -14,6 +14,7 @@ describe('MRWidgetMergeCommitDetails', () => {
           id: '12345',
           name: 'Test Name',
         },
+        author_name: 'Commit Test Name',
         author_email: 'test@gitlab.com',
         authored_date: '2018-12-05',
         description_html: 'Test description!',
@@ -29,6 +30,56 @@ describe('MRWidgetMergeCommitDetails', () => {
     it('should have default data', () => {
       expect(vm.showCommitMessageEditor).toBeFalsy();
       expect(vm.showCommitDescription).toBeFalsy();
+    });
+  });
+
+  describe('computed', () => {
+    describe('author', () => {
+      it('should return commit author if present', () => {
+        expect(vm.author).toEqual(vm.commit.author);
+      });
+
+      it('should return an empty object when no author is present in commit', () => {
+        vm.commit.author = null;
+
+        expect(vm.author).toEqual({});
+      });
+    });
+
+    describe('authorName', () => {
+      it('should return author name from author object if present', () => {
+        expect(vm.authorName).toEqual(vm.commit.author.name);
+      });
+
+      it('should return author name from commit data if no author name present', () => {
+        vm.author.name = null;
+
+        expect(vm.authorName).toEqual(vm.commit.author_name);
+      });
+    });
+
+    describe('authorClass', () => {
+      it('should be equal to author name, if present', () => {
+        expect(vm.authorClass).toEqual('js-user-link');
+      });
+
+      it('should be an empty string if no author name is present', () => {
+        vm.author.name = null;
+
+        expect(vm.authorClass).toEqual('');
+      });
+    });
+
+    describe('authorId', () => {
+      it('should be equal to author id, if present', () => {
+        expect(vm.authorId).toEqual(vm.commit.author.id);
+      });
+
+      it('should be an empty string if no author id is present', () => {
+        vm.author.id = null;
+
+        expect(vm.authorId).toEqual('');
+      });
     });
   });
 
