@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class Projects::ErrorTrackingController < Projects::ApplicationController
-  before_action :check_feature_flag!
   before_action :authorize_read_sentry_issue!
   before_action :push_feature_flag_to_frontend
 
@@ -42,10 +41,6 @@ class Projects::ErrorTrackingController < Projects::ApplicationController
     ErrorTracking::ErrorSerializer
       .new(project: project, user: current_user)
       .represent(errors)
-  end
-
-  def check_feature_flag!
-    render_404 unless Feature.enabled?(:error_tracking, project)
   end
 
   def push_feature_flag_to_frontend
