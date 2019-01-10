@@ -26,50 +26,47 @@ describe Gitlab::ReleaseBlogPost do
       EOS
     end
 
-    subject { described_class.instance.blog_post_url }
+    subject { described_class.send(:new).blog_post_url }
 
     before do
       stub_request(:get, 'https://about.gitlab.com/releases.xml')
         .to_return(status: 200, headers: { 'content-type' => ['text/xml'] }, body: releases_xml)
     end
 
-    around do |example|
-      release_post_url = described_class.instance.instance_variable_get(:@url)
-      described_class.instance.instance_variable_set(:@url, nil)
-
-      example.run
-
-      described_class.instance.instance_variable_set(:@url, release_post_url)
-    end
-
     context 'matches GitLab version to blog post url' do
       it 'returns the correct url for major pre release' do
         stub_const('Gitlab::VERSION', '11.0.0-pre')
+
         expect(subject).to eql('https://about.gitlab.com/2018/05/22/gitlab-10-8-released/')
       end
 
       it 'returns the correct url for major release candidate' do
         stub_const('Gitlab::VERSION', '11.0.0-rc3')
+
         expect(subject).to eql('https://about.gitlab.com/2018/05/22/gitlab-10-8-released/')
       end
 
       it 'returns the correct url for major release' do
         stub_const('Gitlab::VERSION', '11.0.0')
+
         expect(subject).to eql('https://about.gitlab.com/2018/06/22/gitlab-11-0-released/')
       end
 
       it 'returns the correct url for minor pre release' do
         stub_const('Gitlab::VERSION', '11.2.0-pre')
+
         expect(subject).to eql('https://about.gitlab.com/2018/07/22/gitlab-11-1-released/')
       end
 
       it 'returns the correct url for minor release candidate' do
         stub_const('Gitlab::VERSION', '11.2.0-rc3')
+
         expect(subject).to eql('https://about.gitlab.com/2018/07/22/gitlab-11-1-released/')
       end
 
       it 'returns the correct url for minor release' do
         stub_const('Gitlab::VERSION', '11.2.0')
+
         expect(subject).to eql('https://about.gitlab.com/2018/08/22/gitlab-11-2-released/')
       end
 
@@ -80,16 +77,19 @@ describe Gitlab::ReleaseBlogPost do
 
       it 'returns the correct url for patch release candidate' do
         stub_const('Gitlab::VERSION', '11.2.1-rc3')
+
         expect(subject).to eql('https://about.gitlab.com/2018/08/22/gitlab-11-2-released/')
       end
 
       it 'returns the correct url for patch release' do
         stub_const('Gitlab::VERSION', '11.2.1')
+
         expect(subject).to eql('https://about.gitlab.com/2018/08/22/gitlab-11-2-released/')
       end
 
       it 'returns nil when no blog post is matched' do
         stub_const('Gitlab::VERSION', '9.0.0')
+        
         expect(subject).to be(nil)
       end
     end

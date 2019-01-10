@@ -73,78 +73,76 @@ describe Gitlab do
   describe '.final_release?' do
     subject { described_class.final_release? }
 
-    context 'pre release' do
-      before do
+    context 'returns the corrent boolean value' do
+      it 'is false for a pre release' do
         stub_const('Gitlab::VERSION', '11.0.0-pre')
+
+        expect(subject).to be false
       end
 
-      it { is_expected.to be false }
-    end
-
-    context 'RC release' do
-      before do
+      it 'is false for a release candidate' do
         stub_const('Gitlab::VERSION', '11.0.0-rc2')
+
+        expect(subject).to be false
       end
 
-      it { is_expected.to be false }
-    end
-
-    context 'final release' do
-      before do
+      it 'is true for a final release' do
         stub_const('Gitlab::VERSION', '11.0.2')
-      end
 
-      it { is_expected.to be true }
+        expect(subject).to be true
+      end
     end
   end
 
   describe '.minor_release' do
     subject { described_class.minor_release }
 
-    before do
+    it 'returns the minor release of the full GitLab version' do
       stub_const('Gitlab::VERSION', '11.0.1-rc3')
-    end
 
-    it { is_expected.to eql '11.0' }
+      expect(subject).to eql '11.0'
+    end
   end
 
   describe '.previous_release' do
     subject { described_class.previous_release }
 
-    context 'major release' do
-      before do
+    context 'it should return the previous release' do
+      it 'returns the previous major version when GitLab major version is not final' do
         stub_const('Gitlab::VERSION', '11.0.1-pre')
+
+        expect(subject).to eql '10'
       end
 
-      it { is_expected.to eql '10' }
-    end
-
-    context 'minor release' do
-      before do
+      it 'returns the current minor version when the GitLab patch version is not final, but above zero' do
         stub_const('Gitlab::VERSION', '11.2.1-rc3')
+
+        expect(subject).to eql '11.2'
       end
 
-      it { is_expected.to eql '11.2' }
+      it 'returns the previous minor version when the GitLab patch version is not final and is zero' do
+        stub_const('Gitlab::VERSION', '11.2.0-rc3')
+
+        expect(subject).to eql '11.1'
+      end
     end
   end
 
   describe '.new_major_release?' do
     subject { described_class.new_major_release? }
 
-    context 'major release' do
-      before do
+    context 'returns the corrent boolean value' do
+      it 'is true when the minor version is 0 and the patch is a pre release' do
         stub_const('Gitlab::VERSION', '11.0.1-pre')
+
+        expect(subject).to be true
       end
 
-      it { is_expected.to be true }
-    end
-
-    context 'minor release' do
-      before do
+      it 'is false when the minor version is above 0' do
         stub_const('Gitlab::VERSION', '11.2.1-rc3')
-      end
 
-      it { is_expected.to be false }
+        expect(subject).to be false
+      end
     end
   end
 
