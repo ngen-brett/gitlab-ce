@@ -15,6 +15,10 @@ module ContainerRegistry
       manifest.present?
     end
 
+    def latest?
+      name == "latest"
+    end
+
     def v1?
       manifest && manifest['schemaVersion'] == 1
     end

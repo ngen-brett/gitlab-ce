@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class ContainerRepository < ActiveRecord::Base
+  include Gitlab::Utils::StrongMemoize
+
   belongs_to :project
 
   validates :name, length: { minimum: 0, allow_nil: false }
@@ -41,11 +43,12 @@ class ContainerRepository < ActiveRecord::Base
   end
 
   def tags
-    return @tags if defined?(@tags)
     return [] unless manifest && manifest['tags']
 
-    @tags = manifest['tags'].map do |tag|
-      ContainerRegistry::Tag.new(self, tag)
+    strong_memoize(:tags) do
+      manifest['tags'].map do |tag|
+        ContainerRegistry::Tag.new(self, tag)
+      end
     end
   end
 

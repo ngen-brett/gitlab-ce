@@ -93,6 +93,9 @@ module API
       end
       params do
         requires :repository_id, type: Integer, desc: 'The ID of the repository'
+        requires :name_regex, type: String, desc: 'The tag name regexp to delete, specify .* to delete all'
+        optional :keep_n, type: Integer, desc: 'Keep n of latest tags with matching name'
+        optional :older_than, type: String, desc: 'Delete older than: 1h, 1d, 1month'
       end
       delete ':id/registry/repositories/:repository_id/tags', requirements: REGISTRY_ENDPOINT_REQUIREMENTS do
         authorize_admin_container_image!
