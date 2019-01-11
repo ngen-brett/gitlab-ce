@@ -21,6 +21,7 @@ module Gitlab
         response['feed']['entry'].each do |entry|
           return entry['id'] if entry['release'] == installed_version || matches_previous_release_post(entry['release'], installed_version)
         end
+
         nil
       end
     end

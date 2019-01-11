@@ -114,13 +114,13 @@ describe Gitlab do
         expect(subject).to eql '10'
       end
 
-      it 'returns the current minor version when the GitLab patch version is not final, but above zero' do
+      it 'returns the current minor version when the GitLab patch version is RC and > 0' do
         stub_const('Gitlab::VERSION', '11.2.1-rc3')
 
         expect(subject).to eql '11.2'
       end
 
-      it 'returns the previous minor version when the GitLab patch version is not final and is zero' do
+      it 'returns the previous minor version when the GitLab patch version is RC and 0' do
         stub_const('Gitlab::VERSION', '11.2.0-rc3')
 
         expect(subject).to eql '11.1'

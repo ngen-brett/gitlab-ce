@@ -46,7 +46,7 @@ module Gitlab
   end
 
   def self.minor_release
-    version_info.major.to_s + '.' + version_info.minor.to_s
+    "#{version_info.major}.#{version_info.minor}"
   end
 
   def self.previous_release
@@ -57,7 +57,7 @@ module Gitlab
         "#{version_info.major}.#{version_info.minor - 1}"
       end
     else
-      (version_info.major.to_i - 1).to_s
+      "#{version_info.major.to_i - 1}"
     end
   end
 
