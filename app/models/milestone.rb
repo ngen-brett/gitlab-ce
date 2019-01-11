@@ -191,7 +191,7 @@ class Milestone < ActiveRecord::Base
     return STATE_COUNT_HASH unless projects || groups
 
     counts = Milestone
-               .for_projects_and_groups(projects&.map(&:id), groups&.map(&:id))
+               .for_projects_and_groups(projects, groups)
                .reorder(nil)
                .group(:state)
                .count
@@ -275,8 +275,7 @@ class Milestone < ActiveRecord::Base
     if project
       relation = Milestone.for_projects_and_groups([project_id], [project.group&.id])
     elsif group
-      project_ids = group.projects.map(&:id)
-      relation = Milestone.for_projects_and_groups(project_ids, [group.id])
+      relation = Milestone.for_projects_and_groups(group.projects.select(:id), [group.id])
     end
 
     title_exists = relation.find_by_title(title)

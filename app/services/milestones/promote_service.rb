@@ -84,7 +84,7 @@ module Milestones
 
     # rubocop: disable CodeReuse/ActiveRecord
     def group_project_ids
-      @group_project_ids ||= group.projects.pluck(:id)
+      group.projects.select(:id)
     end
     # rubocop: enable CodeReuse/ActiveRecord
 
