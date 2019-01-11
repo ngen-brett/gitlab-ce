@@ -101,10 +101,7 @@ def lint_commits(commits)
     elsif subject.length > 50
       warn_commit(
         commit,
-        "This commit's subject line could be improved. " \
-          'Commit subjects are ideally no longer than roughly 50 characters, ' \
-          'though we allow up to 72 characters in the subject. ' \
-          'If possible, try to reduce the length of the subject to roughly 50 characters.'
+        "This commit's subject line is acceptable, but please try to reduce it to 50 characters."
       )
     end
 
