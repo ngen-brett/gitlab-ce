@@ -12,7 +12,7 @@ export default {
   name: 'ReadyToMerge',
   components: {
     statusIcon,
-    'squash-before-merge': SquashBeforeMerge,
+    SquashBeforeMerge,
   },
   props: {
     mr: { type: Object, required: true },
@@ -111,12 +111,6 @@ export default {
       return enableSquashBeforeMerge && commitsCount > 1;
     },
   },
-  created() {
-    eventHub.$on('MRWidgetUpdateSquash', this.handleUpdateSquash);
-  },
-  beforeDestroy() {
-    eventHub.$off('MRWidgetUpdateSquash', this.handleUpdateSquash);
-  },
   methods: {
     shouldShowMergeControls() {
       return this.mr.isMergeAllowed || this.shouldShowMergeWhenPipelineSucceedsText;
@@ -166,9 +160,6 @@ export default {
           this.isMakingRequest = false;
           new Flash('Something went wrong. Please try again.'); // eslint-disable-line
         });
-    },
-    handleUpdateSquash(val) {
-      this.squashBeforeMerge = val;
     },
     initiateMergePolling() {
       simplePoll((continuePolling, stopPolling) => {
@@ -312,8 +303,9 @@ export default {
             <!-- Placeholder for EE extension of this component -->
             <squash-before-merge
               v-if="shouldShowSquashBeforeMerge"
-              :mr="mr"
-              :is-merge-button-disabled="isMergeButtonDisabled"
+              v-model="squashBeforeMerge"
+              :help-path="mr.squashBeforeMergeHelpPath"
+              :is-disabled="isMergeButtonDisabled"
             />
 
             <span v-if="mr.ffOnlyEnabled" class="js-fast-forward-message">

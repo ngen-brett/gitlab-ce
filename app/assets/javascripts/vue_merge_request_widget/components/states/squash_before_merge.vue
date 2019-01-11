@@ -11,23 +11,19 @@ export default {
     tooltip,
   },
   props: {
-    mr: {
-      type: Object,
-      required: true,
-    },
-    isMergeButtonDisabled: {
+    value: {
       type: Boolean,
       required: true,
     },
-  },
-  data() {
-    return {
-      squashBeforeMerge: this.mr.squash,
-    };
-  },
-  methods: {
-    updateSquashModel() {
-      eventHub.$emit('MRWidgetUpdateSquash', this.squashBeforeMerge);
+    helpPath: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    isDisabled: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
 };
@@ -37,18 +33,19 @@ export default {
   <div class="accept-control inline">
     <label class="merge-param-checkbox">
       <input
-        v-model="squashBeforeMerge"
-        :disabled="isMergeButtonDisabled"
+        :value="value"
+        :disabled="isDisabled"
+        @change="$emit('input', $event.target.checked);"
         type="checkbox"
         name="squash"
         class="qa-squash-checkbox"
-        @change="updateSquashModel"
       />
       {{ __('Squash commits') }}
     </label>
     <a
       v-tooltip
-      :href="mr.squashBeforeMergeHelpPath"
+      v-if="helpPath"
+      :href="helpPath"
       data-title="About this feature"
       data-placement="bottom"
       target="_blank"

@@ -613,48 +613,50 @@ describe('ReadyToMerge', () => {
   });
 
   describe('Squash checkbox', () => {
-    let customVm;
-    let checkboxElement;
+    const findCheckboxElement = () => vm.$el.querySelector('.qa-squash-checkbox');
 
-    beforeEach(() => {
-      customVm = createComponent({
-        mr: { commitsCount: 3, enableSquashBeforeMerge: true, squash: false },
+    describe('when more than 1 commit and enabled squash before merge', () => {
+      beforeEach(() => {
+        vm = createComponent({
+          mr: { commitsCount: 3, enableSquashBeforeMerge: true, squash: false },
+        });
       });
-      checkboxElement = customVm.$el.querySelector('.qa-squash-checkbox');
-    });
 
-    it('should be rendered when squash before merge is enabled and there is more than 1 commit', () => {
-      expect(checkboxElement).not.toBeNull();
+      it('should be rendered when squash before merge is enabled and there is more than 1 commit', () => {
+        const checkbox = findCheckboxElement();
+
+        expect(checkbox).not.toBeNull();
+        expect(checkbox.checked).toEqual(false);
+      });
+
+      it('should change value to true when squash is updated to true', done => {
+        const checkbox = findCheckboxElement();
+        checkbox.checked = true;
+        checkbox.dispatchEvent(new Event('change'));
+
+        Vue.nextTick()
+          .then(() => {
+            expect(vm.squashBeforeMerge).toBeTruthy();
+          })
+          .then(done)
+          .catch(done.fail);
+      });
     });
 
     it('should not be rendered when there is only 1 commit', () => {
-      customVm = createComponent({
+      vm = createComponent({
         mr: { commitsCount: 1, enableSquashBeforeMerge: true },
       });
-      checkboxElement = customVm.$el.querySelector('.qa-squash-checkbox');
 
-      expect(checkboxElement).toBeNull();
+      expect(findCheckboxElement()).toBeNull();
     });
 
     it('should not be rendered when squash before merge is disabled', () => {
-      customVm = createComponent({
+      vm = createComponent({
         mr: { commitsCount: 3, enableSquashBeforeMerge: false },
       });
-      checkboxElement = customVm.$el.querySelector('.qa-squash-checkbox');
 
-      expect(checkboxElement).toBeNull();
-    });
-
-    it('should change value to true when squash is updated to true', () => {
-      customVm.handleUpdateSquash(true);
-
-      expect(customVm.squashBeforeMerge).toBeTruthy();
-    });
-
-    it('should change value to false when squash is updated to false', () => {
-      customVm.handleUpdateSquash(false);
-
-      expect(customVm.squashBeforeMerge).toBeFalsy();
+      expect(findCheckboxElement()).toBeNull();
     });
   });
 
