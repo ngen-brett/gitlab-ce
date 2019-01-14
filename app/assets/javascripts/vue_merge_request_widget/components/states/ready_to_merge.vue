@@ -14,8 +14,8 @@ export default {
   name: 'ReadyToMerge',
   components: {
     statusIcon,
-    'squash-before-merge': SquashBeforeMerge,
-    'merge-commit-details': MergeCommitDetails,
+    SquashBeforeMerge,
+    MergeCommitDetails,
   },
   props: {
     mr: { type: Object, required: true },
@@ -147,12 +147,6 @@ export default {
           )} and 1 merge commit will be added to ${this.mr.targetBranch}`;
     },
   },
-  created() {
-    eventHub.$on('MRWidgetUpdateSquash', this.handleUpdateSquash);
-  },
-  beforeDestroy() {
-    eventHub.$off('MRWidgetUpdateSquash', this.handleUpdateSquash);
-  },
   methods: {
     shouldShowMergeControls() {
       return this.mr.isMergeAllowed || this.shouldShowMergeWhenPipelineSucceedsText;
@@ -199,9 +193,6 @@ export default {
           this.isMakingRequest = false;
           new Flash('Something went wrong. Please try again.'); // eslint-disable-line
         });
-    },
-    handleUpdateSquash(val) {
-      this.squashBeforeMerge = val;
     },
     initiateMergePolling() {
       simplePoll((continuePolling, stopPolling) => {
@@ -346,8 +337,9 @@ export default {
               <!-- Placeholder for EE extension of this component -->
               <squash-before-merge
                 v-if="shouldShowSquashBeforeMerge"
-                :mr="mr"
-                :is-merge-button-disabled="isMergeButtonDisabled"
+                v-model="squashBeforeMerge"
+                :help-path="mr.squashBeforeMergeHelpPath"
+                :is-disabled="isMergeButtonDisabled"
               />
             </div>
             <div class="mr-widget-commits-count item-title">{{ commitsCountMessage }}</div>
