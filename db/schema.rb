@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190103140724) do
+ActiveRecord::Schema.define(version: 20190114172110) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -648,6 +648,7 @@ ActiveRecord::Schema.define(version: 20190103140724) do
     t.string "name", null: false
     t.string "environment_scope", default: "*", null: false
     t.integer "cluster_type", limit: 2, default: 3, null: false
+    t.string "domain"
     t.index ["enabled"], name: "index_clusters_on_enabled", using: :btree
     t.index ["user_id"], name: "index_clusters_on_user_id", using: :btree
   end
