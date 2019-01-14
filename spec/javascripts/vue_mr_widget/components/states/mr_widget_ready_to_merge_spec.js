@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import ReadyToMerge from '~/vue_merge_request_widget/components/states/ready_to_merge.vue';
+import SquashBeforeMerge from '~/vue_merge_request_widget/components/states/squash_before_merge.vue';
 import eventHub from '~/vue_merge_request_widget/event_hub';
+import { createLocalVue, shallowMount } from '@vue/test-utils';
 
 const commitMessage = 'This is the commit message';
 const commitMessageWithDescription = 'This is the commit message description';
@@ -600,6 +602,68 @@ describe('ReadyToMerge', () => {
 
         expect(checkboxElement).not.toBeNull();
       });
+    });
+  });
+
+  describe('Squash checkbox component', () => {
+    let wrapper;
+
+    const createLocalComponent = (customConfig = {}) => {
+      const mr = {
+        isPipelineActive: false,
+        pipeline: null,
+        isPipelineFailed: false,
+        isPipelinePassing: false,
+        isMergeAllowed: true,
+        onlyAllowMergeIfPipelineSucceeds: false,
+        hasCI: false,
+        ciStatus: null,
+        sha: '12345678',
+        squash: false,
+        commitMessage,
+        commitMessageWithDescription,
+        shouldRemoveSourceBranch: true,
+        canRemoveSourceBranch: false,
+      };
+
+      Object.assign(mr, customConfig.mr);
+
+      const service = { merge() {}, poll() {} };
+
+      const localVue = createLocalVue();
+      wrapper = shallowMount(localVue.extend(ReadyToMerge), {
+        localVue,
+        propsData: {
+          mr,
+          service,
+        },
+      });
+    };
+
+    afterEach(() => {
+      wrapper.destroy();
+    });
+
+    const findCheckboxElement = () => wrapper.find(SquashBeforeMerge);
+
+    it('should be rendered when squash before merge is enabled and there is more than 1 commit', () => {
+      createLocalComponent({
+        mr: { commitsCount: 2, enableSquashBeforeMerge: true },
+      });
+
+      expect(findCheckboxElement().exists()).toBeTruthy();
+    });
+
+    it('should not be rendered when squash before merge is disabled', () => {
+      createLocalComponent({ mr: { commitsCount: 2, enableSquashBeforeMerge: false } });
+
+      expect(findCheckboxElement().exists()).toBeFalsy();
+    });
+
+    it('should not be rendered when there is only 1 commit', () => {
+      createLocalComponent({ mr: { commitsCount: 1, enableSquashBeforeMerge: true } });
+
+      expect(findCheckboxElement().exists()).toBeFalsy();
     });
   });
 
