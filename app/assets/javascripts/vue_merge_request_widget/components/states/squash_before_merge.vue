@@ -42,6 +42,7 @@ export default {
       {{ __('Squash commits') }}
     </label>
     <a
+      v-if="helpPath"
       v-tooltip
       :href="helpPath"
       data-title="About this feature"
