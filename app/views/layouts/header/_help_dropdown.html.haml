@@ -1,4 +1,4 @@
-- show_blog_link = current_user_menu?(:help) && !blog_post_url.nil?
+- show_blog_link = current_user_menu?(:help) && blog_post_url.present?
 %ul
   - if current_user_menu?(:help)
     %li

@@ -9,7 +9,7 @@ RSpec.describe 'Dashboard Help' do
     it 'shows the "What\'s new?" menu item' do
       visit root_dashboard_path
 
-      expect(page.find('.nav-item.header-help.dropdown .dropdown-menu')).to have_text("What's new?")
+      expect(page.find('.header-help .dropdown-menu')).to have_text("What's new?")
     end
   end
 

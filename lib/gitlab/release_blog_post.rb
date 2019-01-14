@@ -17,12 +17,15 @@ module Gitlab
       installed_version = Gitlab.final_release? ? Gitlab.minor_release : Gitlab.previous_release
       response = Gitlab::HTTP.get(RELEASE_RSS_URL, verify: false)
 
-      if response.code == 200
-        response['feed']['entry'].each do |entry|
-          return entry['id'] if entry['release'] == installed_version || matches_previous_release_post(entry['release'], installed_version)
-        end
+      return unless response.code == 200
 
-        nil
+      blog_entry = find_installed_blog_entry(response, installed_version)
+      blog_entry['id'] if blog_entry
+    end
+
+    def find_installed_blog_entry(response, installed_version)
+      response['feed']['entry'].find do |entry|
+        entry['release'] == installed_version || matches_previous_release_post(entry['release'], installed_version)
       end
     end
 
