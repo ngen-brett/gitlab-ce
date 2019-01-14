@@ -46,9 +46,9 @@ describe('MRWidgetMergeCommitDetails', () => {
       factory({ propsData: { commit, value: 'Some value' } });
       const userAvatar = wrapper.find(UserAvatarLink);
 
-      expect(userAvatar.props('linkHref')).toEqual(commit.author.web_url);
-      expect(userAvatar.props('imgSrc')).toEqual(commit.author.avatar_url);
-      expect(userAvatar.props('imgAlt')).toEqual(commit.author.name);
+      expect(userAvatar.props('linkHref')).toEqual(wrapper.vm.authorUrl);
+      expect(userAvatar.props('imgSrc')).toEqual(wrapper.vm.authorAvatar);
+      expect(userAvatar.props('imgAlt')).toEqual(wrapper.vm.authorName);
     });
   });
 
@@ -65,7 +65,7 @@ describe('MRWidgetMergeCommitDetails', () => {
         factory({ propsData: { commit, value: 'Some value' } });
         const authorLink = wrapper.find('.committer').find('a');
 
-        expect(authorLink.attributes('href')).toEqual(commit.author.web_url);
+        expect(authorLink.attributes('href')).toEqual(wrapper.vm.authorUrl);
       });
 
       it('should have correct class', () => {
@@ -73,6 +73,20 @@ describe('MRWidgetMergeCommitDetails', () => {
         const authorLink = wrapper.find('.committer').find('a');
 
         expect(authorLink.classes()).toContain('js-user-link');
+      });
+
+      it('should have correct data user id', () => {
+        factory({ propsData: { commit, value: 'Some value' } });
+        const authorLink = wrapper.find('.committer').find('a');
+
+        expect(authorLink.attributes('data-user-id')).toEqual(wrapper.vm.authorId);
+      });
+
+      it('should have correct text', () => {
+        factory({ propsData: { commit, value: 'Some value' } });
+        const authorLink = wrapper.find('.committer').find('a');
+
+        expect(authorLink.text()).toEqual(wrapper.vm.authorName);
       });
     });
   });
