@@ -1,5 +1,6 @@
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import MergeCommitDetailsComponent from '~/vue_merge_request_widget/components/states/merge_commit_details.vue';
+import UserAvatarLink from '~/vue_shared/components/user_avatar/user_avatar_link.vue';
 
 describe('MRWidgetMergeCommitDetails', () => {
   let wrapper;
@@ -32,9 +33,21 @@ describe('MRWidgetMergeCommitDetails', () => {
     wrapper.destroy();
   });
 
-  it('should mount tests fine', () => {
-    factory({ propsData: { commit, value: 'Some value' } });
+  describe('user avatar', () => {
+    it('should be rendered', () => {
+      factory({ propsData: { commit, value: 'Some value' } });
+      const userAvatar = wrapper.find(UserAvatarLink);
 
-    expect(1).toEqual(1);
+      expect(userAvatar.exists()).toBeTruthy();
+    });
+
+    it('should have correct props', () => {
+      factory({ propsData: { commit, value: 'Some value' } });
+      const userAvatar = wrapper.find(UserAvatarLink);
+
+      expect(userAvatar.props('linkHref')).toEqual(commit.author.web_url);
+      expect(userAvatar.props('imgSrc')).toEqual(commit.author.avatar_url);
+      expect(userAvatar.props('imgAlt')).toEqual(commit.author.name);
+    });
   });
 });
