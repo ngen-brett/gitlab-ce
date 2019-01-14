@@ -193,9 +193,6 @@ export default {
           new Flash('Something went wrong. Please try again.'); // eslint-disable-line
         });
     },
-    handleUpdateSquash(val) {
-      this.squashBeforeMerge = val;
-    },
     initiateMergePolling() {
       simplePoll((continuePolling, stopPolling) => {
         this.handleMergePolling(continuePolling, stopPolling);
@@ -339,8 +336,9 @@ export default {
               <!-- Placeholder for EE extension of this component -->
               <squash-before-merge
                 v-if="shouldShowSquashBeforeMerge"
-                :mr="mr"
-                :is-merge-button-disabled="isMergeButtonDisabled"
+                v-model="squashBeforeMerge"
+                :help-path="mr.squashBeforeMergeHelpPath"
+                :is-disabled="isMergeButtonDisabled"
               />
 
             <!-- Placeholder for EE extension of this component -->
