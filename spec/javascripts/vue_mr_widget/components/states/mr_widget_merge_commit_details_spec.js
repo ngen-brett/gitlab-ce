@@ -25,6 +25,7 @@ describe('MRWidgetMergeCommitDetails', () => {
 
     wrapper = shallowMount(localVue.extend(MergeCommitDetailsComponent), {
       localVue,
+      sync: false,
       ...options,
     });
   };
@@ -48,6 +49,31 @@ describe('MRWidgetMergeCommitDetails', () => {
       expect(userAvatar.props('linkHref')).toEqual(commit.author.web_url);
       expect(userAvatar.props('imgSrc')).toEqual(commit.author.avatar_url);
       expect(userAvatar.props('imgAlt')).toEqual(commit.author.name);
+    });
+  });
+
+  describe('committer', () => {
+    describe('author link', () => {
+      it('should be rendered', () => {
+        factory({ propsData: { commit, value: 'Some value' } });
+        const authorLink = wrapper.find('.committer').find('a');
+
+        expect(authorLink.exists()).toBeTruthy();
+      });
+
+      it('should have correct URL', () => {
+        factory({ propsData: { commit, value: 'Some value' } });
+        const authorLink = wrapper.find('.committer').find('a');
+
+        expect(authorLink.attributes('href')).toEqual(commit.author.web_url);
+      });
+
+      it('should have correct class', () => {
+        factory({ propsData: { commit, value: 'Some value' } });
+        const authorLink = wrapper.find('.committer').find('a');
+
+        expect(authorLink.classes()).toContain('js-user-link');
+      });
     });
   });
 });
