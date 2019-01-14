@@ -364,16 +364,15 @@ export default {
               <merge-commit-details
                 squash
                 v-if="squashBeforeMerge"
+                v-model="squashCommitMessage"
                 :commit="squashCommit"
                 :isMergeButtonDisabled="isMergeButtonDisabled"
-                :commitMessage="squashCommitMessage"
                 :ffOnlyEnabled="mr.ffOnlyEnabled"
-                @changeCommitMessage="squashCommitMessage = $event;"
               />
               <merge-commit-details
                 :commit="mergeCommit"
                 :isMergeButtonDisabled="isMergeButtonDisabled"
-                :commitMessage="commitMessage"
+                v-model="commitMessage"
                 :commitMessageLinkTitle="commitMessageLinkTitle"
                 :ffOnlyEnabled="mr.ffOnlyEnabled"
                 @changeCommitMessage="commitMessage = $event;"

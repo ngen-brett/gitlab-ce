@@ -12,7 +12,7 @@ export default {
   },
   props: {
     isMergeButtonDisabled: { type: Boolean },
-    commitMessage: { type: String },
+    value: { type: String, required: true },
     commitMessageLinkTitle: { type: String },
     ffOnlyEnabled: { type: Boolean },
     squash: { type: Boolean },
@@ -79,7 +79,7 @@ export default {
               <time-ago-tooltip :time="commit.authored_date" />
             </template>
           </div>
-          <span class="commit-row-message item-title"> {{ commitMessage }} </span>
+          <span class="commit-row-message item-title"> {{ value }} </span>
 
           <button
             v-if="commit.description_html"
@@ -122,8 +122,8 @@ export default {
             <div class="max-width-marker"></div>
             <textarea
               id="commit-message"
-              :value="commitMessage"
-              @change="$emit('changeCommitMessage', $event.target.value);"
+              :value="value"
+              @input="$emit('input', $event.target.value);"
               class="form-control js-commit-message"
               required="required"
               rows="14"
