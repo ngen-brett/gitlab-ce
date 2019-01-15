@@ -11,6 +11,7 @@ const getToggleDescriptionButton = wrapper => wrapper.find('.text-expander');
 const getCommitDescription = wrapper => wrapper.find('.commit-row-description');
 const getEditMessageButton = wrapper => wrapper.find('.js-modify-commit-message-button');
 const getMessageEditor = wrapper => wrapper.find('.commit-message-editor');
+const getTextarea = wrapper => wrapper.find('textarea');
 
 describe('MRWidgetMergeCommitDetails', () => {
   let wrapper;
@@ -292,23 +293,62 @@ describe('MRWidgetMergeCommitDetails', () => {
     });
 
     describe('with fast-forward only disabled', () => {
+      it('should render edit message button', () => {
+        factory();
+
+        expect(getEditMessageButton(wrapper).exists()).toBeTruthy();
+      });
+    });
+  });
+
+  describe('message text editor', () => {
+    describe('by default', () => {
       beforeEach(() => {
         factory();
       });
 
-      it('should render edit message button', () => {
-        expect(getEditMessageButton(wrapper).exists()).toBeTruthy();
-      });
-
-      it('should not render message editor by default', () => {
+      it('should not be rendered', () => {
         expect(getMessageEditor(wrapper).exists()).toBeFalsy();
       });
 
-      it('should toggle message editor after edit button click', done => {
+      it('should open after edit button click', done => {
         getEditMessageButton(wrapper).trigger('click');
 
         wrapper.vm.$nextTick(() => {
           expect(getMessageEditor(wrapper).exists()).toBeTruthy();
+          done();
+        });
+      });
+    });
+
+    describe('when opened', () => {
+      beforeEach(() => {
+        factory();
+        wrapper.setData({ showCommitMessageEditor: true });
+      });
+
+      it('should be rendered', done => {
+        wrapper.vm.$nextTick(() => {
+          expect(getMessageEditor(wrapper).exists()).toBeTruthy();
+          done();
+        });
+      });
+
+      it('should have correct value in textarea', done => {
+        wrapper.vm.$nextTick(() => {
+          expect(getTextarea(wrapper).element.value).toEqual(value);
+          done();
+        });
+      });
+
+      it('should emit an input event on input', done => {
+        wrapper.vm.$nextTick(() => {
+          const textarea = getTextarea(wrapper);
+
+          textarea.element.value = 'Test';
+          textarea.trigger('input');
+
+          expect(wrapper.emitted().input[0]).toEqual(['Test']);
           done();
         });
       });
