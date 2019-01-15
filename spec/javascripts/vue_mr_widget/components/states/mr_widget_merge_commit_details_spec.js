@@ -272,5 +272,18 @@ describe('MRWidgetMergeCommitDetails', () => {
 
       expect(description.text()).toEqual(trimText(expected));
     });
+
+    it('should hide a description by default', () => {
+      expect(description.element.style.display).toEqual('none');
+    });
+
+    it('should toggle a description after toggle button is clicked', done => {
+      toggleDescriptionButton.trigger('click');
+
+      wrapper.vm.$nextTick(() => {
+        expect(description.element.style.display).toEqual('block');
+        done();
+      });
+    });
   });
 });

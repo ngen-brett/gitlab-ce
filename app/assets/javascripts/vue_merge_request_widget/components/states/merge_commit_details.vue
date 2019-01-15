@@ -92,7 +92,7 @@ export default {
           </button>
           <pre
             v-if="commit.description_html"
-            :style="[showCommitDescription ? { display: 'block' } : {}]"
+            :style="[showCommitDescription ? { display: 'block' } : { display: 'none' }]"
             class="commit-row-description js-toggle-content append-bottom-8"
             v-html="commit.description_html"
           ></pre>
