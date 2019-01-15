@@ -286,4 +286,24 @@ describe('MRWidgetMergeCommitDetails', () => {
       });
     });
   });
+
+  describe('commit actions', () => {
+    describe('with fast-forward only enabled', () => {
+      beforeEach(() => {
+        factory({ commit, value, ffOnlyEnabled: true });
+      });
+
+      it('should fast-forward message', () => {
+        const ffMessage = wrapper.find('.js-fast-forward-message');
+
+        expect(ffMessage.exists()).toBeTruthy();
+      });
+
+      it('should not render edit message button', () => {
+        const editMessageButton = wrapper.find('.js-modify-commit-message-button');
+
+        expect(editMessageButton.exists()).toBeFalsy();
+      });
+    });
+  });
 });
