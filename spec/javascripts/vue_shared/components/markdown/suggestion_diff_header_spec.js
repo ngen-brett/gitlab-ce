@@ -32,7 +32,7 @@ describe('Suggestion Diff component', () => {
     });
 
     it('renders a help button', () => {
-      const helpBtn = vm.$el.querySelector('.qa-help-btn');
+      const helpBtn = vm.$el.querySelector('.js-help-btn');
 
       expect(helpBtn).not.toBeNull();
     });
