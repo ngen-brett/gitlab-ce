@@ -17,6 +17,7 @@ Parameters:
 | `id` | integer/string| yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user|
 | `order_by` | string | no | Return tags ordered by `name` or `updated` fields. Default is `updated` |
 | `sort` | string | no | Return tags sorted in `asc` or `desc` order. Default is `desc` |
+| `search` | string | no | Return list of tags matching the search criteria _([Introduced][ce-24385] in [GitLab CE][ce] 11.8)_|
 
 ```json
 [
