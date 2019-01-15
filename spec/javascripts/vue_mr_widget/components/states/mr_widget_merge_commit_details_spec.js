@@ -2,6 +2,7 @@ import { shallowMount, createLocalVue } from '@vue/test-utils';
 import MergeCommitDetailsComponent from '~/vue_merge_request_widget/components/states/merge_commit_details.vue';
 import UserAvatarLink from '~/vue_shared/components/user_avatar/user_avatar_link.vue';
 import TimeAgoTooltip from '~/vue_shared/components/time_ago_tooltip.vue';
+import { trimText } from 'spec/helpers/vue_component_helper';
 
 describe('MRWidgetMergeCommitDetails', () => {
   let wrapper;
@@ -207,7 +208,7 @@ describe('MRWidgetMergeCommitDetails', () => {
         factory();
         const timeAgoTooltip = wrapper.find(TimeAgoTooltip);
 
-        expect(timeAgoTooltip.exists()).not.toBeTruthy();
+        expect(timeAgoTooltip.exists()).toBeFalsy();
       });
 
       it('should receive a correct time prop', () => {
@@ -216,6 +217,57 @@ describe('MRWidgetMergeCommitDetails', () => {
 
         expect(timeAgoTooltip.props('time')).toEqual(commit.authored_date);
       });
+    });
+  });
+
+  it('should contain a correct commit message', () => {
+    factory();
+    const commitMessage = wrapper.find('.commit-row-message');
+
+    expect(commitMessage.text()).toEqual(value);
+  });
+
+  describe('without commit description', () => {
+    beforeEach(() => {
+      const customCommit = { ...commit, description_html: null };
+      factory({ commit: customCommit, value });
+    });
+
+    it('should not have a  toggle button if commit has no description', () => {
+      const toggleDescriptionButton = wrapper.find('.text-expander');
+
+      expect(toggleDescriptionButton.exists()).toBeFalsy();
+    });
+
+    it('should not be rendered if commit has no description', () => {
+      const description = wrapper.find('.commit-row-description');
+
+      expect(description.exists()).toBeFalsy();
+    });
+  });
+
+  describe('with commit description', () => {
+    let description;
+    let toggleDescriptionButton;
+
+    beforeEach(() => {
+      factory();
+      description = wrapper.find('.commit-row-description');
+      toggleDescriptionButton = wrapper.find('.text-expander');
+    });
+
+    it('should have a  toggle button if commit has a description', () => {
+      expect(toggleDescriptionButton.exists()).toBeTruthy();
+    });
+
+    it('should be rendered if commit has a description', () => {
+      expect(description.exists()).toBeTruthy();
+    });
+
+    it('should contain correct description test', () => {
+      const expected = commit.description_html.replace(/&#x000A;/g, '');
+
+      expect(description.text()).toEqual(trimText(expected));
     });
   });
 });
