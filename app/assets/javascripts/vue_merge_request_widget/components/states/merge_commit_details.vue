@@ -131,8 +131,8 @@ export default {
             ></textarea>
           </div>
           <p class="hint">Try to keep the first line under 52 characters and the others under 72</p>
-          <div class="hint" v-if="!squash">
-            <a href="#" @click.prevent="$emit('updateCommitMessage');">
+          <div class="hint">
+            <a class="hint-link" href="#" @click.prevent="$emit('updateCommitMessage');">
               {{ commitMessageLinkTitle }}
             </a>
           </div>
