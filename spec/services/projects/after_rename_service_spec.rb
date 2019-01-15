@@ -134,7 +134,7 @@ describe Projects::AfterRenameService do
           project = create(:project, :repository, :legacy_storage)
           allow(project).to receive(:previous_changes).and_return('path' => ['foo'])
 
-          expect_next_instance_of(::Projects::HashedStorageMigrationService) do |service|
+          expect_next_instance_of(::Projects::HashedStorage::MigrationService) do |service|
             expect(service).to receive(:execute).and_return(true)
           end
 
