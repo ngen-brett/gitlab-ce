@@ -196,26 +196,29 @@ describe('MRWidgetMergeCommitDetails', () => {
       });
     });
 
-    describe('time-ago-tooltip', () => {
-      it('should be rendered if squash prop is true', () => {
-        factory({ commit, value, squash: true });
-        const timeAgoTooltip = wrapper.find(TimeAgoTooltip);
+    describe('if commit is squash commit', () => {
+      let timeAgoTooltip;
 
+      beforeEach(() => {
+        factory({ commit, value, squash: true });
+        timeAgoTooltip = wrapper.find(TimeAgoTooltip);
+      });
+
+      it('timeago tooltip should be rendered', () => {
         expect(timeAgoTooltip.exists()).toBeTruthy();
       });
 
-      it('should not be rendered if squash prop is false', () => {
+      it('timeago tooltip should receive a correct time prop', () => {
+        expect(timeAgoTooltip.props('time')).toEqual(commit.authored_date);
+      });
+    });
+
+    describe('if commit is merge commit', () => {
+      it('timeago tooltip should not be rendered', () => {
         factory();
         const timeAgoTooltip = wrapper.find(TimeAgoTooltip);
 
         expect(timeAgoTooltip.exists()).toBeFalsy();
-      });
-
-      it('should receive a correct time prop', () => {
-        factory({ commit, value, squash: true });
-        const timeAgoTooltip = wrapper.find(TimeAgoTooltip);
-
-        expect(timeAgoTooltip.props('time')).toEqual(commit.authored_date);
       });
     });
   });
