@@ -12,6 +12,7 @@ const getCommitDescription = wrapper => wrapper.find('.commit-row-description');
 const getEditMessageButton = wrapper => wrapper.find('.js-modify-commit-message-button');
 const getMessageEditor = wrapper => wrapper.find('.commit-message-editor');
 const getTextarea = wrapper => wrapper.find('textarea');
+const getHintLink = wrapper => wrapper.find('.hint-link');
 
 describe('MRWidgetMergeCommitDetails', () => {
   let wrapper;
@@ -32,9 +33,10 @@ describe('MRWidgetMergeCommitDetails', () => {
   };
 
   const value = 'Some value';
+  const commitMessageLinkTitle = 'Link title';
   const localVue = createLocalVue();
 
-  const factory = (props = { commit, value }) => {
+  const factory = (props = { commit, value, commitMessageLinkTitle }) => {
     wrapper = shallowMount(localVue.extend(MergeCommitDetailsComponent), {
       localVue,
       sync: false,
@@ -349,6 +351,22 @@ describe('MRWidgetMergeCommitDetails', () => {
           textarea.trigger('input');
 
           expect(wrapper.emitted().input[0]).toEqual(['Test']);
+          done();
+        });
+      });
+
+      it('should render a correct hint link', done => {
+        wrapper.vm.$nextTick(() => {
+          expect(getHintLink(wrapper).text()).toEqual(commitMessageLinkTitle);
+          done();
+        });
+      });
+
+      it('should emit an updateCommitMessage event on hint click', done => {
+        wrapper.vm.$nextTick(() => {
+          getHintLink(wrapper).trigger('click');
+
+          expect(wrapper.emitted('updateCommitMessage')).toBeTruthy();
           done();
         });
       });
