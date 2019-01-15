@@ -1,6 +1,7 @@
 import { shallowMount, createLocalVue } from '@vue/test-utils';
 import MergeCommitDetailsComponent from '~/vue_merge_request_widget/components/states/merge_commit_details.vue';
 import UserAvatarLink from '~/vue_shared/components/user_avatar/user_avatar_link.vue';
+import TimeAgoTooltip from '~/vue_shared/components/time_ago_tooltip.vue';
 
 describe('MRWidgetMergeCommitDetails', () => {
   let wrapper;
@@ -17,16 +18,20 @@ describe('MRWidgetMergeCommitDetails', () => {
     author_email: 'test@gitlab.com',
     authored_date: '2018-12-05',
     description_html: 'Test description!',
-    avatar_url: 'https://www.gravatar.com/avatar123',
+    author_gravatar_url: 'https://www.gravatar.com/avatar123',
   };
 
-  const factory = (options = {}) => {
-    const localVue = createLocalVue();
+  const value = 'Some value';
 
+  const localVue = createLocalVue();
+
+  const factory = (props = { commit, value }) => {
     wrapper = shallowMount(localVue.extend(MergeCommitDetailsComponent), {
       localVue,
       sync: false,
-      ...options,
+      propsData: {
+        ...props,
+      },
     });
   };
 
@@ -34,16 +39,108 @@ describe('MRWidgetMergeCommitDetails', () => {
     wrapper.destroy();
   });
 
+  describe('computed', () => {
+    describe('author', () => {
+      it('should return commit author if present', () => {
+        factory();
+
+        expect(wrapper.vm.author).toEqual(commit.author);
+      });
+
+      it('should return an empty object if no author', () => {
+        const customCommit = { ...commit, author: null };
+        factory({ commit: customCommit, value });
+
+        expect(wrapper.vm.author).toEqual({});
+      });
+    });
+
+    describe('author name', () => {
+      it('should return author name if present', () => {
+        factory();
+
+        expect(wrapper.vm.authorName).toEqual(commit.author.name);
+      });
+
+      it('should return a commit author_name if no author is present', () => {
+        const customCommit = { ...commit, author: null };
+        factory({ commit: customCommit, value });
+
+        expect(wrapper.vm.authorName).toEqual(commit.author_name);
+      });
+    });
+
+    describe('author class', () => {
+      it('should return correct class if author name is present', () => {
+        factory();
+
+        expect(wrapper.vm.authorClass).toEqual('js-user-link');
+      });
+
+      it('should return an empty string if no author name is present', () => {
+        const customCommit = { ...commit, author: null };
+        factory({ commit: customCommit, value });
+
+        expect(wrapper.vm.authorClass).toEqual('');
+      });
+    });
+
+    describe('author id', () => {
+      it('should return author id if present', () => {
+        factory();
+
+        expect(wrapper.vm.authorId).toEqual(commit.author.id);
+      });
+
+      it('should return an empty string if no author id is present', () => {
+        const customCommit = { ...commit, author: null };
+        factory({ commit: customCommit, value });
+
+        expect(wrapper.vm.authorId).toEqual('');
+      });
+    });
+
+    describe('author url', () => {
+      it('should return author url if present', () => {
+        factory();
+
+        expect(wrapper.vm.authorUrl).toEqual(commit.author.web_url);
+      });
+
+      it('should return a mailto link if no author url is present', () => {
+        const customCommit = { ...commit, author: null };
+        factory({ commit: customCommit, value });
+
+        expect(wrapper.vm.authorUrl).toEqual(`mailto:${commit.author_email}`);
+      });
+    });
+
+    describe('author avatar', () => {
+      it('should return author avatar url if present', () => {
+        factory();
+
+        expect(wrapper.vm.authorAvatar).toEqual(commit.author.avatar_url);
+      });
+
+      it('should return a commit gravatar link no author avatar url is present', () => {
+        const customCommit = { ...commit, author: null };
+        factory({ commit: customCommit, value });
+
+        expect(wrapper.vm.authorAvatar).toEqual(commit.author_gravatar_url);
+      });
+    });
+  });
+
   describe('user avatar', () => {
     it('should be rendered', () => {
-      factory({ propsData: { commit, value: 'Some value' } });
+      factory();
       const userAvatar = wrapper.find(UserAvatarLink);
 
       expect(userAvatar.exists()).toBeTruthy();
     });
 
     it('should have correct props', () => {
-      factory({ propsData: { commit, value: 'Some value' } });
+      factory();
       const userAvatar = wrapper.find(UserAvatarLink);
 
       expect(userAvatar.props('linkHref')).toEqual(wrapper.vm.authorUrl);
@@ -55,38 +152,69 @@ describe('MRWidgetMergeCommitDetails', () => {
   describe('committer', () => {
     describe('author link', () => {
       it('should be rendered', () => {
-        factory({ propsData: { commit, value: 'Some value' } });
+        factory();
         const authorLink = wrapper.find('.committer').find('a');
 
         expect(authorLink.exists()).toBeTruthy();
       });
 
       it('should have correct URL', () => {
-        factory({ propsData: { commit, value: 'Some value' } });
+        factory();
         const authorLink = wrapper.find('.committer').find('a');
 
         expect(authorLink.attributes('href')).toEqual(wrapper.vm.authorUrl);
       });
 
-      it('should have correct class', () => {
-        factory({ propsData: { commit, value: 'Some value' } });
+      it('should have js-user-link class if authorClass is present', () => {
+        factory();
         const authorLink = wrapper.find('.committer').find('a');
 
         expect(authorLink.classes()).toContain('js-user-link');
       });
 
+      it('should not have js-user-link if no authorClass is present', () => {
+        const customCommit = { ...commit, author: null };
+        factory({ commit: customCommit, value });
+        const authorLink = wrapper.find('.committer').find('a');
+
+        expect(authorLink.classes()).not.toContain('js-user-link');
+      });
+
       it('should have correct data user id', () => {
-        factory({ propsData: { commit, value: 'Some value' } });
+        factory();
         const authorLink = wrapper.find('.committer').find('a');
 
         expect(authorLink.attributes('data-user-id')).toEqual(wrapper.vm.authorId);
       });
 
       it('should have correct text', () => {
-        factory({ propsData: { commit, value: 'Some value' } });
+        factory();
         const authorLink = wrapper.find('.committer').find('a');
 
         expect(authorLink.text()).toEqual(wrapper.vm.authorName);
+      });
+    });
+
+    describe('time-ago-tooltip', () => {
+      it('should be rendered if squash prop is true', () => {
+        factory({ commit, value, squash: true });
+        const timeAgoTooltip = wrapper.find(TimeAgoTooltip);
+
+        expect(timeAgoTooltip.exists()).toBeTruthy();
+      });
+
+      it('should not be rendered if squash prop is false', () => {
+        factory();
+        const timeAgoTooltip = wrapper.find(TimeAgoTooltip);
+
+        expect(timeAgoTooltip.exists()).not.toBeTruthy();
+      });
+
+      it('should receive a correct time prop', () => {
+        factory({ commit, value, squash: true });
+        const timeAgoTooltip = wrapper.find(TimeAgoTooltip);
+
+        expect(timeAgoTooltip.props('time')).toEqual(commit.authored_date);
       });
     });
   });
