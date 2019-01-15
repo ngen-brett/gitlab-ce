@@ -23,7 +23,6 @@ describe('MRWidgetMergeCommitDetails', () => {
   };
 
   const value = 'Some value';
-
   const localVue = createLocalVue();
 
   const factory = (props = { commit, value }) => {
@@ -303,6 +302,36 @@ describe('MRWidgetMergeCommitDetails', () => {
         const editMessageButton = wrapper.find('.js-modify-commit-message-button');
 
         expect(editMessageButton.exists()).toBeFalsy();
+      });
+    });
+
+    describe('with fast-forward only disabled', () => {
+      let editMessageButton;
+      let messageEditor;
+
+      beforeEach(() => {
+        factory();
+        editMessageButton = wrapper.find('.js-modify-commit-message-button');
+        messageEditor = wrapper.find('.commit-message-editor');
+      });
+
+      it('should render edit message button', () => {
+        expect(editMessageButton.exists()).toBeTruthy();
+      });
+
+      it('should not render message editor by default', () => {
+        expect(messageEditor.exists()).toBeFalsy();
+      });
+
+      it('should toggle message editor after edit button click', done => {
+        editMessageButton.trigger('click');
+
+        wrapper.vm.$nextTick(() => {
+          messageEditor = wrapper.find('.commit-message-editor');
+
+          expect(messageEditor.exists()).toBeTruthy();
+          done();
+        });
       });
     });
   });
