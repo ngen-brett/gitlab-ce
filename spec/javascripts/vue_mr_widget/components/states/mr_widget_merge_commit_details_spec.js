@@ -4,6 +4,14 @@ import UserAvatarLink from '~/vue_shared/components/user_avatar/user_avatar_link
 import TimeAgoTooltip from '~/vue_shared/components/time_ago_tooltip.vue';
 import { trimText } from 'spec/helpers/vue_component_helper';
 
+const getUserAvatar = wrapper => wrapper.find(UserAvatarLink);
+const getAuthorLink = wrapper => wrapper.find('.committer').find('a');
+const getTimeAgoTooltip = wrapper => wrapper.find(TimeAgoTooltip);
+const getToggleDescriptionButton = wrapper => wrapper.find('.text-expander');
+const getCommitDescription = wrapper => wrapper.find('.commit-row-description');
+const getEditMessageButton = wrapper => wrapper.find('.js-modify-commit-message-button');
+const getMessageEditor = wrapper => wrapper.find('.commit-message-editor');
+
 describe('MRWidgetMergeCommitDetails', () => {
   let wrapper;
 
@@ -134,14 +142,13 @@ describe('MRWidgetMergeCommitDetails', () => {
   describe('user avatar', () => {
     it('should be rendered', () => {
       factory();
-      const userAvatar = wrapper.find(UserAvatarLink);
 
-      expect(userAvatar.exists()).toBeTruthy();
+      expect(getUserAvatar(wrapper).exists()).toBeTruthy();
     });
 
     it('should have correct props', () => {
       factory();
-      const userAvatar = wrapper.find(UserAvatarLink);
+      const userAvatar = getUserAvatar(wrapper);
 
       expect(userAvatar.props('linkHref')).toEqual(wrapper.vm.authorUrl);
       expect(userAvatar.props('imgSrc')).toEqual(wrapper.vm.authorAvatar);
@@ -153,71 +160,61 @@ describe('MRWidgetMergeCommitDetails', () => {
     describe('author link', () => {
       it('should be rendered', () => {
         factory();
-        const authorLink = wrapper.find('.committer').find('a');
 
-        expect(authorLink.exists()).toBeTruthy();
+        expect(getAuthorLink(wrapper).exists()).toBeTruthy();
       });
 
       it('should have correct URL', () => {
         factory();
-        const authorLink = wrapper.find('.committer').find('a');
 
-        expect(authorLink.attributes('href')).toEqual(wrapper.vm.authorUrl);
+        expect(getAuthorLink(wrapper).attributes('href')).toEqual(wrapper.vm.authorUrl);
       });
 
       it('should have js-user-link class if authorClass is present', () => {
         factory();
-        const authorLink = wrapper.find('.committer').find('a');
 
-        expect(authorLink.classes()).toContain('js-user-link');
+        expect(getAuthorLink(wrapper).classes()).toContain('js-user-link');
       });
 
       it('should not have js-user-link if no authorClass is present', () => {
         const customCommit = { ...commit, author: null };
         factory({ commit: customCommit, value });
-        const authorLink = wrapper.find('.committer').find('a');
 
-        expect(authorLink.classes()).not.toContain('js-user-link');
+        expect(getAuthorLink(wrapper).classes()).not.toContain('js-user-link');
       });
 
       it('should have correct data user id', () => {
         factory();
-        const authorLink = wrapper.find('.committer').find('a');
 
-        expect(authorLink.attributes('data-user-id')).toEqual(wrapper.vm.authorId);
+        expect(getAuthorLink(wrapper).attributes('data-user-id')).toEqual(wrapper.vm.authorId);
       });
 
       it('should have correct text', () => {
         factory();
-        const authorLink = wrapper.find('.committer').find('a');
 
-        expect(authorLink.text()).toEqual(wrapper.vm.authorName);
+        expect(getAuthorLink(wrapper).text()).toEqual(wrapper.vm.authorName);
       });
     });
 
     describe('if commit is squash commit', () => {
-      let timeAgoTooltip;
-
       beforeEach(() => {
         factory({ commit, value, squash: true });
-        timeAgoTooltip = wrapper.find(TimeAgoTooltip);
       });
 
       it('timeago tooltip should be rendered', () => {
-        expect(timeAgoTooltip.exists()).toBeTruthy();
+        expect(getTimeAgoTooltip(wrapper).exists()).toBeTruthy();
       });
 
       it('timeago tooltip should receive a correct time prop', () => {
-        expect(timeAgoTooltip.props('time')).toEqual(commit.authored_date);
+        expect(getTimeAgoTooltip(wrapper).props('time')).toEqual(commit.authored_date);
       });
     });
 
     describe('if commit is merge commit', () => {
       it('timeago tooltip should not be rendered', () => {
         factory();
-        const timeAgoTooltip = wrapper.find(TimeAgoTooltip);
 
-        expect(timeAgoTooltip.exists()).toBeFalsy();
+        expect(getTimeAgoTooltip(wrapper).exists()).toBeFalsy();
       });
     });
   });
@@ -236,51 +233,42 @@ describe('MRWidgetMergeCommitDetails', () => {
     });
 
     it('should not have a  toggle button if commit has no description', () => {
-      const toggleDescriptionButton = wrapper.find('.text-expander');
-
-      expect(toggleDescriptionButton.exists()).toBeFalsy();
+      expect(getToggleDescriptionButton(wrapper).exists()).toBeFalsy();
     });
 
     it('should not be rendered if commit has no description', () => {
-      const description = wrapper.find('.commit-row-description');
-
-      expect(description.exists()).toBeFalsy();
+      expect(getCommitDescription(wrapper).exists()).toBeFalsy();
     });
   });
 
   describe('with commit description', () => {
-    let description;
-    let toggleDescriptionButton;
-
     beforeEach(() => {
       factory();
-      description = wrapper.find('.commit-row-description');
-      toggleDescriptionButton = wrapper.find('.text-expander');
     });
 
     it('should have a  toggle button if commit has a description', () => {
-      expect(toggleDescriptionButton.exists()).toBeTruthy();
+      expect(getToggleDescriptionButton(wrapper).exists()).toBeTruthy();
     });
 
     it('should be rendered if commit has a description', () => {
-      expect(description.exists()).toBeTruthy();
+      expect(getCommitDescription(wrapper).exists()).toBeTruthy();
     });
 
     it('should contain correct description test', () => {
       const expected = commit.description_html.replace(/&#x000A;/g, '');
 
-      expect(description.text()).toEqual(trimText(expected));
+      expect(getCommitDescription(wrapper).text()).toEqual(trimText(expected));
     });
 
     it('should hide a description by default', () => {
-      expect(description.element.style.display).toEqual('none');
+      expect(getCommitDescription(wrapper).element.style.display).toEqual('none');
     });
 
     it('should toggle a description after toggle button is clicked', done => {
-      toggleDescriptionButton.trigger('click');
+      getToggleDescriptionButton(wrapper).trigger('click');
 
       wrapper.vm.$nextTick(() => {
-        expect(description.element.style.display).toEqual('block');
+        expect(getCommitDescription(wrapper).element.style.display).toEqual('block');
         done();
       });
     });
@@ -299,37 +287,28 @@ describe('MRWidgetMergeCommitDetails', () => {
       });
 
       it('should not render edit message button', () => {
-        const editMessageButton = wrapper.find('.js-modify-commit-message-button');
-
-        expect(editMessageButton.exists()).toBeFalsy();
+        expect(getEditMessageButton(wrapper).exists()).toBeFalsy();
       });
     });
 
     describe('with fast-forward only disabled', () => {
-      let editMessageButton;
-      let messageEditor;
-
       beforeEach(() => {
         factory();
-        editMessageButton = wrapper.find('.js-modify-commit-message-button');
-        messageEditor = wrapper.find('.commit-message-editor');
       });
 
       it('should render edit message button', () => {
-        expect(editMessageButton.exists()).toBeTruthy();
+        expect(getEditMessageButton(wrapper).exists()).toBeTruthy();
       });
 
       it('should not render message editor by default', () => {
-        expect(messageEditor.exists()).toBeFalsy();
+        expect(getMessageEditor(wrapper).exists()).toBeFalsy();
       });
 
       it('should toggle message editor after edit button click', done => {
-        editMessageButton.trigger('click');
+        getEditMessageButton(wrapper).trigger('click');
 
         wrapper.vm.$nextTick(() => {
-          messageEditor = wrapper.find('.commit-message-editor');
-
-          expect(messageEditor.exists()).toBeTruthy();
+          expect(getMessageEditor(wrapper).exists()).toBeTruthy();
           done();
         });
       });
