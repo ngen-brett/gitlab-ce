@@ -4,7 +4,7 @@
 
 ### Target audience
 
-<!--- For whom are we doing this? Include either a persona from https://design.gitlab.com/getting-started/personas or define a specific company role. e.a. "Release Manager" or "Security Analyst" -->
+<!--- For whom are we doing this? Include either a persona from https://design.gitlab.com/getting-started/personas or define a specific company role. e.a. "Release Manager" or "Security Analyst". Use the persona labels as well https://gitlab.com/groups/gitlab-org/-/labels?utf8=%E2%9C%93&subscribed=&search=persona%3A -->
 
 ### Further details
 
@@ -12,7 +12,7 @@
 
 ### Proposal
 
-<!--- How are we going to solve the problem? -->
+<!--- How are we going to solve the problem? Try to include the user journey! -->
 
 ### What does success look like, and how can we measure that?
 
