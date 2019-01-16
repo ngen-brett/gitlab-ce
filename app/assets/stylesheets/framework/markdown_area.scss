@@ -277,6 +277,14 @@
   }
 }
 
+.md-suggestion-flash {
+  margin-top: 8px;
+
+  &:empty {
+    margin-top: 0;
+  }
+}
+
 .md-suggestion-diff {
   display: table !important;
   border: 1px solid $border-color !important;
