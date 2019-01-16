@@ -288,6 +288,14 @@ module ProjectsHelper
     Feature.enabled?(:error_tracking, @project) && can?(current_user, :read_environment, @project)
   end
 
+  def project_topic_badges
+    topics = []
+    @project.topics_to_show.each do |item|
+      topics << content_tag(:a, item.titleize, class: 'badge badge-pill badge-secondary space-right-sm', href: '/explore?tag=' + item)
+    end
+    topics.join().html_safe
+  end
+
   private
 
   def get_project_nav_tabs(project, current_user)
