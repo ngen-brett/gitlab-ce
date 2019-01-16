@@ -13,6 +13,7 @@ import {
   INLINE_DIFF_VIEW_TYPE,
   DIFF_VIEW_COOKIE_NAME,
   MR_TREE_SHOW_KEY,
+  DIFF_VIEWER_NAMES,
 } from '../constants';
 
 export const setBaseConfig = ({ commit }, options) => {
@@ -76,7 +77,7 @@ export const renderFileForDiscussionId = ({ commit, rootState, state }, discussi
         commit(types.RENDER_FILE, file);
       }
 
-      if (file.collapsed) {
+      if (file.viewer.collapsed) {
         eventHub.$emit(`loadCollapsedDiff/${file.file_hash}`);
         scrollToElement(document.getElementById(file.file_hash));
       } else {
@@ -90,7 +91,9 @@ export const startRenderDiffsQueue = ({ state, commit }) => {
   const checkItem = () =>
     new Promise(resolve => {
       const nextFile = state.diffFiles.find(
-        file => !file.renderIt && (!file.collapsed || !file.text),
+        file =>
+          !file.renderIt &&
+          (!file.viewer.collapsed || !file.viewer.name === DIFF_VIEWER_NAMES.text),
       );
 
       if (nextFile) {
