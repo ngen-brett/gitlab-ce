@@ -278,7 +278,7 @@
 }
 
 .md-suggestions-flash {
-  margin-top: 8px;
+  margin-top: $gl-padding-8;
 
   &:empty {
     margin-top: 0;
