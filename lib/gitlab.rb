@@ -57,4 +57,11 @@ module Gitlab
   def self.version_info
     Gitlab::VersionInfo.parse(Gitlab::VERSION)
   end
+
+  def self.process_name
+    return 'sidekiq' if Sidekiq.server?
+    return 'console' if defined?(Rails::Console)
+    return 'test' if Rails.env.test?
+    'web'
+  end
 end
