@@ -32,3 +32,20 @@ export const LINES_TO_BE_RENDERED_DIRECTLY = 100;
 export const MAX_LINES_TO_BE_RENDERED = 2000;
 
 export const MR_TREE_SHOW_KEY = 'mr_tree_show';
+
+export const DIFF_VIEWER_NAMES = Object.freeze({
+  not_diffable: 'not_diffable',
+  no_preview: 'no_preview',
+  added: 'added',
+  deleted: 'deleted',
+  renamed: 'renamed',
+  mode_changed: 'mode_changed',
+  text: 'text',
+  image: 'image',
+});
+
+export const DIFF_VIEWER_ERRORS = Object.freeze({
+  too_large: 'too_large',
+  stored_externally: 'stored_externally',
+  external_storage: 'external_storage',
+});
