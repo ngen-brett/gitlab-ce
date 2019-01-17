@@ -229,4 +229,4 @@ Response:
 }
 ```
 
-[ce-54401]: https://gitlab.com/gitlab-org/gitlab-ce/issues/54401
+
