@@ -19,7 +19,7 @@ Parameters:
 | `sort` | string | no | Return tags sorted in `asc` or `desc` order. Default is `desc` |
 | `search` | string | no | Return list of tags matching the search criteria |
 
-> Support for `search` was [introduced](ce-54401) in GitLab 11.8
+> Support for `search` was [introduced](https://gitlab.com/gitlab-org/gitlab-ce/issues/54401) in GitLab 11.8.
 
 ```json
 [
@@ -229,4 +229,4 @@ Response:
 }
 ```
 
-
+[ce-54401]: https://gitlab.com/gitlab-org/gitlab-ce/issues/54401
