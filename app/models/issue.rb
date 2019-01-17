@@ -230,7 +230,9 @@ class Issue < ActiveRecord::Base
   end
 
   def check_for_spam?
-    project.public? && (title_changed? || description_changed?)
+    project.public? &&
+      !confidential? &&
+      (title_changed? || description_changed? || confidential_changed?)
   end
 
   def as_json(options = {})
