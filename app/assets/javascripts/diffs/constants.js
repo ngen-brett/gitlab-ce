@@ -35,6 +35,5 @@ export const MR_TREE_SHOW_KEY = 'mr_tree_show';
 
 export const DIFF_VIEWER_ERRORS = Object.freeze({
   too_large: 'too_large',
-  stored_externally: 'stored_externally',
-  external_storage: 'external_storage',
+  stored_externally: 'server_side_but_stored_externally',
 });
