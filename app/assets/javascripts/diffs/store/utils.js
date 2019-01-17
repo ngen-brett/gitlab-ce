@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import { diffModes } from '~/ide/constants';
+import { diffModes, diffViewerModes } from '~/ide/constants';
 import {
   LINE_POSITION_LEFT,
   LINE_POSITION_RIGHT,
@@ -11,7 +11,6 @@ import {
   MATCH_LINE_TYPE,
   LINES_TO_BE_RENDERED_DIRECTLY,
   MAX_LINES_TO_BE_RENDERED,
-  DIFF_VIEWER_NAMES,
 } from '../constants';
 
 export function findDiffFile(files, hash) {
@@ -243,7 +242,7 @@ export function prepareDiffData(diffData) {
     Object.assign(file, {
       renderIt: showingLines < LINES_TO_BE_RENDERED_DIRECTLY,
       collapsed:
-        file.viewer.name === DIFF_VIEWER_NAMES.text && showingLines > MAX_LINES_TO_BE_RENDERED,
+        file.viewer.name === diffViewerModes.text && showingLines > MAX_LINES_TO_BE_RENDERED,
       discussions: [],
     });
   }

@@ -13,8 +13,8 @@ import {
   INLINE_DIFF_VIEW_TYPE,
   DIFF_VIEW_COOKIE_NAME,
   MR_TREE_SHOW_KEY,
-  DIFF_VIEWER_NAMES,
 } from '../constants';
+import { diffViewerModes } from '~/ide/constants';
 
 export const setBaseConfig = ({ commit }, options) => {
   const { endpoint, projectPath } = options;
@@ -92,8 +92,7 @@ export const startRenderDiffsQueue = ({ state, commit }) => {
     new Promise(resolve => {
       const nextFile = state.diffFiles.find(
         file =>
-          !file.renderIt &&
-          (!file.viewer.collapsed || !file.viewer.name === DIFF_VIEWER_NAMES.text),
+          !file.renderIt && (!file.viewer.collapsed || !file.viewer.name === diffViewerModes.text),
       );
 
       if (nextFile) {
