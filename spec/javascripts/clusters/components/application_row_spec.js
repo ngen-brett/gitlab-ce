@@ -1,10 +1,6 @@
 import Vue from 'vue';
 import eventHub from '~/clusters/event_hub';
-import {
-  APPLICATION_STATUS,
-  REQUEST_SUBMITTED,
-  REQUEST_FAILURE,
-} from '~/clusters/constants';
+import { APPLICATION_STATUS, REQUEST_SUBMITTED, REQUEST_FAILURE } from '~/clusters/constants';
 import applicationRow from '~/clusters/components/application_row.vue';
 import mountComponent from 'spec/helpers/vue_mount_component_helper';
 import { DEFAULT_APPLICATION_STATE } from '../services/mock_data';

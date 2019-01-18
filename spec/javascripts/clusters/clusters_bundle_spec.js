@@ -1,9 +1,5 @@
 import Clusters from '~/clusters/clusters_bundle';
-import {
-  REQUEST_SUBMITTED,
-  REQUEST_FAILURE,
-  APPLICATION_STATUS,
-} from '~/clusters/constants';
+import { REQUEST_SUBMITTED, REQUEST_FAILURE, APPLICATION_STATUS } from '~/clusters/constants';
 import getSetTimeoutPromise from 'spec/helpers/set_timeout_promise_helper';
 
 describe('Clusters', () => {
