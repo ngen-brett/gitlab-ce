@@ -16,6 +16,11 @@ module Sentry
       map_to_errors(issues)
     end
 
+    def list_projects
+      projects_hash = get_projects
+      map_to_projects(projects_hash)
+    end
+
     private
 
     def request_params
@@ -39,12 +44,28 @@ module Sentry
       handle_response(resp)
     end
 
+    def get_projects
+      resp = Gitlab::HTTP.get(
+        projects_api_url,
+        **request_params
+      )
+
+      handle_response(resp)
+    end
+
     def handle_response(response)
       unless response.code == 200
         raise Client::Error, "Sentry response error: #{response.code}"
       end
 
       response.as_json
+    end
+
+    def projects_api_url
+      uri = URI(@url)
+      uri.path = '/api/0/projects/'
+      uri.path = uri.path.squeeze('/')
+      uri
     end
 
     def issues_api_url
@@ -57,6 +78,12 @@ module Sentry
     def map_to_errors(issues)
       issues.map do |issue|
         map_to_error(issue)
+      end
+    end
+
+    def map_to_projects(projects_hash)
+      projects_hash.map do |project|
+        map_to_project(project)
       end
     end
 
@@ -98,6 +125,20 @@ module Sentry
         project_id: project.fetch('id'),
         project_name: project.fetch('name', nil),
         project_slug: project.fetch('slug', nil)
+      )
+    end
+
+    def map_to_project(project_hash)
+      organization = project_hash.fetch('organization')
+
+      Gitlab::ErrorTracking::Project.new(
+        id: project_hash.fetch('id'),
+        name: project_hash.fetch('name'),
+        slug: project_hash.fetch('slug'),
+        status: project_hash.dig('status'),
+        organization_name: organization.fetch('name'),
+        organization_id: organization.fetch('id'),
+        organization_slug: organization.fetch('slug')
       )
     end
   end
