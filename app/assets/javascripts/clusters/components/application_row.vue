@@ -6,8 +6,7 @@ import identicon from '../../vue_shared/components/identicon.vue';
 import loadingButton from '../../vue_shared/components/loading_button.vue';
 import {
   APPLICATION_STATUS,
-  REQUEST_LOADING,
-  REQUEST_SUCCESS,
+  REQUEST_SUBMITTED,
   REQUEST_FAILURE,
 } from '../constants';
 
@@ -72,6 +71,14 @@ export default {
     isKnownStatus() {
       return Object.values(APPLICATION_STATUS).includes(this.status);
     },
+    isInstalling() {
+      return (
+        this.status === APPLICATION_STATUS.INSTALLING ||
+        (this.requestStatus === REQUEST_SUBMITTED &&
+        !this.statusReason &&
+        !this.isInstalled)
+      );
+    },
     isInstalled() {
       return (
         this.status === APPLICATION_STATUS.INSTALLED ||
@@ -94,7 +101,7 @@ export default {
         !this.status ||
         this.status === APPLICATION_STATUS.SCHEDULED ||
         this.status === APPLICATION_STATUS.INSTALLING ||
-        this.requestStatus === REQUEST_LOADING
+        this.isInstalling
       );
     },
     installButtonDisabled() {
@@ -104,23 +111,23 @@ export default {
       return (
         ((this.status !== APPLICATION_STATUS.INSTALLABLE &&
           this.status !== APPLICATION_STATUS.ERROR) ||
-          this.requestStatus === REQUEST_LOADING ||
-          this.requestStatus === REQUEST_SUCCESS) &&
+          this.isInstalling) &&
         this.isKnownStatus
       );
     },
     installButtonLabel() {
       let label;
       if (
-        this.status === APPLICATION_STATUS.NOT_INSTALLABLE ||
+        (this.status === APPLICATION_STATUS.NOT_INSTALLABLE ||
         this.status === APPLICATION_STATUS.INSTALLABLE ||
         this.status === APPLICATION_STATUS.ERROR ||
-        this.isUnknownStatus
+        this.isUnknownStatus) &&
+        !this.isInstalling
       ) {
         label = s__('ClusterIntegration|Install');
       } else if (
         this.status === APPLICATION_STATUS.SCHEDULED ||
-        this.status === APPLICATION_STATUS.INSTALLING
+        this.isInstalling
       ) {
         label = s__('ClusterIntegration|Installing');
       } else if (
@@ -140,7 +147,7 @@ export default {
       return s__('ClusterIntegration|Manage');
     },
     hasError() {
-      return this.status === APPLICATION_STATUS.ERROR || this.requestStatus === REQUEST_FAILURE;
+      return !this.isInstalling && (this.status === APPLICATION_STATUS.ERROR || this.requestStatus === REQUEST_FAILURE);
     },
     generalErrorDescription() {
       return sprintf(s__('ClusterIntegration|Something went wrong while installing %{title}'), {
