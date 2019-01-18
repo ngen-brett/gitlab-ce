@@ -955,6 +955,26 @@ describe ProjectsController do
     end
   end
 
+
+  describe 'GET resolve' do
+    context 'when there is project wich such id' do
+      it 'redirects to project show page' do
+        get :resolve, params: { id: project.id }
+
+        expect(response).to have_gitlab_http_status(302)
+        expect(response).to redirect_to(project_path(project))
+      end
+    end
+
+    context 'when there is no project wich such id' do
+      it 'gives 404' do
+        get :resolve, params: { id: '0' }
+
+        expect(response).to have_gitlab_http_status(404)
+      end
+    end
+  end
+
   def project_moved_message(redirect_route, project)
     "Project '#{redirect_route.path}' was moved to '#{project.full_path}'. Please update any links and bookmarks that may still have the old path."
   end
