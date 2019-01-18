@@ -277,14 +277,6 @@
   }
 }
 
-.md-suggestions-flash {
-  margin-top: $gl-padding-8;
-
-  &:empty {
-    margin-top: 0;
-  }
-}
-
 .md-suggestion-diff {
   display: table !important;
   border: 1px solid $border-color !important;
