@@ -11,6 +11,12 @@ Example:
 gitlab_rails['env'] = {"SIDEKIQ_LOG_ARGUMENTS" => "1"}
 ```
 
-Please note: It is not recommend to enable this setting in production because some 
+Please note: It is not recommend to enable this setting in production because some
 Sidekiq jobs (such as sending a password reset email) take secret arguments (for
 example the password reset token).
+
+When using [Sidekiq JSON logging], arguments logs are limited to a
+maximum size of 10 kilobytes of text; any arguments larger than this
+size will be discarded.
+
+[Sidekiq JSON logging]: ../administration/logs.md#sidekiqlog
