@@ -235,16 +235,14 @@ export default class Clusters {
     this.store.updateAppProperty(appId, 'requestReason', null);
     this.store.updateAppProperty(appId, 'statusReason', null);
 
-    this.service
-      .installApplication(appId, data.params)
-      .catch(() => {
-        this.store.updateAppProperty(appId, 'requestStatus', REQUEST_FAILURE);
-        this.store.updateAppProperty(
-          appId,
-          'requestReason',
-          s__('ClusterIntegration|Request to begin installing failed'),
-        );
-      });
+    this.service.installApplication(appId, data.params).catch(() => {
+      this.store.updateAppProperty(appId, 'requestStatus', REQUEST_FAILURE);
+      this.store.updateAppProperty(
+        appId,
+        'requestReason',
+        s__('ClusterIntegration|Request to begin installing failed'),
+      );
+    });
   }
 
   destroy() {
