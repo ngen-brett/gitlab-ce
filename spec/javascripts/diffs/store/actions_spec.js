@@ -260,12 +260,16 @@ describe('DiffsStoreActions', () => {
           {
             id: 1,
             renderIt: false,
-            collapsed: false,
+            viewer: {
+              collapsed: false,
+            },
           },
           {
             id: 2,
             renderIt: false,
-            collapsed: false,
+            viewer: {
+              collapsed: false,
+            },
           },
         ],
       };
@@ -764,7 +768,9 @@ describe('DiffsStoreActions', () => {
       diffFiles: [
         {
           file_hash: 'HASH',
-          collapsed,
+          viewer: {
+            collapsed,
+          },
           renderIt,
         },
       ],
