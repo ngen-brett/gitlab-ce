@@ -36,6 +36,11 @@ export default {
       required: false,
       default: null,
     },
+    showReply: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
     canEdit: {
       type: Boolean,
       required: true,
@@ -103,6 +108,9 @@ export default {
     },
   },
   methods: {
+    onReply() {
+      this.$emit('handleReply');
+    },
     onEdit() {
       this.$emit('handleEdit');
     },
@@ -152,6 +160,17 @@ export default {
         <icon css-classes="link-highlight award-control-icon-positive" name="emoji_smiley" />
         <icon css-classes="link-highlight award-control-icon-super-positive" name="emoji_smiley" />
       </a>
+    </div>
+    <div v-if="showReply" class="note-actions-item">
+      <button
+        v-gl-tooltip.bottom
+        type="button"
+        class="note-action-button btn btn-transparent"
+        title="Reply to comment"
+        @click="onReply"
+      >
+        <icon name="comment" css-classes="link-highlight" />
+      </button>
     </div>
     <div v-if="canEdit" class="note-actions-item">
       <button

@@ -204,7 +204,7 @@ export default {
             :key="discussion.id"
             :note="discussion.notes[0]"
           />
-          <noteable-note v-else :key="discussion.id" :note="discussion.notes[0]" />
+          <noteable-note v-else :key="discussion.id" :note="discussion.notes[0]" :show-reply-button="!commentsDisabled" />
         </template>
         <noteable-discussion
           v-else

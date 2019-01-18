@@ -37,6 +37,11 @@ export default {
       required: false,
       default: '',
     },
+    showReplyButton: {
+      type: Boolean,
+      required: false,
+      default: false
+    }
   },
   data() {
     return {
@@ -212,6 +217,7 @@ export default {
           :note-id="note.id"
           :note-url="note.noteable_note_url"
           :access-level="note.human_access"
+          :show-reply="showReplyButton"
           :can-edit="note.current_user.can_edit"
           :can-award-emoji="note.current_user.can_award_emoji"
           :can-delete="note.current_user.can_edit"

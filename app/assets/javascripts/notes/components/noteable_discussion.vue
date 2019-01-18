@@ -377,6 +377,7 @@ Please check your network connection and try again.`;
                     :note="componentData(initialDiscussion)"
                     :line="line"
                     :help-page-path="helpPagePath"
+                    :show-reply-button="canReply"
                     @handleDeleteNote="deleteNoteHandler"
                   >
                     <note-edited-text
