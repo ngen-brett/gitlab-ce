@@ -1,7 +1,6 @@
 import Clusters from '~/clusters/clusters_bundle';
 import {
-  REQUEST_LOADING,
-  REQUEST_SUCCESS,
+  REQUEST_SUBMITTED,
   REQUEST_FAILURE,
   APPLICATION_STATUS,
 } from '~/clusters/constants';
@@ -203,13 +202,12 @@ describe('Clusters', () => {
 
       cluster.installApplication({ id: 'helm' });
 
-      expect(cluster.store.state.applications.helm.requestStatus).toEqual(REQUEST_LOADING);
+      expect(cluster.store.state.applications.helm.requestStatus).toEqual(REQUEST_SUBMITTED);
       expect(cluster.store.state.applications.helm.requestReason).toEqual(null);
       expect(cluster.service.installApplication).toHaveBeenCalledWith('helm', undefined);
 
       getSetTimeoutPromise()
         .then(() => {
-          expect(cluster.store.state.applications.helm.requestStatus).toEqual(REQUEST_SUCCESS);
           expect(cluster.store.state.applications.helm.requestReason).toEqual(null);
         })
         .then(done)
@@ -223,13 +221,12 @@ describe('Clusters', () => {
 
       cluster.installApplication({ id: 'ingress' });
 
-      expect(cluster.store.state.applications.ingress.requestStatus).toEqual(REQUEST_LOADING);
+      expect(cluster.store.state.applications.ingress.requestStatus).toEqual(REQUEST_SUBMITTED);
       expect(cluster.store.state.applications.ingress.requestReason).toEqual(null);
       expect(cluster.service.installApplication).toHaveBeenCalledWith('ingress', undefined);
 
       getSetTimeoutPromise()
         .then(() => {
-          expect(cluster.store.state.applications.ingress.requestStatus).toEqual(REQUEST_SUCCESS);
           expect(cluster.store.state.applications.ingress.requestReason).toEqual(null);
         })
         .then(done)
@@ -243,13 +240,12 @@ describe('Clusters', () => {
 
       cluster.installApplication({ id: 'runner' });
 
-      expect(cluster.store.state.applications.runner.requestStatus).toEqual(REQUEST_LOADING);
+      expect(cluster.store.state.applications.runner.requestStatus).toEqual(REQUEST_SUBMITTED);
       expect(cluster.store.state.applications.runner.requestReason).toEqual(null);
       expect(cluster.service.installApplication).toHaveBeenCalledWith('runner', undefined);
 
       getSetTimeoutPromise()
         .then(() => {
-          expect(cluster.store.state.applications.runner.requestStatus).toEqual(REQUEST_SUCCESS);
           expect(cluster.store.state.applications.runner.requestReason).toEqual(null);
         })
         .then(done)
@@ -265,7 +261,7 @@ describe('Clusters', () => {
         params: { hostname: cluster.store.state.applications.jupyter.hostname },
       });
 
-      expect(cluster.store.state.applications.jupyter.requestStatus).toEqual(REQUEST_LOADING);
+      expect(cluster.store.state.applications.jupyter.requestStatus).toEqual(REQUEST_SUBMITTED);
       expect(cluster.store.state.applications.jupyter.requestReason).toEqual(null);
       expect(cluster.service.installApplication).toHaveBeenCalledWith('jupyter', {
         hostname: cluster.store.state.applications.jupyter.hostname,
@@ -273,7 +269,6 @@ describe('Clusters', () => {
 
       getSetTimeoutPromise()
         .then(() => {
-          expect(cluster.store.state.applications.jupyter.requestStatus).toEqual(REQUEST_SUCCESS);
           expect(cluster.store.state.applications.jupyter.requestReason).toEqual(null);
         })
         .then(done)
@@ -289,7 +284,7 @@ describe('Clusters', () => {
 
       cluster.installApplication({ id: 'helm' });
 
-      expect(cluster.store.state.applications.helm.requestStatus).toEqual(REQUEST_LOADING);
+      expect(cluster.store.state.applications.helm.requestStatus).toEqual(REQUEST_SUBMITTED);
       expect(cluster.store.state.applications.helm.requestReason).toEqual(null);
       expect(cluster.service.installApplication).toHaveBeenCalled();
 
