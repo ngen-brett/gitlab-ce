@@ -49,6 +49,62 @@ describe ProjectAutoDevops do
       it 'returns AUTO_DEVOPS_DOMAIN' do
         expect(auto_devops.predefined_variables).to include(domain_variable)
       end
+
+      describe "creates CI_PRODUCTION_ENVIRONMENT_URL variable" do
+        let(:expected_ci_production_environment_url_var) do
+          {
+            key: 'CI_PRODUCTION_ENVIRONMENT_URL',
+            value: "#{project.parent.path}-#{project.path}.#{domain}",
+            public: true
+          }
+        end
+
+        context 'production environment url > 64 bytes' do
+          before do
+            expected_ci_production_environment_url_var[:value] = "2228922881aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
+                                                                 "-example-com"
+            project.path = 'a' * 65
+          end
+
+          it 'returns a 64 bytes truncated version of CI_PRODUCTION_ENVIRONMENT_URL' do
+            expect(auto_devops.predefined_variables).to include(expected_ci_production_environment_url_var)
+          end
+        end
+
+        context 'production environment url <= 64 bytes' do
+          it 'returns a 64 bytes truncated version of CI_PRODUCTION_ENVIRONMENT_URL' do
+            expect(auto_devops.predefined_variables).to include(expected_ci_production_environment_url_var)
+          end
+        end
+      end
+
+      describe "creates CI_STAGING_ENVIRONMENT_URL variable" do
+        let(:expected_ci_staging_environment_url_var) do
+          {
+            key: 'CI_STAGING_ENVIRONMENT_URL',
+            value: "#{project.parent.path}-#{project.path}-staging.#{domain}",
+            public: true
+          }
+        end
+
+        context 'staging environment url <= 64 bytes' do
+          it 'returns a 64 bytes truncated version of CI_STAGING_ENVIRONMENT_URL' do
+            expect(auto_devops.predefined_variables).to include(expected_ci_staging_environment_url_var)
+          end
+        end
+
+        context 'staging environment url > 64 bytes' do
+          before do
+            expected_ci_staging_environment_url_var[:value] = "3312283892aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" \
+                                                              "-staging-example-com"
+            project.path = 'a' * 65
+          end
+
+          it 'returns a 64 bytes truncated version of CI_STAGING_ENVIRONMENT_URL' do
+            expect(auto_devops.predefined_variables).to include(expected_ci_staging_environment_url_var)
+          end
+        end
+      end
     end
 
     context 'when domain is not defined' do

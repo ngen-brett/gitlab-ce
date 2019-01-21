@@ -28,7 +28,11 @@ class ProjectAutoDevops < ActiveRecord::Base
     Gitlab::Ci::Variables::Collection.new.tap do |variables|
       if has_domain?
         variables.append(key: 'AUTO_DEVOPS_DOMAIN',
-                         value: domain.presence || instance_domain)
+                         value: domain_or_instance_domain)
+        variables.append(key: 'CI_PRODUCTION_ENVIRONMENT_URL',
+                         value: ci_enviroment_url(:production))
+        variables.append(key: 'CI_STAGING_ENVIRONMENT_URL', value: ci_enviroment_url(:staging))
+        # variables.append(key: 'CI_REVIEW_ENVIRONMENT_URL', value: ci_enviroment_url(:review))
       end
 
       variables.concat(deployment_strategy_default_variables)
@@ -36,6 +40,27 @@ class ProjectAutoDevops < ActiveRecord::Base
   end
 
   private
+
+  def domain_or_instance_domain
+    domain.presence || instance_domain
+  end
+
+  def ci_enviroment_url(environment)
+    full_path = case environment
+                when :staging
+                  "#{project.full_path_slug}-staging.#{domain_or_instance_domain}"
+                when :production
+                  "#{project.full_path_slug}.#{domain_or_instance_domain}"
+      # TODO: How to choose the correct environment for review?
+      #
+      # when :review
+      #   "#{project.full_path_slug}-#{project.environments.first}.#{domain_or_instance_domain}"
+    end
+
+    return Gitlab::Utils.left_truncate_64_bytes_str(full_path) if full_path.size > 64
+
+    full_path
+  end
 
   def create_gitlab_deploy_token
     project.deploy_tokens.create!(
