@@ -59,7 +59,8 @@ export default {
       class="commits-header-icon"
       @click.stop="handleToggleCommits"
     />
-    <span>
+    <span v-if="isCommitExpanded">Collapse</span>
+    <span v-else>
       <strong>{{ commitsCountMessage }}</strong> and <strong>1 merge commit</strong> will be added
       to <span class="label-branch">{{ targetBranch }}.</span>
       <button type="button" class="btn-link btn-blank">Modify commit message</button>
