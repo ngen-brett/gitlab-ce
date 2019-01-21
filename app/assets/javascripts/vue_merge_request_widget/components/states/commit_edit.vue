@@ -16,10 +16,12 @@ export default {
 
 <template>
   <li>
-    <div v-if="squash">Commit author placeholder</div>
+    <div v-if="squash"><strong>Commit message</strong></div>
     <div class="prepend-top-default commit-message-editor">
       <div class="form-group clearfix">
-        <label class="col-form-label" for="commit-message"> Commit message </label>
+        <label class="col-form-label" for="commit-message">
+          <strong>Squash commit message</strong>
+        </label>
         <div class="commit-message-container">
           <textarea
             id="commit-message"
