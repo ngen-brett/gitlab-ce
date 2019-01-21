@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190115054216) do
+ActiveRecord::Schema.define(version: 20190121144851) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -272,6 +272,16 @@ ActiveRecord::Schema.define(version: 20190115054216) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["namespace_id"], name: "index_chat_teams_on_namespace_id", unique: true, using: :btree
+  end
+
+  create_table "ci_build_annotations", id: :bigserial, force: :cascade do |t|
+    t.integer "ci_build_id", null: false
+    t.integer "severity", limit: 2, null: false
+    t.integer "line_number", limit: 2
+    t.text "file_path"
+    t.string "summary", limit: 512, null: false
+    t.text "description"
+    t.index ["ci_build_id"], name: "index_ci_build_annotations_on_ci_build_id", using: :btree
   end
 
   create_table "ci_build_trace_chunks", id: :bigserial, force: :cascade do |t|
@@ -2316,6 +2326,7 @@ ActiveRecord::Schema.define(version: 20190115054216) do
   add_foreign_key "boards", "namespaces", column: "group_id", on_delete: :cascade
   add_foreign_key "boards", "projects", name: "fk_f15266b5f9", on_delete: :cascade
   add_foreign_key "chat_teams", "namespaces", on_delete: :cascade
+  add_foreign_key "ci_build_annotations", "ci_builds", on_delete: :cascade
   add_foreign_key "ci_build_trace_chunks", "ci_builds", column: "build_id", on_delete: :cascade
   add_foreign_key "ci_build_trace_section_names", "projects", on_delete: :cascade
   add_foreign_key "ci_build_trace_sections", "ci_build_trace_section_names", column: "section_name_id", name: "fk_264e112c66", on_delete: :cascade
