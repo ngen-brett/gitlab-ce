@@ -188,13 +188,13 @@ describe IssuesHelper do
 
   describe '#issue_closed_label' do
     it 'is "Closed" when the issue has not been moved' do
-      expect(helper.closed_issue_label(issue)).to be('Closed')
+      expect(helper.issue_closed_label(issue)).to eq('Closed')
     end
 
     it 'is "Closed (moved)" when the issue has been moved' do
       allow(issue).to receive(:moved?).and_return(true)
 
-      expect(helper.closed_issue_label(issue)).to be('Closed (moved)')
+      expect(helper.issue_closed_label(issue)).to eq('Closed (moved)')
     end
   end
 end
