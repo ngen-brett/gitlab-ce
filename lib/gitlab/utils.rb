@@ -58,6 +58,25 @@ module Gitlab
         .gsub(/(\A-+|-+\z)/, '')
     end
 
+    # A slugified version of the string, suitable for inclusion in URLs and
+    # domain names. Rules:
+    # 
+    #   * Lowercased
+    #   * Anything not matching [a-z0-9-] is replaced with a -
+    #   * Maximum length is 63 bytes
+    #   * First/Last Character is not a hyphen
+    #   * Truncated from the left side instead of right
+    #   * Unshifts a crc32 hash from the original str. Makes Collision very unlikely
+    def left_truncate_63_bytes_str(str)
+      crc32_hash = Zlib::crc32(str) 
+      
+      return str.downcase
+        .gsub(/[^a-z0-9]/, '-')
+        .reverse[0..53].reverse
+        .gsub(/(\A-+|-+\z)/, '')
+        .insert(0, crc32_hash.to_s)
+    end
+
     # Converts newlines into HTML line break elements
     def nlbr(str)
       ActionView::Base.full_sanitizer.sanitize(+str, tags: []).gsub(/\r?\n/, '<br>').html_safe
