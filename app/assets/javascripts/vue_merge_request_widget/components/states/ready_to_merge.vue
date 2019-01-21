@@ -140,14 +140,6 @@ export default {
       const { commitsCount, enableSquashBeforeMerge } = this.mr;
       return enableSquashBeforeMerge && commitsCount > 1;
     },
-    commitsCountMessage() {
-      return this.mr.squash && this.shouldShowSquashBeforeMerge
-        ? `1 commit and 1 merge commit will be added to ${this.mr.targetBranch}`
-        : `${this.mr.commitsCount} ${pluralize(
-            'commit',
-            this.mr.commitsCount,
-          )} and 1 merge commit will be added to ${this.mr.targetBranch}`;
-    },
   },
   methods: {
     shouldShowMergeControls() {
@@ -355,7 +347,12 @@ export default {
         </div>
       </div>
     </div>
-    <commits-header></commits-header>
+    <commits-header
+      v-if="shouldShowSquashBeforeMerge"
+      :is-squash-enabled="squashBeforeMerge"
+      :commits-count="mr.commitsCount"
+      :target-branch="mr.targetBranch"
+    ></commits-header>
     <ul class="content-list commit-list flex-list">
       <merge-commit-details
         squash
