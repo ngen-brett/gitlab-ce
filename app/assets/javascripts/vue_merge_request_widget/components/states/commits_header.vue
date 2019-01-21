@@ -49,19 +49,20 @@ export default {
   <div
     ref="header"
     class="js-file-title file-title mr-widget-commits-count"
+    :class="{ collapsed: !isCommitExpanded }"
     @click="handleToggleCommits()"
   >
     <icon
       :name="collapseIcon"
       :size="16"
       aria-hidden="true"
-      class="diff-toggle-caret commits-header-icon"
+      class="commits-header-icon"
       @click.stop="handleToggleCommits"
     />
     <span>
       <strong>{{ commitsCountMessage }}</strong> and <strong>1 merge commit</strong> will be added
       to <span class="label-branch">{{ targetBranch }}.</span>
-      <button type="button" class="btn-link btn-blank ">Modify commit message</button>
+      <button type="button" class="btn-link btn-blank">Modify commit message</button>
     </span>
   </div>
 </template>
