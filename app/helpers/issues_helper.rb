@@ -137,6 +137,7 @@ module IssuesHelper
 
   def issue_closed_label(issue)
     return _("Closed (moved)") if issue.moved?
+
     _("Closed")
   end
 

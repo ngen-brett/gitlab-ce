@@ -185,4 +185,16 @@ describe IssuesHelper do
       expect(helper.show_new_issue_link?(project)).to be_truthy
     end
   end
+
+  describe '#issue_closed_label' do
+    it 'is "Closed" when the issue has not been moved' do
+      expect(helper.closed_issue_label(issue)).to be('Closed')
+    end
+
+    it 'is "Closed (moved)" when the issue has been moved' do
+      allow(issue).to receive(:moved?).and_return(true)
+
+      expect(helper.closed_issue_label(issue)).to be('Closed (moved)')
+    end
+  end
 end
