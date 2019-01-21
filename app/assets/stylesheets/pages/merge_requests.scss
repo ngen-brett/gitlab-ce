@@ -116,6 +116,12 @@
       margin-left: 3px;
       margin-right: 14px;
     }
+
+    &.collapsed {
+      .commits-header-icon {
+        color: #707070;
+      }
+    }
   }
   
   .mr-widget-footer {
