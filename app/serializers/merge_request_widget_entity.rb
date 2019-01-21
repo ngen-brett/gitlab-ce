@@ -60,6 +60,9 @@ class MergeRequestWidgetEntity < IssuableEntity
   expose :actual_head_pipeline, with: PipelineDetailsEntity, as: :pipeline
   expose :merge_pipeline, with: PipelineDetailsEntity, if: ->(mr, _) { mr.merged? && can?(request.current_user, :read_pipeline, mr.target_project)}
 
+  expose :commits, using: MergeRequestWidgetCommitEntity
+  expose :commits_count
+
   # Booleans
   expose :merge_ongoing?, as: :merge_ongoing
   expose :work_in_progress?, as: :work_in_progress
@@ -77,7 +80,6 @@ class MergeRequestWidgetEntity < IssuableEntity
   end
 
   expose :branch_missing?, as: :branch_missing
-  expose :commits_count
   expose :cannot_be_merged?, as: :has_conflicts
   expose :can_be_merged?, as: :can_be_merged
   expose :mergeable?, as: :mergeable
