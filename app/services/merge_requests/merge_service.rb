@@ -93,7 +93,7 @@ module MergeRequests
     end
 
     def try_merge
-      message = params[:commit_message] || merge_request.merge_commit_message
+      message = params[:commit_message] || merge_request.default_merge_commit_message
 
       repository.merge(current_user, source, merge_request, message)
     rescue Gitlab::Git::PreReceiveError => e

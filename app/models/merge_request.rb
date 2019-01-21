@@ -937,7 +937,7 @@ class MergeRequest < ActiveRecord::Base
     self.target_project.repository.branch_exists?(self.target_branch)
   end
 
-  def merge_commit_message(include_description: false)
+  def default_merge_commit_message(include_description: false)
     closes_issues_references = visible_closing_issues_for.map do |issue|
       issue.to_reference(target_project)
     end
@@ -955,6 +955,12 @@ class MergeRequest < ActiveRecord::Base
     message << "See merge request #{to_reference(full: true)}"
 
     message.join("\n\n")
+  end
+
+  def default_squash_commit_message
+    strong_memoize(:default_squash_commit_message) do
+      commits.without_merge_commits.map(&:safe_message).max_by(&:length)
+    end
   end
 
   def reset_merge_when_pipeline_succeeds
