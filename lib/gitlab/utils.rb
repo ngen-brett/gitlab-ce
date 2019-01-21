@@ -67,7 +67,7 @@ module Gitlab
     #   * First/Last Character is not a hyphen
     #   * Truncated from the left side instead of right
     #   * Unshifts a crc32 hash from the original str. Makes Collision very unlikely
-    def left_truncate_63_bytes_str(str)
+    def left_truncate_64_bytes_str(str)
       crc32_hash = Zlib.crc32(str)
 
       return str.downcase

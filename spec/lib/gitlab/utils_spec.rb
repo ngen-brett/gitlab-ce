@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Gitlab::Utils do
-  delegate :to_boolean, :boolean_to_yes_no, :slugify, :left_truncate_63_bytes_str, 
+  delegate :to_boolean, :boolean_to_yes_no, :slugify, :left_truncate_64_bytes_str, 
     :random_string, :which, :ensure_array_from_string, :bytes_to_megabytes, :append_path, 
     :check_path_traversal!, to: :described_class
 
@@ -45,7 +45,7 @@ describe Gitlab::Utils do
     end
   end
 
-  describe '.left_truncate_63_bytes_str' do
+  describe '.left_truncate_64_bytes_str' do
     {
       'TEST' => '4008350648test',
       'project_with_underscores' => '3129705014project-with-underscores',
@@ -54,7 +54,7 @@ describe Gitlab::Utils do
       'test_trailing_' => '2891574137test-trailing'
     }.each do |original, expected|
       it "slugifies #{original} to #{expected}" do
-        expect(left_truncate_63_bytes_str(original)).to eq(expected)
+        expect(left_truncate_64_bytes_str(original)).to eq(expected)
       end
     end
   end
