@@ -1,9 +1,26 @@
 <script>
+import { pluralize } from '~/lib/utils/text_utility';
 import Icon from '~/vue_shared/components/icon.vue';
 
 export default {
   components: {
     Icon,
+  },
+  props: {
+    isSquashEnabled: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    commitsCount: {
+      type: Number,
+      required: false,
+    },
+    targetBranch: {
+      type: String,
+      required: true,
+      default: '',
+    },
   },
   data() {
     return {
@@ -19,6 +36,11 @@ export default {
     collapseIcon() {
       return this.isCommitExpanded ? 'chevron-down' : 'chevron-right';
     },
+    commitsCountMessage() {
+      return this.isSquashEnabled
+        ? '1 commit'
+        : `${this.commitsCount} ${pluralize('commit', this.commitsCount)}`;
+    },
   },
 };
 </script>
@@ -33,9 +55,12 @@ export default {
       :name="collapseIcon"
       :size="16"
       aria-hidden="true"
-      class="diff-toggle-caret append-right-5"
+      class="diff-toggle-caret commits-header-icon"
       @click.stop="handleToggleCommits"
     />
-    <span>Test</span>
+    <span>
+      <strong>{{ commitsCountMessage }}</strong> and <strong>1 merge commit</strong> will be added
+      to <span class="label-branch">{{ targetBranch }}</span></span
+    >
   </div>
 </template>

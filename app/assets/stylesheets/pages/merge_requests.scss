@@ -96,6 +96,11 @@
   .mr-widget-commits-count {
     border-bottom: 1px solid $border-color;
     justify-content: flex-start;
+
+    .commits-header-icon {
+      margin-left: 3px;
+      margin-right: 14px;
+    }
   }
   
   .mr-widget-footer {
