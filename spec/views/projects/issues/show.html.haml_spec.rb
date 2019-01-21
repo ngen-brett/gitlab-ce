@@ -47,7 +47,6 @@ describe 'projects/issues/show' do
       render
 
       expect(rendered).to have_selector('.status-box-issue-closed:not(.hidden)', text: 'Closed (moved)')
-
     end
 
     it 'shows "Closed" if an issue has been moved' do
