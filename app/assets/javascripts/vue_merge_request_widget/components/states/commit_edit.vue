@@ -26,7 +26,7 @@ export default {
         <label class="col-form-label" for="commit-message">
           <strong>Squash commit message</strong>
         </label>
-        <button type="button" class="btn-link btn-blank">
+        <button v-if="squash" type="button" class="btn-link btn-blank">
           Use an existing commit message
           <icon
             name="chevron-down"
@@ -37,17 +37,19 @@ export default {
           />
         </button>
       </div>
-      <div class="commit-message-container">
-        <textarea
-          id="commit-message"
-          :value="value"
-          @input="$emit('input', $event.target.value)"
-          class="form-control js-commit-message"
-          required="required"
-          rows="14"
-          name="Commit message"
-        ></textarea>
-      </div>
+      <textarea
+        id="commit-message"
+        :value="value"
+        @input="$emit('input', $event.target.value)"
+        class="form-control js-commit-message"
+        required="required"
+        rows="14"
+        name="Commit message"
+      ></textarea>
+      <label>
+        <input id="include-all-commits" class="js-remove-source-branch-checkbox" type="checkbox" />
+        Include all commit messages
+      </label>
     </div>
   </li>
 </template>
