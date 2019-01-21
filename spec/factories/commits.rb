@@ -30,6 +30,12 @@ FactoryBot.define do
       allow(commit).to receive(:parent_ids).and_return([])
     end
 
+    trait :merge_commit do
+      after(:build) do |commit|
+        allow(commit).to receive(:parent_ids).and_return(Array.new(2) { SecureRandom.hex(20) })
+      end
+    end
+
     trait :without_author do
       after(:build) do |commit|
         allow(commit).to receive(:author).and_return nil
