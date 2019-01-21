@@ -8,6 +8,7 @@ import Flash from '../../../flash';
 import statusIcon from '../mr_widget_status_icon.vue';
 import eventHub from '../../event_hub';
 import SquashBeforeMerge from './squash_before_merge.vue';
+import CommitsHeader from './commits_header.vue';
 import MergeCommitDetails from './merge_commit_details.vue';
 
 export default {
@@ -15,6 +16,8 @@ export default {
   components: {
     statusIcon,
     SquashBeforeMerge,
+    MergeCommitDetails,
+    CommitsHeader,
   },
   props: {
     mr: { type: Object, required: true },
@@ -263,130 +266,114 @@ export default {
 </script>
 
 <template>
-  <div class="mr-widget-body media">
-    <status-icon :status="iconClass" />
-    <div class="media-body">
-      <div class="mr-widget-body-controls media space-children">
-        <span class="btn-group">
-          <button
-            :disabled="isMergeButtonDisabled"
-            :class="mergeButtonClass"
-            type="button"
-            class="qa-merge-button"
-            @click="handleMergeButtonClick()"
-          >
-            <i v-if="isMakingRequest" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
-            {{ mergeButtonText }}
-          </button>
-          <button
-            v-if="shouldShowMergeOptionsDropdown"
-            :disabled="isMergeButtonDisabled"
-            type="button"
-            class="btn btn-sm btn-info dropdown-toggle js-merge-moment"
-            data-toggle="dropdown"
-            aria-label="Select merge moment"
-          >
-            <i class="fa fa-chevron-down qa-merge-moment-dropdown" aria-hidden="true"></i>
-          </button>
-          <ul
-            v-if="shouldShowMergeOptionsDropdown"
-            class="dropdown-menu dropdown-menu-right"
-            role="menu"
-          >
-            <li>
-              <a
-                class="merge_when_pipeline_succeeds qa-merge-when-pipeline-succeeds-option"
-                href="#"
-                @click.prevent="handleMergeButtonClick(true)"
-              >
-                <span class="media">
-                  <span class="merge-opt-icon" aria-hidden="true" v-html="successSvg"></span>
-                  <span class="media-body merge-opt-title">Merge when pipeline succeeds</span>
-                </span>
-              </a>
-            </li>
-            <li>
-              <a
-                class="accept-merge-request qa-merge-immediately-option"
-                href="#"
-                @click.prevent="handleMergeButtonClick(false, true)"
-              >
-                <span class="media">
-                  <span class="merge-opt-icon" aria-hidden="true" v-html="warningSvg"></span>
-                  <span class="media-body merge-opt-title">Merge immediately</span>
-                </span>
-              </a>
-            </li>
-          </ul>
-        </span>
-        <div class="media-body-wrap">
-          <template v-if="shouldShowMergeControls()">
-            <div class="mr-widget-checkboxes space-shildren">
-              <label v-if="mr.canRemoveSourceBranch">
-                <input
-                  id="remove-source-branch-input"
-                  v-model="removeSourceBranch"
-                  :disabled="isRemoveSourceBranchButtonDisabled"
-                  class="js-remove-source-branch-checkbox"
-                  type="checkbox"
-                />
-                Remove source branch
-              </label>
-
-              <!-- Placeholder for EE extension of this component -->
-              <squash-before-merge
-                v-if="shouldShowSquashBeforeMerge"
-                v-model="squashBeforeMerge"
-                :help-path="mr.squashBeforeMergeHelpPath"
-                :is-disabled="isMergeButtonDisabled"
-              />
-
-            <!-- Placeholder for EE extension of this component -->
-            <squash-before-merge
-              v-if="shouldShowSquashBeforeMerge"
-              v-model="squashBeforeMerge"
-              :help-path="mr.squashBeforeMergeHelpPath"
-              :is-disabled="isMergeButtonDisabled"
-            />
-
-              <button
-                v-else
-                :disabled="isMergeButtonDisabled"
-                class="js-modify-commit-message-button btn btn-default btn-sm"
-                type="button"
-                @click="toggleCommitMessageEditor"
-              >
-                Modify commit message
-              </button>
-            </div>
-            <div class="mr-widget-commits-count item-title">{{ commitsCountMessage }}</div>
-            <ul class="content-list commit-list flex-list">
-              <merge-commit-details
-                squash
-                v-if="squashBeforeMerge"
-                v-model="squashCommitMessage"
-                :commit="squashCommit"
-                :isMergeButtonDisabled="isMergeButtonDisabled"
-                :ffOnlyEnabled="mr.ffOnlyEnabled"
-              />
-              <merge-commit-details
-                :commit="mergeCommit"
-                :isMergeButtonDisabled="isMergeButtonDisabled"
-                v-model="commitMessage"
-                :commitMessageLinkTitle="commitMessageLinkTitle"
-                :ffOnlyEnabled="mr.ffOnlyEnabled"
-                @changeCommitMessage="commitMessage = $event;"
-                @updateCommitMessage="updateCommitMessage"
-              />
+  <div>
+    <div class="mr-widget-body media">
+      <status-icon :status="iconClass" />
+      <div class="media-body">
+        <div class="mr-widget-body-controls media space-children">
+          <span class="btn-group">
+            <button
+              :disabled="isMergeButtonDisabled"
+              :class="mergeButtonClass"
+              type="button"
+              class="qa-merge-button"
+              @click="handleMergeButtonClick()"
+            >
+              <i v-if="isMakingRequest" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+              {{ mergeButtonText }}
+            </button>
+            <button
+              v-if="shouldShowMergeOptionsDropdown"
+              :disabled="isMergeButtonDisabled"
+              type="button"
+              class="btn btn-sm btn-info dropdown-toggle js-merge-moment"
+              data-toggle="dropdown"
+              aria-label="Select merge moment"
+            >
+              <i class="fa fa-chevron-down qa-merge-moment-dropdown" aria-hidden="true"></i>
+            </button>
+            <ul
+              v-if="shouldShowMergeOptionsDropdown"
+              class="dropdown-menu dropdown-menu-right"
+              role="menu"
+            >
+              <li>
+                <a
+                  class="merge_when_pipeline_succeeds qa-merge-when-pipeline-succeeds-option"
+                  href="#"
+                  @click.prevent="handleMergeButtonClick(true)"
+                >
+                  <span class="media">
+                    <span class="merge-opt-icon" aria-hidden="true" v-html="successSvg"></span>
+                    <span class="media-body merge-opt-title">Merge when pipeline succeeds</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a
+                  class="accept-merge-request qa-merge-immediately-option"
+                  href="#"
+                  @click.prevent="handleMergeButtonClick(false, true)"
+                >
+                  <span class="media">
+                    <span class="merge-opt-icon" aria-hidden="true" v-html="warningSvg"></span>
+                    <span class="media-body merge-opt-title">Merge immediately</span>
+                  </span>
+                </a>
+              </li>
             </ul>
-          </template>
-          <template v-else>
-            <span class="bold js-resolve-mr-widget-items-message">
-              You can only merge once the items above are resolved
-            </span>
-          </template>
+          </span>
+          <div class="media-body-wrap">
+            <template v-if="shouldShowMergeControls()">
+              <div class="space-shildren">
+                <label v-if="mr.canRemoveSourceBranch">
+                  <input
+                    id="remove-source-branch-input"
+                    v-model="removeSourceBranch"
+                    :disabled="isRemoveSourceBranchButtonDisabled"
+                    class="js-remove-source-branch-checkbox"
+                    type="checkbox"
+                  />
+                  Remove source branch
+                </label>
+
+                <!-- Placeholder for EE extension of this component -->
+                <squash-before-merge
+                  v-if="shouldShowSquashBeforeMerge"
+                  v-model="squashBeforeMerge"
+                  :help-path="mr.squashBeforeMergeHelpPath"
+                  :is-disabled="isMergeButtonDisabled"
+                />
+              </div>
+            </template>
+            <template v-else>
+              <span class="bold js-resolve-mr-widget-items-message">
+                You can only merge once the items above are resolved
+              </span>
+            </template>
+          </div>
         </div>
       </div>
     </div>
+    <commits-header></commits-header>
+    <ul class="content-list commit-list flex-list">
+      <merge-commit-details
+        squash
+        v-if="squashBeforeMerge"
+        v-model="squashCommitMessage"
+        :commit="squashCommit"
+        :isMergeButtonDisabled="isMergeButtonDisabled"
+        :ffOnlyEnabled="mr.ffOnlyEnabled"
+      />
+      <merge-commit-details
+        :commit="mergeCommit"
+        :isMergeButtonDisabled="isMergeButtonDisabled"
+        v-model="commitMessage"
+        :commitMessageLinkTitle="commitMessageLinkTitle"
+        :ffOnlyEnabled="mr.ffOnlyEnabled"
+        @changeCommitMessage="commitMessage = $event"
+        @updateCommitMessage="updateCommitMessage"
+      />
+    </ul>
   </div>
 </template>
