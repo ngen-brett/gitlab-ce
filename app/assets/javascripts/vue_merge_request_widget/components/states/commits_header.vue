@@ -21,11 +21,11 @@ export default {
       required: true,
       default: '',
     },
-  },
-  data() {
-    return {
-      isCommitExpanded: false,
-    };
+    expanded: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   methods: {
     handleToggleCommits() {
@@ -34,7 +34,7 @@ export default {
   },
   computed: {
     collapseIcon() {
-      return this.isCommitExpanded ? 'chevron-down' : 'chevron-right';
+      return this.expanded ? 'chevron-down' : 'chevron-right';
     },
     commitsCountMessage() {
       return this.isSquashEnabled
@@ -49,17 +49,17 @@ export default {
   <div
     ref="header"
     class="js-file-title file-title mr-widget-commits-count"
-    :class="{ collapsed: !isCommitExpanded }"
-    @click="handleToggleCommits()"
+    :class="{ collapsed: !expanded }"
+    @click="$emit('toggleCommitsList')"
   >
     <icon
       :name="collapseIcon"
       :size="16"
       aria-hidden="true"
       class="commits-header-icon"
-      @click.stop="handleToggleCommits"
+      @click.stop="$emit('toggleCommitsList')"
     />
-    <span v-if="isCommitExpanded">Collapse</span>
+    <span v-if="expanded">Collapse</span>
     <span v-else>
       <strong>{{ commitsCountMessage }}</strong> and <strong>1 merge commit</strong> will be added
       to <span class="label-branch">{{ targetBranch }}.</span>

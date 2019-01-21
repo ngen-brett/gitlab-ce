@@ -37,6 +37,7 @@ export default {
       successSvg,
       warningSvg,
       squashCommitMessage: 'Test squash commit message',
+      commitsListExpanded: false,
     };
   },
   computed: {
@@ -229,6 +230,9 @@ export default {
           new Flash('Something went wrong while removing the source branch. Please try again.'); // eslint-disable-line
         });
     },
+    toggleCommitsList() {
+      this.commitsListExpanded = !this.commitsListExpanded;
+    },
   },
 };
 </script>
@@ -323,11 +327,13 @@ export default {
     </div>
     <commits-header
       v-if="shouldShowSquashBeforeMerge"
+      :expanded="commitsListExpanded"
       :is-squash-enabled="squashBeforeMerge"
       :commits-count="mr.commitsCount"
       :target-branch="mr.targetBranch"
+      @toggleCommitsList="toggleCommitsList"
     ></commits-header>
-    <ul class="content-list commits-list flex-list">
+    <ul v-if="commitsListExpanded" class="content-list commits-list flex-list">
       <commit-edit squash v-model="squashCommitMessage"></commit-edit>
     </ul>
   </div>
