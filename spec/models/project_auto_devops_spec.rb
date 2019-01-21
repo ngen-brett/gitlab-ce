@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe ProjectAutoDevops do
-  set(:project) { build(:project) }
+  let(:project) { build(:project) }
 
   it_behaves_like 'having unique enum values'
 
