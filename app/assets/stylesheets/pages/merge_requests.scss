@@ -78,7 +78,7 @@
   border-top: 0;
 }
 
-.mr-widget-section,
+.mr-widget-body,
 .mr-widget-content,
 .mr-widget-footer {
   padding: $gl-padding;
@@ -95,13 +95,9 @@
 
   .mr-widget-commits-count {
     border-bottom: 1px solid $border-color;
-  }
-
-  .mr-widget-checkboxes {
-    padding-bottom: $gl-padding;
+    justify-content: flex-start;
   }
   
-
   .mr-widget-footer {
     padding: 0;
   }
