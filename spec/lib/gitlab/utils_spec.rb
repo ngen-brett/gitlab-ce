@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe Gitlab::Utils do
-  delegate :to_boolean, :boolean_to_yes_no, :slugify, :left_truncate_64_bytes_str, 
-    :random_string, :which, :ensure_array_from_string, :bytes_to_megabytes, :append_path, 
+  delegate :to_boolean, :boolean_to_yes_no, :slugify, :left_truncate_64_bytes_str,
+    :random_string, :which, :ensure_array_from_string, :bytes_to_megabytes, :append_path,
     :check_path_traversal!, to: :described_class
 
   describe '.check_path_traversal!' do
