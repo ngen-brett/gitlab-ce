@@ -957,6 +957,12 @@ class MergeRequest < ActiveRecord::Base
     message.join("\n\n")
   end
 
+  def default_squash_commit_message
+    strong_memoize(:default_squash_commit_message) do
+      commits.without_merge_commits.map(&:safe_message).max_by(&:length)
+    end
+  end
+
   def reset_merge_when_pipeline_succeeds
     return unless merge_when_pipeline_succeeds?
 

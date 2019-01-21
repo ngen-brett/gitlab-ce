@@ -56,9 +56,17 @@ class MergeRequestWidgetEntity < IssuableEntity
     merge_request.diff_head_sha.presence
   end
 
-  expose :merge_commit_message
   expose :actual_head_pipeline, with: PipelineDetailsEntity, as: :pipeline
   expose :merge_pipeline, with: PipelineDetailsEntity, if: ->(mr, _) { mr.merged? && can?(request.current_user, :read_pipeline, mr.target_project)}
+
+  expose :merge_commit_message
+  expose :default_squash_commit_message, as: :squash_commit_message
+
+  expose :commits, using: MergeRequestWidgetCommitEntity do |merge_request|
+    merge_request.commits.without_merge_commits
+  end
+
+  expose :commits_count
 
   # Booleans
   expose :merge_ongoing?, as: :merge_ongoing
@@ -77,7 +85,6 @@ class MergeRequestWidgetEntity < IssuableEntity
   end
 
   expose :branch_missing?, as: :branch_missing
-  expose :commits_count
   expose :cannot_be_merged?, as: :has_conflicts
   expose :can_be_merged?, as: :can_be_merged
   expose :mergeable?, as: :mergeable

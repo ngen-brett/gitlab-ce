@@ -176,6 +176,11 @@ describe MergeRequestWidgetEntity do
       .to eq(resource.merge_commit_message(include_description: true))
   end
 
+  it 'has squash_commit_message' do
+    expect(subject[:squash_commit_message])
+      .to eq(resource.default_squash_commit_message)
+  end
+
   describe 'new_blob_path' do
     context 'when user can push to project' do
       it 'returns path' do
@@ -253,6 +258,17 @@ describe MergeRequestWidgetEntity do
       entity = described_class.new(merge_request, request: request).as_json
 
       expect(entity[:rebase_path]).to be_nil
+    end
+  end
+
+  describe 'commits' do
+    it 'should not include merge commits' do
+      allow(resource).to receive(:commits).and_return(CommitCollection.new(project, [
+        build(:commit),
+        build(:commit, :merge_commit)
+      ]))
+
+      expect(subject[:commits].size).to eq(1)
     end
   end
 end
