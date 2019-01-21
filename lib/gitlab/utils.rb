@@ -60,7 +60,7 @@ module Gitlab
 
     # A slugified version of the string, suitable for inclusion in URLs and
     # domain names. Rules:
-    # 
+    #
     #   * Lowercased
     #   * Anything not matching [a-z0-9-] is replaced with a -
     #   * Maximum length is 63 bytes
@@ -68,8 +68,8 @@ module Gitlab
     #   * Truncated from the left side instead of right
     #   * Unshifts a crc32 hash from the original str. Makes Collision very unlikely
     def left_truncate_63_bytes_str(str)
-      crc32_hash = Zlib::crc32(str) 
-      
+      crc32_hash = Zlib.crc32(str)
+
       return str.downcase
         .gsub(/[^a-z0-9]/, '-')
         .reverse[0..53].reverse
