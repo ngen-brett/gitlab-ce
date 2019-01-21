@@ -285,7 +285,7 @@ module ProjectsHelper
 
   # overridden in EE
   def settings_operations_available?
-    false
+    can?(current_user, :read_environment, @project)
   end
 
   private
@@ -335,6 +335,7 @@ module ProjectsHelper
       builds:           :read_build,
       clusters:         :read_cluster,
       serverless:       :read_cluster,
+      error_tracking:   :read_sentry_issue,
       labels:           :read_label,
       issues:           :read_issue,
       project_members:  :read_project_member,
@@ -549,6 +550,7 @@ module ProjectsHelper
       services#edit
       repository#show
       ci_cd#show
+      operations#show
       badges#index
       pages#show
     ]
@@ -578,6 +580,7 @@ module ProjectsHelper
       environments
       clusters
       functions
+      error_tracking
       user
       gcp
     ]

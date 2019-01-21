@@ -45,10 +45,10 @@ this filepath should be **relative** to the root.
 
 Here are some valid examples:
 
-> * .gitlab-ci.yml
-> * .my-custom-file.yml
-> * my/path/.gitlab-ci.yml
-> * my/path/.my-custom-file.yml
+- `.gitlab-ci.yml`
+- `.my-custom-file.yml`
+- `my/path/.gitlab-ci.yml`
+- `my/path/.my-custom-file.yml`
 
 ## Test coverage parsing
 
@@ -157,7 +157,27 @@ into your `README.md`:
 ![coverage](https://gitlab.com/gitlab-org/gitlab-ce/badges/master/coverage.svg?job=coverage)
 ```
 
-### Environment Variables
+### Badge styles
+
+Pipeline badges can be rendered in different styles by adding the `style=style_name` parameter to the URL. Currently two styles are available:
+
+#### Flat (default)
+
+```
+https://example.gitlab.com/<namespace>/<project>/badges/<branch>/coverage.svg?style=flat
+```
+
+![Badge flat style](https://gitlab.com/gitlab-org/gitlab-ce/badges/master/coverage.svg?job=coverage&style=flat)
+
+#### Flat square
+
+```
+https://example.gitlab.com/<namespace>/<project>/badges/<branch>/coverage.svg?style=flat-square
+```
+
+![Badge flat square style](https://gitlab.com/gitlab-org/gitlab-ce/badges/master/coverage.svg?job=coverage&style=flat-square)
+
+## Environment Variables
 
 [Environment variables](../../../ci/variables/README.html#variables) can be set in an environment to be available to a runner.
 

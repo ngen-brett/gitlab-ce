@@ -6,8 +6,7 @@ import { createLocalVue, shallowMount } from '@vue/test-utils';
 
 const commitMessage = 'This is the commit message';
 const commitMessageWithDescription = 'This is the commit message description';
-const createComponent = (customConfig = {}) => {
-  const Component = Vue.extend(ReadyToMerge);
+const createTestMr = customConfig => {
   const mr = {
     isPipelineActive: false,
     pipeline: null,
@@ -18,6 +17,7 @@ const createComponent = (customConfig = {}) => {
     hasCI: false,
     ciStatus: null,
     sha: '12345678',
+    squash: false,
     commitMessage,
     commitMessageWithDescription,
     shouldRemoveSourceBranch: true,
@@ -26,14 +26,23 @@ const createComponent = (customConfig = {}) => {
 
   Object.assign(mr, customConfig.mr);
 
-  const service = {
-    merge() {},
-    poll() {},
-  };
+  return mr;
+};
+
+const createTestService = () => ({
+  merge() {},
+  poll() {},
+});
+
+const createComponent = (customConfig = {}) => {
+  const Component = Vue.extend(ReadyToMerge);
 
   return new Component({
     el: document.createElement('div'),
-    propsData: { mr, service },
+    propsData: {
+      mr: createTestMr(customConfig),
+      service: createTestService(),
+    },
   });
 };
 
@@ -607,35 +616,14 @@ describe('ReadyToMerge', () => {
 
   describe('Squash checkbox component', () => {
     let wrapper;
+    const localVue = createLocalVue();
 
     const createLocalComponent = (customConfig = {}) => {
-      const mr = {
-        isPipelineActive: false,
-        pipeline: null,
-        isPipelineFailed: false,
-        isPipelinePassing: false,
-        isMergeAllowed: true,
-        onlyAllowMergeIfPipelineSucceeds: false,
-        hasCI: false,
-        ciStatus: null,
-        sha: '12345678',
-        squash: false,
-        commitMessage,
-        commitMessageWithDescription,
-        shouldRemoveSourceBranch: true,
-        canRemoveSourceBranch: false,
-      };
-
-      Object.assign(mr, customConfig.mr);
-
-      const service = { merge() {}, poll() {} };
-
-      const localVue = createLocalVue();
       wrapper = shallowMount(localVue.extend(ReadyToMerge), {
         localVue,
         propsData: {
-          mr,
-          service,
+          mr: createTestMr(customConfig),
+          service: createTestService(),
         },
       });
     };
@@ -697,10 +685,6 @@ describe('ReadyToMerge', () => {
 
       it('does not show remove source branch checkbox', () => {
         expect(vm.$el.querySelector('.js-remove-source-branch-checkbox')).toBeNull();
-      });
-
-      it('does not show  modify commit message button', () => {
-        expect(vm.$el.querySelector('.js-modify-commit-message-button')).toBeNull();
       });
 
       it('shows message to resolve all items before being allowed to merge', () => {

@@ -502,6 +502,7 @@ describe('DiffsStoreUtils', () => {
               fileHash: 'test',
               key: 'app/index.js',
               name: 'index.js',
+              parentPath: 'app/',
               path: 'app/index.js',
               removedLines: 10,
               tempFile: false,
@@ -522,6 +523,7 @@ describe('DiffsStoreUtils', () => {
                   fileHash: 'test',
                   key: 'app/test/index.js',
                   name: 'index.js',
+                  parentPath: 'app/test/',
                   path: 'app/test/index.js',
                   removedLines: 0,
                   tempFile: true,
@@ -535,6 +537,7 @@ describe('DiffsStoreUtils', () => {
                   fileHash: 'test',
                   key: 'app/test/filepathneedstruncating.js',
                   name: 'filepathneedstruncating.js',
+                  parentPath: 'app/test/',
                   path: 'app/test/filepathneedstruncating.js',
                   removedLines: 0,
                   tempFile: true,
@@ -548,6 +551,7 @@ describe('DiffsStoreUtils', () => {
         },
         {
           key: 'package.json',
+          parentPath: '/',
           path: 'package.json',
           name: 'package.json',
           type: 'blob',
@@ -595,6 +599,125 @@ describe('DiffsStoreUtils', () => {
 
     it('defaults to replaced', () => {
       expect(utils.getDiffMode({})).toBe('replaced');
+    });
+  });
+
+  describe('getLowestSingleFolder', () => {
+    it('returns path and tree of lowest single folder tree', () => {
+      const folder = {
+        name: 'app',
+        type: 'tree',
+        tree: [
+          {
+            name: 'javascripts',
+            type: 'tree',
+            tree: [
+              {
+                type: 'blob',
+                name: 'index.js',
+              },
+            ],
+          },
+        ],
+      };
+      const { path, treeAcc } = utils.getLowestSingleFolder(folder);
+
+      expect(path).toEqual('app/javascripts');
+      expect(treeAcc).toEqual([
+        {
+          type: 'blob',
+          name: 'index.js',
+        },
+      ]);
+    });
+
+    it('returns passed in folders path & tree when more than tree exists', () => {
+      const folder = {
+        name: 'app',
+        type: 'tree',
+        tree: [
+          {
+            name: 'spec',
+            type: 'blob',
+            tree: [],
+          },
+        ],
+      };
+      const { path, treeAcc } = utils.getLowestSingleFolder(folder);
+
+      expect(path).toEqual('app');
+      expect(treeAcc).toBeNull();
+    });
+  });
+
+  describe('flattenTree', () => {
+    it('returns flattened directory structure', () => {
+      const tree = [
+        {
+          type: 'tree',
+          name: 'app',
+          tree: [
+            {
+              type: 'tree',
+              name: 'javascripts',
+              tree: [
+                {
+                  type: 'blob',
+                  name: 'index.js',
+                  tree: [],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          type: 'tree',
+          name: 'spec',
+          tree: [
+            {
+              type: 'tree',
+              name: 'javascripts',
+              tree: [],
+            },
+            {
+              type: 'blob',
+              name: 'index_spec.js',
+              tree: [],
+            },
+          ],
+        },
+      ];
+      const flattened = utils.flattenTree(tree);
+
+      expect(flattened).toEqual([
+        {
+          type: 'tree',
+          name: 'app/javascripts',
+          tree: [
+            {
+              type: 'blob',
+              name: 'index.js',
+              tree: [],
+            },
+          ],
+        },
+        {
+          type: 'tree',
+          name: 'spec',
+          tree: [
+            {
+              type: 'tree',
+              name: 'javascripts',
+              tree: [],
+            },
+            {
+              type: 'blob',
+              name: 'index_spec.js',
+              tree: [],
+            },
+          ],
+        },
+      ]);
     });
   });
 });
