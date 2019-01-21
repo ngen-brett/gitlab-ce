@@ -118,6 +118,7 @@
     }
 
     &.collapsed {
+      border-bottom: none;
       .commits-header-icon {
         color: $gray-700;
       }
@@ -130,6 +131,18 @@
 
     & > li {
       padding: 0;
+    }
+
+    .commit-message-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .btn-link {
+        display: flex;
+        align-items: center;
+        text-decoration: none
+      }
     }
   }
   
