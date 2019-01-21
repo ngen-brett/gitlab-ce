@@ -94,8 +94,23 @@
   }
 
   .mr-widget-commits-count {
+    display: flex;
+    align-items: center;
     border-bottom: 1px solid $border-color;
     justify-content: flex-start;
+    background-color: #fafafa;
+    padding: 5px 16px;
+    margin: 0;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #ccc;
+          
+      .btn-link {
+        text-decoration: none
+      }
+    }
 
     .commits-header-icon {
       margin-left: 3px;

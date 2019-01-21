@@ -48,7 +48,7 @@ export default {
 <template>
   <div
     ref="header"
-    class="js-file-title file-title file-title-flex-parent mr-widget-commits-count"
+    class="js-file-title file-title mr-widget-commits-count"
     @click="handleToggleCommits()"
   >
     <icon
@@ -60,7 +60,8 @@ export default {
     />
     <span>
       <strong>{{ commitsCountMessage }}</strong> and <strong>1 merge commit</strong> will be added
-      to <span class="label-branch">{{ targetBranch }}</span></span
-    >
+      to <span class="label-branch">{{ targetBranch }}.</span>
+      <button type="button" class="btn-link btn-blank ">Modify commit message</button>
+    </span>
   </div>
 </template>
