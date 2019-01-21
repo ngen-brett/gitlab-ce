@@ -9,15 +9,15 @@ import statusIcon from '../mr_widget_status_icon.vue';
 import eventHub from '../../event_hub';
 import SquashBeforeMerge from './squash_before_merge.vue';
 import CommitsHeader from './commits_header.vue';
-import MergeCommitDetails from './merge_commit_details.vue';
+import CommitEdit from './commit_edit.vue';
 
 export default {
   name: 'ReadyToMerge',
   components: {
     statusIcon,
     SquashBeforeMerge,
-    MergeCommitDetails,
     CommitsHeader,
+    CommitEdit,
   },
   props: {
     mr: { type: Object, required: true },
@@ -34,33 +34,9 @@ export default {
       isMergingImmediately: false,
       commitMessage: this.mr.commitMessage,
       squashBeforeMerge: this.mr.squash,
-      // Mock property to represent squash commit message
-      squashCommitMessage: 'Test squash commit message',
       successSvg,
       warningSvg,
-      // TODO: change this to mr.merge_commit and mr.squash_commit when present in API
-      mergeCommit: {
-        author: {
-          avatar_url:
-            'https://www.gravatar.com/avatar/79e8be0c27f341afc67c0ab9f9030d17?s=72&amp;d=identicon',
-          id: '12345',
-          name: 'Ash Mackenzie',
-        },
-        author_email: 'amckenzie@gitlab.com',
-        authored_date: '2018-12-05',
-      },
-      squashCommit: {
-        author: {
-          avatar_url:
-            'https://www.gravatar.com/avatar/79e8be0c27f341afc67c0ab9f9030d17?s=72&amp;d=identicon',
-          id: '12345',
-          name: 'Ash Mackenzie',
-        },
-        author_email: 'amckenzie@gitlab.com',
-        authored_date: '2018-12-05',
-        title_html: 'Test squash commit message',
-        description_html: 'Test description!',
-      },
+      squashCommitMessage: 'Test squash commit message',
     };
   },
   computed: {
@@ -351,24 +327,8 @@ export default {
       :commits-count="mr.commitsCount"
       :target-branch="mr.targetBranch"
     ></commits-header>
-    <ul class="content-list commit-list flex-list">
-      <merge-commit-details
-        squash
-        v-if="squashBeforeMerge"
-        v-model="squashCommitMessage"
-        :commit="squashCommit"
-        :isMergeButtonDisabled="isMergeButtonDisabled"
-        :ffOnlyEnabled="mr.ffOnlyEnabled"
-      />
-      <merge-commit-details
-        :commit="mergeCommit"
-        :isMergeButtonDisabled="isMergeButtonDisabled"
-        v-model="commitMessage"
-        :commitMessageLinkTitle="commitMessageLinkTitle"
-        :ffOnlyEnabled="mr.ffOnlyEnabled"
-        @changeCommitMessage="commitMessage = $event"
-        @updateCommitMessage="updateCommitMessage"
-      />
+    <ul class="content-list commits-list flex-list">
+      <commit-edit squash v-model="squashCommitMessage"></commit-edit>
     </ul>
   </div>
 </template>

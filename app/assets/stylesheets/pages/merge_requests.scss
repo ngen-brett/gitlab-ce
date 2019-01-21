@@ -123,6 +123,15 @@
       }
     }
   }
+
+  .commits-list {
+    padding: $gl-padding;
+    padding-left: 50px;
+
+    & > li {
+      padding: 0;
+    }
+  }
   
   .mr-widget-footer {
     padding: 0;
