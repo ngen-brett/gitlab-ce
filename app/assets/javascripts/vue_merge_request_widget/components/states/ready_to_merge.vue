@@ -315,28 +315,26 @@ export default {
               </li>
             </ul>
           </span>
-          <div class="media-body-wrap">
+          <div class="media-body-wrap space-children">
             <template v-if="shouldShowMergeControls()">
-              <div class="space-shildren">
-                <label v-if="mr.canRemoveSourceBranch">
-                  <input
-                    id="remove-source-branch-input"
-                    v-model="removeSourceBranch"
-                    :disabled="isRemoveSourceBranchButtonDisabled"
-                    class="js-remove-source-branch-checkbox"
-                    type="checkbox"
-                  />
-                  Remove source branch
-                </label>
-
-                <!-- Placeholder for EE extension of this component -->
-                <squash-before-merge
-                  v-if="shouldShowSquashBeforeMerge"
-                  v-model="squashBeforeMerge"
-                  :help-path="mr.squashBeforeMergeHelpPath"
-                  :is-disabled="isMergeButtonDisabled"
+              <label v-if="mr.canRemoveSourceBranch">
+                <input
+                  id="remove-source-branch-input"
+                  v-model="removeSourceBranch"
+                  :disabled="isRemoveSourceBranchButtonDisabled"
+                  class="js-remove-source-branch-checkbox"
+                  type="checkbox"
                 />
-              </div>
+                Remove source branch
+              </label>
+
+              <!-- Placeholder for EE extension of this component -->
+              <squash-before-merge
+                v-if="shouldShowSquashBeforeMerge"
+                v-model="squashBeforeMerge"
+                :help-path="mr.squashBeforeMergeHelpPath"
+                :is-disabled="isMergeButtonDisabled"
+              />
             </template>
             <template v-else>
               <span class="bold js-resolve-mr-widget-items-message">
