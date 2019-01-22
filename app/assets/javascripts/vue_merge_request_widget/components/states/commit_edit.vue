@@ -14,6 +14,10 @@ export default {
       type: Boolean,
       required: false,
     },
+    commits: {
+      type: Array,
+      required: false,
+    },
   },
   data() {
     return {
@@ -36,7 +40,7 @@ export default {
         <label class="col-form-label" for="commit-message">
           <strong>{{ labelMessage }}</strong>
         </label>
-        <button v-if="squash" type="button" class="btn-link btn-blank">
+        <button v-if="squash && commits.length" type="button" class="btn-link btn-blank">
           Use an existing commit message
           <icon
             name="chevron-down"

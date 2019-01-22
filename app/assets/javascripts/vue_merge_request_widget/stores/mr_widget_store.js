@@ -42,7 +42,7 @@ export default class MergeRequestStore {
     this.mergePipeline = data.merge_pipeline || {};
     this.deployments = this.deployments || data.deployments || [];
     this.postMergeDeployments = this.postMergeDeployments || [];
-    this.commits = data.commits;
+    this.commits = data.commits || [];
     this.initRebase(data);
 
     if (data.issues_links) {
