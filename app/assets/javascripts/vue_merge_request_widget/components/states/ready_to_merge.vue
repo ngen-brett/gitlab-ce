@@ -38,6 +38,7 @@ export default {
       warningSvg,
       squashCommitMessage: 'Test squash commit message',
       commitsListExpanded: false,
+      includeAllCommitsToSquashMessage: false,
     };
   },
   computed: {
@@ -117,6 +118,12 @@ export default {
       const { commitsCount, enableSquashBeforeMerge } = this.mr;
       return enableSquashBeforeMerge && commitsCount > 1;
     },
+    allCommitMessages() {
+      return this.mr.commits.reduce(
+        (acc, current) => (acc ? acc + '\n\r' + current.title : current.title),
+        null,
+      );
+    },
   },
   methods: {
     shouldShowMergeControls() {
@@ -126,6 +133,12 @@ export default {
       const cmwd = this.mr.commitMessageWithDescription;
       this.useCommitMessageWithDescription = !this.useCommitMessageWithDescription;
       this.commitMessage = this.useCommitMessageWithDescription ? cmwd : this.mr.commitMessage;
+    },
+    updateSquashCommitMessage() {
+      this.includeAllCommitsToSquashMessage = !this.includeAllCommitsToSquashMessage;
+      this.squashCommitMessage = this.includeAllCommitsToSquashMessage
+        ? this.allCommitMessages
+        : 'Test squash message';
     },
     handleMergeButtonClick(mergeWhenBuildSucceeds, mergeImmediately) {
       // TODO: Remove no-param-reassign
@@ -334,10 +347,15 @@ export default {
       @toggleCommitsList="toggleCommitsList"
     ></commits-header>
     <ul v-if="commitsListExpanded" class="content-list commits-list flex-list">
-      <commit-edit v-if="squashBeforeMerge" squash v-model="squashCommitMessage"></commit-edit>
+      <commit-edit
+        v-if="squashBeforeMerge"
+        v-model="squashCommitMessage"
+        :commits="mr.commits"
+        @updateCommitMessage="updateSquashCommitMessage()"
+        squash
+      ></commit-edit>
       <commit-edit
         v-model="commitMessage"
-        :commits="commits"
         @updateCommitMessage="updateMergeCommitMessage()"
       ></commit-edit>
     </ul>

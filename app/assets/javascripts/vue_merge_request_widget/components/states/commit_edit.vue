@@ -19,12 +19,6 @@ export default {
       required: false,
     },
   },
-  data() {
-    return {
-      includeAllCommitMessages: false,
-      includeMergeCommitDescription: false,
-    };
-  },
   computed: {
     labelMessage() {
       return this.squash ? 'Squash commit message' : 'Merge commit message';
@@ -61,16 +55,11 @@ export default {
         name="Commit message"
       ></textarea>
       <label v-if="squash">
-        <input v-model="includeAllCommitMessages" id="include-all-commits" type="checkbox" />
+        <input id="include-all-commits" type="checkbox" @change="$emit('updateCommitMessage')" />
         Include all commit messages
       </label>
       <label v-else>
-        <input
-          v-model="includeMergeCommitDescription"
-          id="include-description"
-          type="checkbox"
-          @change="$emit('updateCommitMessage')"
-        />
+        <input id="include-description" type="checkbox" @change="$emit('updateCommitMessage')" />
         Include merge commit description
       </label>
     </div>
