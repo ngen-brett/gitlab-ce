@@ -337,6 +337,7 @@ export default {
       <commit-edit v-if="squashBeforeMerge" squash v-model="squashCommitMessage"></commit-edit>
       <commit-edit
         v-model="commitMessage"
+        :commits="commits"
         @updateCommitMessage="updateMergeCommitMessage()"
       ></commit-edit>
     </ul>
