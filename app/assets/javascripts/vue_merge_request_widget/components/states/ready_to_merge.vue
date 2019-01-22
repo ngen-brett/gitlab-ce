@@ -325,7 +325,7 @@ export default {
       :target-branch="mr.targetBranch"
       @toggleCommitsList="toggleCommitsList"
     ></commits-header>
-    <ul v-if="commitsListExpanded" class="content-list commits-list flex-list">
+    <ul v-show="commitsListExpanded" class="content-list commits-list flex-list">
       <commit-edit
         v-if="squashBeforeMerge"
         v-model="squashCommitMessage"
