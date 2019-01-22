@@ -335,7 +335,10 @@ export default {
     ></commits-header>
     <ul v-if="commitsListExpanded" class="content-list commits-list flex-list">
       <commit-edit v-if="squashBeforeMerge" squash v-model="squashCommitMessage"></commit-edit>
-      <commit-edit v-model="commitMessage"></commit-edit>
+      <commit-edit
+        v-model="commitMessage"
+        @updateCommitMessage="updateCommitMessage()"
+      ></commit-edit>
     </ul>
   </div>
 </template>
