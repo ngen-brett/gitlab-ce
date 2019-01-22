@@ -33,7 +33,7 @@ export default {
     allCommitMessages() {
       return this.commits.reduce(
         (acc, current) => (acc ? acc + '\n\r' + current.title : current.title),
-        null,
+        '',
       );
     },
   },
@@ -58,7 +58,7 @@ export default {
         <label class="col-form-label" for="commit-message">
           <strong>{{ labelMessage }}</strong>
         </label>
-        <template v-if="squash && commits.length && !allCommitsIncluded">
+        <template v-if="squash && !allCommitsIncluded">
           <button
             type="button"
             class="btn-link btn-blank"
