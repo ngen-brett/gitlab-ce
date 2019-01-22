@@ -27,15 +27,15 @@ export default {
     return {
       removeSourceBranch: this.mr.shouldRemoveSourceBranch,
       mergeWhenBuildSucceeds: false,
-      useCommitMessageWithDescription: false,
+      useMergeMessageWithDescription: false,
       setToMergeWhenPipelineSucceeds: false,
-      showCommitMessageEditor: false,
       isMakingRequest: false,
       isMergingImmediately: false,
       commitMessage: this.mr.commitMessage,
       squashBeforeMerge: this.mr.squash,
       successSvg,
       warningSvg,
+      // TODO: replace with mr.squashCommitMessage when available
       squashCommitMessage: 'Test squash commit message',
       commitsListExpanded: false,
     };
@@ -43,12 +43,6 @@ export default {
   computed: {
     shouldShowMergeWhenPipelineSucceedsText() {
       return this.mr.isPipelineActive;
-    },
-    commitMessageLinkTitle() {
-      const withDesc = 'Include description in commit message';
-      const withoutDesc = "Don't include description in commit message";
-
-      return this.useCommitMessageWithDescription ? withoutDesc : withDesc;
     },
     status() {
       const { pipeline, isPipelineActive, isPipelineFailed, hasCI, ciStatus } = this.mr;
@@ -117,12 +111,6 @@ export default {
       const { commitsCount, enableSquashBeforeMerge } = this.mr;
       return enableSquashBeforeMerge && commitsCount > 1;
     },
-    allCommitMessages() {
-      return this.mr.commits.reduce(
-        (acc, current) => (acc ? acc + '\n\r' + current.title : current.title),
-        null,
-      );
-    },
   },
   methods: {
     shouldShowMergeControls() {
@@ -132,17 +120,6 @@ export default {
       const cmwd = this.mr.commitMessageWithDescription;
       this.useCommitMessageWithDescription = !this.useCommitMessageWithDescription;
       this.commitMessage = this.useCommitMessageWithDescription ? cmwd : this.mr.commitMessage;
-    },
-    updateSquashCommitMessage(message) {
-      this.squashCommitMessage = message;
-    },
-    includeAllCommits(includeCommits) {
-      if (includeCommits) {
-        this.squashCommitMessage = this.allCommitMessages;
-      } else {
-        // TODO: replace with mr.squashCommitMessage when available
-        this.squashCommitMessage = 'Test';
-      }
     },
     handleMergeButtonClick(mergeWhenBuildSucceeds, mergeImmediately) {
       // TODO: Remove no-param-reassign
@@ -355,8 +332,6 @@ export default {
         v-if="squashBeforeMerge"
         v-model="squashCommitMessage"
         :commits="mr.commits"
-        @updateCommitMessage="updateSquashCommitMessage($event)"
-        @includeAllCommits="includeAllCommits($event)"
         squash
       ></commit-edit>
       <commit-edit
