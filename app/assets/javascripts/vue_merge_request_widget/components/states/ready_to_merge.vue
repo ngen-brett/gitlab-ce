@@ -122,7 +122,7 @@ export default {
     shouldShowMergeControls() {
       return this.mr.isMergeAllowed || this.shouldShowMergeWhenPipelineSucceedsText;
     },
-    updateCommitMessage() {
+    updateMergeCommitMessage() {
       const cmwd = this.mr.commitMessageWithDescription;
       this.useCommitMessageWithDescription = !this.useCommitMessageWithDescription;
       this.commitMessage = this.useCommitMessageWithDescription ? cmwd : this.mr.commitMessage;
@@ -337,7 +337,7 @@ export default {
       <commit-edit v-if="squashBeforeMerge" squash v-model="squashCommitMessage"></commit-edit>
       <commit-edit
         v-model="commitMessage"
-        @updateCommitMessage="updateCommitMessage()"
+        @updateCommitMessage="updateMergeCommitMessage()"
       ></commit-edit>
     </ul>
   </div>
