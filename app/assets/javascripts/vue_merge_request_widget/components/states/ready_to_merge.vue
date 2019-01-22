@@ -317,25 +317,30 @@ export default {
         </div>
       </div>
     </div>
-    <commits-header
-      v-if="shouldShowSquashBeforeMerge"
-      :expanded="commitsListExpanded"
-      :is-squash-enabled="squashBeforeMerge"
-      :commits-count="mr.commitsCount"
-      :target-branch="mr.targetBranch"
-      @toggleCommitsList="toggleCommitsList"
-    ></commits-header>
-    <ul v-show="commitsListExpanded" class="content-list commits-list flex-list">
-      <commit-edit
-        v-if="squashBeforeMerge"
-        v-model="squashCommitMessage"
-        :commits="mr.commits"
-        squash
-      ></commit-edit>
-      <commit-edit
-        v-model="commitMessage"
-        @updateCommitMessage="updateMergeCommitMessage($event)"
-      ></commit-edit>
-    </ul>
+    <div v-if="mr.ffOnlyEnabled" class="js-fast-forward-message">
+      Fast-forward merge without a merge commit
+    </div>
+    <template v-else>
+      <commits-header
+        v-if="shouldShowSquashBeforeMerge"
+        :expanded="commitsListExpanded"
+        :is-squash-enabled="squashBeforeMerge"
+        :commits-count="mr.commitsCount"
+        :target-branch="mr.targetBranch"
+        @toggleCommitsList="toggleCommitsList"
+      ></commits-header>
+      <ul v-show="commitsListExpanded" class="content-list commits-list flex-list">
+        <commit-edit
+          v-if="squashBeforeMerge"
+          v-model="squashCommitMessage"
+          :commits="mr.commits"
+          squash
+        ></commit-edit>
+        <commit-edit
+          v-model="commitMessage"
+          @updateCommitMessage="updateMergeCommitMessage($event)"
+        ></commit-edit>
+      </ul>
+    </template>
   </div>
 </template>
