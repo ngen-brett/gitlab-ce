@@ -17,7 +17,7 @@ export default {
     commits: {
       type: Array,
       required: false,
-      default: [],
+      default: () => [],
     },
   },
   data() {
@@ -74,7 +74,7 @@ export default {
               @click.stop="$emit('toggleCommitsList')"
             />
           </button>
-          <div class="dropdown-menu dropdown-select dropdown-menu-selectable">
+          <div class="dropdown-menu dropdown-menu-right">
             <div class="dropdown-content">
               <ul>
                 <li
@@ -82,7 +82,9 @@ export default {
                   :key="commit.sha"
                   @click="$emit('input', commit.title)"
                 >
-                  {{ commit.title }}
+                  <div class="dropdown-commit">
+                    <span class="dropdown-commit-sha">{{ commit.sha }}</span> {{ commit.title }}
+                  </div>
                 </li>
               </ul>
             </div>
@@ -93,7 +95,7 @@ export default {
         id="commit-message"
         :value="value"
         @input="$emit('input', $event.target.value)"
-        class="form-control js-commit-message"
+        class="form-control js-commit-message js-gfm-input"
         required="required"
         rows="14"
         name="Commit message"
