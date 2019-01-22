@@ -19,9 +19,32 @@ export default {
       required: false,
     },
   },
+  data() {
+    return {
+      allCommitsIncluded: false,
+      tempSquashCommitMessage: '',
+    };
+  },
   computed: {
     labelMessage() {
       return this.squash ? 'Squash commit message' : 'Merge commit message';
+    },
+    allCommitMessages() {
+      return this.commits.reduce(
+        (acc, current) => (acc ? acc + '\n\r' + current.title : current.title),
+        null,
+      );
+    },
+  },
+  methods: {
+    handleAllCommitMessages(showAllCommitMessages) {
+      if (showAllCommitMessages) {
+        this.tempSquashCommitMessage = this.value;
+        this.$emit('input', this.allCommitMessages);
+      } else {
+        this.$emit('input', this.tempSquashCommitMessage);
+        this.tempSquashCommitMessage = '';
+      }
     },
   },
 };
@@ -34,7 +57,7 @@ export default {
         <label class="col-form-label" for="commit-message">
           <strong>{{ labelMessage }}</strong>
         </label>
-        <template v-if="squash && commits.length">
+        <template v-if="squash && commits.length && !allCommitsIncluded">
           <button
             type="button"
             class="btn-link btn-blank"
@@ -56,7 +79,7 @@ export default {
                 <li
                   v-for="commit in commits"
                   :key="commit.sha"
-                  @click="$emit('updateCommitMessage', commit.title)"
+                  @click="$emit('input', commit.title)"
                 >
                   {{ commit.title }}
                 </li>
@@ -76,9 +99,10 @@ export default {
       ></textarea>
       <label v-if="squash">
         <input
+          v-model="allCommitsIncluded"
           id="include-all-commits"
           type="checkbox"
-          @change="$emit('includeAllCommits', $event.target.checked)"
+          @change="handleAllCommitMessages($event.target.checked)"
         />
         Include all commit messages
       </label>

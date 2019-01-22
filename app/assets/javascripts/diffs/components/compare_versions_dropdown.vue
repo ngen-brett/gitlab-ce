@@ -40,6 +40,11 @@ export default {
       default: null,
     },
   },
+  data() {
+    return {
+      allCommitsIncluded: false,
+    };
+  },
   computed: {
     targetVersions() {
       if (this.mergeRequestVersion) {
