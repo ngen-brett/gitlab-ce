@@ -107,7 +107,11 @@ export default {
         Include all commit messages
       </label>
       <label v-else>
-        <input id="include-description" type="checkbox" @change="$emit('updateCommitMessage')" />
+        <input
+          id="include-description"
+          type="checkbox"
+          @change="$emit('updateCommitMessage', $event.target.checked)"
+        />
         Include merge commit description
       </label>
     </div>
