@@ -93,6 +93,11 @@
     border-top: solid 1px $border-color;
   }
 
+  .js-fast-forward-message {
+    padding-left: 50px;
+    padding-bottom: $gl-padding;
+  }
+
   .mr-widget-commits-count {
     display: flex;
     align-items: center;
