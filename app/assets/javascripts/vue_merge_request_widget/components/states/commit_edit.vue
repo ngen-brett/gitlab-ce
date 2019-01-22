@@ -34,16 +34,36 @@ export default {
         <label class="col-form-label" for="commit-message">
           <strong>{{ labelMessage }}</strong>
         </label>
-        <button v-if="squash && commits.length" type="button" class="btn-link btn-blank">
-          Use an existing commit message
-          <icon
-            name="chevron-down"
-            :size="16"
-            aria-hidden="true"
-            class="commits-header-icon"
-            @click.stop="$emit('toggleCommitsList')"
-          />
-        </button>
+        <template v-if="squash && commits.length">
+          <button
+            type="button"
+            class="btn-link btn-blank"
+            data-toggle="dropdown"
+            aria-expanded="false"
+          >
+            Use an existing commit message
+            <icon
+              name="chevron-down"
+              :size="16"
+              aria-hidden="true"
+              class="commits-header-icon"
+              @click.stop="$emit('toggleCommitsList')"
+            />
+          </button>
+          <div class="dropdown-menu dropdown-select dropdown-menu-selectable">
+            <div class="dropdown-content">
+              <ul>
+                <li
+                  v-for="commit in commits"
+                  :key="commit.sha"
+                  @click="$emit('updateCommitMessage', commit.title)"
+                >
+                  {{ commit.title }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </template>
       </div>
       <textarea
         id="commit-message"
@@ -55,7 +75,11 @@ export default {
         name="Commit message"
       ></textarea>
       <label v-if="squash">
-        <input id="include-all-commits" type="checkbox" @change="$emit('updateCommitMessage')" />
+        <input
+          id="include-all-commits"
+          type="checkbox"
+          @change="$emit('includeAllCommits', $event.target.checked)"
+        />
         Include all commit messages
       </label>
       <label v-else>
