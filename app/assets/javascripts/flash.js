@@ -28,7 +28,9 @@ const hideFlash = (flashEl, fadeTransition = true) => {
 const createAction = config => `
   <a
     href="${config.href || '#'}"
-    class="flash-action"
+    class="flash-action ${
+      config.href ? '': 'btn'
+    }"
     ${config.href ? '' : 'role="button"'}
   >
     ${_.escape(config.title)}
