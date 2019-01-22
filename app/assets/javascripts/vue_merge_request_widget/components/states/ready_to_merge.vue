@@ -27,7 +27,6 @@ export default {
     return {
       removeSourceBranch: this.mr.shouldRemoveSourceBranch,
       mergeWhenBuildSucceeds: false,
-      useMergeMessageWithDescription: false,
       setToMergeWhenPipelineSucceeds: false,
       isMakingRequest: false,
       isMergingImmediately: false,
@@ -116,10 +115,9 @@ export default {
     shouldShowMergeControls() {
       return this.mr.isMergeAllowed || this.shouldShowMergeWhenPipelineSucceedsText;
     },
-    updateMergeCommitMessage() {
+    updateMergeCommitMessage(includeDescription) {
       const cmwd = this.mr.commitMessageWithDescription;
-      this.useCommitMessageWithDescription = !this.useCommitMessageWithDescription;
-      this.commitMessage = this.useCommitMessageWithDescription ? cmwd : this.mr.commitMessage;
+      this.commitMessage = includeDescription ? cmwd : this.mr.commitMessage;
     },
     handleMergeButtonClick(mergeWhenBuildSucceeds, mergeImmediately) {
       // TODO: Remove no-param-reassign
@@ -336,7 +334,7 @@ export default {
       ></commit-edit>
       <commit-edit
         v-model="commitMessage"
-        @updateCommitMessage="updateMergeCommitMessage()"
+        @updateCommitMessage="updateMergeCommitMessage($event)"
       ></commit-edit>
     </ul>
   </div>
