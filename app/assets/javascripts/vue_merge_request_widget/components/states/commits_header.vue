@@ -41,6 +41,9 @@ export default {
         ? '1 commit'
         : `${this.commitsCount} ${pluralize('commit', this.commitsCount)}`;
     },
+    modifyLinkMessage() {
+      return this.isSquashEnabled ? 'Modify commit messages' : 'Modify merge commit';
+    },
   },
 };
 </script>
@@ -63,7 +66,7 @@ export default {
     <span v-else>
       <strong>{{ commitsCountMessage }}</strong> and <strong>1 merge commit</strong> will be added
       to <span class="label-branch">{{ targetBranch }}.</span>
-      <button type="button" class="btn-link btn-blank">Modify commit message</button>
+      <button type="button" class="btn-link btn-blank">{{ modifyLinkMessage }}</button>
     </span>
   </div>
 </template>
