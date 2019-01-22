@@ -1,4 +1,5 @@
 import AjaxCache from '~/lib/utils/ajax_cache';
+import { trimFirstCharOfLineContent } from '~/diffs/store/utils';
 
 const REGEX_QUICK_ACTIONS = /^\/\w+.*$/gm;
 
@@ -28,3 +29,10 @@ export const getQuickActionText = note => {
 export const hasQuickActions = note => REGEX_QUICK_ACTIONS.test(note);
 
 export const stripQuickActions = note => note.replace(REGEX_QUICK_ACTIONS, '').trim();
+
+export const prepareDiffLines = diffLines => {
+  for (let u = 0; u < diffLines.length; u += 1) {
+    const line = diffLines[u];
+    Object.assign(line, trimFirstCharOfLineContent(line));
+  }
+};

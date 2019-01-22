@@ -105,7 +105,10 @@ export default {
 
       if (discussion.diff_file) {
         diffData.file_hash = discussion.diff_file.file_hash;
-        diffData.truncated_diff_lines = discussion.truncated_diff_lines || [];
+
+        const diffLines = discussion.truncated_diff_lines || [];
+        utils.prepareDiffLines(diffLines);
+        diffData.truncated_diff_lines = diffLines;
       }
 
       // To support legacy notes, should be very rare case.
@@ -243,6 +246,7 @@ export default {
   [types.SET_DISCUSSION_DIFF_LINES](state, { discussionId, diffLines }) {
     const discussion = utils.findNoteObjectById(state.discussions, discussionId);
 
+    utils.prepareDiffLines(diffLines);
     discussion.truncated_diff_lines = diffLines;
   },
 
