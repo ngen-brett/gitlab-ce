@@ -17,6 +17,7 @@ export default {
     commits: {
       type: Array,
       required: false,
+      default: [],
     },
   },
   data() {
