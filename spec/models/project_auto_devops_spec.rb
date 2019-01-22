@@ -67,6 +67,8 @@ describe ProjectAutoDevops do
           end
 
           it 'returns a 64 bytes truncated version of CI_PRODUCTION_ENVIRONMENT_URL' do
+            puts ">>>>>>>>>>>>> PROJECT FULL PATH: #{project.full_path_slug}"
+            puts ">>>>>>>>>>>>> PROJECT FULL PATH: #{domain.presence || instance_domain}"
             expect(auto_devops.predefined_variables).to include(expected_ci_production_environment_url_var)
           end
         end
@@ -101,6 +103,8 @@ describe ProjectAutoDevops do
           end
 
           it 'returns a 64 bytes truncated version of CI_STAGING_ENVIRONMENT_URL' do
+            puts ">>>>>>>>>>>>> PROJECT FULL PATH: #{project.full_path_slug}"
+            puts ">>>>>>>>>>>>> PROJECT FULL PATH: #{domain.presence || instance_domain}"
             expect(auto_devops.predefined_variables).to include(expected_ci_staging_environment_url_var)
           end
         end
