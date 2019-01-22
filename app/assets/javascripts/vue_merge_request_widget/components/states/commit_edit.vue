@@ -15,16 +15,26 @@ export default {
       required: false,
     },
   },
+  data() {
+    return {
+      includeAllCommitMessages: false,
+      includeMergeCommitDescription: false,
+    };
+  },
+  computed: {
+    labelMessage() {
+      return this.squash ? 'Squash commit message' : 'Merge commit message';
+    },
+  },
 };
 </script>
 
 <template>
   <li>
-    <div v-if="squash"><strong>Commit author placeholder</strong></div>
-    <div class="prepend-top-default commit-message-editor">
+    <div class="commit-message-editor">
       <div class="commit-message-label">
         <label class="col-form-label" for="commit-message">
-          <strong>Squash commit message</strong>
+          <strong>{{ labelMessage }}</strong>
         </label>
         <button v-if="squash" type="button" class="btn-link btn-blank">
           Use an existing commit message
@@ -46,9 +56,13 @@ export default {
         rows="14"
         name="Commit message"
       ></textarea>
-      <label>
-        <input id="include-all-commits" class="js-remove-source-branch-checkbox" type="checkbox" />
+      <label v-if="squash">
+        <input v-model="includeAllCommitMessages" id="include-all-commits" type="checkbox" />
         Include all commit messages
+      </label>
+      <label v-else>
+        <input v-model="includeMergeCommitDescription" id="include-description" type="checkbox" />
+        Include merge commit description
       </label>
     </div>
   </li>

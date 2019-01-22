@@ -146,7 +146,8 @@
     }
 
     .js-commit-message {
-      padding-bottom: $gl-padding;
+      margin-bottom: $gl-padding;
+      height: 140px;
     }
   }
   

@@ -334,7 +334,8 @@ export default {
       @toggleCommitsList="toggleCommitsList"
     ></commits-header>
     <ul v-if="commitsListExpanded" class="content-list commits-list flex-list">
-      <commit-edit squash v-model="squashCommitMessage"></commit-edit>
+      <commit-edit v-if="squashBeforeMerge" squash v-model="squashCommitMessage"></commit-edit>
+      <commit-edit v-model="commitMessage"></commit-edit>
     </ul>
   </div>
 </template>
