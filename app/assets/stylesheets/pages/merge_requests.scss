@@ -126,11 +126,10 @@
   }
 
   .commits-list {
-    padding: $gl-padding;
-    padding-left: 50px;
 
     & > li {
-      padding: 0;
+      padding: $gl-padding;
+      padding-left: 50px;
     }
 
     .commit-message-label {
