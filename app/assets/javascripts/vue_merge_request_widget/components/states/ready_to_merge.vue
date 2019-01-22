@@ -38,7 +38,6 @@ export default {
       warningSvg,
       squashCommitMessage: 'Test squash commit message',
       commitsListExpanded: false,
-      includeAllCommitsToSquashMessage: false,
     };
   },
   computed: {
@@ -134,11 +133,16 @@ export default {
       this.useCommitMessageWithDescription = !this.useCommitMessageWithDescription;
       this.commitMessage = this.useCommitMessageWithDescription ? cmwd : this.mr.commitMessage;
     },
-    updateSquashCommitMessage() {
-      this.includeAllCommitsToSquashMessage = !this.includeAllCommitsToSquashMessage;
-      this.squashCommitMessage = this.includeAllCommitsToSquashMessage
-        ? this.allCommitMessages
-        : 'Test squash message';
+    updateSquashCommitMessage(message) {
+      this.squashCommitMessage = message;
+    },
+    includeAllCommits(includeCommits) {
+      if (includeCommits) {
+        this.squashCommitMessage = this.allCommitMessages;
+      } else {
+        // TODO: replace with mr.squashCommitMessage when available
+        this.squashCommitMessage = 'Test';
+      }
     },
     handleMergeButtonClick(mergeWhenBuildSucceeds, mergeImmediately) {
       // TODO: Remove no-param-reassign
@@ -351,7 +355,8 @@ export default {
         v-if="squashBeforeMerge"
         v-model="squashCommitMessage"
         :commits="mr.commits"
-        @updateCommitMessage="updateSquashCommitMessage()"
+        @updateCommitMessage="updateSquashCommitMessage($event)"
+        @includeAllCommits="includeAllCommits($event)"
         squash
       ></commit-edit>
       <commit-edit
