@@ -15,6 +15,7 @@ export default {
     commitsCount: {
       type: Number,
       required: false,
+      default: 0,
     },
     targetBranch: {
       type: String,

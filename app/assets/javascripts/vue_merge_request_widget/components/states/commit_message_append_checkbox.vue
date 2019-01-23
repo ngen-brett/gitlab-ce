@@ -26,9 +26,9 @@ export default {
   methods: {
     handleAppend(isAppended) {
       if (isAppended) {
-        this.$emit('input', value + '\n\r' + append);
+        this.$emit('input', `${this.value}\n\r${this.append}`);
       } else {
-        this.$emit('input', value.replace(`\n\r\${append}`, ''));
+        this.$emit('input', this.value.replace(`\n\r\${this.append}`, ''));
       }
     },
   },
