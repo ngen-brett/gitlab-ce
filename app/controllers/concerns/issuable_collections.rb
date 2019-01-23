@@ -160,8 +160,13 @@ module IssuableCollections
     case params[:state]
     when 'opened', 'all'    then sort_value_created_date
     when 'merged', 'closed' then sort_value_recently_updated
-    else sort_value_created_date
+    else default_sort_value || sort_value_created_date
     end
+  end
+
+  # Override this if you want your controller to have a different default sort order
+  def default_sort_value
+    nil
   end
 
   # Update old values to the actual ones.
