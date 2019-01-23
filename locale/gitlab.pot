@@ -4276,6 +4276,9 @@ msgstr ""
 msgid "Merge Requests"
 msgstr ""
 
+msgid "Merge commit message"
+msgstr ""
+
 msgid "Merge events"
 msgstr ""
 
@@ -6582,6 +6585,9 @@ msgid "Specify an e-mail address regex pattern to identify default internal user
 msgstr ""
 
 msgid "Specify the following URL during the Runner setup:"
+msgstr ""
+
+msgid "Squash commit message"
 msgstr ""
 
 msgid "Squash commits"

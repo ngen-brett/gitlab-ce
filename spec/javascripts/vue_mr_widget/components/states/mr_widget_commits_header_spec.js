@@ -23,9 +23,27 @@ describe('Commits header component', () => {
     wrapper.destroy();
   });
 
-  it('component mounted', () => {
-    createComponent();
+  describe('when collapsed', () => {
+    beforeEach(() => {
+      createComponent();
+    });
 
-    expect(true).toBeTruthy();
+    it('has collapsed class', () => {
+      const headerWrapper = wrapper.find('.mr-widget-commits-count');
+
+      expect(headerWrapper.classes()).toContain('collapsed');
+    });
+  });
+
+  describe('when expanded', () => {
+    beforeEach(() => {
+      createComponent({ expanded: true });
+    });
+
+    it('has no collapsed class', () => {
+      const headerWrapper = wrapper.find('.mr-widget-commits-count');
+
+      expect(headerWrapper.classes()).not.toContain('collapsed');
+    });
   });
 });
