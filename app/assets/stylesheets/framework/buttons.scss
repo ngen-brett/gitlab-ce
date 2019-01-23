@@ -37,10 +37,18 @@
   @include btn-default;
 }
 
+@mixin btn-border-color($border, $important: false) {
+  @if $important {
+    border-color: $border !important;
+  } @else {
+    border-color: $border;
+  }
+}
+
 @mixin btn-outline($background, $text, $border, $hover-background, $hover-text, $hover-border, $active-background, $active-border) {
+  @include btn-border-color($border);
   background-color: $background;
   color: $text;
-  border-color: $border;
 
   > .icon {
     color: $text;
@@ -183,6 +191,10 @@
 
   &.btn-warning {
     @include btn-orange;
+  }
+
+  &.btn-border-color {
+    @include btn-border-color($border-color, true);
   }
 
   &.btn-close,
