@@ -19,6 +19,11 @@ export default {
       required: false,
       default: () => [],
     },
+    label: {
+      type: String,
+      required: true,
+      default: '',
+    },
   },
   data() {
     return {
