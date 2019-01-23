@@ -96,4 +96,11 @@ describe('Commits header component', () => {
       expect(findHeaderWrapper().text()).toBe('Collapse');
     });
   });
+
+  it('should emit a toggleCommitsList event when clicked', () => {
+    createComponent();
+    findHeaderWrapper().trigger('click');
+
+    expect(wrapper.emitted('toggleCommitsList')).toBeTruthy();
+  });
 });
