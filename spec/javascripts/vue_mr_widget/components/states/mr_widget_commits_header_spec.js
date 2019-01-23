@@ -1,5 +1,6 @@
 import { createLocalVue, shallowMount } from '@vue/test-utils';
 import CommitsHeader from '~/vue_merge_request_widget/components/states/commits_header.vue';
+import Icon from '~/vue_shared/components/icon.vue';
 
 const localVue = createLocalVue();
 
@@ -14,6 +15,7 @@ describe('Commits header component', () => {
         isSquashEnabled: false,
         targetBranch: 'master',
         expanded: false,
+        commitsCount: 5,
         ...props,
       },
     });
@@ -23,15 +25,57 @@ describe('Commits header component', () => {
     wrapper.destroy();
   });
 
+  const findHeaderWrapper = () => wrapper.find('.mr-widget-commits-count');
+  const findIcon = () => wrapper.find(Icon);
+  const findCommitsCountMessage = () => wrapper.find('.commits-count-message');
+  const findTargetBranchMessage = () => wrapper.find('.label-branch');
+  const findModifyButton = () => wrapper.find('button');
+
   describe('when collapsed', () => {
-    beforeEach(() => {
+    it('has collapsed class', () => {
       createComponent();
+
+      expect(findHeaderWrapper().classes()).toContain('collapsed');
     });
 
-    it('has collapsed class', () => {
-      const headerWrapper = wrapper.find('.mr-widget-commits-count');
+    it('has a chevron-right icon', () => {
+      createComponent();
 
-      expect(headerWrapper.classes()).toContain('collapsed');
+      expect(findIcon().props('name')).toBe('chevron-right');
+    });
+
+    describe('when squash is disabled', () => {
+      beforeEach(() => {
+        createComponent();
+      });
+
+      it('has commits count message showing correct amount of commits', () => {
+        expect(findCommitsCountMessage().text()).toBe('5 commits');
+      });
+
+      it('has button with modify merge commit message', () => {
+        expect(findModifyButton().text()).toBe('Modify merge commit');
+      });
+    });
+
+    describe('when squash is enabled', () => {
+      beforeEach(() => {
+        createComponent({ isSquashEnabled: true });
+      });
+
+      it('has commits count message showing one commit when squash is enabled', () => {
+        expect(findCommitsCountMessage().text()).toBe('1 commit');
+      });
+
+      it('has button with modify commit messages text', () => {
+        expect(findModifyButton().text()).toBe('Modify commit messages');
+      });
+    });
+
+    it('has correct target branch displayed', () => {
+      createComponent();
+
+      expect(findTargetBranchMessage().text()).toBe('master.');
     });
   });
 
@@ -41,9 +85,15 @@ describe('Commits header component', () => {
     });
 
     it('has no collapsed class', () => {
-      const headerWrapper = wrapper.find('.mr-widget-commits-count');
+      expect(findHeaderWrapper().classes()).not.toContain('collapsed');
+    });
 
-      expect(headerWrapper.classes()).not.toContain('collapsed');
+    it('has a chevron-down icon', () => {
+      expect(findIcon().props('name')).toBe('chevron-down');
+    });
+
+    it('has a collapse text', () => {
+      expect(findHeaderWrapper().text()).toBe('Collapse');
     });
   });
 });
