@@ -98,21 +98,6 @@ describe('ReadyToMerge', () => {
       });
     });
 
-    describe('commitMessageLinkTitle', () => {
-      const withDesc = 'Include description in commit message';
-      const withoutDesc = "Don't include description in commit message";
-
-      it('should return message with description', () => {
-        expect(vm.commitMessageLinkTitle).toEqual(withDesc);
-      });
-
-      it('should return message without description', () => {
-        vm.useCommitMessageWithDescription = true;
-
-        expect(vm.commitMessageLinkTitle).toEqual(withoutDesc);
-      });
-    });
-
     describe('status', () => {
       it('defaults to success', () => {
         vm.mr.pipeline = true;
@@ -304,17 +289,14 @@ describe('ReadyToMerge', () => {
       });
     });
 
-    describe('updateCommitMessage', () => {
+    describe('updateMergeCommitMessage', () => {
       it('should revert flag and change commitMessage', () => {
-        expect(vm.useCommitMessageWithDescription).toBeFalsy();
         expect(vm.commitMessage).toEqual(commitMessage);
-        vm.updateCommitMessage();
+        vm.updateMergeCommitMessage(true);
 
-        expect(vm.useCommitMessageWithDescription).toBeTruthy();
         expect(vm.commitMessage).toEqual(commitMessageWithDescription);
-        vm.updateCommitMessage();
+        vm.updateMergeCommitMessage(false);
 
-        expect(vm.useCommitMessageWithDescription).toBeFalsy();
         expect(vm.commitMessage).toEqual(commitMessage);
       });
     });
