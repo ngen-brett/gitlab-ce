@@ -10,6 +10,7 @@ import eventHub from '../../event_hub';
 import SquashBeforeMerge from './squash_before_merge.vue';
 import CommitsHeader from './commits_header.vue';
 import CommitEdit from './commit_edit.vue';
+import CommitMessageDropdown from './commit_message_dropdown.vue';
 
 export default {
   name: 'ReadyToMerge',
@@ -18,6 +19,7 @@ export default {
     SquashBeforeMerge,
     CommitsHeader,
     CommitEdit,
+    CommitMessageDropdown,
   },
   props: {
     mr: { type: Object, required: true },
@@ -336,7 +338,13 @@ export default {
           :commits="mr.commits"
           :label="__('Squash commit message')"
           squash
-        ></commit-edit>
+        >
+          <commit-message-dropdown
+            v-model="squashCommitMessage"
+            :commits="mr.commits"
+            slot="header"
+          ></commit-message-dropdown>
+        </commit-edit>
         <commit-edit
           v-model="commitMessage"
           :label="__('Merge commit message')"

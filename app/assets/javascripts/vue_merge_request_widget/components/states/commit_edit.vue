@@ -32,9 +32,6 @@ export default {
     };
   },
   computed: {
-    labelMessage() {
-      return this.squash ? 'Squash commit message' : 'Merge commit message';
-    },
     allCommitMessages() {
       return this.commits.reduce(
         (acc, current) => (acc ? acc + '\n\r' + current.title : current.title),
@@ -61,40 +58,9 @@ export default {
     <div class="commit-message-editor">
       <div class="commit-message-label">
         <label class="col-form-label" for="commit-message">
-          <strong>{{ labelMessage }}</strong>
+          <strong>{{ label }}</strong>
         </label>
-        <template v-if="squash && !allCommitsIncluded">
-          <button
-            type="button"
-            class="btn-link btn-blank"
-            data-toggle="dropdown"
-            aria-expanded="false"
-          >
-            Use an existing commit message
-            <icon
-              name="chevron-down"
-              :size="16"
-              aria-hidden="true"
-              class="commits-header-icon"
-              @click.stop="$emit('toggleCommitsList')"
-            />
-          </button>
-          <div class="dropdown-menu dropdown-menu-right">
-            <div class="dropdown-content">
-              <ul>
-                <li
-                  v-for="commit in commits"
-                  :key="commit.sha"
-                  @click="$emit('input', commit.title)"
-                >
-                  <div class="dropdown-commit">
-                    <span class="dropdown-commit-sha">{{ commit.sha }}</span> {{ commit.title }}
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </template>
+        <slot name="header"></slot>
       </div>
       <textarea
         id="commit-message"
