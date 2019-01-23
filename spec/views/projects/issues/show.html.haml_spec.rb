@@ -8,11 +8,9 @@ describe 'projects/issues/show' do
   let(:project) { create(:project, :repository) }
   let(:issue) { create(:issue, project: project, author: user) }
   let(:user) { create(:user) }
-  let(:note) { create(:note_on_issue, project: project, noteable: issue, note: user.to_reference) }
 
   def preload_view_requirements
     user.status
-    note.author.status
   end
 
   def serialize_issuable_sidebar(user, project, merge_request)
@@ -24,16 +22,10 @@ describe 'projects/issues/show' do
   before do
     assign(:project, project)
     assign(:issue, issue)
-    assign(:note, note)
-    assign(:notes, [])
     assign(:noteable, issue)
     assign(:issuable_sidebar, serialize_issuable_sidebar(user, project, issue))
 
     preload_view_requirements
-
-    allow(view).to receive_messages(current_user: user,
-                                    can?: true,
-                                    current_application_settings: Gitlab::CurrentSettings.current_application_settings)
   end
 
   context 'when the issue is closed' do
@@ -49,7 +41,7 @@ describe 'projects/issues/show' do
       expect(rendered).to have_selector('.status-box-issue-closed:not(.hidden)', text: 'Closed (moved)')
     end
 
-    it 'shows "Closed" if an issue has been moved' do
+    it 'shows "Closed" if an issue has not been moved' do
       render
 
       expect(rendered).to have_selector('.status-box-issue-closed:not(.hidden)', text: 'Closed')
