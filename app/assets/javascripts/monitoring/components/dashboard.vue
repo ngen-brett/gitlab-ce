@@ -1,8 +1,8 @@
 <script>
-import _ from 'underscore';
 import { s__ } from '~/locale';
 import Icon from '~/vue_shared/components/icon.vue';
 import Flash from '../../flash';
+import { debounceByAnimationFrame } from '../../helpers/monitor_helper';
 import MonitoringService from '../services/monitoring_service';
 import MonitorAreaChart from './charts/area.vue';
 import GraphGroup from './graph_group.vue';
@@ -83,16 +83,13 @@ export default {
   },
   data() {
     return {
+      debouncedResize: debounceByAnimationFrame(this.resize),
       store: new MonitoringStore(),
       state: 'gettingStarted',
       showEmptyState: true,
+      sidebarMutationObserver: null,
       elWidth: 0,
     };
-  },
-  computed: {
-    forceRedraw() {
-      return this.elWidth;
-    },
   },
   created() {
     this.service = new MonitoringService({
@@ -100,28 +97,21 @@ export default {
       deploymentEndpoint: this.deploymentEndpoint,
       environmentsEndpoint: this.environmentsEndpoint,
     });
-    this.mutationObserverConfig = {
-      attributes: true,
-      childList: false,
-      subtree: false,
-    };
   },
   beforeDestroy() {
-    window.removeEventListener('resize', this.resizeThrottled, false);
     this.sidebarMutationObserver.disconnect();
   },
   mounted() {
-    this.resizeThrottled = _.debounce(this.resize, 100);
     if (!this.hasMetrics) {
       this.state = 'gettingStarted';
     } else {
       this.getGraphsData();
-      window.addEventListener('resize', this.resizeThrottled, false);
-
-      const sidebarEl = document.querySelector('.nav-sidebar');
-      // The sidebar listener
-      this.sidebarMutationObserver = new MutationObserver(this.resizeThrottled);
-      this.sidebarMutationObserver.observe(sidebarEl, this.mutationObserverConfig);
+      this.sidebarMutationObserver = new MutationObserver(this.debouncedResize);
+      this.sidebarMutationObserver.observe(document.querySelector('.layout-page'), {
+        attributes: true,
+        childList: false,
+        subtree: false,
+      });
     }
   },
   methods: {
@@ -149,7 +139,6 @@ export default {
 
           this.showEmptyState = false;
         })
-        .then(this.resize)
         .catch(() => {
           this.state = 'unableToConnect';
         });
@@ -162,7 +151,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="!showEmptyState" :key="forceRedraw" class="prometheus-graphs prepend-top-default">
+  <div v-if="!showEmptyState" class="prometheus-graphs prepend-top-default">
     <div class="environments d-flex align-items-center">
       {{ s__('Metrics|Environment') }}
       <div class="dropdown prepend-left-10">
@@ -198,6 +187,7 @@ export default {
         :key="graphIndex"
         :graph-data="graphData"
         :alert-data="getGraphAlerts(graphData.id)"
+        :container-width="elWidth"
         group-id="monitor-area-chart"
       />
     </graph-group>
