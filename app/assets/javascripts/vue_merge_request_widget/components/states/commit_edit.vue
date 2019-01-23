@@ -1,9 +1,5 @@
 <script>
-import Icon from '~/vue_shared/components/icon.vue';
 export default {
-  components: {
-    Icon,
-  },
   props: {
     value: {
       type: String,
@@ -24,20 +20,17 @@ export default {
       required: true,
       default: '',
     },
+    inputId: {
+      type: String,
+      required: true,
+      default: 'commit-message-edit',
+    },
   },
   data() {
     return {
       allCommitsIncluded: false,
       tempSquashCommitMessage: '',
     };
-  },
-  computed: {
-    allCommitMessages() {
-      return this.commits.reduce(
-        (acc, current) => (acc ? acc + '\n\r' + current.title : current.title),
-        '',
-      );
-    },
   },
   methods: {
     handleAllCommitMessages(showAllCommitMessages) {
@@ -63,7 +56,7 @@ export default {
         <slot name="header"></slot>
       </div>
       <textarea
-        id="commit-message"
+        :id="inputId"
         :value="value"
         @input="$emit('input', $event.target.value)"
         class="form-control js-commit-message js-gfm-input"
@@ -71,23 +64,7 @@ export default {
         rows="14"
         name="Commit message"
       ></textarea>
-      <label v-if="squash">
-        <input
-          v-model="allCommitsIncluded"
-          id="include-all-commits"
-          type="checkbox"
-          @change="handleAllCommitMessages($event.target.checked)"
-        />
-        Include all commit messages
-      </label>
-      <label v-else>
-        <input
-          id="include-description"
-          type="checkbox"
-          @change="$emit('updateCommitMessage', $event.target.checked)"
-        />
-        Include merge commit description
-      </label>
+      <slot name="checkbox"></slot>
     </div>
   </li>
 </template>

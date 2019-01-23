@@ -11,6 +11,7 @@ import SquashBeforeMerge from './squash_before_merge.vue';
 import CommitsHeader from './commits_header.vue';
 import CommitEdit from './commit_edit.vue';
 import CommitMessageDropdown from './commit_message_dropdown.vue';
+import CommitMessageAppendCheckbox from './commit_message_append_checkbox.vue';
 
 export default {
   name: 'ReadyToMerge',
@@ -20,6 +21,7 @@ export default {
     CommitsHeader,
     CommitEdit,
     CommitMessageDropdown,
+    CommitMessageAppendCheckbox,
   },
   props: {
     mr: { type: Object, required: true },
@@ -111,6 +113,12 @@ export default {
     shouldShowSquashBeforeMerge() {
       const { commitsCount, enableSquashBeforeMerge } = this.mr;
       return enableSquashBeforeMerge && commitsCount > 1;
+    },
+    allCommitMessages() {
+      return this.mr.commits.reduce(
+        (acc, current) => (acc ? acc + '\n\r' + current.title : current.title),
+        '',
+      );
     },
   },
   methods: {
@@ -408,20 +416,27 @@ export default {
         <commit-edit
           v-if="squashBeforeMerge"
           v-model="squashCommitMessage"
-          :commits="mr.commits"
           :label="__('Squash commit message')"
+          input-id="squash-message-edit"
           squash
         >
           <commit-message-dropdown
             v-model="squashCommitMessage"
             :commits="mr.commits"
             slot="header"
-          ></commit-message-dropdown>
+          />
+          <commit-message-append-checkbox
+            v-model="squashCommitMessage"
+            :label="__('Include all commit messages')"
+            input-id="commit-append-all-messages"
+            :append="allCommitMessages"
+            slot="checkbox"
+          />
         </commit-edit>
         <commit-edit
           v-model="commitMessage"
           :label="__('Merge commit message')"
-          @updateCommitMessage="updateMergeCommitMessage($event)"
+          input-id="merge-message-edit"
         ></commit-edit>
       </ul>
     </template>
