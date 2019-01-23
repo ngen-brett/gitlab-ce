@@ -3,6 +3,7 @@ import ReadyToMerge from '~/vue_merge_request_widget/components/states/ready_to_
 import SquashBeforeMerge from '~/vue_merge_request_widget/components/states/squash_before_merge.vue';
 import CommitsHeader from '~/vue_merge_request_widget/components/states/commits_header.vue';
 import CommitEdit from '~/vue_merge_request_widget/components/states/commit_edit.vue';
+import CommitMessageDropdown from '~/vue_merge_request_widget/components/states/commit_message_dropdown.vue';
 import eventHub from '~/vue_merge_request_widget/event_hub';
 import { createLocalVue, shallowMount } from '@vue/test-utils';
 
@@ -619,6 +620,7 @@ describe('ReadyToMerge', () => {
     const findCheckboxElement = () => wrapper.find(SquashBeforeMerge);
     const findCommitsHeaderElement = () => wrapper.find(CommitsHeader);
     const findCommitEditElements = () => wrapper.findAll(CommitEdit);
+    const findCommitDropdownElement = () => wrapper.find(CommitMessageDropdown);
 
     describe('squash checkbox', () => {
       it('should be rendered when squash before merge is enabled and there is more than 1 commit', () => {
@@ -643,15 +645,21 @@ describe('ReadyToMerge', () => {
     });
 
     describe('commits count collapsible header', () => {
-      beforeEach(() => {
+      it('should be rendered if fast-forward is disabled', () => {
         createLocalComponent();
-      });
 
-      it('should be rendered', () => {
         expect(findCommitsHeaderElement().exists()).toBeTruthy();
       });
 
+      it('should not be rendered if fast-forward is enabled', () => {
+        createLocalComponent({ mr: { ffOnlyEnabled: true } });
+
+        expect(findCommitsHeaderElement().exists()).toBeFalsy();
+      });
+
       it('should toggle commits list on emitted event', () => {
+        createLocalComponent();
+
         expect(wrapper.vm.commitsListExpanded).toBeFalsy();
         findCommitsHeaderElement().vm.$emit('toggleCommitsList');
 
@@ -688,6 +696,20 @@ describe('ReadyToMerge', () => {
         });
 
         expect(findCommitEditElements().length).toBe(2);
+      });
+    });
+
+    describe('commits dropdown', () => {
+      it('should not be rendered if squash is disabled', () => {
+        createLocalComponent();
+
+        expect(findCommitDropdownElement().exists()).toBeFalsy();
+      });
+
+      it('should  be rendered if squash is enabled', () => {
+        createLocalComponent({ mr: { squash: true } });
+
+        expect(findCommitDropdownElement().exists()).toBeTruthy();
       });
     });
   });
