@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import ReadyToMerge from '~/vue_merge_request_widget/components/states/ready_to_merge.vue';
 import SquashBeforeMerge from '~/vue_merge_request_widget/components/states/squash_before_merge.vue';
+import CommitsHeader from '~/vue_merge_request_widget/components/states/commits_header.vue';
 import eventHub from '~/vue_merge_request_widget/event_hub';
 import { createLocalVue, shallowMount } from '@vue/test-utils';
 
@@ -596,7 +597,7 @@ describe('ReadyToMerge', () => {
     });
   });
 
-  describe('Squash checkbox component', () => {
+  describe('Child', () => {
     let wrapper;
     const localVue = createLocalVue();
 
@@ -615,25 +616,48 @@ describe('ReadyToMerge', () => {
     });
 
     const findCheckboxElement = () => wrapper.find(SquashBeforeMerge);
+    const findCommitsHeaderElement = () => wrapper.find(CommitsHeader);
 
-    it('should be rendered when squash before merge is enabled and there is more than 1 commit', () => {
-      createLocalComponent({
-        mr: { commitsCount: 2, enableSquashBeforeMerge: true },
+    describe('squash checkbox', () => {
+      it('should be rendered when squash before merge is enabled and there is more than 1 commit', () => {
+        createLocalComponent({
+          mr: { commitsCount: 2, enableSquashBeforeMerge: true },
+        });
+
+        expect(findCheckboxElement().exists()).toBeTruthy();
       });
 
-      expect(findCheckboxElement().exists()).toBeTruthy();
+      it('should not be rendered when squash before merge is disabled', () => {
+        createLocalComponent({ mr: { commitsCount: 2, enableSquashBeforeMerge: false } });
+
+        expect(findCheckboxElement().exists()).toBeFalsy();
+      });
+
+      it('should not be rendered when there is only 1 commit', () => {
+        createLocalComponent({ mr: { commitsCount: 1, enableSquashBeforeMerge: true } });
+
+        expect(findCheckboxElement().exists()).toBeFalsy();
+      });
     });
 
-    it('should not be rendered when squash before merge is disabled', () => {
-      createLocalComponent({ mr: { commitsCount: 2, enableSquashBeforeMerge: false } });
+    describe('commits count collapsible header', () => {
+      it('should be rendered', () => {
+        createLocalComponent();
 
-      expect(findCheckboxElement().exists()).toBeFalsy();
-    });
+        expect(findCommitsHeaderElement().exists()).toBeTruthy();
+      });
 
-    it('should not be rendered when there is only 1 commit', () => {
-      createLocalComponent({ mr: { commitsCount: 1, enableSquashBeforeMerge: true } });
+      it('should toggle commits list on emitted event', () => {
+        createLocalComponent();
 
-      expect(findCheckboxElement().exists()).toBeFalsy();
+        expect(wrapper.vm.commitsListExpanded).toBeFalsy();
+        findCommitsHeaderElement().vm.$emit('toggleCommitsList');
+
+        expect(wrapper.vm.commitsListExpanded).toBeTruthy();
+        findCommitsHeaderElement().vm.$emit('toggleCommitsList');
+
+        expect(wrapper.vm.commitsListExpanded).toBeFalsy();
+      });
     });
   });
 
