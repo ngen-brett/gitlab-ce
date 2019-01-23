@@ -91,12 +91,7 @@ export default {
       return `js-cluster-application-row-${this.id}`;
     },
     installButtonLoading() {
-      return (
-        !this.status ||
-        this.status === APPLICATION_STATUS.SCHEDULED ||
-        this.status === APPLICATION_STATUS.INSTALLING ||
-        this.isInstalling
-      );
+      return !this.status || this.status === APPLICATION_STATUS.SCHEDULED || this.isInstalling;
     },
     installButtonDisabled() {
       // Avoid the potential for the real-time data to say APPLICATION_STATUS.INSTALLABLE but
