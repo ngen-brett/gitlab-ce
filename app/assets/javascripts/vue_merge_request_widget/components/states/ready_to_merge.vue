@@ -227,7 +227,7 @@ export default {
           }
         })
         .catch(() => {
-          new Flash('Something went wrong while removing the source branch. Please try again.'); // eslint-disable-line
+          new Flash('Something went wrong while deleting the source branch. Please try again.'); // eslint-disable-line
         });
     },
     toggleCommitsList() {
@@ -238,12 +238,95 @@ export default {
 </script>
 
 <template>
+<<<<<<< HEAD
   <div>
     <div class="mr-widget-body media">
       <status-icon :status="iconClass" />
       <div class="media-body">
         <div class="mr-widget-body-controls media space-children">
           <span class="btn-group">
+=======
+  <div class="mr-widget-body media">
+    <status-icon :status="iconClass" />
+    <div class="media-body">
+      <div class="mr-widget-body-controls media space-children">
+        <span class="btn-group">
+          <button
+            :disabled="isMergeButtonDisabled"
+            :class="mergeButtonClass"
+            type="button"
+            class="qa-merge-button"
+            @click="handleMergeButtonClick()"
+          >
+            <i v-if="isMakingRequest" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+            {{ mergeButtonText }}
+          </button>
+          <button
+            v-if="shouldShowMergeOptionsDropdown"
+            :disabled="isMergeButtonDisabled"
+            type="button"
+            class="btn btn-sm btn-info dropdown-toggle js-merge-moment"
+            data-toggle="dropdown"
+            aria-label="Select merge moment"
+          >
+            <i class="fa fa-chevron-down qa-merge-moment-dropdown" aria-hidden="true"></i>
+          </button>
+          <ul
+            v-if="shouldShowMergeOptionsDropdown"
+            class="dropdown-menu dropdown-menu-right"
+            role="menu"
+          >
+            <li>
+              <a
+                class="merge_when_pipeline_succeeds qa-merge-when-pipeline-succeeds-option"
+                href="#"
+                @click.prevent="handleMergeButtonClick(true)"
+              >
+                <span class="media">
+                  <span class="merge-opt-icon" aria-hidden="true" v-html="successSvg"></span>
+                  <span class="media-body merge-opt-title">Merge when pipeline succeeds</span>
+                </span>
+              </a>
+            </li>
+            <li>
+              <a
+                class="accept-merge-request qa-merge-immediately-option"
+                href="#"
+                @click.prevent="handleMergeButtonClick(false, true)"
+              >
+                <span class="media">
+                  <span class="merge-opt-icon" aria-hidden="true" v-html="warningSvg"></span>
+                  <span class="media-body merge-opt-title">Merge immediately</span>
+                </span>
+              </a>
+            </li>
+          </ul>
+        </span>
+        <div class="media-body-wrap space-children">
+          <template v-if="shouldShowMergeControls()">
+            <label v-if="mr.canRemoveSourceBranch">
+              <input
+                id="remove-source-branch-input"
+                v-model="removeSourceBranch"
+                :disabled="isRemoveSourceBranchButtonDisabled"
+                class="js-remove-source-branch-checkbox"
+                type="checkbox"
+              />
+              Delete source branch
+            </label>
+
+            <!-- Placeholder for EE extension of this component -->
+            <squash-before-merge
+              v-if="shouldShowSquashBeforeMerge"
+              v-model="squashBeforeMerge"
+              :help-path="mr.squashBeforeMergeHelpPath"
+              :is-disabled="isMergeButtonDisabled"
+            />
+
+            <span v-if="mr.ffOnlyEnabled" class="js-fast-forward-message">
+              Fast-forward merge without a merge commit
+            </span>
+>>>>>>> master
             <button
               :disabled="isMergeButtonDisabled"
               :class="mergeButtonClass"
