@@ -47,7 +47,7 @@ export default {
 <template>
   <div
     ref="header"
-    class="js-file-title file-title mr-widget-commits-count"
+    class="file-title mr-widget-commits-count"
     :class="{ collapsed: !expanded }"
     @click="$emit('toggleCommitsList')"
   >
