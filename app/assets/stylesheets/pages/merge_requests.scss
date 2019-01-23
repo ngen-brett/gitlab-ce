@@ -103,7 +103,7 @@
     align-items: center;
     border-bottom: 1px solid $border-color;
     justify-content: flex-start;
-    background-color: #fafafa;
+    background-color: $gray-50;
     padding: 5px 16px;
     margin: 0;
     border-radius: 4px 4px 0 0;
@@ -111,9 +111,9 @@
 
     &:hover {
       background-color: $gray-300;
-          
+
       .btn-link {
-        text-decoration: none
+        text-decoration: none;
       }
     }
 
@@ -123,7 +123,8 @@
     }
 
     &.collapsed {
-      border-bottom: none;
+      border-bottom: 0;
+
       .commits-header-icon {
         color: $gray-700;
       }
@@ -131,8 +132,7 @@
   }
 
   .commits-list {
-
-    & > li {
+    > li {
       padding: $gl-padding;
       padding-left: 50px;
     }
@@ -145,7 +145,7 @@
       .btn-link {
         display: flex;
         align-items: center;
-        text-decoration: none
+        text-decoration: none;
       }
 
       .dropdown-commit {
@@ -154,9 +154,11 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+
         &:hover {
           background-color: $gray-darker;
         }
+
         &-sha {
           font-family: $monospace-font;
         }
