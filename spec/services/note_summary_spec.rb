@@ -2,12 +2,16 @@ require 'spec_helper'
 
 describe NoteSummary do
   let(:project)  { build(:project) }
-  let(:noteable) do
-    build(:issue).tap do |issue|
-      issue.system_note_timestamp = Time.at(42)
-    end
-  end
+  let(:noteable) { build(:issue) }
   let(:user)     { build(:user) }
+
+  before do
+    Timecop.freeze
+  end
+
+  after do
+    Timecop.return
+  end
 
   def create_note_summary
     described_class.new(noteable, project, user, 'note', action: 'icon', commit_count: 5)
@@ -26,7 +30,7 @@ describe NoteSummary do
   describe '#note' do
     it 'returns note hash' do
       expect(create_note_summary.note).to eq(noteable: noteable, project: project, author: user, note: 'note',
-                                             created_at: Time.at(42))
+                                             created_at: Time.now
     end
 
     context 'when noteable is a commit' do
