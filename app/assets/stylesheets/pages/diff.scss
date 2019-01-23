@@ -501,6 +501,36 @@
   }
 }
 
+.DiffStats {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 .25rem;
+
+  .DiffStats-group {
+    padding: 0 .25rem;
+
+    &.filesChangd {
+      color: $gray-600;
+    }
+
+    &.addedLines {
+      color: $green-500;
+    }
+
+    &.removedLines {
+      color: $red-500;
+    }
+  }
+
+  svg {
+    vertical-align: text-bottom;
+  }
+
+  strong {
+    color: inherit;
+  }
+}
+
 .file-content .diff-file {
   margin: 0;
   border: 0;

@@ -6,6 +6,7 @@ import { getParameterValues, mergeUrlParams } from '~/lib/utils/url_utility';
 import { polyfillSticky } from '~/lib/utils/sticky';
 import Icon from '~/vue_shared/components/icon.vue';
 import CompareVersionsDropdown from './compare_versions_dropdown.vue';
+import DiffStats from './diff_stats.vue';
 
 export default {
   components: {
@@ -13,6 +14,7 @@ export default {
     Icon,
     GlLink,
     GlButton,
+    DiffStats,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -34,8 +36,8 @@ export default {
     },
   },
   computed: {
-    ...mapState('diffs', ['commit', 'showTreeList', 'startVersion', 'latestVersionPath']),
-    ...mapGetters('diffs', ['isInlineView', 'isParallelView', 'hasCollapsedFile']),
+    ...mapState('diffs', ['commit', 'showTreeList', 'startVersion', 'latestVersionPath', 'addedLines', 'removedLines']),
+    ...mapGetters('diffs', ['isInlineView', 'isParallelView', 'hasCollapsedFile', 'diffFilesLength']),
     comparableDiffs() {
       return this.mergeRequestDiffs.slice(1);
     },
@@ -118,7 +120,11 @@ export default {
         {{ __('Viewing commit') }}
         <gl-link :href="commit.commit_url" class="monospace">{{ commit.short_id }}</gl-link>
       </div>
-      <div class="inline-parallel-buttons d-none d-lg-flex ml-auto">
+      <diff-stats
+        :diff-files-length="diffFilesLength"
+        :added-lines="addedLines"
+        :removed-lines="removedLines"
+      />
         <gl-button
           v-if="commit || startVersion"
           :href="latestVersionPath"
