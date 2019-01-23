@@ -27,11 +27,6 @@ export default {
       default: false,
     },
   },
-  methods: {
-    handleToggleCommits() {
-      this.isCommitExpanded = !this.isCommitExpanded;
-    },
-  },
   computed: {
     collapseIcon() {
       return this.expanded ? 'chevron-down' : 'chevron-right';
