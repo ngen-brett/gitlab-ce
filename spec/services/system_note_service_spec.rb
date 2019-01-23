@@ -32,7 +32,8 @@ describe SystemNoteService do
   describe '.add_commits' do
     subject { described_class.add_commits(noteable, project, author, new_commits, old_commits, oldrev) }
 
-    let(:noteable)    { create(:merge_request, source_project: project, target_project: project) }
+    let(:noteable)    { create(:merge_request, source_project: project, target_project: project,
+                               system_note_timestamp: Time.at(42)) }
     let(:new_commits) { noteable.commits }
     let(:old_commits) { [] }
     let(:oldrev)      { nil }
@@ -111,7 +112,8 @@ describe SystemNoteService do
 
   describe '.tag_commit' do
     let(:noteable) do
-      project.commit
+      commit = project.commit
+      commit.system_note_timestamp = Time.at(42)
     end
     let(:tag_name) { 'v1.2.3' }
 
@@ -299,7 +301,8 @@ describe SystemNoteService do
   describe '.merge_when_pipeline_succeeds' do
     let(:pipeline) { build(:ci_pipeline_without_jobs )}
     let(:noteable) do
-      create(:merge_request, source_project: project, target_project: project)
+      create(:merge_request, source_project: project, target_project: project,
+             system_note_timestamp: Time.at(42))
     end
 
     subject { described_class.merge_when_pipeline_succeeds(noteable, project, author, noteable.diff_head_commit) }
@@ -315,7 +318,8 @@ describe SystemNoteService do
 
   describe '.cancel_merge_when_pipeline_succeeds' do
     let(:noteable) do
-      create(:merge_request, source_project: project, target_project: project)
+      create(:merge_request, source_project: project, target_project: project,
+             system_note_timestamp: Time.at(42))
     end
 
     subject { described_class.cancel_merge_when_pipeline_succeeds(noteable, project, author) }
@@ -330,7 +334,8 @@ describe SystemNoteService do
   end
 
   describe '.change_title' do
-    let(:noteable) { create(:issue, project: project, title: 'Lorem ipsum') }
+    let(:noteable) { create(:issue, project: project, title: 'Lorem ipsum',
+                            system_note_timestamp: Time.at(42)) }
 
     subject { described_class.change_title(noteable, project, author, 'Old title') }
 
@@ -897,7 +902,7 @@ describe SystemNoteService do
   describe '.discussion_continued_in_issue' do
     let(:discussion) { create(:diff_note_on_merge_request, project: project).to_discussion }
     let(:merge_request) { discussion.noteable }
-    let(:issue) { create(:issue, project: project) }
+    let(:issue) { create(:issue, project: project, system_note_timestamp: Time.at(42)) }
 
     def reloaded_merge_request
       MergeRequest.find(merge_request.id)
@@ -945,7 +950,8 @@ describe SystemNoteService do
   describe '.change_time_spent' do
     # We need a custom noteable in order to the shared examples to be green.
     let(:noteable) do
-      mr = create(:merge_request, source_project: project)
+      mr = create(:merge_request, source_project: project,
+                  system_note_timestamp: Time.at(42))
       mr.spend_time(duration: 360000, user_id: author.id)
       mr.save!
       mr
@@ -991,7 +997,8 @@ describe SystemNoteService do
 
   describe '.handle_merge_request_wip' do
     context 'adding wip note' do
-      let(:noteable) { create(:merge_request, source_project: project, title: 'WIP Lorem ipsum') }
+      let(:noteable) { create(:merge_request, source_project: project, title: 'WIP Lorem ipsum',
+                              system_note_timestamp: Time.at(42)) }
 
       subject { described_class.handle_merge_request_wip(noteable, project, author) }
 
@@ -1021,7 +1028,8 @@ describe SystemNoteService do
 
   describe '.add_merge_request_wip_from_commit' do
     let(:noteable) do
-      create(:merge_request, source_project: project, target_project: project)
+      create(:merge_request, source_project: project, target_project: project,
+             system_note_timestamp: Time.at(42))
     end
 
     subject do
@@ -1045,7 +1053,7 @@ describe SystemNoteService do
   end
 
   describe '.change_task_status' do
-    let(:noteable) { create(:issue, project: project) }
+    let(:noteable) { create(:issue, project: project, system_note_timestamp: Time.at(42)) }
     let(:task)     { double(:task, complete?: true, source: 'task') }
 
     subject { described_class.change_task_status(noteable, project, author, task) }
@@ -1060,7 +1068,8 @@ describe SystemNoteService do
   end
 
   describe '.resolve_all_discussions' do
-    let(:noteable) { create(:merge_request, source_project: project, target_project: project) }
+    let(:noteable) { create(:merge_request, source_project: project, target_project: project
+                            system_note_timestamp: Time.at(42)) }
 
     subject { described_class.resolve_all_discussions(noteable, project, author) }
 
@@ -1082,7 +1091,8 @@ describe SystemNoteService do
       MergeRequest.find(merge_request.id)
     end
 
-    subject { described_class.diff_discussion_outdated(discussion, project, author, change_position) }
+    subject { described_class.diff_discussion_outdated(discussion, project, author, change_position,
+                                                       updated_at: Time.at(42)) }
 
     it_behaves_like 'a system note' do
       let(:expected_noteable) { discussion.first_note.noteable }

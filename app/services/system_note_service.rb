@@ -258,13 +258,13 @@ module SystemNoteService
     body = "created #{issue.to_reference} to continue this discussion"
     note_attributes = discussion.reply_attributes.merge(project: project, author: author, note: body)
 
-    note = Note.create(note_attributes.merge(system: true))
+    note = Note.create(note_attributes.merge(system: true, created_at: issue.system_note_timestamp))
     note.system_note_metadata = SystemNoteMetadata.new(action: 'discussion')
 
     note
   end
 
-  def diff_discussion_outdated(discussion, project, author, change_position)
+  def diff_discussion_outdated(discussion, project, author, change_position, updated_at=Time.now)
     merge_request = discussion.noteable
     diff_refs = change_position.diff_refs
     version_index = merge_request.merge_request_diffs.viewable.count
