@@ -330,7 +330,6 @@ export default {
     </div>
     <template v-else>
       <commits-header
-        v-if="shouldShowSquashBeforeMerge"
         :expanded="commitsListExpanded"
         :is-squash-enabled="squashBeforeMerge"
         :commits-count="mr.commitsCount"
