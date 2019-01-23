@@ -60,8 +60,9 @@ export default {
     />
     <span v-if="expanded">Collapse</span>
     <span v-else>
-      <strong>{{ commitsCountMessage }}</strong> and <strong>1 merge commit</strong> will be added
-      to <span class="label-branch">{{ targetBranch }}.</span>
+      <strong class="commits-count-message">{{ commitsCountMessage }}</strong> and
+      <strong>1 merge commit</strong> will be added to
+      <span class="label-branch">{{ targetBranch }}.</span>
       <button type="button" class="btn-link btn-blank">{{ modifyLinkMessage }}</button>
     </span>
   </div>
