@@ -28,7 +28,7 @@
   width: auto;
   display: inline-block;
   overflow-x: auto;
-  border: 0;
+  border: 0 !important;
   border-color: $gl-gray-100;
 
   @supports (width: fit-content) {
