@@ -425,13 +425,6 @@ export default {
             :commits="mr.commits"
             slot="header"
           />
-          <commit-message-append-checkbox
-            v-model="squashCommitMessage"
-            :label="__('Include all commit messages')"
-            input-id="commit-append-all-messages"
-            :append="allCommitMessages"
-            slot="checkbox"
-          />
         </commit-edit>
         <commit-edit
           v-model="commitMessage"
