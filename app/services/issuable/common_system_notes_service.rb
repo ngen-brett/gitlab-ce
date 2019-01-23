@@ -56,14 +56,13 @@ module Issuable
       end
     end
 
-    def create_labels_note(old_labels, updated_at = nil)
+    def create_labels_note(old_labels)
       added_labels = issuable.labels - old_labels
       removed_labels = old_labels - issuable.labels
 
       ResourceEvents::ChangeLabelsService
         .new(issuable, current_user)
-        .execute(added_labels: added_labels, removed_labels: removed_labels,
-                 updated_at: issuable.system_note_timestamp)
+        .execute(added_labels: added_labels, removed_labels: removed_labels)
     end
 
     def create_title_change_note(old_title)

@@ -8,13 +8,11 @@ module ResourceEvents
       @resource, @user = resource, user
     end
 
-    def execute(added_labels: [], removed_labels: [], updated_at: nil)
-      updated_at ||= Time.now
-
+    def execute(added_labels: [], removed_labels: [])
       label_hash = {
         resource_column(resource) => resource.id,
         user_id: user.id,
-        created_at: updated_at
+        created_at: resource.system_note_timestamp
       }
 
       labels = added_labels.map do |label|
