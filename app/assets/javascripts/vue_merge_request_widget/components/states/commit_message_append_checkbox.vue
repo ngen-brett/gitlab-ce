@@ -1,4 +1,8 @@
 <script>
+// This component is created for the further iteration of https://gitlab.com/gitlab-org/gitlab-ce/issues/47149
+// It's a checkbox to append a given string (all commit messages in the case of squash commit) to the
+// `commit_edit` textarea
+
 export default {
   props: {
     value: {
