@@ -2,6 +2,7 @@ import Vue from 'vue';
 import ReadyToMerge from '~/vue_merge_request_widget/components/states/ready_to_merge.vue';
 import SquashBeforeMerge from '~/vue_merge_request_widget/components/states/squash_before_merge.vue';
 import CommitsHeader from '~/vue_merge_request_widget/components/states/commits_header.vue';
+import CommitEdit from '~/vue_merge_request_widget/components/states/commit_edit.vue';
 import eventHub from '~/vue_merge_request_widget/event_hub';
 import { createLocalVue, shallowMount } from '@vue/test-utils';
 
@@ -617,6 +618,7 @@ describe('ReadyToMerge', () => {
 
     const findCheckboxElement = () => wrapper.find(SquashBeforeMerge);
     const findCommitsHeaderElement = () => wrapper.find(CommitsHeader);
+    const findCommitEditElements = () => wrapper.findAll(CommitEdit);
 
     describe('squash checkbox', () => {
       it('should be rendered when squash before merge is enabled and there is more than 1 commit', () => {
@@ -641,15 +643,15 @@ describe('ReadyToMerge', () => {
     });
 
     describe('commits count collapsible header', () => {
-      it('should be rendered', () => {
+      beforeEach(() => {
         createLocalComponent();
+      });
 
+      it('should be rendered', () => {
         expect(findCommitsHeaderElement().exists()).toBeTruthy();
       });
 
       it('should toggle commits list on emitted event', () => {
-        createLocalComponent();
-
         expect(wrapper.vm.commitsListExpanded).toBeFalsy();
         findCommitsHeaderElement().vm.$emit('toggleCommitsList');
 
@@ -657,6 +659,35 @@ describe('ReadyToMerge', () => {
         findCommitsHeaderElement().vm.$emit('toggleCommitsList');
 
         expect(wrapper.vm.commitsListExpanded).toBeFalsy();
+      });
+    });
+
+    describe('commits edit components', () => {
+      it('wrapper should not be displayed if commits list is collapsed', () => {
+        createLocalComponent();
+
+        expect(wrapper.find('.commits-list').attributes().style).toBe('display: none;');
+      });
+
+      it('wrapper should be displayed if commits list is expanded', () => {
+        createLocalComponent();
+        wrapper.vm.commitsListExpanded = true;
+
+        expect(wrapper.find('.commits-list').attributes().style).not.toBe('display: none;');
+      });
+
+      it('should have one edit component when squash is disabled', () => {
+        createLocalComponent();
+
+        expect(findCommitEditElements().length).toBe(1);
+      });
+
+      it('should have two edit component when squash is enabled', () => {
+        createLocalComponent({
+          mr: { commitsCount: 2, squash: true, enableSquashBeforeMerge: true },
+        });
+
+        expect(findCommitEditElements().length).toBe(2);
       });
     });
   });
