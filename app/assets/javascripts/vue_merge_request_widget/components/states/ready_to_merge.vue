@@ -11,7 +11,6 @@ import SquashBeforeMerge from './squash_before_merge.vue';
 import CommitsHeader from './commits_header.vue';
 import CommitEdit from './commit_edit.vue';
 import CommitMessageDropdown from './commit_message_dropdown.vue';
-import CommitMessageAppendCheckbox from './commit_message_append_checkbox.vue';
 
 export default {
   name: 'ReadyToMerge',
@@ -21,7 +20,6 @@ export default {
     CommitsHeader,
     CommitEdit,
     CommitMessageDropdown,
-    CommitMessageAppendCheckbox,
   },
   props: {
     mr: { type: Object, required: true },
@@ -357,7 +355,16 @@ export default {
           v-model="commitMessage"
           :label="__('Merge commit message')"
           input-id="merge-message-edit"
-        ></commit-edit>
+        >
+          <label slot="checkbox">
+            <input
+              id="include-description"
+              type="checkbox"
+              @change="updateMergeCommitMessage($event.target.checked)"
+            />
+            Include merge commit description
+          </label>
+        </commit-edit>
       </ul>
     </template>
   </div>
