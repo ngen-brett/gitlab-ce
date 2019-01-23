@@ -58,11 +58,11 @@ export default {
       <textarea
         :id="inputId"
         :value="value"
-        @input="$emit('input', $event.target.value)"
         class="form-control js-commit-message js-gfm-input"
         required="required"
         rows="14"
         name="Commit message"
+        @input="$emit('input', $event.target.value)"
       ></textarea>
       <slot name="checkbox"></slot>
     </div>

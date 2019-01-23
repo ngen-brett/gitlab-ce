@@ -2,7 +2,6 @@
 import successSvg from 'icons/_icon_status_success.svg';
 import warningSvg from 'icons/_icon_status_warning.svg';
 import simplePoll from '~/lib/utils/simple_poll';
-import { pluralize } from '~/lib/utils/text_utility';
 import MergeRequest from '../../../merge_request';
 import Flash from '../../../flash';
 import statusIcon from '../mr_widget_status_icon.vue';
@@ -114,7 +113,7 @@ export default {
     },
     allCommitMessages() {
       return this.mr.commits.reduce(
-        (acc, current) => (acc ? acc + '\n\r' + current.title : current.title),
+        (acc, current) => (acc ? `${acc}\n\r${current.title}` : current.title),
         '',
       );
     },
@@ -336,7 +335,7 @@ export default {
           :commits-count="mr.commitsCount"
           :target-branch="mr.targetBranch"
           @toggleCommitsList="toggleCommitsList"
-        ></commits-header>
+        />
         <ul v-show="commitsListExpanded" class="content-list commits-list flex-list">
           <commit-edit
             v-if="squashBeforeMerge"
@@ -347,8 +346,8 @@ export default {
           >
             <commit-message-dropdown
               v-model="squashCommitMessage"
-              :commits="mr.commits"
               slot="header"
+              :commits="mr.commits"
             />
           </commit-edit>
           <commit-edit
