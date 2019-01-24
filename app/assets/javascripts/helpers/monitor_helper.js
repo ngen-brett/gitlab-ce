@@ -1,3 +1,5 @@
+import svgs from '@gitlab/svgs/dist/icons.svg';
+
 export function debounceByAnimationFrame(fn) {
   let requestId;
 
@@ -9,4 +11,9 @@ export function debounceByAnimationFrame(fn) {
   };
 }
 
-export default { debounceByAnimationFrame };
+export function getSvgIconPath(name) {
+  return new DOMParser()
+    .parseFromString(svgs, 'text/xml')
+    .querySelector(`#${name} path`)
+    .getAttribute('d');
+}

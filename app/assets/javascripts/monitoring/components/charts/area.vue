@@ -3,6 +3,8 @@ import { GlAreaChart } from '@gitlab/ui';
 import dateFormat from 'dateformat';
 import { debounceByAnimationFrame, getSvgIconPath } from '../../../helpers/monitor_helper';
 
+const scatterSymbol = getSvgIconPath('rocket');
+
 export default {
   components: {
     GlAreaChart,
