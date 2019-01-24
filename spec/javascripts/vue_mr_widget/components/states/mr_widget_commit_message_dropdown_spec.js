@@ -1,6 +1,5 @@
 import { createLocalVue, shallowMount } from '@vue/test-utils';
 import CommitMessageDropdown from '~/vue_merge_request_widget/components/states/commit_message_dropdown.vue';
-import Icon from '~/vue_shared/components/icon.vue';
 
 const localVue = createLocalVue();
 const commits = [
@@ -43,10 +42,29 @@ describe('Commits message dropdown component', () => {
   });
 
   const findDropdownWrapper = () => wrapper.find('.dropdown-menu');
+  const findDropdownElements = () => wrapper.findAll('.dropdown-commit');
 
-  it('should not render a dropdown list by default', () => {
-    createComponent();
-
+  it('should not display a dropdown list by default', () => {
     expect(findDropdownWrapper().classes()).not.toContain('show');
+  });
+
+  it('should have 3 elements in dropdown list', () => {
+    expect(findDropdownElements().length).toBe(3);
+  });
+
+  it('should have correct message for the first dropdown list element', () => {
+    expect(
+      findDropdownElements()
+        .at(0)
+        .text(),
+    ).toBe('78d5b7 Commit 1');
+  });
+
+  it('should emit a commit title on selecting commit', () => {
+    findDropdownElements()
+      .at(0)
+      .trigger('click');
+
+    expect(wrapper.emitted().input[0]).toEqual(['Commit 1']);
   });
 });
