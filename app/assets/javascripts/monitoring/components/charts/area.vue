@@ -1,6 +1,7 @@
 <script>
 import { GlAreaChart } from '@gitlab/ui';
 import dateFormat from 'dateformat';
+import Icon from '~/vue_shared/components/icon.vue';
 import { debounceByAnimationFrame, getSvgIconPath } from '../../../helpers/monitor_helper';
 
 const scatterSymbol = getSvgIconPath('rocket');
@@ -8,6 +9,7 @@ const scatterSymbol = getSvgIconPath('rocket');
 export default {
   components: {
     GlAreaChart,
+    Icon,
   },
   inheritAttrs: false,
   props: {
@@ -46,6 +48,12 @@ export default {
   },
   data() {
     return {
+      tooltip: {
+        title: '',
+        content: '',
+        isDeployment: false,
+        sha: '',
+      },
       width: 0,
       height: 0,
       debouncedResize: debounceByAnimationFrame(this.onResize),
@@ -149,8 +157,17 @@ export default {
   },
   methods: {
     formatTooltipText(params) {
-      const [date, value] = params;
-      return [dateFormat(date, 'dd mmm yyyy, h:MMtt'), value.toFixed(3)];
+      const [seriesData] = params.seriesData;
+      this.tooltip.isDeployment = seriesData.componentSubType === 'scatter';
+      this.tooltip.title = dateFormat(params.value, 'dd mmm yyyy, h:MMTT');
+      if (this.tooltip.isDeployment) {
+        const [deploy] = this.recentDeployments.filter(
+          deployment => deployment.createdAt === seriesData.value[0],
+        );
+        this.tooltip.sha = deploy.sha.substring(0, 8);
+      } else {
+        this.tooltip.content = `${this.yAxisLabel} ${seriesData.value[1].toFixed(3)}`;
+      }
     },
     onResize() {
       const { width, height } = this.$refs.areaChart.$el.getBoundingClientRect();
@@ -176,6 +193,25 @@ export default {
       :thresholds="alertData"
       :width="width"
       :height="height"
-    />
+    >
+      <template slot="tooltipTitle">
+        <div v-if="tooltip.isDeployment">
+          {{ __('Deployed') }}
+        </div>
+        {{ tooltip.title }}
+      </template>
+      <template slot="tooltipContent">
+        <div v-if="tooltip.isDeployment" class="d-flex align-items-center">
+          <icon
+            name="commit"
+            class="mr-2"
+          />
+          {{ tooltip.sha }}
+        </div>
+        <template v-else>
+          {{ tooltip.content }}
+        </template>
+      </template>
+    </gl-area-chart>
   </div>
 </template>
