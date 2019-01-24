@@ -17,17 +17,6 @@ export default {
       default: 'commit-message-edit',
     },
   },
-  methods: {
-    handleAllCommitMessages(showAllCommitMessages) {
-      if (showAllCommitMessages) {
-        this.tempSquashCommitMessage = this.value;
-        this.$emit('input', this.allCommitMessages);
-      } else {
-        this.$emit('input', this.tempSquashCommitMessage);
-        this.tempSquashCommitMessage = '';
-      }
-    },
-  },
 };
 </script>
 
