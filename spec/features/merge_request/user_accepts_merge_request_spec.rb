@@ -80,8 +80,8 @@ describe 'User accepts a merge request', :js do
     end
 
     it 'accepts a merge request' do
-      click_button('Modify commit message')
-      fill_in('Commit message', with: 'wow such merge')
+      first('.js-file-title').click
+      fill_in('Merge commit message', with: 'wow such merge')
 
       click_button('Merge')
 
