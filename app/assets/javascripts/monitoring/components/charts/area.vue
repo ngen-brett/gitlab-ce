@@ -3,6 +3,8 @@ import { GlAreaChart } from '@gitlab/ui';
 import dateFormat from 'dateformat';
 import { debounceByAnimationFrame, getSvgIconPath } from '../../../helpers/monitor_helper';
 
+const scatterSymbol = getSvgIconPath('rocket');
+
 export default {
   components: {
     GlAreaChart,
@@ -122,6 +124,8 @@ export default {
       return {
         type: 'scatter',
         data: this.recentDeployments.map(deployment => [deployment.createdAt, 0]),
+        symbol: `path://${scatterSymbol}`,
+        symbolSize: 14,
       };
     },
     xAxisLabel() {
