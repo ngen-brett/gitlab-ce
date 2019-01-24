@@ -636,7 +636,8 @@ repo or by specifying a project variable:
 
 ### Custom Helm chart per environment **[PREMIUM]**
 
-You can specify the use of a custom Helm chart per environment by scoping the environment variable to the desired environment. See [Limiting environment scopes of variablesLimiting environment scopes of variables](https://docs.gitlab.com/ee/ci/variables/#limiting-environment-scopes-of-variables-premium).
+You can specify the use of a custom Helm chart per environment by scoping the environment variable 
+to the desired environment. See [Limiting environment scopes of variables](https://docs.gitlab.com/ee/ci/variables/#limiting-environment-scopes-of-variables-premium).
 
 ### Customizing `.gitlab-ci.yml`
 
