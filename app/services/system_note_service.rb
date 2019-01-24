@@ -264,7 +264,7 @@ module SystemNoteService
     note
   end
 
-  def diff_discussion_outdated(discussion, project, author, change_position, updated_at=Time.now)
+  def diff_discussion_outdated(discussion, project, author, change_position)
     merge_request = discussion.noteable
     diff_refs = change_position.diff_refs
     version_index = merge_request.merge_request_diffs.viewable.count
