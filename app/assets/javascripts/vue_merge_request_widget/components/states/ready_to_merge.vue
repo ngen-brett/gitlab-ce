@@ -345,8 +345,8 @@ export default {
             squash
           >
             <commit-message-dropdown
-              v-model="squashCommitMessage"
               slot="header"
+              v-model="squashCommitMessage"
               :commits="mr.commits"
             />
           </commit-edit>
