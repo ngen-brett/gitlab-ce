@@ -6,15 +6,6 @@ export default {
       required: true,
       default: '',
     },
-    squash: {
-      type: Boolean,
-      required: false,
-    },
-    commits: {
-      type: Array,
-      required: false,
-      default: () => [],
-    },
     label: {
       type: String,
       required: true,
@@ -25,12 +16,6 @@ export default {
       required: true,
       default: 'commit-message-edit',
     },
-  },
-  data() {
-    return {
-      allCommitsIncluded: false,
-      tempSquashCommitMessage: '',
-    };
   },
   methods: {
     handleAllCommitMessages(showAllCommitMessages) {
