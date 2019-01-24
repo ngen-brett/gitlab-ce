@@ -201,7 +201,7 @@ export default {
   methods: {
     handleBeforeUnloadEvent(e) {
       const event = e;
-      if (this.showForm && this.issueChanged) {
+      if (this.showForm && this.issueChanged && !this.showRecaptcha) {
         event.returnValue = 'Are you sure you want to lose your issue information?';
       }
       return undefined;
