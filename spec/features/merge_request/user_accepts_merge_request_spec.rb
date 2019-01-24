@@ -80,7 +80,7 @@ describe 'User accepts a merge request', :js do
     end
 
     it 'accepts a merge request' do
-      first('.js-file-title').click
+      first('.mr-widget-commits-count').click
       fill_in('Merge commit message', with: 'wow such merge')
 
       click_button('Merge')
