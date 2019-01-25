@@ -39,9 +39,11 @@ module MergeRequests
     end
 
     def source
-      return merge_request.diff_head_sha unless merge_request.squash
-
-      squash_sha
+      if merge_request.squash
+        squash_sha
+      else
+        merge_request.diff_head_sha
+      end
     end
 
     # Overridden in EE.
@@ -79,9 +81,7 @@ module MergeRequests
 
     def squash_sha
       strong_memoize(:squash_sha) do
-        message = params[:squash_commit_message]
-
-        squash_result = ::MergeRequests::SquashService.new(project, current_user, params).execute(merge_request, message)
+        squash_result = ::MergeRequests::SquashService.new(project, merge_request, current_user, params).execute
 
         case squash_result[:status]
         when :success
