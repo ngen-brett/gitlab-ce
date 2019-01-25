@@ -8,6 +8,8 @@ module MergeRequests
   # Executed when you do merge via GitLab UI
   #
   class MergeService < MergeRequests::BaseService
+    include Gitlab::Utils::StrongMemoize
+
     MergeError = Class.new(StandardError)
 
     attr_reader :merge_request, :source
@@ -39,14 +41,7 @@ module MergeRequests
     def source
       return merge_request.diff_head_sha unless merge_request.squash
 
-      squash_result = ::MergeRequests::SquashService.new(project, current_user, params).execute(merge_request)
-
-      case squash_result[:status]
-      when :success
-        squash_result[:squash_sha]
-      when :error
-        raise ::MergeRequests::MergeService::MergeError, squash_result[:message]
-      end
+      squash_sha
     end
 
     # Overridden in EE.
@@ -80,6 +75,21 @@ module MergeRequests
       end
 
       merge_request.update!(merge_commit_sha: commit_id)
+    end
+
+    def squash_sha
+      strong_memoize(:squash_sha) do
+        message = params[:squash_commit_message]
+
+        squash_result = ::MergeRequests::SquashService.new(project, current_user, params).execute(merge_request, message)
+
+        case squash_result[:status]
+        when :success
+          squash_result[:squash_sha]
+        when :error
+          raise ::MergeRequests::MergeService::MergeError, squash_result[:message]
+        end
+      end
     end
 
     def try_merge
