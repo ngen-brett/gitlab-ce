@@ -141,6 +141,7 @@ export default {
         merge_when_pipeline_succeeds: this.setToMergeWhenPipelineSucceeds,
         should_remove_source_branch: this.removeSourceBranch === true,
         squash: this.squashBeforeMerge,
+        squash_commit_message: this.squashCommitMessage,
       };
 
       this.isMakingRequest = true;
