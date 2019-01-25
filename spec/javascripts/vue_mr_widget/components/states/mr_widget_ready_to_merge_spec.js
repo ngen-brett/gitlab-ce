@@ -746,10 +746,6 @@ describe('ReadyToMerge', () => {
         expect(vm.$el.querySelector('.js-remove-source-branch-checkbox')).toBeNull();
       });
 
-      it('does not show  modify commit message button', () => {
-        expect(vm.$el.querySelector('.js-modify-commit-message-button')).toBeNull();
-      });
-
       it('shows message to resolve all items before being allowed to merge', () => {
         expect(vm.$el.querySelector('.js-resolve-mr-widget-items-message')).toBeDefined();
       });
