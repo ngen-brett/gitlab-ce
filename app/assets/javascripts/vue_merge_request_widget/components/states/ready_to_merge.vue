@@ -35,8 +35,7 @@ export default {
       squashBeforeMerge: this.mr.squash,
       successSvg,
       warningSvg,
-      // TODO: replace with mr.squashCommitMessage when available
-      squashCommitMessage: 'Test squash commit message',
+      squashCommitMessage: this.mr.squashCommitMessage,
       commitsListExpanded: false,
     };
   },
