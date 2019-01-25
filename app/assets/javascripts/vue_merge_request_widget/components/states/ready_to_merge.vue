@@ -7,12 +7,18 @@ import Flash from '../../../flash';
 import statusIcon from '../mr_widget_status_icon.vue';
 import eventHub from '../../event_hub';
 import SquashBeforeMerge from './squash_before_merge.vue';
+import CommitsHeader from './commits_header.vue';
+import CommitEdit from './commit_edit.vue';
+import CommitMessageDropdown from './commit_message_dropdown.vue';
 
 export default {
   name: 'ReadyToMerge',
   components: {
     statusIcon,
     SquashBeforeMerge,
+    CommitsHeader,
+    CommitEdit,
+    CommitMessageDropdown,
   },
   props: {
     mr: { type: Object, required: true },
@@ -22,26 +28,20 @@ export default {
     return {
       removeSourceBranch: this.mr.shouldRemoveSourceBranch,
       mergeWhenBuildSucceeds: false,
-      useCommitMessageWithDescription: false,
       setToMergeWhenPipelineSucceeds: false,
-      showCommitMessageEditor: false,
       isMakingRequest: false,
       isMergingImmediately: false,
       commitMessage: this.mr.commitMessage,
       squashBeforeMerge: this.mr.squash,
       successSvg,
       warningSvg,
+      squashCommitMessage: this.mr.squashCommitMessage,
+      commitsListExpanded: false,
     };
   },
   computed: {
     shouldShowMergeWhenPipelineSucceedsText() {
       return this.mr.isPipelineActive;
-    },
-    commitMessageLinkTitle() {
-      const withDesc = 'Include description in commit message';
-      const withoutDesc = "Don't include description in commit message";
-
-      return this.useCommitMessageWithDescription ? withoutDesc : withDesc;
     },
     status() {
       const { pipeline, isPipelineActive, isPipelineFailed, hasCI, ciStatus } = this.mr;
@@ -110,18 +110,20 @@ export default {
       const { commitsCount, enableSquashBeforeMerge } = this.mr;
       return enableSquashBeforeMerge && commitsCount > 1;
     },
+    allCommitMessages() {
+      return this.mr.commits.reduce(
+        (acc, current) => (acc ? `${acc}\n\r${current.title}` : current.title),
+        '',
+      );
+    },
   },
   methods: {
     shouldShowMergeControls() {
       return this.mr.isMergeAllowed || this.shouldShowMergeWhenPipelineSucceedsText;
     },
-    updateCommitMessage() {
+    updateMergeCommitMessage(includeDescription) {
       const cmwd = this.mr.commitMessageWithDescription;
-      this.useCommitMessageWithDescription = !this.useCommitMessageWithDescription;
-      this.commitMessage = this.useCommitMessageWithDescription ? cmwd : this.mr.commitMessage;
-    },
-    toggleCommitMessageEditor() {
-      this.showCommitMessageEditor = !this.showCommitMessageEditor;
+      this.commitMessage = includeDescription ? cmwd : this.mr.commitMessage;
     },
     handleMergeButtonClick(mergeWhenBuildSucceeds, mergeImmediately) {
       // TODO: Remove no-param-reassign
@@ -139,6 +141,7 @@ export default {
         merge_when_pipeline_succeeds: this.setToMergeWhenPipelineSucceeds,
         should_remove_source_branch: this.removeSourceBranch === true,
         squash: this.squashBeforeMerge,
+        squash_commit_message: this.squashCommitMessage,
       };
 
       this.isMakingRequest = true;
@@ -223,135 +226,146 @@ export default {
           }
         })
         .catch(() => {
-          new Flash('Something went wrong while removing the source branch. Please try again.'); // eslint-disable-line
+          new Flash('Something went wrong while deleting the source branch. Please try again.'); // eslint-disable-line
         });
+    },
+    toggleCommitsList() {
+      this.commitsListExpanded = !this.commitsListExpanded;
     },
   },
 };
 </script>
 
 <template>
-  <div class="mr-widget-body media">
-    <status-icon :status="iconClass" />
-    <div class="media-body">
-      <div class="mr-widget-body-controls media space-children">
-        <span class="btn-group">
-          <button
-            :disabled="isMergeButtonDisabled"
-            :class="mergeButtonClass"
-            type="button"
-            class="qa-merge-button"
-            @click="handleMergeButtonClick()"
-          >
-            <i v-if="isMakingRequest" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
-            {{ mergeButtonText }}
-          </button>
-          <button
-            v-if="shouldShowMergeOptionsDropdown"
-            :disabled="isMergeButtonDisabled"
-            type="button"
-            class="btn btn-sm btn-info dropdown-toggle js-merge-moment"
-            data-toggle="dropdown"
-            aria-label="Select merge moment"
-          >
-            <i class="fa fa-chevron-down qa-merge-moment-dropdown" aria-hidden="true"></i>
-          </button>
-          <ul
-            v-if="shouldShowMergeOptionsDropdown"
-            class="dropdown-menu dropdown-menu-right"
-            role="menu"
-          >
-            <li>
-              <a
-                class="merge_when_pipeline_succeeds qa-merge-when-pipeline-succeeds-option"
-                href="#"
-                @click.prevent="handleMergeButtonClick(true)"
-              >
-                <span class="media">
-                  <span class="merge-opt-icon" aria-hidden="true" v-html="successSvg"></span>
-                  <span class="media-body merge-opt-title">Merge when pipeline succeeds</span>
-                </span>
-              </a>
-            </li>
-            <li>
-              <a
-                class="accept-merge-request qa-merge-immediately-option"
-                href="#"
-                @click.prevent="handleMergeButtonClick(false, true)"
-              >
-                <span class="media">
-                  <span class="merge-opt-icon" aria-hidden="true" v-html="warningSvg"></span>
-                  <span class="media-body merge-opt-title">Merge immediately</span>
-                </span>
-              </a>
-            </li>
-          </ul>
-        </span>
-        <div class="media-body-wrap space-children">
-          <template v-if="shouldShowMergeControls()">
-            <label v-if="mr.canRemoveSourceBranch">
-              <input
-                id="remove-source-branch-input"
-                v-model="removeSourceBranch"
-                :disabled="isRemoveSourceBranchButtonDisabled"
-                class="js-remove-source-branch-checkbox"
-                type="checkbox"
-              />
-              Remove source branch
-            </label>
-
-            <!-- Placeholder for EE extension of this component -->
-            <squash-before-merge
-              v-if="shouldShowSquashBeforeMerge"
-              v-model="squashBeforeMerge"
-              :help-path="mr.squashBeforeMergeHelpPath"
-              :is-disabled="isMergeButtonDisabled"
-            />
-
-            <span v-if="mr.ffOnlyEnabled" class="js-fast-forward-message">
-              Fast-forward merge without a merge commit
-            </span>
+  <div>
+    <div class="mr-widget-body media">
+      <status-icon :status="iconClass" />
+      <div class="media-body">
+        <div class="mr-widget-body-controls media space-children">
+          <span class="btn-group">
             <button
-              v-else
               :disabled="isMergeButtonDisabled"
-              class="js-modify-commit-message-button btn btn-default btn-sm"
+              :class="mergeButtonClass"
               type="button"
-              @click="toggleCommitMessageEditor"
+              class="qa-merge-button"
+              @click="handleMergeButtonClick()"
             >
-              Modify commit message
+              <i v-if="isMakingRequest" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+              {{ mergeButtonText }}
             </button>
-          </template>
-          <template v-else>
-            <span class="bold js-resolve-mr-widget-items-message">
-              You can only merge once the items above are resolved
-            </span>
-          </template>
-        </div>
-      </div>
-      <div v-if="showCommitMessageEditor" class="prepend-top-default commit-message-editor">
-        <div class="form-group clearfix">
-          <label class="col-form-label" for="commit-message"> Commit message </label>
-          <div class="col-sm-10">
-            <div class="commit-message-container">
-              <div class="max-width-marker"></div>
-              <textarea
-                id="commit-message"
-                v-model="commitMessage"
-                class="form-control js-commit-message"
-                required="required"
-                rows="14"
-                name="Commit message"
-              ></textarea>
-            </div>
-            <p class="hint">
-              Try to keep the first line under 52 characters and the others under 72
-            </p>
-            <div class="hint">
-              <a href="#" @click.prevent="updateCommitMessage"> {{ commitMessageLinkTitle }} </a>
-            </div>
+            <button
+              v-if="shouldShowMergeOptionsDropdown"
+              :disabled="isMergeButtonDisabled"
+              type="button"
+              class="btn btn-sm btn-info dropdown-toggle js-merge-moment"
+              data-toggle="dropdown"
+              aria-label="Select merge moment"
+            >
+              <i class="fa fa-chevron-down qa-merge-moment-dropdown" aria-hidden="true"></i>
+            </button>
+            <ul
+              v-if="shouldShowMergeOptionsDropdown"
+              class="dropdown-menu dropdown-menu-right"
+              role="menu"
+            >
+              <li>
+                <a
+                  class="merge_when_pipeline_succeeds qa-merge-when-pipeline-succeeds-option"
+                  href="#"
+                  @click.prevent="handleMergeButtonClick(true)"
+                >
+                  <span class="media">
+                    <span class="merge-opt-icon" aria-hidden="true" v-html="successSvg"></span>
+                    <span class="media-body merge-opt-title">Merge when pipeline succeeds</span>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a
+                  class="accept-merge-request qa-merge-immediately-option"
+                  href="#"
+                  @click.prevent="handleMergeButtonClick(false, true)"
+                >
+                  <span class="media">
+                    <span class="merge-opt-icon" aria-hidden="true" v-html="warningSvg"></span>
+                    <span class="media-body merge-opt-title">Merge immediately</span>
+                  </span>
+                </a>
+              </li>
+            </ul>
+          </span>
+          <div class="media-body-wrap space-children">
+            <template v-if="shouldShowMergeControls()">
+              <label v-if="mr.canRemoveSourceBranch">
+                <input
+                  id="remove-source-branch-input"
+                  v-model="removeSourceBranch"
+                  :disabled="isRemoveSourceBranchButtonDisabled"
+                  class="js-remove-source-branch-checkbox"
+                  type="checkbox"
+                />
+                Delete source branch
+              </label>
+
+              <!-- Placeholder for EE extension of this component -->
+              <squash-before-merge
+                v-if="shouldShowSquashBeforeMerge"
+                v-model="squashBeforeMerge"
+                :help-path="mr.squashBeforeMergeHelpPath"
+                :is-disabled="isMergeButtonDisabled"
+              />
+            </template>
+            <template v-else>
+              <span class="bold js-resolve-mr-widget-items-message">
+                You can only merge once the items above are resolved
+              </span>
+            </template>
           </div>
         </div>
       </div>
     </div>
+    <template v-if="shouldShowMergeControls">
+      <div v-if="mr.ffOnlyEnabled" class="js-fast-forward-message">
+        Fast-forward merge without a merge commit
+      </div>
+      <template v-else>
+        <commits-header
+          :expanded="commitsListExpanded"
+          :is-squash-enabled="squashBeforeMerge"
+          :commits-count="mr.commitsCount"
+          :target-branch="mr.targetBranch"
+          @toggleCommitsList="toggleCommitsList"
+        />
+        <ul v-show="commitsListExpanded" class="content-list commits-list flex-list">
+          <commit-edit
+            v-if="squashBeforeMerge"
+            v-model="squashCommitMessage"
+            :label="__('Squash commit message')"
+            input-id="squash-message-edit"
+            squash
+          >
+            <commit-message-dropdown
+              slot="header"
+              v-model="squashCommitMessage"
+              :commits="mr.commits"
+            />
+          </commit-edit>
+          <commit-edit
+            v-model="commitMessage"
+            :label="__('Merge commit message')"
+            input-id="merge-message-edit"
+          >
+            <label slot="checkbox">
+              <input
+                id="include-description"
+                type="checkbox"
+                @change="updateMergeCommitMessage($event.target.checked)"
+              />
+              Include merge commit description
+            </label>
+          </commit-edit>
+        </ul>
+      </template>
+    </template>
   </div>
 </template>

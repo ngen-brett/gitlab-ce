@@ -291,7 +291,7 @@ msgstr ""
 msgid "<strong>%{group_name}</strong> group members"
 msgstr ""
 
-msgid "<strong>Removes</strong> source branch"
+msgid "<strong>Deletes</strong> source branch"
 msgstr ""
 
 msgid "A 'Runner' is a process which runs a job. You can set up as many Runners as you need."
@@ -528,6 +528,9 @@ msgstr ""
 msgid "Allow users to request access if visibility is public or internal."
 msgstr ""
 
+msgid "Allowed to fail"
+msgstr ""
+
 msgid "Allows you to add and manage Kubernetes clusters."
 msgstr ""
 
@@ -733,6 +736,9 @@ msgid "Are you sure you want to reset the health check token?"
 msgstr ""
 
 msgid "Are you sure you want to stop this environment?"
+msgstr ""
+
+msgid "Are you sure you want to unsubscribe from the %{type}: %{link_to_noteable_text}?"
 msgstr ""
 
 msgid "Are you sure?"
@@ -1176,6 +1182,9 @@ msgstr ""
 msgid "CI / CD Settings"
 msgstr ""
 
+msgid "CI Lint"
+msgstr ""
+
 msgid "CI/CD"
 msgstr ""
 
@@ -1282,6 +1291,9 @@ msgid "Chat"
 msgstr ""
 
 msgid "Check the %{docs_link_start}documentation%{docs_link_end}."
+msgstr ""
+
+msgid "Check your .gitlab-ci.yml"
 msgstr ""
 
 msgid "Checking %{text} availability…"
@@ -1423,6 +1435,9 @@ msgid "CiVariable|Toggle protected"
 msgstr ""
 
 msgid "CiVariable|Validation failed"
+msgstr ""
+
+msgid "Clear"
 msgstr ""
 
 msgid "Clear search"
@@ -2015,6 +2030,9 @@ msgstr ""
 msgid "Compare Revisions"
 msgstr ""
 
+msgid "Compare changes"
+msgstr ""
+
 msgid "Compare changes with the last commit"
 msgstr ""
 
@@ -2112,6 +2130,9 @@ msgid "ContainerRegistry|With the Docker Container Registry integrated into GitL
 msgstr ""
 
 msgid "ContainerRegistry|You can also use a %{deploy_token} for read-only access to the registry images."
+msgstr ""
+
+msgid "Contents of .gitlab-ci.yml"
 msgstr ""
 
 msgid "Continue"
@@ -2671,6 +2692,9 @@ msgstr ""
 msgid "Download"
 msgstr ""
 
+msgid "Download artifacts"
+msgstr ""
+
 msgid "Download asset"
 msgstr ""
 
@@ -2833,6 +2857,9 @@ msgstr ""
 msgid "Environment variables are configured by your administrator to be %{link_start}protected%{link_end} by default"
 msgstr ""
 
+msgid "Environment:"
+msgstr ""
+
 msgid "Environments"
 msgstr ""
 
@@ -2986,6 +3013,9 @@ msgstr ""
 msgid "Error while loading the merge request. Please try again."
 msgstr ""
 
+msgid "Error:"
+msgstr ""
+
 msgid "Errors"
 msgstr ""
 
@@ -3029,6 +3059,9 @@ msgid "Everyone"
 msgstr ""
 
 msgid "Everyone can contribute"
+msgstr ""
+
+msgid "Except policy:"
 msgstr ""
 
 msgid "Existing Git repository"
@@ -3137,6 +3170,9 @@ msgid "Fields on this page are now uneditable, you can configure"
 msgstr ""
 
 msgid "File added"
+msgstr ""
+
+msgid "File browser"
 msgstr ""
 
 msgid "File deleted"
@@ -3574,6 +3610,9 @@ msgstr ""
 msgid "Here is the public SSH key that needs to be added to the remote server. For more information, please refer to the documentation."
 msgstr ""
 
+msgid "Hide file browser"
+msgstr ""
+
 msgid "Hide host keys manual input"
 msgstr ""
 
@@ -3586,9 +3625,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "Hide values"
-msgstr ""
-
-msgid "Hide whitespace changes"
 msgstr ""
 
 msgid "History"
@@ -3877,6 +3913,12 @@ msgid "Job"
 msgstr ""
 
 msgid "Job has been erased"
+msgstr ""
+
+msgid "Job is stuck. Check runners."
+msgstr ""
+
+msgid "Job was retried"
 msgstr ""
 
 msgid "Jobs"
@@ -4270,6 +4312,9 @@ msgstr ""
 msgid "Merge Requests"
 msgstr ""
 
+msgid "Merge commit message"
+msgstr ""
+
 msgid "Merge events"
 msgstr ""
 
@@ -4295,6 +4340,9 @@ msgid "MergeRequests|View file @ %{commitId}"
 msgstr ""
 
 msgid "MergeRequests|View replaced file @ %{commitId}"
+msgstr ""
+
+msgid "MergeRequests|commented on commit %{commitLink}"
 msgstr ""
 
 msgid "MergeRequests|started a discussion"
@@ -4808,6 +4856,9 @@ msgstr ""
 msgid "Only mirror protected branches"
 msgstr ""
 
+msgid "Only policy:"
+msgstr ""
+
 msgid "Only project members can comment."
 msgstr ""
 
@@ -4893,6 +4944,9 @@ msgid "Pagination|Prev"
 msgstr ""
 
 msgid "Pagination|« First"
+msgstr ""
+
+msgid "Parameter"
 msgstr ""
 
 msgid "Part of merge request changes"
@@ -6345,6 +6399,9 @@ msgstr ""
 msgid "Show complete raw log"
 msgstr ""
 
+msgid "Show file browser"
+msgstr ""
+
 msgid "Show latest version"
 msgstr ""
 
@@ -6572,6 +6629,9 @@ msgstr ""
 msgid "Specify the following URL during the Runner setup:"
 msgstr ""
 
+msgid "Squash commit message"
+msgstr ""
+
 msgid "Squash commits"
 msgstr ""
 
@@ -6650,6 +6710,9 @@ msgstr ""
 msgid "Status"
 msgstr ""
 
+msgid "Status:"
+msgstr ""
+
 msgid "Stop environment"
 msgstr ""
 
@@ -6723,6 +6786,9 @@ msgid "System metrics (Kubernetes)"
 msgstr ""
 
 msgid "Tag"
+msgstr ""
+
+msgid "Tag list:"
 msgstr ""
 
 msgid "Tags"
@@ -7431,9 +7497,6 @@ msgstr ""
 msgid "Toggle discussion"
 msgstr ""
 
-msgid "Toggle file browser"
-msgstr ""
-
 msgid "Toggle navigation"
 msgstr ""
 
@@ -7552,6 +7615,9 @@ msgid "Unsubscribe at group level"
 msgstr ""
 
 msgid "Unsubscribe at project level"
+msgstr ""
+
+msgid "Unsubscribe from %{type}"
 msgstr ""
 
 msgid "Unverified"
@@ -7683,6 +7749,15 @@ msgstr ""
 msgid "Users requesting access to"
 msgstr ""
 
+msgid "Validate"
+msgstr ""
+
+msgid "Validate your GitLab CI configuration file"
+msgstr ""
+
+msgid "Value"
+msgstr ""
+
 msgid "Various container registry settings."
 msgstr ""
 
@@ -7795,6 +7870,9 @@ msgid "When a runner is locked, it cannot be assigned to other projects"
 msgstr ""
 
 msgid "When enabled, users cannot use GitLab until the terms have been accepted."
+msgstr ""
+
+msgid "When:"
 msgstr ""
 
 msgid "Who can see this group?"
@@ -8052,10 +8130,10 @@ msgstr ""
 msgid "You need to register a two-factor authentication app before you can set up a U2F device."
 msgstr ""
 
-msgid "You will loose all changes you've made to this file. This action cannot be undone."
+msgid "You will lose all changes you've made to this file. This action cannot be undone."
 msgstr ""
 
-msgid "You will loose all the unstaged changes you've made in this project. This action cannot be undone."
+msgid "You will lose all the unstaged changes you've made in this project. This action cannot be undone."
 msgstr ""
 
 msgid "You will not get any notifications via email"
@@ -8161,6 +8239,9 @@ msgid "a deleted user"
 msgstr ""
 
 msgid "ago"
+msgstr ""
+
+msgid "allowed to fail"
 msgstr ""
 
 msgid "among other things"
@@ -8281,6 +8362,9 @@ msgstr ""
 msgid "latest version"
 msgstr ""
 
+msgid "manual"
+msgstr ""
+
 msgid "merge request"
 msgid_plural "merge requests"
 msgstr[0] ""
@@ -8329,6 +8413,9 @@ msgid "mrWidget|Closes"
 msgstr ""
 
 msgid "mrWidget|Create an issue to resolve them later"
+msgstr ""
+
+msgid "mrWidget|Delete source branch"
 msgstr ""
 
 msgid "mrWidget|Deployment statistics are not available currently"
@@ -8391,12 +8478,6 @@ msgstr ""
 msgid "mrWidget|Refreshing now"
 msgstr ""
 
-msgid "mrWidget|Remove Source Branch"
-msgstr ""
-
-msgid "mrWidget|Remove source branch"
-msgstr ""
-
 msgid "mrWidget|Request to merge"
 msgstr ""
 
@@ -8430,19 +8511,19 @@ msgstr ""
 msgid "mrWidget|The source branch HEAD has recently changed. Please reload the page and review the changes before merging"
 msgstr ""
 
-msgid "mrWidget|The source branch has been removed"
+msgid "mrWidget|The source branch has been deleted"
 msgstr ""
 
 msgid "mrWidget|The source branch is %{commitsBehindLinkStart}%{commitsBehind}%{commitsBehindLinkEnd} the target branch"
 msgstr ""
 
-msgid "mrWidget|The source branch is being removed"
+msgid "mrWidget|The source branch is being deleted"
 msgstr ""
 
-msgid "mrWidget|The source branch will be removed"
+msgid "mrWidget|The source branch will be deleted"
 msgstr ""
 
-msgid "mrWidget|The source branch will not be removed"
+msgid "mrWidget|The source branch will not be deleted"
 msgstr ""
 
 msgid "mrWidget|There are merge conflicts"
@@ -8466,10 +8547,10 @@ msgstr ""
 msgid "mrWidget|You are not allowed to edit this project directly. Please fork to make changes."
 msgstr ""
 
-msgid "mrWidget|You can merge this merge request manually using the"
+msgid "mrWidget|You can delete the source branch now"
 msgstr ""
 
-msgid "mrWidget|You can remove source branch now"
+msgid "mrWidget|You can merge this merge request manually using the"
 msgstr ""
 
 msgid "mrWidget|branch does not exist."
@@ -8488,6 +8569,9 @@ msgid "n/a"
 msgstr ""
 
 msgid "new merge request"
+msgstr ""
+
+msgid "none"
 msgstr ""
 
 msgid "notification emails"
@@ -8562,7 +8646,16 @@ msgstr ""
 msgid "stuck"
 msgstr ""
 
+msgid "syntax is correct"
+msgstr ""
+
+msgid "syntax is incorrect"
+msgstr ""
+
 msgid "this document"
+msgstr ""
+
+msgid "triggered"
 msgstr ""
 
 msgid "updated"
