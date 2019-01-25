@@ -1,4 +1,14 @@
 - if @events.present?
   = render partial: 'events/event', collection: @events
 - else
-  .nothing-here-block= _("No activities found")
+  .nothing-here-block
+    .svg-content
+      = image_tag 'illustrations/profile-page/activity.svg', size: '75'
+    .text-content
+      - if user_profile? and current_user.present? and current_user.username == params[:username]
+        %h5= s_('UserProfile|Join or create a group to start contributing by commenting on issues or submitting merge requests!')
+        = link_to 'Explore group', explore_groups_path, class: 'btn btn-create btn-inverted'
+        = link_to 'New group', new_group_path, class: 'btn btn-success'
+
+      - else
+        %h5= _("No activities found")

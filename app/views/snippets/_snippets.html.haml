@@ -5,6 +5,15 @@
     = render partial: 'shared/snippets/snippet', collection: @snippets, locals: { link_project: link_project }
     - if @snippets.empty?
       %li
-        .nothing-here-block= _("Nothing here.")
+        .nothing-here-block
+          .svg-content
+            = image_tag 'illustrations/profile-page/snippets.svg', size: '75'
+          .text-content
+            - if user_profile? and current_user.present? and current_user.username == params[:username]
+              %h5= s_('UserProfile|You haven\'t created any snippets.')
+              %p= s_('UserProfile|Snippets in GitLab can either be private, internal, or public.')
+              = link_to 'New snippet', new_snippet_path, class: 'btn btn-success'
+            - else
+              %h5= s_('UserProfile|No snippets found.')
 
   = paginate @snippets, theme: 'gitlab'

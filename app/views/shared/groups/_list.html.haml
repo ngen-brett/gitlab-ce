@@ -5,4 +5,13 @@
     - groups.each_with_index do |group, i|
       = render "shared/groups/group", group: group, user: user
 - else
-  .nothing-here-block= s_("GroupsEmptyState|No groups found")
+  .nothing-here-block
+    .svg-content
+      = image_tag 'illustrations/profile-page/groups.svg', size: '75'
+    .text-content
+      - if user_profile? and current_user.present? and current_user.username == params[:username]
+        %h5= s_('UserProfile|You can create a group for several dependent projects.')
+        %p= s_('UserProfile|Groups are the best way to manage projects and members.')
+        = link_to 'New group', new_group_path, class: 'btn btn-success'
+      - else
+        %h5= s_("GroupsEmptyState|No groups found")

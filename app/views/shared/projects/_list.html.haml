@@ -34,8 +34,23 @@
     = paginate_collection(projects, remote: remote) unless skip_pagination
   - else
     .nothing-here-block
-      .svg-content.svg-130
-        = image_tag 'illustrations/profile-page/personal-project.svg'
-      %div
-        %span
-          = s_('UserProfile|This user doesn\'t have any personal projects')
+      - if @contributed_projects
+        .svg-content
+          = image_tag 'illustrations/profile-page/contributed-projects.svg', size: '75'
+        .text-content
+          - if user_profile? and current_user.present? and current_user.username == params[:username]
+            %h5 Explore public groups to find projects to contribute to.
+            = link_to _('Explore groups'), explore_groups_path, class: 'btn btn-create btn-inverted'
+            = link_to _('New project'), new_project_path, class: 'btn btn-success'
+          - else
+            %h5= s_('UserProfile|This user doesn\'t have any personal projects')
+      - else 
+        .svg-content
+          = image_tag 'illustrations/profile-page/personal-project.svg', size: '75'
+        .text-content
+          - if user_profile? and current_user.present? and current_user.username == params[:username]
+            %h5= s_('UserProfile|You haven\'t created any personal projects.')
+            %p= s_('UserProfile|Your projects can be available publicly, internally, or privately, at your choice.')
+            = link_to _('New project'), new_project_path, class: 'btn btn-success'
+          - else
+            %h5= s_('UserProfile|This user doesn\'t have any personal projects')
