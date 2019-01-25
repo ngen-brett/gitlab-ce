@@ -35,8 +35,7 @@ export default {
       squashBeforeMerge: this.mr.squash,
       successSvg,
       warningSvg,
-      // TODO: replace with mr.squashCommitMessage when available
-      squashCommitMessage: 'Test squash commit message',
+      squashCommitMessage: this.mr.squashCommitMessage,
       commitsListExpanded: false,
     };
   },
@@ -142,6 +141,7 @@ export default {
         merge_when_pipeline_succeeds: this.setToMergeWhenPipelineSucceeds,
         should_remove_source_branch: this.removeSourceBranch === true,
         squash: this.squashBeforeMerge,
+        squash_commit_message: this.squashCommitMessage,
       };
 
       this.isMakingRequest = true;
