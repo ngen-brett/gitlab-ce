@@ -39,7 +39,7 @@
 
 .mr-widget-section {
   .media {
-    align-items: center;
+    align-items: flex-start;
   }
 
   .code-text {
@@ -78,7 +78,7 @@
   border-top: 0;
 }
 
-.mr-widget-section,
+.mr-widget-body,
 .mr-widget-content,
 .mr-widget-footer {
   padding: $gl-padding;
@@ -88,8 +88,87 @@
   color: $gl-text-color;
 
   .mr-widget-section,
-  .mr-widget-footer {
+  .mr-widget-footer,
+  .mr-widget-commits-count {
     border-top: solid 1px $border-color;
+  }
+
+  .js-fast-forward-message {
+    padding-left: 50px;
+    padding-bottom: $gl-padding;
+  }
+
+  .mr-widget-commits-count {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid $border-color;
+    justify-content: flex-start;
+    background-color: $gray-50;
+    padding: 5px 16px;
+    margin: 0;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+
+    &:hover {
+      background-color: $gray-300;
+
+      .btn-link {
+        text-decoration: none;
+      }
+    }
+
+    .commits-header-icon {
+      margin-left: 3px;
+      margin-right: 14px;
+    }
+
+    &.collapsed {
+      border-bottom: 0;
+
+      .commits-header-icon {
+        color: $gray-700;
+      }
+    }
+  }
+
+  .commits-list {
+    > li {
+      padding: $gl-padding;
+      padding-left: 50px;
+    }
+
+    .commit-message-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .btn-link {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+      }
+
+      .dropdown-commit {
+        cursor: pointer;
+        padding: 6px 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &:hover {
+          background-color: $gray-darker;
+        }
+
+        &-sha {
+          font-family: $monospace-font;
+        }
+      }
+    }
+
+    .js-commit-message {
+      margin-bottom: $gl-padding;
+      height: 140px;
+    }
   }
 
   .mr-widget-footer {
@@ -102,6 +181,10 @@
     > .media {
       padding: $gl-padding;
     }
+  }
+
+  .commit-detail {
+    line-height: 20px;
   }
 
   form {
@@ -421,10 +504,6 @@
       color: $gl-text-color;
     }
   }
-}
-
-.mr-widget-body-controls {
-  flex-wrap: wrap;
 }
 
 .mr_source_commit,
