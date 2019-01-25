@@ -81,7 +81,7 @@ describe 'User accepts a merge request', :js do
 
     it 'accepts a merge request' do
       find('.mr-widget-commits-count').click
-      fill_in('Merge commit message', with: 'wow such merge')
+      fill_in('merge-message-edit', with: 'wow such merge')
 
       click_button('Merge')
 
