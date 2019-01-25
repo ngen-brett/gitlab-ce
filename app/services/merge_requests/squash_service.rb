@@ -2,9 +2,12 @@
 
 module MergeRequests
   class SquashService < MergeRequests::WorkingCopyBaseService
-    def execute(merge_request)
+    attr_reader :message
+
+    def execute(merge_request, message = nil)
       @merge_request = merge_request
       @repository = target_project.repository
+      @message = message
 
       squash || error('Failed to squash. Should be done manually.')
     end
@@ -18,7 +21,7 @@ module MergeRequests
         return error('Squash task canceled: another squash is already in progress.')
       end
 
-      squash_sha = repository.squash(current_user, merge_request)
+      squash_sha = repository.squash(current_user, merge_request, message: message)
 
       success(squash_sha: squash_sha)
     rescue => e
