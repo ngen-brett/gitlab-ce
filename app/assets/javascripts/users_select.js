@@ -93,18 +93,16 @@ function UsersSelect(currentUser, els, options = {}) {
           }
 
           // Save current selected user to the DOM
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = $dropdown.data('fieldName');
-
           const currentUserInfo = $dropdown.data('currentUserInfo');
 
-          if (currentUserInfo) {
-            input.value = currentUserInfo.id;
-            input.dataset.meta = _.escape(currentUserInfo.name);
-          } else if (_this.currentUser) {
-            input.value = _this.currentUser.id;
-          }
+          const value = (function() {
+            if (currentUserInfo) return currentUserInfo.id;
+            return _this.currentUser ? _this.currentUser.id : '';
+          })();
+
+          const input = `<input type="hidden" name="${_.escape(
+            $dropdown.data('fieldName'),
+          )}" value="${_.escape(value)}" data-meta="${_.escape(currentUserInfo.name)}" />`;
 
           if ($selectbox) {
             $dropdown.parent().before(input);
