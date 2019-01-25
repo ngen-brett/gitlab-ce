@@ -43,6 +43,7 @@ export default class MergeRequestStore {
     this.deployments = this.deployments || data.deployments || [];
     this.postMergeDeployments = this.postMergeDeployments || [];
     this.commits = data.commits || [];
+    this.squashCommitMessage = data.squash_commit_message;
     this.initRebase(data);
 
     if (data.issues_links) {
