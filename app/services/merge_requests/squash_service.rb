@@ -13,6 +13,7 @@ module MergeRequests
     def execute(merge_request)
       @merge_request = merge_request
       @repository = target_project.repository
+      @message = message
 
       squash || error('Failed to squash. Should be done manually.')
     end
