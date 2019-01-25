@@ -971,6 +971,7 @@ class MergeRequest < ActiveRecord::Base
     if merge_params
       merge_params.delete('should_remove_source_branch')
       merge_params.delete('commit_message')
+      merge_params.delete('squash_commit_message')
     end
 
     self.save

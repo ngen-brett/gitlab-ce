@@ -2,6 +2,14 @@
 
 module MergeRequests
   class SquashService < MergeRequests::WorkingCopyBaseService
+    attr_reader :message
+
+    def initialize(project, user = nil, params = {})
+      super
+
+      @message = params.delete(:squash_commit_message)
+    end
+
     def execute(merge_request)
       @merge_request = merge_request
       @repository = target_project.repository
@@ -18,7 +26,7 @@ module MergeRequests
         return error('Squash task canceled: another squash is already in progress.')
       end
 
-      squash_sha = repository.squash(current_user, merge_request)
+      squash_sha = repository.squash(current_user, merge_request, message: message)
 
       success(squash_sha: squash_sha)
     rescue => e

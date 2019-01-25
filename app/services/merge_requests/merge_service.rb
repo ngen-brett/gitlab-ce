@@ -79,9 +79,7 @@ module MergeRequests
 
     def squash_sha
       strong_memoize(:squash_sha) do
-        message = params[:squash_commit_message]
-
-        squash_result = ::MergeRequests::SquashService.new(project, current_user, params).execute(merge_request, message)
+        squash_result = ::MergeRequests::SquashService.new(project, current_user, params).execute(merge_request)
 
         case squash_result[:status]
         when :success

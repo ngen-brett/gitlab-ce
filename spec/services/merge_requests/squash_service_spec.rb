@@ -51,12 +51,9 @@ describe MergeRequests::SquashService do
       let(:squash_sha) { service.execute(merge_request)[:squash_sha] }
       let(:squash_commit) { project.repository.commit(squash_sha) }
 
-      it 'copies the author info and message from the merge request' do
+      it 'copies the author info from the merge request' do
         expect(squash_commit.author_name).to eq(merge_request.author.name)
         expect(squash_commit.author_email).to eq(merge_request.author.email)
-
-        # Commit messages have a trailing newline, but titles don't.
-        expect(squash_commit.message.chomp).to eq(merge_request.title)
       end
 
       it 'sets the current user as the committer' do
@@ -71,6 +68,19 @@ describe MergeRequests::SquashService do
 
         expect(squash_diff.patch.length).to eq(mr_diff.patch.length)
         expect(squash_commit.sha).not_to eq(merge_request.diff_head_sha)
+      end
+
+      it 'has a default squash commit message if no message was provided' do
+        expect(squash_commit.message.chomp).to eq(merge_request.default_squash_commit_message.chomp)
+      end
+
+      context 'if a message was provided' do
+        let(:message) { 'My custom message' }
+        let(:service) { described_class.new(project, user, { squash_commit_message: message }) }
+
+        it 'has the same message as the message provided' do
+          expect(squash_commit.message.chomp).to eq(message)
+        end
       end
     end
   end
