@@ -90,7 +90,9 @@ describe('Application Row', () => {
         ...DEFAULT_APPLICATION_STATE,
         status: APPLICATION_STATUS.INSTALLING,
       });
+      const installationBtn = vm.$el.querySelector('.js-cluster-application-install-button');
 
+      expect(installationBtn).not.toBe(null);
       expect(vm.installButtonLabel).toEqual('Installing');
       expect(vm.installButtonLoading).toEqual(true);
       expect(vm.installButtonDisabled).toEqual(true);

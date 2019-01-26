@@ -69,6 +69,7 @@ export default {
     },
     isInstalling() {
       return (
+        this.status === APPLICATION_STATUS.SCHEDULED ||
         this.status === APPLICATION_STATUS.INSTALLING ||
         (this.requestStatus === REQUEST_SUBMITTED && !this.statusReason && !this.isInstalled)
       );
@@ -78,6 +79,18 @@ export default {
         this.status === APPLICATION_STATUS.INSTALLED ||
         this.status === APPLICATION_STATUS.UPDATED ||
         this.status === APPLICATION_STATUS.UPDATING
+      );
+    },
+    canInstall() {
+      if (this.isInstalling) {
+        return false;
+      }
+
+      return (
+        this.status === APPLICATION_STATUS.NOT_INSTALLABLE ||
+        this.status === APPLICATION_STATUS.INSTALLABLE ||
+        this.status === APPLICATION_STATUS.ERROR ||
+        this.isUnknownStatus
       );
     },
     hasLogo() {
@@ -106,21 +119,11 @@ export default {
     },
     installButtonLabel() {
       let label;
-      if (
-        (this.status === APPLICATION_STATUS.NOT_INSTALLABLE ||
-          this.status === APPLICATION_STATUS.INSTALLABLE ||
-          this.status === APPLICATION_STATUS.ERROR ||
-          this.isUnknownStatus) &&
-        !this.isInstalling
-      ) {
+      if (this.canInstall) {
         label = s__('ClusterIntegration|Install');
-      } else if (this.status === APPLICATION_STATUS.SCHEDULED || this.isInstalling) {
+      } else if (this.isInstalling) {
         label = s__('ClusterIntegration|Installing');
-      } else if (
-        this.status === APPLICATION_STATUS.INSTALLED ||
-        this.status === APPLICATION_STATUS.UPDATED ||
-        this.status === APPLICATION_STATUS.UPDATING
-      ) {
+      } else if (this.isInstalled) {
         label = s__('ClusterIntegration|Installed');
       }
 
