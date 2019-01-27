@@ -18,10 +18,10 @@ GET /projects/:id/repository/branches
 
 Parameters:
 
-| Attribute | Type           | Required | Description                                                                                                  |
-|:----------|:---------------|:---------|:-------------------------------------------------------------------------------------------------------------|
+| Attribute | Type           | Required | Description |
+|:----------|:---------------|:---------|:------------|
 | `id`      | integer/string | yes      | ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user. |
-| `search`  | string         | no       | Return list of branches matching the search criteria.                                                        |
+| `search`  | string         | no       | Return list of branches containing the search string. You can use `^term` and `term$` to find branches that beginning respectively ending with the `term`.|
 
 Example request:
 
