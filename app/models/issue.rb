@@ -86,7 +86,7 @@ class Issue < ActiveRecord::Base
     state :closed
 
     before_transition any => :closed do |issue|
-      issue.closed_at = Time.zone.now
+      issue.closed_at = issue.system_note_timestamp
     end
 
     before_transition closed: :opened do |issue|
