@@ -4,17 +4,14 @@ export default {
     value: {
       type: String,
       required: true,
-      default: '',
     },
     label: {
       type: String,
       required: true,
-      default: '',
     },
     inputId: {
       type: String,
       required: true,
-      default: 'commit-message-edit',
     },
   },
 };
