@@ -18,8 +18,7 @@ describe 'User squashes a merge request', :js do
                                                   author_name: user.name,
                                                   committer_name: user.name)
 
-      merge_commit = an_object_having_attributes(sha: a_string_matching(/\h{40}/),
-                                                 message: a_string_starting_with("Merge branch 'csv' into 'master'"),
+      merge_commit = an_object_having_attributes(message: a_string_starting_with("Merge branch 'csv' into 'master'"),
                                                  author_name: user.name,
                                                  committer_name: user.name)
 
