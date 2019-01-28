@@ -4,17 +4,21 @@ module Gitlab
   module Tracing
     module Rails
       class ActiveRecordSubscriber
-        include Gitlab::Tracing::Common
+        include RailsCommon
 
         ACTIVE_RECORD_NOTIFICATION_TOPIC = 'sql.active_record'
         DEFAULT_OPERATION_NAME = "sqlquery"
 
+        # Instruments Rails ActiveRecord events for opentracing.
+        # Returns a lambda, which, when called will unsubscribe from the notifications
         def self.instrument
           subscriber = new
 
-          ActiveSupport::Notifications.subscribe(ACTIVE_RECORD_NOTIFICATION_TOPIC) do |_, start, finish, _, payload|
+          subscription = ActiveSupport::Notifications.subscribe(ACTIVE_RECORD_NOTIFICATION_TOPIC) do |_, start, finish, _, payload|
             subscriber.notify(start, finish, payload)
           end
+
+          create_unsubscriber [subscription]
         end
 
         # For more information on the payloads: https://guides.rubyonrails.org/active_support_instrumentation.html
