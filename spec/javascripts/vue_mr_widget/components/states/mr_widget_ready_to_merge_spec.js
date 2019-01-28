@@ -8,6 +8,7 @@ import eventHub from '~/vue_merge_request_widget/event_hub';
 import { createLocalVue, shallowMount } from '@vue/test-utils';
 
 const commitMessage = 'This is the commit message';
+const squashCommitMessage = 'This is the squash commit message';
 const commitMessageWithDescription = 'This is the commit message description';
 const createTestMr = customConfig => {
   const mr = {
@@ -22,6 +23,7 @@ const createTestMr = customConfig => {
     sha: '12345678',
     squash: false,
     commitMessage,
+    squashCommitMessage,
     commitMessageWithDescription,
     shouldRemoveSourceBranch: true,
     canRemoveSourceBranch: false,
@@ -690,9 +692,13 @@ describe('ReadyToMerge', () => {
         expect(findCommitEditElements().length).toBe(1);
       });
 
-      it('should have two edit component when squash is enabled', () => {
+      it('should have two edit components when squash is enabled', () => {
         createLocalComponent({
-          mr: { commitsCount: 2, squash: true, enableSquashBeforeMerge: true },
+          mr: {
+            commitsCount: 2,
+            squash: true,
+            enableSquashBeforeMerge: true,
+          },
         });
 
         expect(findCommitEditElements().length).toBe(2);
