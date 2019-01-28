@@ -134,7 +134,7 @@ RSpec.shared_examples 'an editable merge request' do
       click_button 'Save changes'
 
       expect(page).to have_unchecked_field 'remove-source-branch-input'
-      expect(page).to have_content 'Remove source branch'
+      expect(page).to have_content 'Delete source branch'
     end
   end
 end
