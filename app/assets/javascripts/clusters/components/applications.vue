@@ -362,6 +362,10 @@ export default {
         :status-reason="applications.runner.statusReason"
         :request-status="applications.runner.requestStatus"
         :request-reason="applications.runner.requestReason"
+        :version="applications.runner.version"
+        version-link="http://TODO"
+        :upgraded-at="applications.runner.upgradedAt"
+        :upgrade-status="applications.runner.upgradeStatus"
         :disabled="!helmInstalled"
         title-link="https://docs.gitlab.com/runner/"
       >

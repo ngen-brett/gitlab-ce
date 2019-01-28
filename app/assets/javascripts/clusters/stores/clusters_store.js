@@ -40,6 +40,9 @@ export default class ClusterStore {
           statusReason: null,
           requestStatus: null,
           requestReason: null,
+          version: 'v11.6.0', // TODO - remove mock data
+          upgradedAt: '2018-11-30T07:15:22.636Z', // TODO - remove mock data
+          upgradeStatus: 'failed', // TODO - remove mock data
         },
         prometheus: {
           title: s__('ClusterIntegration|Prometheus'),

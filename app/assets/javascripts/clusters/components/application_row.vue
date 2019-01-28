@@ -1,5 +1,6 @@
 <script>
 /* eslint-disable vue/require-default-prop */
+import TimeagoTooltip from '../../vue_shared/components/time_ago_tooltip.vue';
 import { s__, sprintf } from '../../locale';
 import eventHub from '../event_hub';
 import identicon from '../../vue_shared/components/identicon.vue';
@@ -15,6 +16,7 @@ export default {
   components: {
     loadingButton,
     identicon,
+    TimeagoTooltip,
   },
   props: {
     id: {
@@ -56,6 +58,22 @@ export default {
       required: false,
     },
     requestReason: {
+      type: String,
+      required: false,
+    },
+    version: {
+      type: String,
+      required: false,
+    },
+    versionLink: {
+      type: String,
+      required: false,
+    },
+    upgradedAt: {
+      type: String,
+      required: false,
+    },
+    upgradeStatus: {
       type: String,
       required: false,
     },
@@ -147,6 +165,26 @@ export default {
         title: this.title,
       });
     },
+    versionLabel() {
+      if (this.upgradeFailed) {
+        return s__('ClusterIntegration|Upgrade failed');
+      }
+
+      return s__('ClusterIntegration|Upgraded');
+    },
+    upgradeFailed() {
+      return this.upgradeStatus === 'failed';
+    },
+    upgradeFailureDescription() {
+      return sprintf(
+        s__(
+          'ClusterIntegration|Something went wrong when upgrading %{title}. Please check the logs and try again.',
+        ),
+        {
+          title: this.title,
+        },
+      );
+    },
   },
   methods: {
     installClicked() {
@@ -207,6 +245,21 @@ export default {
               {{ requestReason }}
             </li>
           </ul>
+        </div>
+
+        <div class="form-text text-muted label pl-0" v-if="version">
+          <a :href="versionLink">
+            {{ version }}
+          </a>
+
+          {{ versionLabel }}
+
+          <timeago-tooltip :time="upgradedAt" tooltip-placement="bottom" />
+
+          <div v-if="upgradeFailed">
+            <!-- TODO - Add appropriate styling -->
+            {{ upgradeFailureDescription }}
+          </div>
         </div>
       </div>
       <div
