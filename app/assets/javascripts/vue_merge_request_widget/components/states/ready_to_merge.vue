@@ -122,8 +122,8 @@ export default {
       return this.mr.isMergeAllowed || this.shouldShowMergeWhenPipelineSucceedsText;
     },
     updateMergeCommitMessage(includeDescription) {
-      const cmwd = this.mr.commitMessageWithDescription;
-      this.commitMessage = includeDescription ? cmwd : this.mr.commitMessage;
+      const { commitMessageWithDescription, commitMessage } = this.mr;
+      this.commitMessage = includeDescription ? commitMessageWithDescription : commitMessage;
     },
     handleMergeButtonClick(mergeWhenBuildSucceeds, mergeImmediately) {
       // TODO: Remove no-param-reassign
