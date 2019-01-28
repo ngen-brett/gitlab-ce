@@ -173,7 +173,7 @@ export default {
       return s__('ClusterIntegration|Upgraded');
     },
     upgradeFailed() {
-      return this.upgradeStatus === 'failed';
+      return this.status === APPLICATION_STATUS.UPDATE_FAILED;
     },
     upgradeFailureDescription() {
       return sprintf(
@@ -185,12 +185,32 @@ export default {
         },
       );
     },
+    upgradeButtonLabel() {
+      let label;
+      if (this.status === APPLICATION_STATUS.UPDATING) {
+        label = s__('ClusterIntegration|Upgrading');
+      } else {
+        label = s__('ClusterIntegration|Retry upgrade');
+      }
+
+      return label;
+    },
+    isUpgrading() {
+      return this.status === APPLICATION_STATUS.UPDATING;
+    },
   },
   methods: {
     installClicked() {
       eventHub.$emit('installApplication', {
         id: this.id,
         params: this.installApplicationRequestParams,
+      });
+    },
+    upgradeClicked() {
+      // TODO - add event handler for this
+
+      eventHub.$emit('upgradeApplication', {
+        id: this.id,
       });
     },
   },
@@ -247,7 +267,7 @@ export default {
           </ul>
         </div>
 
-        <div class="form-text text-muted label pl-0" v-if="version">
+        <div class="form-text text-muted label p-0" v-if="version">
           <a :href="versionLink">
             {{ version }}
           </a>
@@ -255,12 +275,21 @@ export default {
           {{ versionLabel }}
 
           <timeago-tooltip :time="upgradedAt" tooltip-placement="bottom" />
-
-          <div v-if="upgradeFailed">
-            <!-- TODO - Add appropriate styling -->
-            {{ upgradeFailureDescription }}
-          </div>
         </div>
+
+        <div v-if="upgradeFailed" class="bs-callout bs-callout-danger mt-2 mb-2">
+          <!-- TODO - Add appropriate styling -->
+          {{ upgradeFailureDescription }}
+        </div>
+
+        <loading-button
+          v-if="upgradeFailed"
+          class="btn btn-primary js-cluster-application-upgrade-button"
+          :loading="isUpgrading"
+          :disabled="isUpgrading"
+          :label="upgradeButtonLabel"
+          @click="upgradeClicked"
+        />
       </div>
       <div
         :class="{ 'section-25': showManageButton, 'section-15': !showManageButton }"
