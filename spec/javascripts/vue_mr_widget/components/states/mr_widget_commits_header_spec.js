@@ -76,7 +76,7 @@ describe('Commits header component', () => {
     it('has correct target branch displayed', () => {
       createComponent();
 
-      expect(findTargetBranchMessage().text()).toBe('master.');
+      expect(findTargetBranchMessage().text()).toBe('master');
     });
   });
 
