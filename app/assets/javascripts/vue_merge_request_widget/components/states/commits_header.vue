@@ -61,7 +61,7 @@ export default {
       @click="toggle()"
     >
       <div
-        class="w-3 h-3 d-flex-center append-right-default"
+        class="w-3 h-3 d-flex-center append-right-default commit-edit-toggle"
         role="button"
         :aria-label="ariaLabel"
         @click.stop="toggle()"

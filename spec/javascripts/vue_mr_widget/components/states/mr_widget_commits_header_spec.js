@@ -14,7 +14,6 @@ describe('Commits header component', () => {
       propsData: {
         isSquashEnabled: false,
         targetBranch: 'master',
-        expanded: false,
         commitsCount: 5,
         ...props,
       },
@@ -26,20 +25,22 @@ describe('Commits header component', () => {
   });
 
   const findHeaderWrapper = () => wrapper.find('.js-mr-widget-commits-count');
+  const findCommitToggle = () => wrapper.find('.commit-edit-toggle');
   const findIcon = () => wrapper.find(Icon);
   const findCommitsCountMessage = () => wrapper.find('.commits-count-message');
   const findTargetBranchMessage = () => wrapper.find('.label-branch');
   const findModifyButton = () => wrapper.find('button');
 
   describe('when collapsed', () => {
-    it('has collapsed class', () => {
+    it('toggle has aria-label equal to Expand', () => {
       createComponent();
 
-      expect(findHeaderWrapper().classes()).toContain('collapsed');
+      expect(findCommitToggle().attributes('aria-label')).toBe('Expand');
     });
 
     it('has a chevron-right icon', () => {
       createComponent();
+      wrapper.setData({ expanded: false });
 
       expect(findIcon().props('name')).toBe('chevron-right');
     });
@@ -81,26 +82,29 @@ describe('Commits header component', () => {
 
   describe('when expanded', () => {
     beforeEach(() => {
-      createComponent({ expanded: true });
+      createComponent();
+      wrapper.setData({ expanded: true });
     });
 
-    it('has no collapsed class', () => {
-      expect(findHeaderWrapper().classes()).not.toContain('collapsed');
+    it('toggle has aria-label equal to collapse', done => {
+      wrapper.vm.$nextTick(() => {
+        expect(findCommitToggle().attributes('aria-label')).toBe('Collapse');
+        done();
+      });
     });
 
-    it('has a chevron-down icon', () => {
-      expect(findIcon().props('name')).toBe('chevron-down');
+    it('has a chevron-down icon', done => {
+      wrapper.vm.$nextTick(() => {
+        expect(findIcon().props('name')).toBe('chevron-down');
+        done();
+      });
     });
 
-    it('has a collapse text', () => {
-      expect(findHeaderWrapper().text()).toBe('Collapse');
+    it('has a collapse text', done => {
+      wrapper.vm.$nextTick(() => {
+        expect(findHeaderWrapper().text()).toBe('Collapse');
+        done();
+      });
     });
-  });
-
-  it('should emit a toggleCommitsList event when clicked', () => {
-    createComponent();
-    findHeaderWrapper().trigger('click');
-
-    expect(wrapper.emitted('toggleCommitsList')).toBeTruthy();
   });
 });
