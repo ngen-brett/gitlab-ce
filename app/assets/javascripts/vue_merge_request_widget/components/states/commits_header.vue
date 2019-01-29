@@ -1,7 +1,6 @@
 <script>
 import { GlButton } from '@gitlab/ui';
 import { __, n__ } from '~/locale';
-import { pluralize } from '~/lib/utils/text_utility';
 import Icon from '~/vue_shared/components/icon.vue';
 
 export default {
@@ -70,7 +69,7 @@ export default {
       >
         <icon :name="collapseIcon" :size="16" />
       </div>
-      <span v-if="expanded">Collapse</span>
+      <span v-if="expanded">{{ __('Collapse') }}</span>
       <span v-else>
         <strong class="commits-count-message">{{ commitsCountMessage }}</strong> and
         <strong>1 merge commit</strong> will be added to
