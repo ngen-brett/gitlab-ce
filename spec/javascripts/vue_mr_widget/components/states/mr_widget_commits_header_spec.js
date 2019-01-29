@@ -1,4 +1,5 @@
 import { createLocalVue, shallowMount } from '@vue/test-utils';
+import { GlButton } from '@gitlab/ui';
 import CommitsHeader from '~/vue_merge_request_widget/components/states/commits_header.vue';
 import Icon from '~/vue_shared/components/icon.vue';
 
@@ -29,7 +30,7 @@ describe('Commits header component', () => {
   const findIcon = () => wrapper.find(Icon);
   const findCommitsCountMessage = () => wrapper.find('.commits-count-message');
   const findTargetBranchMessage = () => wrapper.find('.label-branch');
-  const findModifyButton = () => wrapper.find('button');
+  const findModifyButton = () => wrapper.find(GlButton);
 
   describe('when collapsed', () => {
     it('toggle has aria-label equal to Expand', () => {
