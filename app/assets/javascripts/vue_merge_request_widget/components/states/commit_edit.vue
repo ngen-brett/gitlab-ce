@@ -32,7 +32,6 @@ export default {
         class="form-control js-gfm-input append-bottom-default"
         required="required"
         rows="7"
-        name="Commit message"
         @input="$emit('input', $event.target.value)"
       ></textarea>
       <slot name="checkbox"></slot>
