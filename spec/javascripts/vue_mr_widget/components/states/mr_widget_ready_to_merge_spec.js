@@ -739,7 +739,7 @@ describe('ReadyToMerge', () => {
         mr: { ffOnlyEnabled: false },
       });
 
-      expect(customVm.$el.querySelector('.js-fast-forward-message')).toBeNull();
+      expect(customVm.$el.querySelector('.mr-fast-forward-message')).toBeNull();
       expect(customVm.$el.querySelector('.js-modify-commit-message-button')).toBeDefined();
     });
 
@@ -748,7 +748,7 @@ describe('ReadyToMerge', () => {
         mr: { ffOnlyEnabled: true },
       });
 
-      expect(customVm.$el.querySelector('.js-fast-forward-message')).toBeDefined();
+      expect(customVm.$el.querySelector('.mr-fast-forward-message')).toBeDefined();
       expect(customVm.$el.querySelector('.js-modify-commit-message-button')).toBeNull();
     });
   });

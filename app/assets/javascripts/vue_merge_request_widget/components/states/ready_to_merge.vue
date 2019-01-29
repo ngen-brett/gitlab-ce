@@ -315,7 +315,7 @@ export default {
       </div>
     </div>
     <template v-if="shouldShowMergeControls">
-      <div v-if="mr.ffOnlyEnabled" class="js-fast-forward-message">
+      <div v-if="mr.ffOnlyEnabled" class="mr-fast-forward-message">
         Fast-forward merge without a merge commit
       </div>
       <template v-else>
