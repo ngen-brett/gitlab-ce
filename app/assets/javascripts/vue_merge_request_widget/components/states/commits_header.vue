@@ -12,7 +12,6 @@ export default {
     isSquashEnabled: {
       type: Boolean,
       required: true,
-      default: false,
     },
     commitsCount: {
       type: Number,
@@ -22,7 +21,6 @@ export default {
     targetBranch: {
       type: String,
       required: true,
-      default: '',
     },
   },
   data() {
