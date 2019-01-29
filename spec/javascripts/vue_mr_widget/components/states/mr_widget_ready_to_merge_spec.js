@@ -601,7 +601,7 @@ describe('ReadyToMerge', () => {
     });
   });
 
-  describe('Child', () => {
+  describe('render children components', () => {
     let wrapper;
     const localVue = createLocalVue();
 
