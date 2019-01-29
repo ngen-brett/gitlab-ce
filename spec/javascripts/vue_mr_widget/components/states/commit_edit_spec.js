@@ -9,7 +9,7 @@ const testInputId = 'test-input-id';
 describe('Commits edit component', () => {
   let wrapper;
 
-  const createComponent = () => {
+  const createComponent = (slots = {}) => {
     wrapper = shallowMount(localVue.extend(CommitEdit), {
       localVue,
       sync: false,
@@ -17,6 +17,9 @@ describe('Commits edit component', () => {
         value: testCommitMessage,
         label: testLabel,
         inputId: testInputId,
+      },
+      slots: {
+        ...slots,
       },
     });
   };
@@ -54,6 +57,29 @@ describe('Commits edit component', () => {
 
       expect(wrapper.emitted().input[0]).toEqual([changedCommitMessage]);
       expect(findTextarea().element.value).toBe(changedCommitMessage);
+    });
+  });
+
+  describe('when slots are present', () => {
+    beforeEach(() => {
+      createComponent({
+        header: `<div class="test-header">${testCommitMessage}</div>`,
+        checkbox: `<label slot="checkbox" class="test-checkbox">${testLabel}</label >`,
+      });
+    });
+
+    it('renders header slot correctly', () => {
+      const headerSlotElement = wrapper.find('.test-header');
+
+      expect(headerSlotElement.exists()).toBe(true);
+      expect(headerSlotElement.text()).toBe(testCommitMessage);
+    });
+
+    it('renders checkbox slot correctly', () => {
+      const checkboxSlotElement = wrapper.find('.test-checkbox');
+
+      expect(checkboxSlotElement.exists()).toBe(true);
+      expect(checkboxSlotElement.text()).toBe(testLabel);
     });
   });
 });
