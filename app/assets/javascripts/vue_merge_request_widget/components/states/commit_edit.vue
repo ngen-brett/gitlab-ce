@@ -29,9 +29,9 @@ export default {
       <textarea
         :id="inputId"
         :value="value"
-        class="form-control js-commit-message js-gfm-input"
+        class="form-control js-gfm-input append-bottom-default"
         required="required"
-        rows="14"
+        rows="7"
         name="Commit message"
         @input="$emit('input', $event.target.value)"
       ></textarea>

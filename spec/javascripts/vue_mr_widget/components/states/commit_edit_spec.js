@@ -32,7 +32,7 @@ describe('Commits edit component', () => {
     wrapper.destroy();
   });
 
-  const findTextarea = () => wrapper.find('.js-commit-message');
+  const findTextarea = () => wrapper.find('.form-control');
 
   it('has a correct label', () => {
     const labelElement = wrapper.find('.col-form-label');
