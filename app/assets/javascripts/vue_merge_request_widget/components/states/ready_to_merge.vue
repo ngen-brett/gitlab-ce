@@ -109,12 +109,6 @@ export default {
       const { commitsCount, enableSquashBeforeMerge } = this.mr;
       return enableSquashBeforeMerge && commitsCount > 1;
     },
-    allCommitMessages() {
-      return this.mr.commits.reduce(
-        (acc, current) => (acc ? `${acc}\n\r${current.title}` : current.title),
-        '',
-      );
-    },
   },
   methods: {
     shouldShowMergeControls() {
