@@ -2,6 +2,9 @@ import { createLocalVue, shallowMount } from '@vue/test-utils';
 import CommitEdit from '~/vue_merge_request_widget/components/states/commit_edit.vue';
 
 const localVue = createLocalVue();
+const testCommitMessage = 'Test commit message';
+const testLabel = 'Test label';
+const testInputId = 'test-input-id';
 
 describe('Commits edit component', () => {
   let wrapper;
@@ -11,9 +14,9 @@ describe('Commits edit component', () => {
       localVue,
       sync: false,
       propsData: {
-        value: 'Test commit message',
-        label: 'Test label',
-        inputId: 'test-input-id',
+        value: testCommitMessage,
+        label: testLabel,
+        inputId: testInputId,
       },
     });
   };
@@ -31,16 +34,16 @@ describe('Commits edit component', () => {
   it('has a correct label', () => {
     const labelElement = wrapper.find('.col-form-label');
 
-    expect(labelElement.text()).toBe('Test label');
+    expect(labelElement.text()).toBe(testLabel);
   });
 
   describe('textarea', () => {
     it('has a correct ID', () => {
-      expect(findTextarea().attributes('id')).toBe('test-input-id');
+      expect(findTextarea().attributes('id')).toBe(testInputId);
     });
 
     it('has a correct value', () => {
-      expect(findTextarea().element.value).toBe('Test commit message');
+      expect(findTextarea().element.value).toBe(testCommitMessage);
     });
 
     it('emits an input event and receives changed value', () => {
