@@ -102,34 +102,6 @@
       padding: $gl-padding;
       padding-left: 50px;
     }
-
-    .commit-message-label {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      .btn-link {
-        display: flex;
-        align-items: center;
-        text-decoration: none;
-      }
-
-      .dropdown-commit {
-        cursor: pointer;
-        padding: 6px 10px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-
-        &:hover {
-          background-color: $gray-darker;
-        }
-
-        &-sha {
-          font-family: $monospace-font;
-        }
-      }
-    }
   }
 
   .mr-widget-footer {
