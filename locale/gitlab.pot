@@ -3019,6 +3019,9 @@ msgstr ""
 msgid "Error saving label update."
 msgstr ""
 
+msgid "Error updating  %{issuableType}"
+msgstr ""
+
 msgid "Error updating status for all todos."
 msgstr ""
 
@@ -6488,7 +6491,7 @@ msgstr ""
 msgid "Snippets"
 msgstr ""
 
-msgid "Someone edited this issue at the same time you did and we updated the issue description."
+msgid "Someone edited this issue at the same time you did. The description has been updated and you will need to make your changes again."
 msgstr ""
 
 msgid "Something went wrong on our end"
