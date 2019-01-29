@@ -88,47 +88,13 @@
   color: $gl-text-color;
 
   .mr-widget-section,
-  .mr-widget-footer,
-  .mr-widget-commits-count {
+  .mr-widget-footer {
     border-top: solid 1px $border-color;
   }
 
   .js-fast-forward-message {
     padding-left: 50px;
     padding-bottom: $gl-padding;
-  }
-
-  .mr-widget-commits-count {
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid $border-color;
-    justify-content: flex-start;
-    background-color: $gray-50;
-    padding: 5px 16px;
-    margin: 0;
-    border-radius: 4px 4px 0 0;
-    cursor: pointer;
-
-    &:hover {
-      background-color: $gray-300;
-
-      .btn-link {
-        text-decoration: none;
-      }
-    }
-
-    .commits-header-icon {
-      margin-left: 3px;
-      margin-right: 14px;
-    }
-
-    &.collapsed {
-      border-bottom: 0;
-
-      .commits-header-icon {
-        color: $gray-700;
-      }
-    }
   }
 
   .commits-list {

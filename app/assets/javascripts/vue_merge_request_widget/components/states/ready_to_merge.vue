@@ -330,7 +330,7 @@ export default {
           :commits-count="mr.commitsCount"
           :target-branch="mr.targetBranch"
         >
-          <ul class="content-list commits-list flex-list">
+          <ul class="border-top content-list commits-list flex-list">
             <commit-edit
               v-if="squashBeforeMerge"
               v-model="squashCommitMessage"

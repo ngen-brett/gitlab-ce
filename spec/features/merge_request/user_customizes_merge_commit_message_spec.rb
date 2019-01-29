@@ -39,7 +39,7 @@ describe 'Merge request < User customizes merge commit message', :js do
 
   it 'toggles commit message between message with description and without description' do
     expect(page).not_to have_selector('#merge-message-edit')
-    first('.mr-widget-commits-count').click
+    first('.js-mr-widget-commits-count').click
     expect(textbox).to be_visible
     expect(textbox.value).to eq(default_message)
 

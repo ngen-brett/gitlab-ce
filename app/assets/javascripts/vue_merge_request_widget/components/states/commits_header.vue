@@ -1,4 +1,5 @@
 <script>
+import { __ } from '~/locale';
 import { pluralize } from '~/lib/utils/text_utility';
 import Icon from '~/vue_shared/components/icon.vue';
 
@@ -40,6 +41,9 @@ export default {
     modifyLinkMessage() {
       return this.isSquashEnabled ? 'Modify commit messages' : 'Modify merge commit';
     },
+    ariaLabel() {
+      return this.expanded ? __('Collapse') : __('Expand');
+    },
   },
   methods: {
     toggle() {
@@ -53,17 +57,17 @@ export default {
   <div>
     <div
       ref="header"
-      class="file-title mr-widget-commits-count"
-      :class="{ collapsed: !expanded }"
+      class="js-mr-widget-commits-count mr-widget-extension d-flex align-items-center px-3 py-2"
       @click="toggle()"
     >
-      <icon
-        :name="collapseIcon"
-        :size="16"
-        aria-hidden="true"
-        class="commits-header-icon"
+      <div
+        class="w-3 h-3 d-flex-center append-right-default"
+        role="button"
+        :aria-label="ariaLabel"
         @click.stop="toggle()"
-      />
+      >
+        <icon :name="collapseIcon" :size="16" />
+      </div>
       <span v-if="expanded">Collapse</span>
       <span v-else>
         <strong class="commits-count-message">{{ commitsCountMessage }}</strong> and

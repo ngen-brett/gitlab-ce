@@ -25,7 +25,7 @@ describe('Commits header component', () => {
     wrapper.destroy();
   });
 
-  const findHeaderWrapper = () => wrapper.find('.mr-widget-commits-count');
+  const findHeaderWrapper = () => wrapper.find('.js-mr-widget-commits-count');
   const findIcon = () => wrapper.find(Icon);
   const findCommitsCountMessage = () => wrapper.find('.commits-count-message');
   const findTargetBranchMessage = () => wrapper.find('.label-branch');
