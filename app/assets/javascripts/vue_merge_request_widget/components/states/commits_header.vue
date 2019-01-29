@@ -1,5 +1,5 @@
 <script>
-import { __ } from '~/locale';
+import { __, n__ } from '~/locale';
 import { pluralize } from '~/lib/utils/text_utility';
 import Icon from '~/vue_shared/components/icon.vue';
 
@@ -36,10 +36,10 @@ export default {
     commitsCountMessage() {
       return this.isSquashEnabled
         ? '1 commit'
-        : `${this.commitsCount} ${pluralize('commit', this.commitsCount)}`;
+        : `${this.commitsCount} ${n__('commit', 'commits', 3)}`;
     },
     modifyLinkMessage() {
-      return this.isSquashEnabled ? 'Modify commit messages' : 'Modify merge commit';
+      return this.isSquashEnabled ? __('Modify commit messages') : __('Modify merge commit');
     },
     ariaLabel() {
       return this.expanded ? __('Collapse') : __('Expand');
