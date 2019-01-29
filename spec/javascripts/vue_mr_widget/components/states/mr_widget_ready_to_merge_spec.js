@@ -658,34 +658,9 @@ describe('ReadyToMerge', () => {
 
         expect(findCommitsHeaderElement().exists()).toBeFalsy();
       });
-
-      it('should toggle commits list on emitted event', () => {
-        createLocalComponent();
-
-        expect(wrapper.vm.commitsListExpanded).toBeFalsy();
-        findCommitsHeaderElement().vm.$emit('toggleCommitsList');
-
-        expect(wrapper.vm.commitsListExpanded).toBeTruthy();
-        findCommitsHeaderElement().vm.$emit('toggleCommitsList');
-
-        expect(wrapper.vm.commitsListExpanded).toBeFalsy();
-      });
     });
 
     describe('commits edit components', () => {
-      it('wrapper should not be displayed if commits list is collapsed', () => {
-        createLocalComponent();
-
-        expect(wrapper.find('.commits-list').attributes().style).toBe('display: none;');
-      });
-
-      it('wrapper should be displayed if commits list is expanded', () => {
-        createLocalComponent();
-        wrapper.vm.commitsListExpanded = true;
-
-        expect(wrapper.find('.commits-list').attributes().style).not.toBe('display: none;');
-      });
-
       it('should have one edit component when squash is disabled', () => {
         createLocalComponent();
 
