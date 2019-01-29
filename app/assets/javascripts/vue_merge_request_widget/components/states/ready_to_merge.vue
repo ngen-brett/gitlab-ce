@@ -36,7 +36,6 @@ export default {
       successSvg,
       warningSvg,
       squashCommitMessage: this.mr.squashCommitMessage,
-      commitsListExpanded: false,
     };
   },
   computed: {
@@ -229,9 +228,6 @@ export default {
           new Flash('Something went wrong while deleting the source branch. Please try again.'); // eslint-disable-line
         });
     },
-    toggleCommitsList() {
-      this.commitsListExpanded = !this.commitsListExpanded;
-    },
   },
 };
 </script>
@@ -330,41 +326,40 @@ export default {
       </div>
       <template v-else>
         <commits-header
-          :expanded="commitsListExpanded"
           :is-squash-enabled="squashBeforeMerge"
           :commits-count="mr.commitsCount"
           :target-branch="mr.targetBranch"
-          @toggleCommitsList="toggleCommitsList"
-        />
-        <ul v-show="commitsListExpanded" class="content-list commits-list flex-list">
-          <commit-edit
-            v-if="squashBeforeMerge"
-            v-model="squashCommitMessage"
-            :label="__('Squash commit message')"
-            input-id="squash-message-edit"
-            squash
-          >
-            <commit-message-dropdown
-              slot="header"
+        >
+          <ul class="content-list commits-list flex-list">
+            <commit-edit
+              v-if="squashBeforeMerge"
               v-model="squashCommitMessage"
-              :commits="mr.commits"
-            />
-          </commit-edit>
-          <commit-edit
-            v-model="commitMessage"
-            :label="__('Merge commit message')"
-            input-id="merge-message-edit"
-          >
-            <label slot="checkbox">
-              <input
-                id="include-description"
-                type="checkbox"
-                @change="updateMergeCommitMessage($event.target.checked)"
+              :label="__('Squash commit message')"
+              input-id="squash-message-edit"
+              squash
+            >
+              <commit-message-dropdown
+                slot="header"
+                v-model="squashCommitMessage"
+                :commits="mr.commits"
               />
-              Include merge commit description
-            </label>
-          </commit-edit>
-        </ul>
+            </commit-edit>
+            <commit-edit
+              v-model="commitMessage"
+              :label="__('Merge commit message')"
+              input-id="merge-message-edit"
+            >
+              <label slot="checkbox">
+                <input
+                  id="include-description"
+                  type="checkbox"
+                  @change="updateMergeCommitMessage($event.target.checked)"
+                />
+                Include merge commit description
+              </label>
+            </commit-edit>
+          </ul>
+        </commits-header>
       </template>
     </template>
   </div>

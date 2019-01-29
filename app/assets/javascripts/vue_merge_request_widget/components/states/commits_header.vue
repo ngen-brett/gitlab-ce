@@ -22,11 +22,11 @@ export default {
       required: true,
       default: '',
     },
-    expanded: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
+  },
+  data() {
+    return {
+      expanded: false,
+    };
   },
   computed: {
     collapseIcon() {
@@ -41,29 +41,37 @@ export default {
       return this.isSquashEnabled ? 'Modify commit messages' : 'Modify merge commit';
     },
   },
+  methods: {
+    toggle() {
+      this.expanded = !this.expanded;
+    },
+  },
 };
 </script>
 
 <template>
-  <div
-    ref="header"
-    class="file-title mr-widget-commits-count"
-    :class="{ collapsed: !expanded }"
-    @click="$emit('toggleCommitsList')"
-  >
-    <icon
-      :name="collapseIcon"
-      :size="16"
-      aria-hidden="true"
-      class="commits-header-icon"
-      @click.stop="$emit('toggleCommitsList')"
-    />
-    <span v-if="expanded">Collapse</span>
-    <span v-else>
-      <strong class="commits-count-message">{{ commitsCountMessage }}</strong> and
-      <strong>1 merge commit</strong> will be added to
-      <span class="label-branch">{{ targetBranch }}.</span>
-      <button type="button" class="btn-link btn-blank">{{ modifyLinkMessage }}</button>
-    </span>
+  <div>
+    <div
+      ref="header"
+      class="file-title mr-widget-commits-count"
+      :class="{ collapsed: !expanded }"
+      @click="toggle()"
+    >
+      <icon
+        :name="collapseIcon"
+        :size="16"
+        aria-hidden="true"
+        class="commits-header-icon"
+        @click.stop="toggle()"
+      />
+      <span v-if="expanded">Collapse</span>
+      <span v-else>
+        <strong class="commits-count-message">{{ commitsCountMessage }}</strong> and
+        <strong>1 merge commit</strong> will be added to
+        <span class="label-branch">{{ targetBranch }}.</span>
+        <button type="button" class="btn-link btn-blank">{{ modifyLinkMessage }}</button>
+      </span>
+    </div>
+    <div v-show="expanded"><slot></slot></div>
   </div>
 </template>
