@@ -1,4 +1,5 @@
 <script>
+import { GlButton } from '@gitlab/ui';
 import { __, n__ } from '~/locale';
 import { pluralize } from '~/lib/utils/text_utility';
 import Icon from '~/vue_shared/components/icon.vue';
@@ -6,6 +7,7 @@ import Icon from '~/vue_shared/components/icon.vue';
 export default {
   components: {
     Icon,
+    GlButton,
   },
   props: {
     isSquashEnabled: {
@@ -74,7 +76,7 @@ export default {
         <strong>1 merge commit</strong> will be added to
         <span class="label-branch">{{ targetBranch }}</span
         >.
-        <button type="button" class="btn-link btn-blank">{{ modifyLinkMessage }}</button>
+        <gl-button variant="link">{{ modifyLinkMessage }}</gl-button>
       </span>
     </div>
     <div v-show="expanded"><slot></slot></div>
