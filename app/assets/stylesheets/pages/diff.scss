@@ -7,19 +7,24 @@
     cursor: pointer;
 
     @media (min-width: map-get($grid-breakpoints, md)) {
+      $mr-file-header-top: $mr-version-controls-height + $header-height + $mr-tabs-height;
+
       position: -webkit-sticky;
       position: sticky;
-      top: $mr-version-controls-height + $header-height + $mr-tabs-height;
+      top: $header-height + $mr-tabs-height;
       margin-left: -1px;
       border-left: 1px solid $border-color;
       z-index: 102;
+
+      &.is-mergeRequest {
+        top: $mr-file-header-top;
+      }
 
       &.is-commit {
         top: $header-height + 36px;
 
         .with-performance-bar & {
           top: $header-height + 36px + $performance-bar-height;
-
         }
       }
 
@@ -35,7 +40,11 @@
       }
 
       .with-performance-bar & {
-        top: $header-height + $performance-bar-height + $mr-version-controls-height + $mr-tabs-height;
+        top: $mr-file-header-top + $performance-bar-height;
+
+        &.is-compare {
+          top: $header-height + $performance-bar-height + 68px;
+        }
       }
     }
 
