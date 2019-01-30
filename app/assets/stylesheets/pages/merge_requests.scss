@@ -96,7 +96,15 @@
   .commits-list {
     > li {
       padding: $gl-padding;
-      padding-left: 50px;
+      @include media-breakpoint-up(md) {
+        padding-left: 50px;
+      }
+    }
+  }
+
+  .mr-commit-dropdown {
+    @include media-breakpoint-up(md) {
+      width: 150%;
     }
   }
 

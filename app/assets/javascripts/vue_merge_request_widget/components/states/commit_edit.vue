@@ -20,7 +20,7 @@ export default {
 <template>
   <li>
     <div class="commit-message-editor">
-      <div class="d-flex align-items-center">
+      <div class="d-flex flex-wrap align-items-center justify-content-between">
         <label class="col-form-label" for="commit-message">
           <strong>{{ label }}</strong>
         </label>
