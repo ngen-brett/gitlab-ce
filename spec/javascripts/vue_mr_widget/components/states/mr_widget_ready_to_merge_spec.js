@@ -668,6 +668,11 @@ describe('ReadyToMerge', () => {
         expect(findCommitEditElements().length).toBe(1);
       });
 
+      const findFirstCommitEditLabel = () =>
+        findCommitEditElements()
+          .at(0)
+          .props('label');
+
       it('should have two edit components when squash is enabled', () => {
         createLocalComponent({
           mr: {
@@ -678,6 +683,24 @@ describe('ReadyToMerge', () => {
         });
 
         expect(findCommitEditElements().length).toBe(2);
+      });
+
+      it('should have correct edit merge commit label', () => {
+        createLocalComponent();
+
+        expect(findFirstCommitEditLabel()).toBe('Merge commit message');
+      });
+
+      it('should have correct edit squash commit label', () => {
+        createLocalComponent({
+          mr: {
+            commitsCount: 2,
+            squash: true,
+            enableSquashBeforeMerge: true,
+          },
+        });
+
+        expect(findFirstCommitEditLabel()).toBe('Squash commit message');
       });
     });
 
