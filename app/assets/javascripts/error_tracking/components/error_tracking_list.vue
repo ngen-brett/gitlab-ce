@@ -48,7 +48,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['startPolling']),
+    ...mapActions(['startPolling', 'restartPolling']),
   },
 };
 </script>
@@ -56,11 +56,18 @@ export default {
 <template>
   <div>
     <div v-if="errorTrackingEnabled">
-      <div v-if="loading" class="py-3"><gl-loading-icon :size="3" /></div>
+      <div v-if="loading" class="py-3">
+        <gl-loading-icon :size="3" />
+      </div>
       <div v-else>
         <div class="d-flex justify-content-end">
           <gl-button class="my-3 ml-auto" variant="primary" :href="externalUrl" target="_blank"
-            >View in Sentry <icon name="external-link" />
+            >View in Sentry
+            <icon name="external-link" />
+          </gl-button>
+          <gl-button class="my-3 ml-1" variant="primary" @click="restartPolling"
+            >Reload
+            <icon name="redo" />
           </gl-button>
         </div>
         <gl-table
