@@ -32,6 +32,15 @@ describe Resolvers::IssuesResolver do
 
       expect(resolve_issues).to contain_exactly(issue, issue2)
     end
+
+    it 'finds a specific issue with iids' do
+      expect(resolve_issues(iids: issue.iid)).to contain_exactly(issue)
+    end
+
+    it 'finds a multiple issues with iids' do
+      expect(resolve_issues(iids: [issue.iid, issue2.iid]))
+        .to contain_exactly(issue, issue2)
+    end
   end
 
   def resolve_issues(args = {}, context = { current_user: current_user })
