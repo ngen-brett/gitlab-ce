@@ -27,6 +27,7 @@ const createTestMr = customConfig => {
     commitMessageWithDescription,
     shouldRemoveSourceBranch: true,
     canRemoveSourceBranch: false,
+    targetBranch: 'master',
   };
 
   Object.assign(mr, customConfig.mr);
