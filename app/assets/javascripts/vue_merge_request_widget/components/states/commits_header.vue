@@ -1,6 +1,6 @@
 <script>
 import { GlButton } from '@gitlab/ui';
-import { __, n__ } from '~/locale';
+import { __, n__, sprintf, s__ } from '~/locale';
 import Icon from '~/vue_shared/components/icon.vue';
 
 export default {
@@ -34,7 +34,7 @@ export default {
     },
     commitsCountMessage() {
       return this.isSquashEnabled
-        ? '1 commit'
+        ? __('1 commit')
         : `${this.commitsCount} ${n__('commit', 'commits', 3)}`;
     },
     modifyLinkMessage() {
@@ -42,6 +42,21 @@ export default {
     },
     ariaLabel() {
       return this.expanded ? __('Collapse') : __('Expand');
+    },
+    message() {
+      const commitsCount = `<strong class="commits-count-message">${
+        this.commitsCountMessage
+      }</strong>`;
+      const addingBlock = sprintf(
+        s__('and %{commitMessage} will be added to'),
+        {
+          commitMessage: `<strong>${__('1 merge commit')}</strong>`,
+        },
+        false,
+      );
+      const targetBranch = `<span class="label-branch">${this.targetBranch}</span>`;
+
+      return `${commitsCount} ${addingBlock} ${targetBranch}.`;
     },
   },
   methods: {
@@ -60,7 +75,7 @@ export default {
       @click="toggle()"
     >
       <div
-        class="w-3 h-3 d-flex-center append-right-default commit-edit-toggle"
+        class="w-3 h-3 d-flex-center append-right-10 commit-edit-toggle"
         role="button"
         :aria-label="ariaLabel"
         @click.stop="toggle()"
@@ -69,10 +84,7 @@ export default {
       </div>
       <span v-if="expanded">{{ __('Collapse') }}</span>
       <span v-else>
-        <strong class="commits-count-message">{{ commitsCountMessage }}</strong> and
-        <strong>1 merge commit</strong> will be added to
-        <span class="label-branch">{{ targetBranch }}</span
-        >.
+        <span v-html="message" />
         <gl-button variant="link">{{ modifyLinkMessage }}</gl-button>
       </span>
     </div>
