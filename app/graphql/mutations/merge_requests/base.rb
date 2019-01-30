@@ -25,7 +25,7 @@ module Mutations
 
       def find_object(project_path:, iid:)
         project = resolve_project(full_path: project_path)
-        resolver = Resolvers::MergeRequestResolver.new(object: project, context: context)
+        resolver = Resolvers::MergeRequestsResolver.new(object: project, context: context)
 
         resolver.resolve(iid: iid)
       end

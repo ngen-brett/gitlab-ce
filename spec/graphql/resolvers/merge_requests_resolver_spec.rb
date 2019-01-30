@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Resolvers::MergeRequestResolver do
+describe Resolvers::MergeRequestsResolver do
   include GraphqlHelpers
 
   set(:project) { create(:project, :repository) }
