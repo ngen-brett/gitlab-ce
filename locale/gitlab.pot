@@ -4618,6 +4618,12 @@ msgstr ""
 msgid "Modal|Close"
 msgstr ""
 
+msgid "Modify commit messages"
+msgstr ""
+
+msgid "Modify merge commit"
+msgstr ""
+
 msgid "Monitor your errors by integrating with Sentry"
 msgstr ""
 
@@ -8489,6 +8495,11 @@ msgstr ""
 
 msgid "commented on %{link_to_project}"
 msgstr ""
+
+msgid "commit"
+msgid_plural "commits"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "confidentiality|You are going to turn off the confidentiality. This means <strong>everyone</strong> will be able to see and leave a comment on this issue."
 msgstr ""
