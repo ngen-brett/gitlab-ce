@@ -229,6 +229,12 @@ msgid_plural "%d closed merge requests"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "1 commit"
+msgstr ""
+
+msgid "1 merge commit"
+msgstr ""
+
 msgid "1 merged merge request"
 msgid_plural "%d merged merge requests"
 msgstr[0] ""
@@ -8479,6 +8485,9 @@ msgid "allowed to fail"
 msgstr ""
 
 msgid "among other things"
+msgstr ""
+
+msgid "and %{commitMessage} will be added to"
 msgstr ""
 
 msgid "assign yourself"

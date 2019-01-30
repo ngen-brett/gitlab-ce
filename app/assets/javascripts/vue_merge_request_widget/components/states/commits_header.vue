@@ -84,7 +84,7 @@ export default {
       </div>
       <span v-if="expanded">{{ __('Collapse') }}</span>
       <span v-else>
-        <span v-html="message" />
+        <span v-html="message"></span>
         <gl-button variant="link">{{ modifyLinkMessage }}</gl-button>
       </span>
     </div>
