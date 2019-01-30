@@ -29,10 +29,10 @@ export default {
     >
       <gl-dropdown-item
         v-for="commit in commits"
-        :key="commit.sha"
-        @click="$emit('input', commit.title)"
+        :key="commit.short_id"
+        @click="$emit('input', commit.message)"
       >
-        <span class="monospace append-right-10">{{ commit.sha }}</span> {{ commit.title }}
+        <span class="monospace append-right-10">{{ commit.short_id }}</span> {{ commit.title }}
       </gl-dropdown-item>
     </gl-dropdown>
   </div>
