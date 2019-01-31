@@ -6,17 +6,17 @@ const localVue = createLocalVue();
 const commits = [
   {
     title: 'Commit 1',
-    sha: '78d5b7',
+    short_id: '78d5b7',
     message: 'Update test.txt',
   },
   {
     title: 'Commit 2',
-    sha: '34cbe28b',
+    short_id: '34cbe28b',
     message: 'Fixed test',
   },
   {
     title: 'Commit 3',
-    sha: 'fa42932a',
+    short_id: 'fa42932a',
     message: 'Added changelog',
   },
 ];
