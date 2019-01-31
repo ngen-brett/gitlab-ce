@@ -52,6 +52,10 @@
 .mr-widget-extension {
   border-top: 1px solid $border-color;
   background-color: $gray-light;
+
+  &:hover {
+    background-color: $gl-gray-200;
+  }
 }
 
 .mr-widget-workflow {
