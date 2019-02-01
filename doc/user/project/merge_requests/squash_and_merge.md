@@ -29,6 +29,8 @@ Squashing also works with the fast-forward merge strategy, see
 [squashing and fast-forward merge](#squash-and-fast-forward-merge) for more
 details.
 
+Squashing also works with the fast-forward merge strategy, see [squashing and fast-forward merge](#squash-and-fast-forward-merge) for more details.
+
 ## Use cases
 
 When working on a feature branch, you sometimes want to commit your current
@@ -78,7 +80,6 @@ squashing can itself be considered equivalent to rebasing.
 [squashed-commit]: img/squash_squashed_commit.png
 [squash-edit-form]: img/squash_edit_form.png
 [squash-mr-widget]: img/squash_mr_widget.png
-[squash-message-editor]: img/squash_mr_message.png
 [ff-merge]: fast_forward_merge.md#enabling-fast-forward-merges
 [ce]: https://about.gitlab.com/pricing/
 [ee]: https://about.gitlab.com/pricing/
