@@ -89,19 +89,3 @@
               = render_project_pipeline_status(project.pipeline_status, tooltip_placement: 'top')
         .updated-note
           %span Updated #{updated_tooltip}
-
-    .d-none.d-lg-flex.align-item-stretch
-      - unless compact_mode
-        - if current_user
-          %button.star-button.btn.btn-default.d-flex.align-items-center.star-btn.toggle-star{ type: "button", data: { endpoint: toggle_star_project_path(project, :json) } }
-            - if current_user.starred?(project)
-              = sprite_icon('star', { css_class: 'icon' })
-              %span.starred= s_('ProjectOverview|Unstar')
-            - else
-              = sprite_icon('star-o', { css_class: 'icon' })
-              %span= s_('ProjectOverview|Star')
-
-        - else
-          = link_to new_user_session_path, class: 'btn btn-default has-tooltip count-badge-button d-flex align-items-center star-btn', title: s_('ProjectOverview|You must sign in to star a project') do
-            = sprite_icon('star-o', { css_class: 'icon' })
-            %span= s_('ProjectOverview|Star')
