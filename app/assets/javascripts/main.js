@@ -142,6 +142,8 @@ function deferredInitialisation() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('MAIN JS CONFI');
+
   const $body = $('body');
   const $document = $(document);
   const $window = $(window);

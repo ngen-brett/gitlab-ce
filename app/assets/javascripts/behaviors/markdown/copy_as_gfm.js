@@ -1,8 +1,5 @@
 import $ from 'jquery';
-import { DOMParser } from 'prosemirror-model';
 import { getSelectedFragment } from '~/lib/utils/common_utils';
-import schema from './schema';
-import markdownSerializer from './serializer';
 
 export class CopyAsGFM {
   constructor() {
@@ -39,9 +36,11 @@ export class CopyAsGFM {
     div.appendChild(el.cloneNode(true));
     const html = div.innerHTML;
 
-    clipboardData.setData('text/plain', el.textContent);
-    clipboardData.setData('text/x-gfm', this.nodeToGFM(el));
-    clipboardData.setData('text/html', html);
+    this.nodeToGFM(el, res => {
+      clipboardData.setData('text/plain', el.textContent);
+      clipboardData.setData('text/x-gfm', res);
+      clipboardData.setData('text/html', html);
+    });
   }
 
   static pasteGFM(e) {
@@ -136,12 +135,22 @@ export class CopyAsGFM {
     return codeElement;
   }
 
-  static nodeToGFM(node) {
-    const wrapEl = document.createElement('div');
-    wrapEl.appendChild(node.cloneNode(true));
-    const doc = DOMParser.fromSchema(schema).parse(wrapEl);
+  static nodeToGFM(node, cb) {
+    Promise.all([
+      import(/* webpackChunkName: 'gfm_copy_extra' */ 'prosemirror-model'),
+      import(/* webpackChunkName: 'gfm_copy_extra' */ './schema'),
+      import(/* webpackChunkName: 'gfm_copy_extra' */ './serializer'),
+    ])
+      .then(([prosemirrorModel, schema, markdownSerializer]) => {
+        const { DOMParser } = prosemirrorModel;
+        const wrapEl = document.createElement('div');
+        wrapEl.appendChild(node.cloneNode(true));
+        const doc = DOMParser.fromSchema(schema.default).parse(wrapEl);
 
-    return markdownSerializer.serialize(doc);
+        const res = markdownSerializer.default.serialize(doc);
+        cb(res);
+      })
+      .catch(() => {});
   }
 }
 
