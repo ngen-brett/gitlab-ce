@@ -1,5 +1,6 @@
 <script>
 import { GlButton } from '@gitlab/ui';
+import _ from 'underscore';
 import { __, n__, sprintf, s__ } from '~/locale';
 import Icon from '~/vue_shared/components/icon.vue';
 
@@ -33,9 +34,7 @@ export default {
       return this.expanded ? 'chevron-down' : 'chevron-right';
     },
     commitsCountMessage() {
-      return this.isSquashEnabled
-        ? __('1 commit')
-        : `${this.commitsCount} ${n__('commit', 'commits', 3)}`;
+      return n__(__('%d commit'), __('%d commits'), this.isSquashEnabled ? 1 : this.commitsCount);
     },
     modifyLinkMessage() {
       return this.isSquashEnabled ? __('Modify commit messages') : __('Modify merge commit');
@@ -44,19 +43,17 @@ export default {
       return this.expanded ? __('Collapse') : __('Expand');
     },
     message() {
-      const commitsCount = `<strong class="commits-count-message">${
-        this.commitsCountMessage
-      }</strong>`;
-      const addingBlock = sprintf(
-        s__('and %{commitMessage} will be added to'),
+      return sprintf(
+        s__(
+          'mrWidgetCommitsAdded|%{commitCount} and %{mergeCommitCount} will be added to %{targetBranch}.',
+        ),
         {
-          commitMessage: `<strong>${__('1 merge commit')}</strong>`,
+          commitCount: `<strong class="commits-count-message">${this.commitsCountMessage}</strong>`,
+          mergeCommitCount: `<strong>${s__('mrWidgetCommitsAdded|1 merge commit')}</strong>`,
+          targetBranch: `<span class="label-branch">${_.escape(this.targetBranch)}</span>`,
         },
         false,
       );
-      const targetBranch = `<span class="label-branch">${this.targetBranch}</span>`;
-
-      return `${commitsCount} ${addingBlock} ${targetBranch}.`;
     },
   },
   methods: {

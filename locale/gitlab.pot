@@ -42,6 +42,9 @@ msgid_plural "%d commits behind"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "%d commits"
+msgstr ""
+
 msgid "%d deleted"
 msgid_plural "%d deletions"
 msgstr[0] ""
@@ -228,12 +231,6 @@ msgid "1 closed merge request"
 msgid_plural "%d closed merge requests"
 msgstr[0] ""
 msgstr[1] ""
-
-msgid "1 commit"
-msgstr ""
-
-msgid "1 merge commit"
-msgstr ""
 
 msgid "1 merged merge request"
 msgid_plural "%d merged merge requests"
@@ -8487,9 +8484,6 @@ msgstr ""
 msgid "among other things"
 msgstr ""
 
-msgid "and %{commitMessage} will be added to"
-msgstr ""
-
 msgid "assign yourself"
 msgstr ""
 
@@ -8504,11 +8498,6 @@ msgstr ""
 
 msgid "commented on %{link_to_project}"
 msgstr ""
-
-msgid "commit"
-msgid_plural "commits"
-msgstr[0] ""
-msgstr[1] ""
 
 msgid "confidentiality|You are going to turn off the confidentiality. This means <strong>everyone</strong> will be able to see and leave a comment on this issue."
 msgstr ""
@@ -8622,6 +8611,12 @@ msgstr[0] ""
 msgstr[1] ""
 
 msgid "missing"
+msgstr ""
+
+msgid "mrWidgetCommitsAdded|%{commitCount} and %{mergeCommitCount} will be added to %{targetBranch}."
+msgstr ""
+
+msgid "mrWidgetCommitsAdded|1 merge commit"
 msgstr ""
 
 msgid "mrWidget| Please restore it or use a different %{missingBranchName} branch"
