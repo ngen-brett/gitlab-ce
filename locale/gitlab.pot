@@ -2549,6 +2549,9 @@ msgstr ""
 msgid "Delete list"
 msgstr ""
 
+msgid "Delete source branch"
+msgstr ""
+
 msgid "Delete this attachment"
 msgstr ""
 
@@ -3274,6 +3277,9 @@ msgstr ""
 msgid "Failure"
 msgstr ""
 
+msgid "Fast-forward merge without a merge commit"
+msgstr ""
+
 msgid "Faster as it re-uses the project workspace (falling back to clone if it doesn't exist)"
 msgstr ""
 
@@ -3918,6 +3924,9 @@ msgstr ""
 msgid "Include a Terms of Service agreement and Privacy Policy that all users must accept."
 msgstr ""
 
+msgid "Include merge commit description"
+msgstr ""
+
 msgid "Include the username in the URL if required: <code>https://username@gitlab.company.com/group/project.git</code>."
 msgstr ""
 
@@ -4454,6 +4463,12 @@ msgid "Merge commit message"
 msgstr ""
 
 msgid "Merge events"
+msgstr ""
+
+msgid "Merge immediately"
+msgstr ""
+
+msgid "Merge in progress"
 msgstr ""
 
 msgid "Merge request"
@@ -6644,6 +6659,9 @@ msgstr ""
 msgid "Something went wrong while closing the %{issuable}. Please try again later"
 msgstr ""
 
+msgid "Something went wrong while deleting the source branch. Please try again."
+msgstr ""
+
 msgid "Something went wrong while fetching comments. Please try again."
 msgstr ""
 
@@ -6654,6 +6672,9 @@ msgid "Something went wrong while fetching the projects."
 msgstr ""
 
 msgid "Something went wrong while fetching the registry list."
+msgstr ""
+
+msgid "Something went wrong while merging this merge request. Please try again."
 msgstr ""
 
 msgid "Something went wrong while reopening the %{issuable}. Please try again later"
@@ -8317,6 +8338,9 @@ msgid "You can only add files when you are on a branch"
 msgstr ""
 
 msgid "You can only edit files when you are on a branch"
+msgstr ""
+
+msgid "You can only merge once the items above are resolved"
 msgstr ""
 
 msgid "You can resolve the merge conflict using either the Interactive mode, by choosing %{use_ours} or %{use_theirs} buttons, or by editing the files directly. Commit these changes into %{branch_name}"

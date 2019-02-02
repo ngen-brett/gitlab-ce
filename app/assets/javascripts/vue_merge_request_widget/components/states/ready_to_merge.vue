@@ -83,9 +83,9 @@ export default {
     },
     mergeButtonText() {
       if (this.isMergingImmediately) {
-        return 'Merge in progress';
+        return __('Merge in progress');
       } else if (this.shouldShowMergeWhenPipelineSucceedsText) {
-        return 'Merge when pipeline succeeds';
+        return __('Merge when pipeline succeeds');
       }
 
       return 'Merge';
@@ -154,7 +154,7 @@ export default {
         })
         .catch(() => {
           this.isMakingRequest = false;
-          new Flash('Something went wrong. Please try again.'); // eslint-disable-line
+          new Flash(__('Something went wrong. Please try again.')); // eslint-disable-line
         });
     },
     initiateMergePolling() {
@@ -190,7 +190,7 @@ export default {
           }
         })
         .catch(() => {
-          new Flash('Something went wrong while merging this merge request. Please try again.'); // eslint-disable-line
+          new Flash(__('Something went wrong while merging this merge request. Please try again.')); // eslint-disable-line
         });
     },
     initiateRemoveSourceBranchPolling() {
@@ -219,7 +219,7 @@ export default {
           }
         })
         .catch(() => {
-          new Flash('Something went wrong while deleting the source branch. Please try again.'); // eslint-disable-line
+          new Flash(__('Something went wrong while deleting the source branch. Please try again.')); // eslint-disable-line
         });
     },
   },
@@ -266,7 +266,9 @@ export default {
                 >
                   <span class="media">
                     <span class="merge-opt-icon" aria-hidden="true" v-html="successSvg"></span>
-                    <span class="media-body merge-opt-title">Merge when pipeline succeeds</span>
+                    <span class="media-body merge-opt-title">{{
+                      __('Merge when pipeline succeeds')
+                    }}</span>
                   </span>
                 </a>
               </li>
@@ -278,7 +280,7 @@ export default {
                 >
                   <span class="media">
                     <span class="merge-opt-icon" aria-hidden="true" v-html="warningSvg"></span>
-                    <span class="media-body merge-opt-title">Merge immediately</span>
+                    <span class="media-body merge-opt-title">{{ __('Merge immediately') }}</span>
                   </span>
                 </a>
               </li>
@@ -294,7 +296,7 @@ export default {
                   class="js-remove-source-branch-checkbox"
                   type="checkbox"
                 />
-                Delete source branch
+                {{ __('Delete source branch') }}
               </label>
 
               <!-- Placeholder for EE extension of this component -->
@@ -307,7 +309,7 @@ export default {
             </template>
             <template v-else>
               <span class="bold js-resolve-mr-widget-items-message">
-                You can only merge once the items above are resolved
+                {{ __('You can only merge once the items above are resolved') }}
               </span>
             </template>
           </div>
@@ -316,7 +318,7 @@ export default {
     </div>
     <template v-if="shouldShowMergeControls">
       <div v-if="mr.ffOnlyEnabled" class="mr-fast-forward-message">
-        Fast-forward merge without a merge commit
+        {{ __('Fast-forward merge without a merge commit') }}
       </div>
       <template v-else>
         <commits-header
@@ -349,7 +351,7 @@ export default {
                   type="checkbox"
                   @change="updateMergeCommitMessage($event.target.checked)"
                 />
-                Include merge commit description
+                {{ __('Include merge commit description') }}
               </label>
             </commit-edit>
           </ul>
