@@ -156,9 +156,11 @@ table {
   }
 }
 
-.top-area + .content-list {
-  th {
-    border-top: 0;
+.content-list thead,
+.tab-pane thead {
+  &:first-of-type {
+    th {
+      border-top: 0;
+    }
   }
 }
-
