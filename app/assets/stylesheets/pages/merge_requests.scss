@@ -93,16 +93,15 @@
   }
 
   .mr-fast-forward-message {
-    padding-left: 50px;
+    padding-left: $gl-padding-50;
     padding-bottom: $gl-padding;
   }
 
   .commits-list {
     > li {
       padding: $gl-padding;
-
       @include media-breakpoint-up(md) {
-        padding-left: 50px;
+        padding-left: $gl-padding-50;
       }
     }
   }
@@ -434,7 +433,7 @@
   }
 
   .mr-widget-help {
-    padding: 10px 16px 10px 48px;
+    padding: 10px 16px 10px $gl-padding-50;
     font-style: italic;
   }
 

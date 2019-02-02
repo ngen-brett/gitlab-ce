@@ -67,7 +67,6 @@ export default {
 <template>
   <div>
     <div
-      ref="header"
       class="js-mr-widget-commits-count mr-widget-extension d-flex align-items-center px-3 py-2"
       @click="toggle()"
     >
