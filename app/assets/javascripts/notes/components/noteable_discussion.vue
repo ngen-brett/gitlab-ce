@@ -20,7 +20,6 @@ import noteForm from './note_form.vue';
 import diffWithNote from './diff_with_note.vue';
 import placeholderNote from '../../vue_shared/components/notes/placeholder_note.vue';
 import placeholderSystemNote from '../../vue_shared/components/notes/placeholder_system_note.vue';
-import autosave from '../mixins/autosave';
 import noteable from '../mixins/noteable';
 import resolvable from '../mixins/resolvable';
 import discussionNavigation from '../mixins/discussion_navigation';
@@ -47,7 +46,7 @@ export default {
   directives: {
     GlTooltip: GlTooltipDirective,
   },
-  mixins: [autosave, noteable, resolvable, discussionNavigation],
+  mixins: [noteable, resolvable, discussionNavigation],
   props: {
     discussion: {
       type: Object,
@@ -98,7 +97,7 @@ export default {
       'showJumpToNextDiscussion',
     ]),
     author() {
-      return this.initialDiscussion.author;
+      return this.initialNote.author;
     },
     canReply() {
       return this.getNoteableData.current_user.can_create_note;
@@ -109,7 +108,7 @@ export default {
     hasReplies() {
       return this.discussion.notes.length > 1;
     },
-    initialDiscussion() {
+    initialNote() {
       return this.discussion.notes.slice(0, 1)[0];
     },
     replies() {
@@ -230,17 +229,8 @@ export default {
         url: this.discussion.discussion_path,
       };
     },
-  },
-  watch: {
-    isReplying() {
-      if (this.isReplying) {
-        this.$nextTick(() => {
-          // Pass an extra key to separate reply and note edit forms
-          this.initAutoSave({ ...this.initialDiscussion, ...this.discussion }, ['Reply']);
-        });
-      } else {
-        this.disposeAutoSave();
-      }
+    autosaveKey() {
+      return ['Note', 'Discussion', this.discussion.id, 'reply'];
     },
   },
   methods: {
@@ -290,7 +280,6 @@ export default {
       }
 
       this.isReplying = false;
-      this.resetAutoSave();
     },
     saveReply(noteText, form, callback) {
       const postData = {
@@ -311,10 +300,7 @@ export default {
 
       this.isReplying = false;
       this.saveNote(replyData)
-        .then(() => {
-          this.resetAutoSave();
-          callback();
-        })
+        .then(callback)
         .catch(err => {
           this.removePlaceholderNotes();
           this.isReplying = true;
@@ -358,8 +344,8 @@ Please check your network connection and try again.`;
           </div>
           <note-header
             :author="author"
-            :created-at="initialDiscussion.created_at"
-            :note-id="initialDiscussion.id"
+            :created-at="initialNote.created_at"
+            :note-id="initialNote.id"
             :include-toggle="true"
             :expanded="discussion.expanded"
             @toggleHandler="toggleDiscussionHandler"
@@ -391,8 +377,8 @@ Please check your network connection and try again.`;
               <ul class="notes">
                 <template v-if="shouldGroupReplies">
                   <component
-                    :is="componentName(initialDiscussion)"
-                    :note="componentData(initialDiscussion)"
+                    :is="componentName(initialNote)"
+                    :note="componentData(initialNote)"
                     :line="line"
                     :commit="commit"
                     :help-page-path="helpPagePath"
@@ -490,6 +476,7 @@ Please check your network connection and try again.`;
                   :is-editing="false"
                   :line="diffLine"
                   save-button-title="Comment"
+                  :autosave-key="autosaveKey"
                   @handleFormUpdate="saveReply"
                   @cancelForm="cancelReplyForm"
                 />
