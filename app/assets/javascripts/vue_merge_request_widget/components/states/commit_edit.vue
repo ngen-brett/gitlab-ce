@@ -21,7 +21,7 @@ export default {
   <li>
     <div class="commit-message-editor">
       <div class="d-flex flex-wrap align-items-center justify-content-between">
-        <label class="col-form-label" for="commit-message">
+        <label class="col-form-label" :for="inputId">
           <strong>{{ label }}</strong>
         </label>
         <slot name="header"></slot>

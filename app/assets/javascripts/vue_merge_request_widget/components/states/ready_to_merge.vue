@@ -98,7 +98,7 @@ export default {
       const { commitMessage } = this;
       return Boolean(
         !commitMessage.length ||
-          !this.shouldShowMergeControls() ||
+          !this.shouldShowMergeControls ||
           this.isMakingRequest ||
           this.mr.preventMerge,
       );
@@ -110,11 +110,11 @@ export default {
       const { commitsCount, enableSquashBeforeMerge } = this.mr;
       return enableSquashBeforeMerge && commitsCount > 1;
     },
-  },
-  methods: {
     shouldShowMergeControls() {
       return this.mr.isMergeAllowed || this.shouldShowMergeWhenPipelineSucceedsText;
     },
+  },
+  methods: {
     updateMergeCommitMessage(includeDescription) {
       const { commitMessageWithDescription, commitMessage } = this.mr;
       this.commitMessage = includeDescription ? commitMessageWithDescription : commitMessage;
@@ -288,7 +288,7 @@ export default {
             </ul>
           </span>
           <div class="media-body-wrap space-children">
-            <template v-if="shouldShowMergeControls()">
+            <template v-if="shouldShowMergeControls">
               <label v-if="mr.canRemoveSourceBranch">
                 <input
                   id="remove-source-branch-input"

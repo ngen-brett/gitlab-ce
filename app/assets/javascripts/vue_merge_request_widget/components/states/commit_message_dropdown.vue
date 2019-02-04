@@ -30,6 +30,7 @@ export default {
       <gl-dropdown-item
         v-for="commit in commits"
         :key="commit.short_id"
+        class="text-nowrap text-truncate"
         @click="$emit('input', commit.message)"
       >
         <span class="monospace append-right-10">{{ commit.short_id }}</span> {{ commit.title }}
