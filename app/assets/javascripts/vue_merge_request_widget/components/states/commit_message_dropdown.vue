@@ -33,7 +33,7 @@ export default {
         class="text-nowrap text-truncate"
         @click="$emit('input', commit.message)"
       >
-        <span class="monospace append-right-10">{{ commit.short_id }}</span> {{ commit.title }}
+        <span class="monospace mr-2">{{ commit.short_id }}</span> {{ commit.title }}
       </gl-dropdown-item>
     </gl-dropdown>
   </div>
