@@ -4,7 +4,6 @@ import { GlDropdown, GlDropdownItem } from '@gitlab/ui';
 
 export default {
   components: {
-    Icon,
     GlDropdown,
     GlDropdownItem,
   },
