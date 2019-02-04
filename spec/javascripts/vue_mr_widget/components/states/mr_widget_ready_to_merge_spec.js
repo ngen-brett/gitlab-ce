@@ -270,28 +270,28 @@ describe('ReadyToMerge', () => {
         vm.mr.isMergeAllowed = false;
         vm.mr.isPipelineActive = false;
 
-        expect(vm.shouldShowMergeControls()).toBeFalsy();
+        expect(vm.shouldShowMergeControls).toBeFalsy();
       });
 
       it('should return true when the build succeeded or build not required to succeed', () => {
         vm.mr.isMergeAllowed = true;
         vm.mr.isPipelineActive = false;
 
-        expect(vm.shouldShowMergeControls()).toBeTruthy();
+        expect(vm.shouldShowMergeControls).toBeTruthy();
       });
 
       it('should return true when showing the MWPS button and a pipeline is running that needs to be successful', () => {
         vm.mr.isMergeAllowed = false;
         vm.mr.isPipelineActive = true;
 
-        expect(vm.shouldShowMergeControls()).toBeTruthy();
+        expect(vm.shouldShowMergeControls).toBeTruthy();
       });
 
       it('should return true when showing the MWPS button but not required for the pipeline to succeed', () => {
         vm.mr.isMergeAllowed = true;
         vm.mr.isPipelineActive = true;
 
-        expect(vm.shouldShowMergeControls()).toBeTruthy();
+        expect(vm.shouldShowMergeControls).toBeTruthy();
       });
     });
 

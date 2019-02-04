@@ -1,5 +1,4 @@
 <script>
-import Icon from '~/vue_shared/components/icon.vue';
 import { GlDropdown, GlDropdownItem } from '@gitlab/ui';
 
 export default {
