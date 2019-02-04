@@ -2,6 +2,7 @@
 import successSvg from 'icons/_icon_status_success.svg';
 import warningSvg from 'icons/_icon_status_warning.svg';
 import simplePoll from '~/lib/utils/simple_poll';
+import { __ } from '~/locale';
 import MergeRequest from '../../../merge_request';
 import Flash from '../../../flash';
 import statusIcon from '../mr_widget_status_icon.vue';
