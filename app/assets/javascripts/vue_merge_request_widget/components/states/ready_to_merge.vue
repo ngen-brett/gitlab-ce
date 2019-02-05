@@ -352,7 +352,7 @@ export default {
                   type="checkbox"
                   @change="updateMergeCommitMessage($event.target.checked)"
                 />
-                {{ __('Include merge commit description') }}
+                {{ __('Include merge request description') }}
               </label>
             </commit-edit>
           </ul>

@@ -55,6 +55,7 @@
 
   &.clickable:hover {
     background-color: $gl-gray-200;
+    cursor: pointer;
   }
 }
 
@@ -87,6 +88,10 @@
 
 .mr-state-widget {
   color: $gl-text-color;
+
+  .commit-message-edit {
+    border-radius: $border-radius-default;
+  }
 
   .mr-widget-section,
   .mr-widget-footer {
