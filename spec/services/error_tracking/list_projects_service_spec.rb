@@ -36,7 +36,7 @@ describe ErrorTracking::ListProjectsService do
       context 'call sentry client' do
         it 'uses new api_url and token' do
           expect(Sentry::Client).to receive(:new)
-            .with(new_api_host + 'api/0/projects/', new_token).and_return(sentry_client)
+            .with(new_api_host + 'api/0/projects/org/proj/', new_token).and_return(sentry_client)
           expect(sentry_client).to receive(:list_projects).and_return([])
 
           subject.execute
@@ -120,7 +120,7 @@ describe ErrorTracking::ListProjectsService do
           .and_return(nil)
 
         expect(Sentry::Client).to receive(:new)
-          .with(new_api_host + 'api/0/projects/', new_token)
+          .with(new_api_host + 'api/0/projects/org/proj/', new_token)
           .and_return(sentry_client)
 
         expect(sentry_client).to receive(:list_projects)
