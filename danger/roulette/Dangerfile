@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+has_backend_changes = helper.all_changed_files.grep().any?
+has_frontend_changes = helper.all_changed_files.grep().any?
+# Do we want to merge docs reviewers into here?
+# Do we want to merge database reviewers into here?
+# Do we want to merge security reviewers into here?
+
+# Get list of reviewers for each category
+# Filter by OOO status
+# Pick at random
+# Output a nice table of reviewers
