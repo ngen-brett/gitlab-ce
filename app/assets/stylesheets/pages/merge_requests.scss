@@ -38,6 +38,8 @@
 }
 
 .mr-widget-section {
+  border-radius: $border-radius-default $border-radius-default 0 0;
+
   .code-text {
     flex: 1;
   }
