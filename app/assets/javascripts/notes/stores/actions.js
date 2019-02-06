@@ -83,12 +83,22 @@ export const updateNote = ({ commit, dispatch }, { endpoint, note }) =>
       dispatch('startTaskList');
     });
 
-export const replyToDiscussion = ({ commit }, { endpoint, data }) =>
+export const replyToDiscussion = ({ commit, state, getters, dispatch }, { endpoint, data }) =>
   service
     .replyToDiscussion(endpoint, data)
     .then(res => res.json())
     .then(res => {
-      commit(types.ADD_NEW_REPLY_TO_DISCUSSION, res);
+      if (res.discussion) {
+        commit(types.UPDATE_DISCUSSION, res.discussion);
+
+        updateOrCreateNotes(res.discussion.notes, commit, state, getters, dispatch);
+
+        dispatch('updateMergeRequestWidget');
+        dispatch('startTaskList');
+        dispatch('updateResolvableDiscussonsCounts');
+      } else {
+        commit(types.ADD_NEW_REPLY_TO_DISCUSSION, res);
+      }
 
       return res;
     });
@@ -260,27 +270,31 @@ export const saveNote = ({ commit, dispatch }, noteData) => {
   });
 };
 
-const pollSuccessCallBack = (resp, commit, state, getters, dispatch) => {
-  if (resp.notes && resp.notes.length) {
-    const { notesById } = getters;
+const updateOrCreateNotes = (notes, commit, state, getters, dispatch) => {
+  const { notesById } = getters;
 
-    resp.notes.forEach(note => {
-      if (notesById[note.id]) {
-        commit(types.UPDATE_NOTE, note);
-      } else if (note.type === constants.DISCUSSION_NOTE || note.type === constants.DIFF_NOTE) {
-        const discussion = utils.findNoteObjectById(state.discussions, note.discussion_id);
+  notes.forEach(note => {
+    if (notesById[note.id]) {
+      commit(types.UPDATE_NOTE, note);
+    } else if (note.type === constants.DISCUSSION_NOTE || note.type === constants.DIFF_NOTE) {
+      const discussion = utils.findNoteObjectById(state.discussions, note.discussion_id);
 
-        if (discussion) {
-          commit(types.ADD_NEW_REPLY_TO_DISCUSSION, note);
-        } else if (note.type === constants.DIFF_NOTE) {
-          dispatch('fetchDiscussions', { path: state.notesData.discussionsPath });
-        } else {
-          commit(types.ADD_NEW_NOTE, note);
-        }
+      if (discussion) {
+        commit(types.ADD_NEW_REPLY_TO_DISCUSSION, note);
+      } else if (note.type === constants.DIFF_NOTE) {
+        dispatch('fetchDiscussions', { path: state.notesData.discussionsPath });
       } else {
         commit(types.ADD_NEW_NOTE, note);
       }
-    });
+    } else {
+      commit(types.ADD_NEW_NOTE, note);
+    }
+  });
+};
+
+const pollSuccessCallBack = (resp, commit, state, getters, dispatch) => {
+  if (resp.notes && resp.notes.length) {
+    updateOrCreateNotes(resp.notes, commit, state, getters, dispatch);
 
     dispatch('startTaskList');
   }
