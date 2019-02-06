@@ -43,11 +43,11 @@ describe 'Merge request < User customizes merge commit message', :js do
     expect(textbox).to be_visible
     expect(textbox.value).to eq(default_message)
 
-    check('Include merge commit description')
+    check('Include merge request description')
 
     expect(textbox.value).to eq(message_with_description)
 
-    uncheck('Include merge commit description')
+    uncheck('Include merge request description')
 
     expect(textbox.value).to eq(default_message)
   end
