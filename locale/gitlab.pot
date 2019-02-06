@@ -3924,7 +3924,7 @@ msgstr ""
 msgid "Include a Terms of Service agreement and Privacy Policy that all users must accept."
 msgstr ""
 
-msgid "Include merge commit description"
+msgid "Include merge request description"
 msgstr ""
 
 msgid "Include the username in the URL if required: <code>https://username@gitlab.company.com/group/project.git</code>."
