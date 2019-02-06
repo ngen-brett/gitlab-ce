@@ -215,7 +215,7 @@ export default {
         :link-href="author.path"
         :img-src="author.avatar_url"
         :img-alt="author.name"
-        :img-size="40"
+        :img-size="80"
       >
         <slot slot="avatar-badge" name="avatar-badge"></slot>
       </user-avatar-link>
