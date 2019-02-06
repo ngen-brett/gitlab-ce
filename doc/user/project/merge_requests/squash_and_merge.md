@@ -27,11 +27,8 @@ It can be customized before merging a merge request.
 
 ![A squash commit message editor](img/squash_mr_message.png)
 
-Note that the squashed commit is still followed by a merge commit,
-as the merge method for this example repository uses a merge commit.
-Squashing also works with the fast-forward merge strategy, see
-[squashing and fast-forward merge](#squash-and-fast-forward-merge) for more
-details.
+NOTE: **Note:**
+The squashed commit in this example is followed by a merge commit, as the merge method for this example repository uses a merge commit.
 
 Squashing also works with the fast-forward merge strategy, see [squashing and fast-forward merge](#squash-and-fast-forward-merge) for more details.
 
