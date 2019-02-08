@@ -122,7 +122,7 @@ module API
         def conditions(pagination)
           fields = pagination.fields
 
-          return nil if fields.empty?
+          return if fields.empty?
 
           placeholder = fields.map { '?' }
 

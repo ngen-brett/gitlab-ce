@@ -197,7 +197,7 @@ module Gitlab
 
         def encryption_options
           method = translate_method(options['encryption'])
-          return nil unless method
+          return unless method
 
           {
             method: method,

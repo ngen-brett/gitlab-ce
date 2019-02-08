@@ -26,7 +26,7 @@ class SshHostKey
   self.reactive_cache_lifetime = 10.minutes
 
   def self.find_by(opts = {})
-    return nil unless opts.key?(:id)
+    return unless opts.key?(:id)
 
     project_id, url = opts[:id].split(':', 2)
     project = Project.find_by(id: project_id)

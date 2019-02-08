@@ -1207,7 +1207,7 @@ class Project < ActiveRecord::Base
   end
 
   def fork_source
-    return nil unless forked?
+    return unless forked?
 
     forked_from_project || fork_network&.root_project
   end
@@ -1656,7 +1656,7 @@ class Project < ActiveRecord::Base
   end
 
   def export_path
-    return nil unless namespace.present? || hashed_storage?(:repository)
+    return unless namespace.present? || hashed_storage?(:repository)
 
     import_export_shared.archive_path
   end

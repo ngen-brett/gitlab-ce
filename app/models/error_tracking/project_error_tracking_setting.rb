@@ -111,7 +111,7 @@ module ErrorTracking
       begin
         url = Addressable::URI.parse(api_url)
       rescue Addressable::URI::InvalidURIError
-        return nil
+        return
       end
 
       @slug_match ||= url.path.match(%r{^/api/0/projects/+(?<organization>[^/]+)/+(?<project>[^/|$]+)}) || {}
