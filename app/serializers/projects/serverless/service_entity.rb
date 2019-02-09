@@ -48,7 +48,7 @@ module Projects
           'revisionTemplate',
           'metadata',
           'annotations',
-          'Description')
+          'Description') || String.new
       end
 
       expose :image do |service|
