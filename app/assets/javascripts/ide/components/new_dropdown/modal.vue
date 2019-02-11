@@ -30,7 +30,10 @@ export default {
       },
     },
     isCreatingNew() {
-      return this.entryModal.type !== modalTypes.rename;
+      return this.entryModal.type !== modalTypes.rename && this.entryModal.type !== modalTypes.move;
+    },
+    inputLabel() {
+      return this.entryModal.type === modalTypes.move ? __('New path') : __('Name');
     },
   },
   methods: {
@@ -41,6 +44,8 @@ export default {
           path: this.entryModal.entry.path,
           name: this.entryName,
         });
+      } else if (this.entryModal.type === modalTypes.move) {
+        console.log('Moved to: ', this.entryName);
       } else {
         this.createTempEntry({
           name: this.name,
@@ -78,7 +83,9 @@ export default {
     @closed="closedModal"
   >
     <div class="form-group row">
-      <label class="label-bold col-form-label col-sm-2"> {{ __('Name') }} </label>
+      <label class="label-bold col-form-label col-sm-2">
+        {{ inputLabel }}
+      </label>
       <div class="col-sm-10">
         <input
           ref="fieldName"
