@@ -111,6 +111,15 @@ export default {
         </li>
         <li>
           <item-button
+            :label="__('Move')"
+            class="d-flex"
+            icon="arrow-right"
+            icon-classes="mr-2"
+            @click="createNewItem($options.modalTypes.move)"
+          />
+        </li>
+        <li>
+          <item-button
             :label="__('Delete')"
             class="d-flex"
             icon="remove"
