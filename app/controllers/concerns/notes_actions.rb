@@ -252,8 +252,9 @@ module NotesActions
   # is the object we're actually creating a note in.
   def normalize_create_params
     params[:note].try do |note|
-      note[:noteable_id] = params[:target_id]
       note[:noteable_type] = params[:target_type].classify
+      note[:noteable_id] = note[:noteable_type] == "Commit" ? nil : params[:target_id]
+      note[:commit_id] = note[:noteable_type] == "Commit" ? params[:target_id] : nil
     end
   end
 

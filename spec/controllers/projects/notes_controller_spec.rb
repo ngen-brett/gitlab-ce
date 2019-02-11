@@ -252,6 +252,7 @@ describe Projects::NotesController do
           note: 'some note',
           noteable_id: merge_request.id.to_s,
           noteable_type: 'MergeRequest',
+          commit_id: nil,
           merge_request_diff_head_sha: 'sha',
           in_reply_to_discussion_id: nil
         }).permit!
@@ -263,6 +264,22 @@ describe Projects::NotesController do
         post :create, params: request_params
 
         expect(response).to have_gitlab_http_status(302)
+      end
+    end
+
+    context 'when creating a comment on a commit with large SHA1' do
+      let(:commit) { create(:commit, project: project, id: '842616594688d2351480dfebd67b3d8d15571e6d') }
+
+      it 'creates a note successfully' do
+        expect do
+          post :create, params: {
+            note: { note: 'some note' },
+            namespace_id: project.namespace,
+            project_id: project,
+            target_type: 'commit',
+            target_id: commit.id
+          }
+        end.to change { Note.count }.by(1)
       end
     end
 
