@@ -17,28 +17,17 @@ export default {
   computed: {
     ...mapState(['entryModal']),
     ...mapGetters('fileTemplates', ['templateTypes']),
+    ...mapGetters(['modalTitle']),
     entryName: {
       get() {
         if (this.entryModal.type === modalTypes.rename) {
           return this.name || this.entryModal.entry.name;
         }
-
         return this.name || (this.entryModal.path !== '' ? `${this.entryModal.path}/` : '');
       },
       set(val) {
         this.name = val;
       },
-    },
-    modalTitle() {
-      if (this.entryModal.type === modalTypes.tree) {
-        return __('Create new directory');
-      } else if (this.entryModal.type === modalTypes.rename) {
-        return this.entryModal.entry.type === modalTypes.tree
-          ? __('Rename folder')
-          : __('Rename file');
-      }
-
-      return __('Create new file');
     },
     buttonLabel() {
       if (this.entryModal.type === modalTypes.tree) {

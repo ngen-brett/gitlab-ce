@@ -1,5 +1,6 @@
 import { getChangesCountForFiles, filePathMatches } from './utils';
-import { activityBarViews, packageJsonPath } from '../constants';
+import { activityBarViews, packageJsonPath, modalTypes } from '../constants';
+import { __ } from '~/locale';
 
 export const activeFile = state => state.openFiles.find(file => file.active) || null;
 
@@ -91,6 +92,25 @@ export const currentBranch = (state, getters) =>
   getters.currentProject && getters.currentProject.branches[state.currentBranchId];
 
 export const packageJson = state => state.entries[packageJsonPath];
+
+export const modalTitle = state => {
+  switch (state.entryModal.type) {
+    case modalTypes.tree: {
+      return __('Create new directory');
+    }
+    case modalTypes.rename: {
+      return state.entryModal.entry.type === modalTypes.tree
+        ? __('Rename folder')
+        : __('Rename file');
+    }
+    case modalTypes.move: {
+      return state.entryModal.entry.type === modalTypes.tree ? __('Move folder') : __('Move file');
+    }
+    default: {
+      return __('Create new file');
+    }
+  }
+};
 
 // prevent babel-plugin-rewire from generating an invalid default during karma tests
 export default () => {};

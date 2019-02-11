@@ -53,6 +53,7 @@ export const commitItemIconMap = {
 
 export const modalTypes = {
   rename: 'rename',
+  move: 'move',
   tree: 'tree',
 };
 
