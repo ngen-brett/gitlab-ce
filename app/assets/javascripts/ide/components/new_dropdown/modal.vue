@@ -17,7 +17,7 @@ export default {
   computed: {
     ...mapState(['entryModal']),
     ...mapGetters('fileTemplates', ['templateTypes']),
-    ...mapGetters(['modalTitle']),
+    ...mapGetters(['modalTitle', 'modalButtonLabel']),
     entryName: {
       get() {
         if (this.entryModal.type === modalTypes.rename) {
@@ -28,17 +28,6 @@ export default {
       set(val) {
         this.name = val;
       },
-    },
-    buttonLabel() {
-      if (this.entryModal.type === modalTypes.tree) {
-        return __('Create directory');
-      } else if (this.entryModal.type === modalTypes.rename) {
-        return this.entryModal.entry.type === modalTypes.tree
-          ? __('Rename folder')
-          : __('Rename file');
-      }
-
-      return __('Create file');
     },
     isCreatingNew() {
       return this.entryModal.type !== modalTypes.rename;
@@ -81,7 +70,7 @@ export default {
   <gl-modal
     id="ide-new-entry"
     :header-title-text="modalTitle"
-    :footer-primary-button-text="buttonLabel"
+    :footer-primary-button-text="modalButtonLabel"
     footer-primary-button-variant="success"
     modal-size="lg"
     @submit="submitForm"

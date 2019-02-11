@@ -112,5 +112,24 @@ export const modalTitle = state => {
   }
 };
 
+export const modalButtonLabel = state => {
+  switch (state.entryModal.type) {
+    case modalTypes.tree: {
+      return __('Create directory');
+    }
+    case modalTypes.rename: {
+      return state.entryModal.entry.type === modalTypes.tree
+        ? __('Rename folder')
+        : __('Rename file');
+    }
+    case modalTypes.move: {
+      return state.entryModal.entry.type === modalTypes.tree ? __('Move folder') : __('Move file');
+    }
+    default: {
+      return __('Create file');
+    }
+  }
+};
+
 // prevent babel-plugin-rewire from generating an invalid default during karma tests
 export default () => {};
