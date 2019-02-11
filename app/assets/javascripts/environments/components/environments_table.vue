@@ -31,6 +31,35 @@ export default {
     shouldRenderFolderContent(env) {
       return env.isFolder && env.isOpen && env.children && env.children.length > 0;
     },
+    sortEnvironments(environments) {
+      return Array.from(environments).sort((x, y) => {
+        if (x.isFolder && y.isFolder) {
+          x.folderName.localeCompare(y.folderName);
+        }
+
+        if (x.isFolder) {
+          return -1;
+        }
+
+        if (y.isFolder) {
+          return 1;
+        }
+
+        if (!x.last_deployment && !y.last_deployment) {
+          return x.name.localeCompare(y.name);
+        }
+
+        if (!x.last_deployment) {
+          return 1;
+        }
+
+        if (!y.last_deployment) {
+          return -1;
+        }
+
+        return x.last_deployment.created_at - y.last_deployment.created_at;
+      });
+    },
   },
 };
 </script>
@@ -53,7 +82,7 @@ export default {
         {{ s__('Environments|Updated') }}
       </div>
     </div>
-    <template v-for="(model, i) in environments" :model="model">
+    <template v-for="(model, i) in sortEnvironments(environments)" :model="model">
       <div
         is="environment-item"
         :key="`environment-item-${i}`"
@@ -69,7 +98,7 @@ export default {
         <template v-else>
           <div
             is="environment-item"
-            v-for="(children, index) in model.children"
+            v-for="(children, index) in sortEnvironments(model.children)"
             :key="`env-item-${i}-${index}`"
             :model="children"
             :can-read-environment="canReadEnvironment"
