@@ -1,0 +1,10 @@
+.row.empty-state
+  .col-sm-12
+    .svg-content
+      = image_tag 'illustrations/snippets_empty.svg' # Need to update illistration once it has been merged in
+  .col-12
+    .text-content.text-center
+      %h4
+        = s_("StarredProjectsEmptyState|You don't have starred projects yet.")
+      %p.text-secondary
+        = s_("StarredProjectsEmptyState|Visit the project page and press on star icon. Then, you can find the project on this page.")
