@@ -284,6 +284,24 @@ export default {
     const newEntry = state.entries[newPath];
 
     parent.tree = sortTree(parent.tree.concat(newEntry));
+
+    if (newEntry.type === 'blob') {
+      state.changedFiles = state.changedFiles.concat(newEntry);
+    }
+
+    if (state.entries[newPath].opened) {
+      state.openFiles.push(state.entries[newPath]);
+    }
+
+    if (oldEntry.tempFile) {
+      const filterMethod = f => f.path !== oldEntry.path;
+
+      state.openFiles = state.openFiles.filter(filterMethod);
+      state.changedFiles = state.changedFiles.filter(filterMethod);
+      parent.tree = parent.tree.filter(filterMethod);
+
+      Vue.delete(state.entries, oldEntry.path);
+    }
   },
   ...projectMutations,
   ...mergeRequestMutation,
