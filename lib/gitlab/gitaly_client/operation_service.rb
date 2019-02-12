@@ -260,12 +260,12 @@ module Gitlab
 
       def user_commit_files(
         user, branch_name, commit_message, actions, author_email, author_name,
-        start_branch_name, start_repository)
+        start_branch_name, start_repository, force)
 
         req_enum = Enumerator.new do |y|
           header = user_commit_files_request_header(user, branch_name,
           commit_message, actions, author_email, author_name,
-          start_branch_name, start_repository)
+          start_branch_name, start_repository, force)
 
           y.yield Gitaly::UserCommitFilesRequest.new(header: header)
 
@@ -365,7 +365,7 @@ module Gitlab
 
       def user_commit_files_request_header(
         user, branch_name, commit_message, actions, author_email, author_name,
-        start_branch_name, start_repository)
+        start_branch_name, start_repository, force)
 
         Gitaly::UserCommitFilesRequestHeader.new(
           repository: @gitaly_repo,
@@ -375,7 +375,8 @@ module Gitlab
           commit_author_name: encode_binary(author_name),
           commit_author_email: encode_binary(author_email),
           start_branch_name: encode_binary(start_branch_name),
-          start_repository: start_repository.gitaly_repository
+          start_repository: start_repository.gitaly_repository,
+          force: force
         )
       end
 
