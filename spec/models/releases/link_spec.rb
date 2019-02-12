@@ -79,30 +79,20 @@ describe Releases::Link do
   end
 
   describe 'supported protocols' do
-    context 'for http' do
-      let(:link) { build(:release_link, url: 'http://assets.com/download') }
+    where(:protocol) do
+      %w(http https ftp)
+    end
+
+    with_them do
+      let(:link) { build(:release_link, url: protocol + '://assets.com/download') }
 
       it 'will be valid' do
         expect(link).to be_valid
       end
     end
+  end
 
-    context 'for https' do
-      let(:link) { build(:release_link, url: 'https://assets.com/download') }
-
-      it 'will be valid' do
-        expect(link).to be_valid
-      end
-    end
-
-    context 'for ftp' do
-      let(:link) { build(:release_link, url: 'ftp://assets.com/download') }
-
-      it 'will be valid' do
-        expect(link).to be_valid
-      end
-    end
-
+  describe 'unsupported protocol' do
     context 'for torrent' do
       let(:link) { build(:release_link, url: 'torrent://assets.com/download') }
 
