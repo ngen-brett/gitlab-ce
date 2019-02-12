@@ -1,17 +1,8 @@
-import { TEST_HOST } from 'spec/test_constants';
-import { getFirstCharacterCapitalized } from '~/lib/utils/text_utility';
 import {
-  DEFAULT_SIZE_CLASS,
   IDENTICON_BG_COUNT,
-  renderAvatar,
-  renderIdenticon,
   getIdenticonBackgroundClass,
   getIdenticonTitle,
 } from '~/helpers/avatar_helper';
-
-function matchAll(str) {
-  return new RegExp(`^${str}$`);
-}
 
 describe('avatar_helper', () => {
   describe('getIdenticonBackgroundClass', () => {
@@ -35,64 +26,6 @@ describe('avatar_helper', () => {
     it('returns space if name is falsey', () => {
       expect(getIdenticonTitle('')).toEqual(' ');
       expect(getIdenticonTitle(null)).toEqual(' ');
-    });
-  });
-
-  describe('renderIdenticon', () => {
-    it('renders with the first letter as title and bg based on id', () => {
-      const entity = {
-        id: IDENTICON_BG_COUNT + 3,
-        name: 'Xavior',
-      };
-      const options = {
-        sizeClass: 's32',
-      };
-
-      const result = renderIdenticon(entity, options);
-
-      expect(result).toHaveClass(`identicon ${options.sizeClass} bg4`);
-      expect(result).toHaveText(matchAll(getFirstCharacterCapitalized(entity.name)));
-    });
-
-    it('renders with defaults, if no options are given', () => {
-      const entity = {
-        id: 1,
-        name: 'tanuki',
-      };
-
-      const result = renderIdenticon(entity);
-
-      expect(result).toHaveClass(`identicon ${DEFAULT_SIZE_CLASS} bg2`);
-      expect(result).toHaveText(matchAll(getFirstCharacterCapitalized(entity.name)));
-    });
-  });
-
-  describe('renderAvatar', () => {
-    it('renders an image with the avatarUrl', () => {
-      const avatarUrl = `${TEST_HOST}/not-real-assets/test.png`;
-
-      const result = renderAvatar({
-        avatar_url: avatarUrl,
-      });
-
-      expect(result).toBeMatchedBy('img');
-      expect(result).toHaveAttr('src', avatarUrl);
-      expect(result).toHaveClass(DEFAULT_SIZE_CLASS);
-    });
-
-    it('renders an identicon if no avatarUrl', () => {
-      const entity = {
-        id: 1,
-        name: 'walrus',
-      };
-      const options = {
-        sizeClass: 's16',
-      };
-
-      const result = renderAvatar(entity, options);
-
-      expect(result).toHaveClass(`identicon ${options.sizeClass} bg2`);
-      expect(result).toHaveText(matchAll(getFirstCharacterCapitalized(entity.name)));
     });
   });
 });
