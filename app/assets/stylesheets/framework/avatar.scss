@@ -124,6 +124,15 @@
   &.s64 { min-width: 64px; min-height: 64px; }
 }
 
+.rect-avatar {
+  border-radius: 4px;
+  &.s16 { border-radius: 2px; }
+  &.s24 { border-radius: 4px; }
+  &.s32 { border-radius: 4px; }
+  &.s64 { border-radius: 8px; }
+  &.s96 { border-radius: 8px; }
+}
+
 .avatar-counter {
   background-color: $gray-darkest;
   color: $white-light;
