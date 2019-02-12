@@ -231,6 +231,22 @@ export const renameEntry = ({ dispatch, commit, state }, { path, name, entryPath
   }
 };
 
+export const moveEntry = ({ dispatch, commit, state }, { path, name, entryPath = null }) => {
+  const entry = state.entries[entryPath || path];
+
+  commit(types.MOVE_ENTRY, { path, name, entryPath });
+
+  if (entry.type === 'tree') {
+    state.entries[entryPath || path].tree.forEach(f =>
+      dispatch('moveEntry', { path, name, entryPath: f.path }),
+    );
+  }
+
+  if (!entryPath && !entry.tempFile) {
+    dispatch('deleteEntry', path);
+  }
+};
+
 export * from './actions/tree';
 export * from './actions/file';
 export * from './actions/project';

@@ -234,6 +234,7 @@ export default {
     const parent = parentPath
       ? state.entries[parentPath]
       : state.trees[`${state.currentProjectId}/${state.currentBranchId}`];
+
     const newEntry = state.entries[newPath];
 
     parent.tree = sortTree(parent.tree.concat(newEntry));
@@ -255,6 +256,34 @@ export default {
 
       Vue.delete(state.entries, oldEntry.path);
     }
+  },
+  [types.MOVE_ENTRY](state, { path, name, entryPath = null }) {
+    const oldEntry = state.entries[entryPath || path];
+    const oldPath = oldEntry.path.replace(oldEntry.name, '');
+    const newPath = oldEntry.path.replace(oldPath, name);
+
+    state.entries[newPath] = {
+      ...oldEntry,
+      id: newPath,
+      key: `${name}-${oldEntry.type}-${oldEntry.id}`,
+      path: newPath,
+      name: oldEntry.name,
+      tempFile: true,
+      prevPath: oldEntry.tempFile ? null : oldEntry.path,
+      url: oldEntry.url.replace(oldEntry.path, newPath),
+      parentTreeUrl: oldEntry.parentTreeUrl.replace(oldPath, newPath),
+      tree: [],
+      parentPath: newPath,
+      raw: '',
+    };
+
+    oldEntry.moved = true;
+    oldEntry.movedPath = newPath;
+
+    const parent = state.entries[name.slice(0, -1)];
+    const newEntry = state.entries[newPath];
+
+    parent.tree = sortTree(parent.tree.concat(newEntry));
   },
   ...projectMutations,
   ...mergeRequestMutation,

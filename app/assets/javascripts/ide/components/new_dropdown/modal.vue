@@ -22,6 +22,8 @@ export default {
       get() {
         if (this.entryModal.type === modalTypes.rename) {
           return this.name || this.entryModal.entry.name;
+        } else if (this.entryModal.type === modalTypes.move) {
+          return this.name || this.entryModal.entry.path.replace(this.entryModal.entry.name, '');
         }
         return this.name || (this.entryModal.path !== '' ? `${this.entryModal.path}/` : '');
       },
@@ -37,7 +39,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['createTempEntry', 'renameEntry']),
+    ...mapActions(['createTempEntry', 'renameEntry', 'moveEntry']),
     submitForm() {
       if (this.entryModal.type === modalTypes.rename) {
         this.renameEntry({
@@ -45,7 +47,10 @@ export default {
           name: this.entryName,
         });
       } else if (this.entryModal.type === modalTypes.move) {
-        console.log('Moved to: ', this.entryName);
+        this.moveEntry({
+          path: this.entryModal.entry.path,
+          name: this.entryName,
+        });
       } else {
         this.createTempEntry({
           name: this.name,
