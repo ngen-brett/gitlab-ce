@@ -658,10 +658,9 @@
   resolved "https://registry.yarnpkg.com/@gitlab/svgs/-/svgs-1.51.0.tgz#1b608f68dfb74284401b1cbdb823440f6e8b0091"
   integrity sha512-B1Wdhfy5ZClkHuaaCUUZyOBF8CFxxHqxGGhveRekOowtlMExa3tx+YkqNa5XPsEVMF6Aqnh8evQmmN4b+zrHVQ==
 
-"@gitlab/ui@^2.0.2":
+"@gitlab/ui@https://gitlab.com/gitlab-org/gitlab-ui/-/jobs/158408399/artifacts/raw/gitlab-ui.fix-area-chart-thresholds.tgz":
   version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@gitlab/ui/-/ui-2.0.2.tgz#611571c931181fb783f57f712e1c2388059b301b"
-  integrity sha512-rUWVhWmM9EkwIEruYJEjizrQKe7TzNyKArwWY/nfEL4HptDtwbe+xHfR8IJHbpql3oI87cTO3BheMxYF6b2Ebg==
+  resolved "https://gitlab.com/gitlab-org/gitlab-ui/-/jobs/158408399/artifacts/raw/gitlab-ui.fix-area-chart-thresholds.tgz#560dc1c12e11c8e0f7e3a3fc9c48f4bf3b0dbb7d"
   dependencies:
     babel-standalone "^6.26.0"
     bootstrap-vue "^2.0.0-rc.11"
