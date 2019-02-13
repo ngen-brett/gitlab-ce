@@ -17,7 +17,7 @@ describe Gitlab::GithubImport::Importer::MilestonesImporter, :clean_gitlab_redis
       state: 'open',
       due_date: due_on,
       created_at: created_at,
-      updated_at: updated_at
+      updated_at: updated_at,
     )
   end
 
@@ -31,7 +31,10 @@ describe Gitlab::GithubImport::Importer::MilestonesImporter, :clean_gitlab_redis
 
       expect(importer)
         .to receive(:bulk_insert)
-        .with(Milestone, [milestone_hash]) expect(importer) .to receive(:build_milestones_cache)
+        .with(Milestone, [milestone_hash]) 
+
+      expect(importer)
+         .to receive(:build_milestones_cache)
 
       importer.execute
     end
@@ -98,7 +101,7 @@ describe Gitlab::GithubImport::Importer::MilestonesImporter, :clean_gitlab_redis
       end
 
       it 'includes the due date' do
-        expect(milestone_hash[:due_date]).to eq(due_on.to_date)
+        expect(milestone_hash[:due_date]).to eq(due_on)
       end
 
       it 'includes the created timestamp' do
