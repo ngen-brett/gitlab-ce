@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import { getFirstCharacterCapitalized } from '~/lib/utils/text_utility';
 
 export const DEFAULT_SIZE_CLASS = 's40';
