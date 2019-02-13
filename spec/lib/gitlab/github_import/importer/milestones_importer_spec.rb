@@ -4,7 +4,7 @@ describe Gitlab::GithubImport::Importer::MilestonesImporter, :clean_gitlab_redis
   let(:project) { create(:project, import_source: 'foo/bar') }
   let(:client) { double(:client) }
   let(:importer) { described_class.new(project, client) }
-  let(:due_on) { Time.new(2017, 2, 1, 12, 00) }
+  let(:due_on) { Date.new(2017, 2, 1) }
   let(:created_at) { Time.new(2017, 1, 1, 12, 00) }
   let(:updated_at) { Time.new(2017, 1, 1, 12, 15) }
 
@@ -15,7 +15,7 @@ describe Gitlab::GithubImport::Importer::MilestonesImporter, :clean_gitlab_redis
       title: '1.0',
       description: 'The first release',
       state: 'open',
-      due_date: due_on.to_date,
+      due_date: due_on,
       created_at: created_at,
       updated_at: updated_at
     )
@@ -31,10 +31,7 @@ describe Gitlab::GithubImport::Importer::MilestonesImporter, :clean_gitlab_redis
 
       expect(importer)
         .to receive(:bulk_insert)
-        .with(Milestone, [milestone_hash])
-
-      expect(importer)
-        .to receive(:build_milestones_cache)
+        .with(Milestone, [milestone_hash]) expect(importer) .to receive(:build_milestones_cache)
 
       importer.execute
     end
