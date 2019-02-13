@@ -738,6 +738,7 @@
   z-index: 103;
   background: $gray-light;
   color: $gl-text-color;
+  margin-top: -1px;
 
   .mr-version-menus-container {
     display: flex;
@@ -810,6 +811,7 @@
   top: $header-height;
   z-index: 200;
   background-color: $white-light;
+  border-bottom: 1px solid $border-color;
 
   @include media-breakpoint-down(md) {
     border-bottom: 1px solid $border-color;
