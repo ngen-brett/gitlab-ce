@@ -1,0 +1,24 @@
+- is_last_deployment = @deployments.first.equal?(deployment)
+- ref_link = link_to(deployment.ref, project_ref_path(@project, deployment.ref), class: 'ref-name')
+.modal.fade{ tabindex: -1, id: "confirm-rollback-modal-#{deployment.id}" }
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %h4.modal-title.d-flex.mw-100
+          - if is_last_deployment
+            = s_("Environments|Re-deploy %{environment_name}?") % {environment_name:  @environment.name}
+          - else
+            = s_("Environments|Rollback %{environment_name}?") % {environment_name:  @environment.name}
+      .modal-body.ci-table
+        - if is_last_deployment
+          %p= s_('Environments|Are you sure you want to re-deploy this environment?')
+        - else
+          %p.branch-commit
+            = s_('Environments|Are you sure you want to roll this environment back to %{ref_link}?').html_safe % {ref_link: ref_link.html_safe }
+      .modal-footer
+        = button_tag _('Cancel'), type: 'button', class: 'btn btn-cancel', data: { dismiss: 'modal' }
+        = button_to [:retry, @project.namespace.becomes(Namespace), @project, deployment.deployable], method: :post, class: 'btn btn-danger' do
+          - if is_last_deployment
+            = s_('Environments|Re-deploy')
+          - else
+            = s_('Environments|Rollback')
