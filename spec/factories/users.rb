@@ -70,14 +70,18 @@ FactoryBot.define do
       transient do
         extern_uid '123456'
         provider 'ldapmain'
+        identity_options {}
+      end
+
+      after(:build) do |user, evaluator|
+        evaluator.identity_options = {
+          provider: evaluator.provider,
+          extern_uid: evaluator.extern_uid
+        }
       end
 
       after(:create) do |user, evaluator|
-        user.identities << create(
-          :identity,
-          provider: evaluator.provider,
-          extern_uid: evaluator.extern_uid
-        )
+        user.identities << create(:identity, evaluator.identity_options)
       end
     end
 
