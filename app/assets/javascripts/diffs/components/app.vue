@@ -4,6 +4,7 @@ import Icon from '~/vue_shared/components/icon.vue';
 import { __ } from '~/locale';
 import createFlash from '~/flash';
 import { GlLoadingIcon } from '@gitlab/ui';
+import Mousetrap from 'mousetrap';
 import eventHub from '../../notes/event_hub';
 import CompareVersions from './compare_versions.vue';
 import DiffFile from './diff_file.vue';
@@ -180,9 +181,27 @@ export default {
         this.$nextTick(() => {
           window.mrTabs.resetViewContainer();
           window.mrTabs.expandViewContainer(this.showTreeList);
+          this.setEventListeners();
         });
+      } else {
+        this.removeEventListeners();
       }
     },
+    setEventListeners() {
+      Mousetrap.bind(['[', 'j'], e => {
+        this.previousFile();
+      });
+
+      Mousetrap.bind([']', 'k'], e => {
+        this.nextFile();
+      });
+    },
+    removeEventListeners() {
+      Mousetrap.unbind(['[', 'j']);
+      Mousetrap.unbind([']', 'k']);
+    },
+    nextFile() {},
+    previousFile() {},
   },
 };
 </script>
