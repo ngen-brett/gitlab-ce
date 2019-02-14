@@ -57,6 +57,7 @@ export default {
   data() {
     return {
       assignedDiscussions: false,
+      currentDiff: 0,
     };
   },
   computed: {
@@ -143,6 +144,7 @@ export default {
       'startRenderDiffsQueue',
       'assignDiscussionsToDiff',
       'setHighlightedRow',
+      'scrollToFile',
     ]),
     fetchData() {
       this.fetchDiffFiles()
@@ -188,20 +190,34 @@ export default {
       }
     },
     setEventListeners() {
-      Mousetrap.bind(['[', 'j'], e => {
+      Mousetrap.bind(['[', 'k'], () => {
         this.previousFile();
       });
 
-      Mousetrap.bind([']', 'k'], e => {
+      Mousetrap.bind([']', 'j'], () => {
         this.nextFile();
       });
     },
     removeEventListeners() {
-      Mousetrap.unbind(['[', 'j']);
-      Mousetrap.unbind([']', 'k']);
+      Mousetrap.unbind(['[', 'k']);
+      Mousetrap.unbind([']', 'j']);
     },
-    nextFile() {},
-    previousFile() {},
+    nextFile() {
+      let curr = this.currentDiff;
+      if (curr !== this.diffFiles.length - 1) {
+        curr += 1;
+        this.scrollToFile(this.diffFiles[curr].file_path);
+        this.currentDiff = curr;
+      }
+    },
+    previousFile() {
+      let curr = this.currentDiff;
+      if (curr) {
+        curr -= 1;
+        this.scrollToFile(this.diffFiles[curr].file_path);
+        this.currentDiff = curr;
+      }
+    },
   },
 };
 </script>
