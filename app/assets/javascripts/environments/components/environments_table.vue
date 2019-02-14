@@ -25,6 +25,14 @@ export default {
       default: false,
     },
   },
+  computed: {
+    sortedEnvironments() {
+      return this.sortEnvironments(this.environments)
+        .map(env => this.shouldRenderFolderContent(env) ?
+             { ...env, children: this.sortEnvironments(env.children) } :
+             env);
+    },
+  },
   methods: {
     folderUrl(model) {
       return `${window.location.pathname}/folders/${model.folderName}`;
@@ -61,7 +69,7 @@ export default {
         {{ s__('Environments|Updated') }}
       </div>
     </div>
-    <template v-for="(model, i) in sortEnvironments(environments)" :model="model">
+    <template v-for="(model, i) in sortedEnvironments" :model="model">
       <div
         is="environment-item"
         :key="`environment-item-${i}`"
@@ -77,7 +85,7 @@ export default {
         <template v-else>
           <div
             is="environment-item"
-            v-for="(children, index) in sortEnvironments(model.children)"
+            v-for="(children, index) in model.children"
             :key="`env-item-${i}-${index}`"
             :model="children"
             :can-read-environment="canReadEnvironment"
