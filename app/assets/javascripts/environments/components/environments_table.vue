@@ -3,6 +3,7 @@
  * Render environments table.
  */
 import { GlLoadingIcon } from '@gitlab/ui';
+import { chain } from 'underscore';
 import environmentItem from './environment_item.vue';
 
 export default {
@@ -32,33 +33,11 @@ export default {
       return env.isFolder && env.isOpen && env.children && env.children.length > 0;
     },
     sortEnvironments(environments) {
-      return Array.from(environments).sort((x, y) => {
-        if (x.isFolder && y.isFolder) {
-          x.folderName.localeCompare(y.folderName);
-        }
-
-        if (x.isFolder) {
-          return -1;
-        }
-
-        if (y.isFolder) {
-          return 1;
-        }
-
-        if (!x.last_deployment && !y.last_deployment) {
-          return x.name.localeCompare(y.name);
-        }
-
-        if (!x.last_deployment) {
-          return 1;
-        }
-
-        if (!y.last_deployment) {
-          return -1;
-        }
-
-        return x.last_deployment.created_at - y.last_deployment.created_at;
-      });
+      return chain(environments)
+        .sortBy(env => env.isFolder ? env.folderName : env.name)
+        .sortBy(env => env.last_deployment ? env.last_deployment.created_at : Math.Infinity)
+        .sortBy('isFolder')
+        .value();
     },
   },
 };
