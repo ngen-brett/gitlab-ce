@@ -252,8 +252,7 @@ describe Projects::NotesController do
           note: 'some note',
           noteable_id: merge_request.id.to_s,
           noteable_type: 'MergeRequest',
-          merge_request_diff_head_sha: 'sha',
-          in_reply_to_discussion_id: nil
+          merge_request_diff_head_sha: 'sha'
         }).permit!
 
         expect(Notes::CreateService).to receive(:new).with(project, user, service_params).and_return(double(execute: true))
