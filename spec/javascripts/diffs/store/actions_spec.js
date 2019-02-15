@@ -709,21 +709,6 @@ describe('DiffsStoreActions', () => {
       expect(commit).toHaveBeenCalledWith(types.UPDATE_CURRENT_DIFF_FILE_ID, 'test');
     });
 
-    it('resets currentDiffId after timeout', () => {
-      const state = {
-        treeEntries: {
-          path: {
-            fileHash: 'test',
-          },
-        },
-      };
-
-      scrollToFile({ state, commit }, 'path');
-
-      jasmine.clock().tick(1000);
-
-      expect(commit.calls.argsFor(1)).toEqual([types.UPDATE_CURRENT_DIFF_FILE_ID, '']);
-    });
   });
 
   describe('toggleShowTreeList', () => {

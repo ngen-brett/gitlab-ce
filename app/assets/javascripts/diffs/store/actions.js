@@ -257,8 +257,6 @@ export const scrollToFile = ({ state, commit }, path) => {
   document.location.hash = fileHash;
 
   commit(types.UPDATE_CURRENT_DIFF_FILE_ID, fileHash);
-
-  setTimeout(() => commit(types.UPDATE_CURRENT_DIFF_FILE_ID, ''), 1000);
 };
 
 export const toggleShowTreeList = ({ commit, state }) => {
