@@ -29,15 +29,23 @@ module Users
 
     def groups
       current_user.authorized_groups.sort_by(&:path).map do |group|
-        count = group.users.count
-        { username: group.full_path, name: group.full_name, count: count, avatar_url: group.avatar_url }
+        as_hash(group)
       end
     end
 
     private
 
     def as_hash(user)
-      { username: user.username, name: user.name, avatar_url: user.avatar_url }
+      type_hash = user.is_a?(Group) ? group_as_hash(user) : project_as_hash(user)
+      { type: user.class.name, avatar: user.avatar_url }.merge(type_hash)
+    end
+
+    def project_as_hash(user)
+      { username: user.username, name: user.name }
+    end
+
+    def group_as_hash(group)
+      { username: group.full_path, name: group.full_name, count: group.users.count }
     end
   end
 end
