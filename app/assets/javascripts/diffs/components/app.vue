@@ -1,4 +1,5 @@
 <script>
+import _ from 'underscore';
 import { mapState, mapGetters, mapActions } from 'vuex';
 import Icon from '~/vue_shared/components/icon.vue';
 import { __ } from '~/locale';
@@ -57,7 +58,6 @@ export default {
   data() {
     return {
       assignedDiscussions: false,
-      currentDiff: 0,
     };
   },
   computed: {
@@ -75,7 +75,7 @@ export default {
       plainDiffPath: state => state.diffs.plainDiffPath,
       emailPatchPath: state => state.diffs.emailPatchPath,
     }),
-    ...mapState('diffs', ['showTreeList', 'isLoading', 'startVersion']),
+    ...mapState('diffs', ['showTreeList', 'isLoading', 'startVersion', 'currentDiffFileId']),
     ...mapGetters('diffs', ['isParallelView']),
     ...mapGetters(['isNotesFetched', 'getNoteableData']),
     targetBranch() {
@@ -97,6 +97,11 @@ export default {
         (this.startVersion &&
           this.startVersion.version_index === this.mergeRequestDiff.version_index)
       );
+    },
+    currentDiffIndex() {
+      return this.currentDiffFileId !== ''
+        ? _.findIndex(this.diffFiles, diff => diff.file_hash === this.currentDiffFileId)
+        : 0;
     },
   },
   watch: {
@@ -203,19 +208,17 @@ export default {
       Mousetrap.unbind([']', 'j']);
     },
     nextFile() {
-      let curr = this.currentDiff;
+      let curr = this.currentDiffIndex;
       if (curr !== this.diffFiles.length - 1) {
         curr += 1;
         this.scrollToFile(this.diffFiles[curr].file_path);
-        this.currentDiff = curr;
       }
     },
     previousFile() {
-      let curr = this.currentDiff;
+      let curr = this.currentDiffIndex;
       if (curr) {
         curr -= 1;
         this.scrollToFile(this.diffFiles[curr].file_path);
-        this.currentDiff = curr;
       }
     },
   },
