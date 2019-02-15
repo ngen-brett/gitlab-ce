@@ -1533,7 +1533,7 @@ msgstr ""
 msgid "Closed"
 msgstr ""
 
-msgid "Closed (moved)"
+msgid "Closed (%{moved_link_start}moved%{moved_link_end})"
 msgstr ""
 
 msgid "ClusterIntegration| %{custom_domain_start}More information%{custom_domain_end}."
