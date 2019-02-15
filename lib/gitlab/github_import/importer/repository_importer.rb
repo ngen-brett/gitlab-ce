@@ -6,19 +6,22 @@ module Gitlab
       class RepositoryImporter
         include Gitlab::ShellAdapter
 
-        attr_reader :project, :client
+        attr_reader :project, :client, :wiki_formatter
 
         def initialize(project, client)
           @project = project
           @client = client
+          @wiki_formatter = ::Gitlab::LegacyGithubImport::WikiFormatter.new(project)
         end
 
         # Returns true if we should import the wiki for the project.
+        # rubocop: disable CodeReuse/ActiveRecord
         def import_wiki?
           client.repository(project.import_source)&.has_wiki &&
             !project.wiki_repository_exists? &&
             Gitlab::GitalyClient::RemoteService.exists?(wiki_url)
         end
+        # rubocop: enable CodeReuse/ActiveRecord
 
         # Imports the repository data.
         #
@@ -55,9 +58,7 @@ module Gitlab
         end
 
         def import_wiki_repository
-          wiki_path = "#{project.disk_path}.wiki"
-
-          gitlab_shell.import_repository(project.repository_storage, wiki_path, wiki_url)
+          gitlab_shell.import_wiki_repository(project, wiki_formatter)
 
           true
         rescue Gitlab::Shell::Error => e
@@ -70,7 +71,7 @@ module Gitlab
         end
 
         def wiki_url
-          project.import_url.sub(/\.git\z/, '.wiki.git')
+          wiki_formatter.import_url
         end
 
         def update_clone_time
@@ -78,7 +79,7 @@ module Gitlab
         end
 
         def fail_import(message)
-          project.mark_import_as_failed(message)
+          project.import_state.mark_as_failed(message)
           false
         end
       end

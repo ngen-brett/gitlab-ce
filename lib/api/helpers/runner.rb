@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module API
   module Helpers
     module Runner
@@ -24,7 +26,7 @@ module API
       end
 
       def get_runner_ip
-        { ip_address: request.ip }
+        { ip_address: request.env["HTTP_X_FORWARDED_FOR"] || request.ip }
       end
 
       def current_runner

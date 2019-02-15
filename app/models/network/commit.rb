@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Network
   class Commit
     include ActionView::Helpers::TagHelper
@@ -16,7 +18,7 @@ module Network
     end
 
     def space
-      if @spaces.size > 0
+      if @spaces.present?
         @spaces.first
       else
         0

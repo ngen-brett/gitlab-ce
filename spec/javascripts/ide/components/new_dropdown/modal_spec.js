@@ -15,7 +15,7 @@ describe('new file modal component', () => {
     describe(type, () => {
       beforeEach(() => {
         const store = createStore();
-        store.state.newEntryModal = {
+        store.state.entryModal = {
           type,
           path: '',
         };
@@ -41,17 +41,69 @@ describe('new file modal component', () => {
         expect(vm.$el.querySelector('.label-bold').textContent.trim()).toBe('Name');
       });
 
+      it(`${type === 'tree' ? 'does not show' : 'shows'} file templates`, () => {
+        const templateFilesEl = vm.$el.querySelector('.file-templates');
+        if (type === 'tree') {
+          expect(templateFilesEl).toBeNull();
+        } else {
+          expect(templateFilesEl instanceof Element).toBeTruthy();
+        }
+      });
+
       describe('createEntryInStore', () => {
         it('$emits create', () => {
           spyOn(vm, 'createTempEntry');
 
-          vm.createEntryInStore();
+          vm.submitForm();
 
           expect(vm.createTempEntry).toHaveBeenCalledWith({
             name: 'testing',
             type,
           });
         });
+      });
+    });
+  });
+
+  describe('rename entry', () => {
+    beforeEach(() => {
+      const store = createStore();
+      store.state.entryModal = {
+        type: 'rename',
+        path: '',
+        entry: {
+          name: 'test',
+          type: 'blob',
+        },
+      };
+
+      vm = createComponentWithStore(Component, store).$mount();
+    });
+
+    ['tree', 'blob'].forEach(type => {
+      it(`renders title and button for renaming ${type}`, done => {
+        const text = type === 'tree' ? 'folder' : 'file';
+
+        vm.$store.state.entryModal.entry.type = type;
+
+        vm.$nextTick(() => {
+          expect(vm.$el.querySelector('.modal-title').textContent.trim()).toBe(`Rename ${text}`);
+          expect(vm.$el.querySelector('.btn-success').textContent.trim()).toBe(`Rename ${text}`);
+
+          done();
+        });
+      });
+    });
+
+    describe('entryName', () => {
+      it('returns entries name', () => {
+        expect(vm.entryName).toBe('test');
+      });
+
+      it('updated name', () => {
+        vm.name = 'index.js';
+
+        expect(vm.entryName).toBe('index.js');
       });
     });
   });

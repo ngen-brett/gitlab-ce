@@ -10,11 +10,16 @@ describe EnvironmentSerializer do
       .represent(resource)
   end
 
+  before do
+    project.add_developer(user)
+  end
+
   context 'when there is a single object provided' do
     let(:project) { create(:project, :repository) }
     let(:deployable) { create(:ci_build) }
     let(:deployment) do
-      create(:deployment, deployable: deployable,
+      create(:deployment, :success,
+                          deployable: deployable,
                           user: user,
                           project: project,
                           sha: project.commit.id)

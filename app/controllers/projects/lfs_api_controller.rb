@@ -1,5 +1,9 @@
+# frozen_string_literal: true
+
 class Projects::LfsApiController < Projects::GitHttpClientController
   include LfsRequest
+
+  LFS_TRANSFER_CONTENT_TYPE = 'application/octet-stream'.freeze
 
   skip_before_action :lfs_check_access!, only: [:deprecated]
   before_action :lfs_check_batch_operation!, only: [:batch]
@@ -39,11 +43,13 @@ class Projects::LfsApiController < Projects::GitHttpClientController
     params[:operation] == 'upload'
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def existing_oids
     @existing_oids ||= begin
       project.all_lfs_objects.where(oid: objects.map { |o| o['oid'].to_s }).pluck(:oid)
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def download_objects!
     objects.each do |object|
@@ -86,7 +92,10 @@ class Projects::LfsApiController < Projects::GitHttpClientController
       upload: {
         href: "#{project.http_url_to_repo}/gitlab-lfs/objects/#{object[:oid]}/#{object[:size]}",
         header: {
-          Authorization: request.headers['Authorization']
+          Authorization: request.headers['Authorization'],
+          # git-lfs v2.5.0 sets the Content-Type based on the uploaded file. This
+          # ensures that Workhorse can intercept the request.
+          'Content-Type': LFS_TRANSFER_CONTENT_TYPE
         }.compact
       }
     }

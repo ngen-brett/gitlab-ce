@@ -103,7 +103,7 @@ export const createNewBranchFromDefault = ({ state, dispatch, getters }, branch)
     })
     .catch(() => {
       dispatch('setErrorMessage', {
-        text: __('An error occured creating the new branch.'),
+        text: __('An error occurred creating the new branch.'),
         action: payload => dispatch('createNewBranchFromDefault', payload),
         actionText: __('Please try again'),
         actionPayload: branch,
@@ -122,5 +122,31 @@ export const showBranchNotFoundError = ({ dispatch }, branchId) => {
     action: payload => dispatch('createNewBranchFromDefault', payload),
     actionText: __('Create branch'),
     actionPayload: branchId,
+  });
+};
+
+export const openBranch = ({ dispatch, state }, { projectId, branchId, basePath }) => {
+  dispatch('setCurrentBranchId', branchId);
+
+  dispatch('getBranchData', {
+    projectId,
+    branchId,
+  });
+
+  return dispatch('getFiles', {
+    projectId,
+    branchId,
+  }).then(() => {
+    if (basePath) {
+      const path = basePath.slice(-1) === '/' ? basePath.slice(0, -1) : basePath;
+      const treeEntryKey = Object.keys(state.entries).find(
+        key => key === path && !state.entries[key].pending,
+      );
+      const treeEntry = state.entries[treeEntryKey];
+
+      if (treeEntry) {
+        dispatch('handleTreeEntryAction', treeEntry);
+      }
+    }
   });
 };

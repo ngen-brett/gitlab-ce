@@ -17,11 +17,16 @@ describe GroupPolicy do
 
   let(:reporter_permissions) { [:admin_label] }
 
-  let(:developer_permissions) { [:admin_milestones] }
+  let(:developer_permissions) { [:admin_milestone] }
 
   let(:maintainer_permissions) do
     [
-      :create_projects
+      :create_projects,
+      :read_cluster,
+      :create_cluster,
+      :update_cluster,
+      :admin_cluster,
+      :add_cluster
     ]
   end
 
@@ -31,6 +36,7 @@ describe GroupPolicy do
       :admin_namespace,
       :admin_group_member,
       :change_visibility_level,
+      :set_note_created_at,
       (Gitlab::Database.postgresql? ? :create_subgroup : nil)
     ].compact
   end
@@ -142,7 +148,7 @@ describe GroupPolicy do
     let(:current_user) { owner }
 
     it do
-      allow(Group).to receive(:supports_nested_groups?).and_return(true)
+      allow(Group).to receive(:supports_nested_objects?).and_return(true)
 
       expect_allowed(*guest_permissions)
       expect_allowed(*reporter_permissions)
@@ -156,7 +162,7 @@ describe GroupPolicy do
     let(:current_user) { admin }
 
     it do
-      allow(Group).to receive(:supports_nested_groups?).and_return(true)
+      allow(Group).to receive(:supports_nested_objects?).and_return(true)
 
       expect_allowed(*guest_permissions)
       expect_allowed(*reporter_permissions)
@@ -168,7 +174,7 @@ describe GroupPolicy do
 
   describe 'when nested group support feature is disabled' do
     before do
-      allow(Group).to receive(:supports_nested_groups?).and_return(false)
+      allow(Group).to receive(:supports_nested_objects?).and_return(false)
     end
 
     context 'admin' do
@@ -205,7 +211,7 @@ describe GroupPolicy do
       nested_group.add_guest(developer)
       nested_group.add_guest(maintainer)
 
-      group.owners.destroy_all
+      group.owners.destroy_all # rubocop: disable DestroyAll
 
       group.add_guest(owner)
       nested_group.add_owner(owner)
@@ -277,7 +283,7 @@ describe GroupPolicy do
       let(:current_user) { owner }
 
       it do
-        allow(Group).to receive(:supports_nested_groups?).and_return(true)
+        allow(Group).to receive(:supports_nested_objects?).and_return(true)
 
         expect_allowed(*guest_permissions)
         expect_allowed(*reporter_permissions)
@@ -375,6 +381,16 @@ describe GroupPolicy do
       let(:current_user) { create(:user) }
 
       it { expect_disallowed(:change_share_with_group_lock) }
+    end
+  end
+
+  it_behaves_like 'clusterable policies' do
+    let(:clusterable) { create(:group) }
+    let(:cluster) do
+      create(:cluster,
+             :provided_by_gcp,
+             :group,
+             groups: [clusterable])
     end
   end
 end

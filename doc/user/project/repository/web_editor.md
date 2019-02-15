@@ -33,13 +33,13 @@ easy for you.
 
 ![First file for your project](img/web_editor_template_dropdown_first_file.png)
 
-When clicking on either `LICENSE` or `.gitignore`, a dropdown will be displayed
+When clicking on either `LICENSE` or `.gitignore`, etc., a dropdown will be displayed
 to provide you with a template which might be suitable for your project.
 
 ![MIT license selected](img/web_editor_template_dropdown_mit_license.png)
 
 The license, changelog, contribution guide, or `.gitlab-ci.yml` file could also
-be added through a button on the project page. In the example below the license
+be added through a button on the project page. In the example below, the license
 has already been created, which creates a link to the license itself.
 
 ![New file button](img/web_editor_template_dropdown_buttons.png)
@@ -176,6 +176,10 @@ appear that is labeled **Start a new merge request with these changes**. After
 you commit the changes you will be taken to a new merge request form.
 
 ![Start a new merge request with these changes](img/web_editor_start_new_merge_request.png)
+
+If you'd prefer _not_ to use your primary email address for commits created
+through the web editor, you can choose to use another of your linked email
+addresses from the **User Settings > Edit Profile** page.
 
 [ce-2808]: https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/2808
 [issue closing pattern]: ../issues/automatic_issue_closing.md

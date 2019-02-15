@@ -2,8 +2,11 @@
 
 require "spec_helper"
 
-describe Gitlab::Git::Blob, seed_helper: true do
-  let(:repository) { Gitlab::Git::Repository.new('default', TEST_REPO_PATH, '') }
+describe Gitlab::Git::Blob, :seed_helper do
+  let(:repository) { Gitlab::Git::Repository.new('default', TEST_REPO_PATH, '', 'group/project') }
+  let(:rugged) do
+    Rugged::Repository.new(File.join(TestEnv.repos_path, TEST_REPO_PATH))
+  end
 
   describe 'initialize' do
     let(:blob) { Gitlab::Git::Blob.new(name: 'test') }
@@ -56,7 +59,7 @@ describe Gitlab::Git::Blob, seed_helper: true do
       it { expect(blob.data[0..10]).to eq("*.rbc\n*.sas") }
       it { expect(blob.size).to eq(241) }
       it { expect(blob.mode).to eq("100644") }
-      it { expect(blob).not_to be_binary }
+      it { expect(blob).not_to be_binary_in_repo }
     end
 
     context 'file in root with leading slash' do
@@ -89,7 +92,7 @@ describe Gitlab::Git::Blob, seed_helper: true do
       end
 
       it 'does not mark the blob as binary' do
-        expect(blob).not_to be_binary
+        expect(blob).not_to be_binary_in_repo
       end
     end
 
@@ -120,12 +123,12 @@ describe Gitlab::Git::Blob, seed_helper: true do
           .with(hash_including(binary: true))
           .and_call_original
 
-        expect(blob).to be_binary
+        expect(blob).to be_binary_in_repo
       end
     end
   end
 
-  shared_examples 'finding blobs by ID' do
+  describe '.raw' do
     let(:raw_blob) { Gitlab::Git::Blob.raw(repository, SeedRepo::RubyBlob::ID) }
     let(:bad_blob) { Gitlab::Git::Blob.raw(repository, SeedRepo::BigCommit::ID) }
 
@@ -139,9 +142,7 @@ describe Gitlab::Git::Blob, seed_helper: true do
       it 'limits the size of a large file' do
         blob_size = Gitlab::Git::Blob::MAX_DATA_DISPLAY_SIZE + 1
         buffer = Array.new(blob_size, 0)
-        rugged_blob = Gitlab::GitalyClient::StorageSettings.allow_disk_access do
-          Rugged::Blob.from_buffer(repository.rugged, buffer.join(''))
-        end
+        rugged_blob = Rugged::Blob.from_buffer(rugged, buffer.join(''))
         blob = Gitlab::Git::Blob.raw(repository, rugged_blob)
 
         expect(blob.size).to eq(blob_size)
@@ -156,24 +157,12 @@ describe Gitlab::Git::Blob, seed_helper: true do
 
     context 'when sha references a tree' do
       it 'returns nil' do
-        tree = Gitlab::GitalyClient::StorageSettings.allow_disk_access do
-          repository.rugged.rev_parse('master^{tree}')
-        end
+        tree = rugged.rev_parse('master^{tree}')
 
         blob = Gitlab::Git::Blob.raw(repository, tree.oid)
 
         expect(blob).to be_nil
       end
-    end
-  end
-
-  describe '.raw' do
-    context 'when the blob_raw Gitaly feature is enabled' do
-      it_behaves_like 'finding blobs by ID'
-    end
-
-    context 'when the blob_raw Gitaly feature is disabled', :skip_gitaly_mock do
-      it_behaves_like 'finding blobs by ID'
     end
   end
 
@@ -207,7 +196,7 @@ describe Gitlab::Git::Blob, seed_helper: true do
       it { expect(blob.id).to eq('409f37c4f05865e4fb208c771485f211a22c4c2d') }
       it { expect(blob.data).to eq('') }
       it 'does not mark the blob as binary' do
-        expect(blob).not_to be_binary
+        expect(blob).not_to be_binary_in_repo
       end
     end
 
@@ -262,11 +251,7 @@ describe Gitlab::Git::Blob, seed_helper: true do
   end
 
   describe '.batch_lfs_pointers' do
-    let(:tree_object) do
-      Gitlab::GitalyClient::StorageSettings.allow_disk_access do
-        repository.rugged.rev_parse('master^{tree}')
-      end
-    end
+    let(:tree_object) { rugged.rev_parse('master^{tree}') }
 
     let(:non_lfs_blob) do
       Gitlab::Git::Blob.find(

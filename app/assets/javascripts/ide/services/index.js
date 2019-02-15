@@ -8,7 +8,7 @@ export default {
     });
   },
   getRawFileData(file) {
-    if (file.tempFile) {
+    if (file.tempFile && !file.prevPath) {
       return Promise.resolve(file.content);
     }
 
@@ -18,7 +18,7 @@ export default {
 
     return axios
       .get(file.rawPath, {
-        params: { format: 'json' },
+        transformResponse: [f => f],
       })
       .then(({ data }) => data);
   },
@@ -33,7 +33,7 @@ export default {
 
     return axios
       .get(file.rawPath.replace(`/raw/${file.branchId}/${file.path}`, `/raw/${sha}/${file.path}`), {
-        params: { format: 'json' },
+        transformResponse: [f => f],
       })
       .then(({ data }) => data);
   },
@@ -41,13 +41,13 @@ export default {
     return Api.project(`${namespace}/${project}`);
   },
   getProjectMergeRequestData(projectId, mergeRequestId, params = {}) {
-    return Api.mergeRequest(projectId, mergeRequestId, params);
+    return Api.projectMergeRequest(projectId, mergeRequestId, params);
   },
   getProjectMergeRequestChanges(projectId, mergeRequestId) {
-    return Api.mergeRequestChanges(projectId, mergeRequestId);
+    return Api.projectMergeRequestChanges(projectId, mergeRequestId);
   },
   getProjectMergeRequestVersions(projectId, mergeRequestId) {
-    return Api.mergeRequestVersions(projectId, mergeRequestId);
+    return Api.projectMergeRequestVersions(projectId, mergeRequestId);
   },
   getBranchData(projectId, currentBranchId) {
     return Api.branchSingle(projectId, currentBranchId);

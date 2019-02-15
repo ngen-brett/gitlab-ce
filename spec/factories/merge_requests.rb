@@ -80,12 +80,38 @@ FactoryBot.define do
 
     trait :merge_when_pipeline_succeeds do
       merge_when_pipeline_succeeds true
-      merge_user author
+      merge_user { author }
     end
 
     trait :remove_source_branch do
       merge_params do
         { 'force_remove_source_branch' => '1' }
+      end
+    end
+
+    trait :with_test_reports do
+      after(:build) do |merge_request|
+        merge_request.head_pipeline = build(
+          :ci_pipeline,
+          :success,
+          :with_test_reports,
+          project: merge_request.source_project,
+          ref: merge_request.source_branch,
+          sha: merge_request.diff_head_sha)
+      end
+    end
+
+    trait :deployed_review_app do
+      target_branch 'pages-deploy-target'
+
+      transient do
+        deployment { create(:deployment, :review_app) }
+      end
+
+      after(:build) do |merge_request, evaluator|
+        merge_request.source_branch = evaluator.deployment.ref
+        merge_request.source_project = evaluator.deployment.project
+        merge_request.target_project = evaluator.deployment.project
       end
     end
 
@@ -98,6 +124,10 @@ FactoryBot.define do
       unless [target_project, source_project].all?(&:repository_exists?)
         allow(merge_request).to receive(:fetch_ref!)
       end
+    end
+
+    after(:create) do |merge_request, evaluator|
+      merge_request.cache_merge_request_closes_issues!
     end
 
     factory :merged_merge_request, traits: [:merged]

@@ -49,6 +49,22 @@ describe('Api', () => {
     });
   });
 
+  describe('groupMembers', () => {
+    it('fetches group members', done => {
+      const groupId = '54321';
+      const expectedUrl = `${dummyUrlRoot}/api/${dummyApiVersion}/groups/${groupId}/members`;
+      const expectedData = [{ id: 7 }];
+      mock.onGet(expectedUrl).reply(200, expectedData);
+
+      Api.groupMembers(groupId)
+        .then(({ data }) => {
+          expect(data).toEqual(expectedData);
+        })
+        .then(done)
+        .catch(done.fail);
+    });
+  });
+
   describe('groups', () => {
     it('fetches groups', done => {
       const query = 'dummy query';
@@ -123,7 +139,7 @@ describe('Api', () => {
     });
   });
 
-  describe('mergerequest', () => {
+  describe('projectMergeRequest', () => {
     it('fetches a merge request', done => {
       const projectPath = 'abc';
       const mergeRequestId = '123456';
@@ -132,7 +148,7 @@ describe('Api', () => {
         title: 'test',
       });
 
-      Api.mergeRequest(projectPath, mergeRequestId)
+      Api.projectMergeRequest(projectPath, mergeRequestId)
         .then(({ data }) => {
           expect(data.title).toBe('test');
         })
@@ -141,7 +157,7 @@ describe('Api', () => {
     });
   });
 
-  describe('mergerequest changes', () => {
+  describe('projectMergeRequestChanges', () => {
     it('fetches the changes of a merge request', done => {
       const projectPath = 'abc';
       const mergeRequestId = '123456';
@@ -150,7 +166,7 @@ describe('Api', () => {
         title: 'test',
       });
 
-      Api.mergeRequestChanges(projectPath, mergeRequestId)
+      Api.projectMergeRequestChanges(projectPath, mergeRequestId)
         .then(({ data }) => {
           expect(data.title).toBe('test');
         })
@@ -159,7 +175,7 @@ describe('Api', () => {
     });
   });
 
-  describe('mergerequest versions', () => {
+  describe('projectMergeRequestVersions', () => {
     it('fetches the versions of a merge request', done => {
       const projectPath = 'abc';
       const mergeRequestId = '123456';
@@ -170,10 +186,27 @@ describe('Api', () => {
         },
       ]);
 
-      Api.mergeRequestVersions(projectPath, mergeRequestId)
+      Api.projectMergeRequestVersions(projectPath, mergeRequestId)
         .then(({ data }) => {
           expect(data.length).toBe(1);
           expect(data[0].id).toBe(123);
+        })
+        .then(done)
+        .catch(done.fail);
+    });
+  });
+
+  describe('projectRunners', () => {
+    it('fetches the runners of a project', done => {
+      const projectPath = 7;
+      const params = { scope: 'active' };
+      const mockData = [{ id: 4 }];
+      const expectedUrl = `${dummyUrlRoot}/api/${dummyApiVersion}/projects/${projectPath}/runners`;
+      mock.onGet(expectedUrl, { params }).reply(200, mockData);
+
+      Api.projectRunners(projectPath, { params })
+        .then(({ data }) => {
+          expect(data).toEqual(mockData);
         })
         .then(done)
         .catch(done.fail);
@@ -250,59 +283,6 @@ describe('Api', () => {
     });
   });
 
-  describe('licenseText', () => {
-    it('fetches a license text', done => {
-      const licenseKey = "driver's license";
-      const data = { unused: 'option' };
-      const expectedUrl = `${dummyUrlRoot}/api/${dummyApiVersion}/templates/licenses/${licenseKey}`;
-      mock.onGet(expectedUrl).reply(200, 'test');
-
-      Api.licenseText(licenseKey, data, response => {
-        expect(response).toBe('test');
-        done();
-      });
-    });
-  });
-
-  describe('gitignoreText', () => {
-    it('fetches a gitignore text', done => {
-      const gitignoreKey = 'ignore git';
-      const expectedUrl = `${dummyUrlRoot}/api/${dummyApiVersion}/templates/gitignores/${gitignoreKey}`;
-      mock.onGet(expectedUrl).reply(200, 'test');
-
-      Api.gitignoreText(gitignoreKey, response => {
-        expect(response).toBe('test');
-        done();
-      });
-    });
-  });
-
-  describe('gitlabCiYml', () => {
-    it('fetches a .gitlab-ci.yml', done => {
-      const gitlabCiYmlKey = 'Y CI ML';
-      const expectedUrl = `${dummyUrlRoot}/api/${dummyApiVersion}/templates/gitlab_ci_ymls/${gitlabCiYmlKey}`;
-      mock.onGet(expectedUrl).reply(200, 'test');
-
-      Api.gitlabCiYml(gitlabCiYmlKey, response => {
-        expect(response).toBe('test');
-        done();
-      });
-    });
-  });
-
-  describe('dockerfileYml', () => {
-    it('fetches a Dockerfile', done => {
-      const dockerfileYmlKey = 'a giant whale';
-      const expectedUrl = `${dummyUrlRoot}/api/${dummyApiVersion}/templates/dockerfiles/${dockerfileYmlKey}`;
-      mock.onGet(expectedUrl).reply(200, 'test');
-
-      Api.dockerfileYml(dockerfileYmlKey, response => {
-        expect(response).toBe('test');
-        done();
-      });
-    });
-  });
-
   describe('issueTemplate', () => {
     it('fetches an issue template', done => {
       const namespace = 'some namespace';
@@ -315,6 +295,33 @@ describe('Api', () => {
       mock.onGet(expectedUrl).reply(200, 'test');
 
       Api.issueTemplate(namespace, project, templateKey, templateType, (error, response) => {
+        expect(response).toBe('test');
+        done();
+      });
+    });
+  });
+
+  describe('projectTemplates', () => {
+    it('fetches a list of templates', done => {
+      const expectedUrl = `${dummyUrlRoot}/api/${dummyApiVersion}/projects/gitlab-org%2Fgitlab-ce/templates/licenses`;
+
+      mock.onGet(expectedUrl).reply(200, 'test');
+
+      Api.projectTemplates('gitlab-org/gitlab-ce', 'licenses', {}, response => {
+        expect(response).toBe('test');
+        done();
+      });
+    });
+  });
+
+  describe('projectTemplate', () => {
+    it('fetches a single template', done => {
+      const data = { unused: 'option' };
+      const expectedUrl = `${dummyUrlRoot}/api/${dummyApiVersion}/projects/gitlab-org%2Fgitlab-ce/templates/licenses/test%20license`;
+
+      mock.onGet(expectedUrl).reply(200, 'test');
+
+      Api.projectTemplate('gitlab-org/gitlab-ce', 'licenses', 'test license', data, response => {
         expect(response).toBe('test');
         done();
       });
@@ -336,6 +343,40 @@ describe('Api', () => {
         .then(({ data }) => {
           expect(data.length).toBe(1);
           expect(data[0].name).toBe('test');
+        })
+        .then(done)
+        .catch(done.fail);
+    });
+  });
+
+  describe('user', () => {
+    it('fetches single user', done => {
+      const userId = '123456';
+      const expectedUrl = `${dummyUrlRoot}/api/${dummyApiVersion}/users/${userId}`;
+      mock.onGet(expectedUrl).reply(200, {
+        name: 'testuser',
+      });
+
+      Api.user(userId)
+        .then(({ data }) => {
+          expect(data.name).toBe('testuser');
+        })
+        .then(done)
+        .catch(done.fail);
+    });
+  });
+
+  describe('user status', () => {
+    it('fetches single user status', done => {
+      const userId = '123456';
+      const expectedUrl = `${dummyUrlRoot}/api/${dummyApiVersion}/users/${userId}/status`;
+      mock.onGet(expectedUrl).reply(200, {
+        message: 'testmessage',
+      });
+
+      Api.userStatus(userId)
+        .then(({ data }) => {
+          expect(data.message).toBe('testmessage');
         })
         .then(done)
         .catch(done.fail);

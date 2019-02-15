@@ -142,6 +142,37 @@ describe 'File blob', :js do
     end
   end
 
+  context 'Markdown rendering' do
+    before do
+      project.add_maintainer(project.creator)
+
+      Files::CreateService.new(
+        project,
+        project.creator,
+        start_branch: 'master',
+        branch_name: 'master',
+        commit_message: "Add RedCarpet and CommonMark Markdown ",
+        file_path: 'files/commonmark/file.md',
+        file_content: "1. one\n  - sublist\n"
+      ).execute
+    end
+
+    context 'when rendering default markdown' do
+      before do
+        visit_blob('files/commonmark/file.md')
+
+        wait_for_requests
+      end
+
+      it 'renders using CommonMark' do
+        aggregate_failures do
+          expect(page).to have_content("sublist")
+          expect(page).not_to have_xpath("//ol//li//ul")
+        end
+      end
+    end
+  end
+
   context 'Markdown file (stored in LFS)' do
     before do
       project.add_maintainer(project.creator)
@@ -487,7 +518,7 @@ describe 'File blob', :js do
         expect(page).to have_content('This project is licensed under the MIT License.')
 
         # shows a learn more link
-        expect(page).to have_link('Learn more', 'http://choosealicense.com/licenses/mit/')
+        expect(page).to have_link('Learn more', href: 'http://choosealicense.com/licenses/mit/')
       end
     end
   end
@@ -520,10 +551,10 @@ describe 'File blob', :js do
         expect(page).to have_content('This project manages its dependencies using RubyGems and defines a gem named activerecord.')
 
         # shows a link to the gem
-        expect(page).to have_link('activerecord', 'https://rubygems.org/gems/activerecord')
+        expect(page).to have_link('activerecord', href: 'https://rubygems.org/gems/activerecord')
 
         # shows a learn more link
-        expect(page).to have_link('Learn more', 'http://choosealicense.com/licenses/mit/')
+        expect(page).to have_link('Learn more', href: 'https://rubygems.org/')
       end
     end
   end
@@ -550,6 +581,35 @@ describe 'File blob', :js do
         expect(page).to have_css('.ci-status-icon-running')
         expect(page).to have_css('.js-ci-status-icon-running')
       end
+    end
+  end
+
+  context 'for subgroups' do
+    let(:group) { create(:group) }
+    let(:subgroup) { create(:group, parent: group) }
+    let(:project) { create(:project, :public, :repository, group: subgroup) }
+
+    it 'renders tree table without errors' do
+      visit_blob('README.md')
+
+      expect(page).to have_selector('.file-content')
+      expect(page).not_to have_selector('.flash-alert')
+    end
+
+    it 'displays a GPG badge' do
+      visit_blob('CONTRIBUTING.md', ref: '33f3729a45c02fc67d00adb1b8bca394b0e761d9')
+
+      expect(page).not_to have_selector '.gpg-status-box.js-loading-gpg-badge'
+      expect(page).to have_selector '.gpg-status-box.invalid'
+    end
+  end
+
+  context 'on signed merge commit' do
+    it 'displays a GPG badge' do
+      visit_blob('conflicting-file.md', ref: '6101e87e575de14b38b4e1ce180519a813671e10')
+
+      expect(page).not_to have_selector '.gpg-status-box.js-loading-gpg-badge'
+      expect(page).to have_selector '.gpg-status-box.invalid'
     end
   end
 end

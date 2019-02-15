@@ -1,16 +1,6 @@
 import Vue from 'vue';
 import eventHub from '~/clusters/event_hub';
-import {
-  APPLICATION_NOT_INSTALLABLE,
-  APPLICATION_SCHEDULED,
-  APPLICATION_INSTALLABLE,
-  APPLICATION_INSTALLING,
-  APPLICATION_INSTALLED,
-  APPLICATION_ERROR,
-  REQUEST_LOADING,
-  REQUEST_SUCCESS,
-  REQUEST_FAILURE,
-} from '~/clusters/constants';
+import { APPLICATION_STATUS, REQUEST_SUBMITTED, REQUEST_FAILURE } from '~/clusters/constants';
 import applicationRow from '~/clusters/components/application_row.vue';
 import mountComponent from 'spec/helpers/vue_mount_component_helper';
 import { DEFAULT_APPLICATION_STATE } from '../services/mock_data';
@@ -62,10 +52,16 @@ describe('Application Row', () => {
       expect(vm.installButtonLabel).toBeUndefined();
     });
 
-    it('has disabled "Install" when APPLICATION_NOT_INSTALLABLE', () => {
+    it('has install button', () => {
+      const installationBtn = vm.$el.querySelector('.js-cluster-application-install-button');
+
+      expect(installationBtn).not.toBe(null);
+    });
+
+    it('has disabled "Install" when APPLICATION_STATUS.NOT_INSTALLABLE', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_NOT_INSTALLABLE,
+        status: APPLICATION_STATUS.NOT_INSTALLABLE,
       });
 
       expect(vm.installButtonLabel).toEqual('Install');
@@ -73,10 +69,10 @@ describe('Application Row', () => {
       expect(vm.installButtonDisabled).toEqual(true);
     });
 
-    it('has enabled "Install" when APPLICATION_INSTALLABLE', () => {
+    it('has enabled "Install" when APPLICATION_STATUS.INSTALLABLE', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_INSTALLABLE,
+        status: APPLICATION_STATUS.INSTALLABLE,
       });
 
       expect(vm.installButtonLabel).toEqual('Install');
@@ -84,10 +80,10 @@ describe('Application Row', () => {
       expect(vm.installButtonDisabled).toEqual(false);
     });
 
-    it('has loading "Installing" when APPLICATION_SCHEDULED', () => {
+    it('has loading "Installing" when APPLICATION_STATUS.SCHEDULED', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_SCHEDULED,
+        status: APPLICATION_STATUS.SCHEDULED,
       });
 
       expect(vm.installButtonLabel).toEqual('Installing');
@@ -95,10 +91,10 @@ describe('Application Row', () => {
       expect(vm.installButtonDisabled).toEqual(true);
     });
 
-    it('has loading "Installing" when APPLICATION_INSTALLING', () => {
+    it('has loading "Installing" when APPLICATION_STATUS.INSTALLING', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_INSTALLING,
+        status: APPLICATION_STATUS.INSTALLING,
       });
 
       expect(vm.installButtonLabel).toEqual('Installing');
@@ -106,10 +102,22 @@ describe('Application Row', () => {
       expect(vm.installButtonDisabled).toEqual(true);
     });
 
-    it('has disabled "Installed" when APPLICATION_INSTALLED', () => {
+    it('has loading "Installing" when REQUEST_SUBMITTED', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_INSTALLED,
+        status: APPLICATION_STATUS.INSTALLABLE,
+        requestStatus: REQUEST_SUBMITTED,
+      });
+
+      expect(vm.installButtonLabel).toEqual('Installing');
+      expect(vm.installButtonLoading).toEqual(true);
+      expect(vm.installButtonDisabled).toEqual(true);
+    });
+
+    it('has disabled "Installed" when APPLICATION_STATUS.INSTALLED', () => {
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        status: APPLICATION_STATUS.INSTALLED,
       });
 
       expect(vm.installButtonLabel).toEqual('Installed');
@@ -117,10 +125,21 @@ describe('Application Row', () => {
       expect(vm.installButtonDisabled).toEqual(true);
     });
 
-    it('has enabled "Install" when APPLICATION_ERROR', () => {
+    it('has disabled "Installed" when APPLICATION_STATUS.UPDATING', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_ERROR,
+        status: APPLICATION_STATUS.UPDATING,
+      });
+
+      expect(vm.installButtonLabel).toEqual('Installed');
+      expect(vm.installButtonLoading).toEqual(false);
+      expect(vm.installButtonDisabled).toEqual(true);
+    });
+
+    it('has enabled "Install" when APPLICATION_STATUS.ERROR', () => {
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        status: APPLICATION_STATUS.ERROR,
       });
 
       expect(vm.installButtonLabel).toEqual('Install');
@@ -128,34 +147,10 @@ describe('Application Row', () => {
       expect(vm.installButtonDisabled).toEqual(false);
     });
 
-    it('has loading "Install" when REQUEST_LOADING', () => {
-      vm = mountComponent(ApplicationRow, {
-        ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_INSTALLABLE,
-        requestStatus: REQUEST_LOADING,
-      });
-
-      expect(vm.installButtonLabel).toEqual('Install');
-      expect(vm.installButtonLoading).toEqual(true);
-      expect(vm.installButtonDisabled).toEqual(true);
-    });
-
-    it('has disabled "Install" when REQUEST_SUCCESS', () => {
-      vm = mountComponent(ApplicationRow, {
-        ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_INSTALLABLE,
-        requestStatus: REQUEST_SUCCESS,
-      });
-
-      expect(vm.installButtonLabel).toEqual('Install');
-      expect(vm.installButtonLoading).toEqual(false);
-      expect(vm.installButtonDisabled).toEqual(true);
-    });
-
     it('has enabled "Install" when REQUEST_FAILURE (so you can try installing again)', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_INSTALLABLE,
+        status: APPLICATION_STATUS.INSTALLABLE,
         requestStatus: REQUEST_FAILURE,
       });
 
@@ -168,7 +163,7 @@ describe('Application Row', () => {
       spyOn(eventHub, '$emit');
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_INSTALLABLE,
+        status: APPLICATION_STATUS.INSTALLABLE,
       });
       const installButton = vm.$el.querySelector('.js-cluster-application-install-button');
 
@@ -184,7 +179,7 @@ describe('Application Row', () => {
       spyOn(eventHub, '$emit');
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_INSTALLABLE,
+        status: APPLICATION_STATUS.INSTALLABLE,
         installApplicationRequestParams: { hostname: 'jupyter' },
       });
       const installButton = vm.$el.querySelector('.js-cluster-application-install-button');
@@ -201,7 +196,7 @@ describe('Application Row', () => {
       spyOn(eventHub, '$emit');
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_INSTALLING,
+        status: APPLICATION_STATUS.INSTALLING,
       });
       const installButton = vm.$el.querySelector('.js-cluster-application-install-button');
 
@@ -213,6 +208,144 @@ describe('Application Row', () => {
     });
   });
 
+  describe('Upgrade button', () => {
+    it('has indeterminate state on page load', () => {
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        status: null,
+      });
+      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+
+      expect(upgradeBtn).toBe(null);
+    });
+
+    it('has enabled "Upgrade" when "upgradeAvailable" is true', () => {
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        upgradeAvailable: true,
+      });
+      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+
+      expect(upgradeBtn).not.toBe(null);
+      expect(upgradeBtn.innerHTML).toContain('Upgrade');
+    });
+
+    it('has enabled "Retry upgrade" when APPLICATION_STATUS.UPDATE_ERRORED', () => {
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        status: APPLICATION_STATUS.UPDATE_ERRORED,
+      });
+      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+
+      expect(upgradeBtn).not.toBe(null);
+      expect(vm.upgradeFailed).toBe(true);
+      expect(upgradeBtn.innerHTML).toContain('Retry upgrade');
+    });
+
+    it('has disabled "Retry upgrade" when APPLICATION_STATUS.UPDATING', () => {
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        status: APPLICATION_STATUS.UPDATING,
+      });
+      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+
+      expect(upgradeBtn).not.toBe(null);
+      expect(vm.isUpgrading).toBe(true);
+      expect(upgradeBtn.innerHTML).toContain('Upgrading');
+    });
+
+    it('clicking upgrade button emits event', () => {
+      spyOn(eventHub, '$emit');
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        status: APPLICATION_STATUS.UPDATE_ERRORED,
+      });
+      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+
+      upgradeBtn.click();
+
+      expect(eventHub.$emit).toHaveBeenCalledWith('upgradeApplication', {
+        id: DEFAULT_APPLICATION_STATE.id,
+        params: {},
+      });
+    });
+
+    it('clicking disabled upgrade button emits nothing', () => {
+      spyOn(eventHub, '$emit');
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        status: APPLICATION_STATUS.UPDATING,
+      });
+      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+
+      upgradeBtn.click();
+
+      expect(eventHub.$emit).not.toHaveBeenCalled();
+    });
+
+    it('displays an error message if application upgrade failed', () => {
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        title: 'GitLab Runner',
+        status: APPLICATION_STATUS.UPDATE_ERRORED,
+      });
+      const failureMessage = vm.$el.querySelector(
+        '.js-cluster-application-upgrade-failure-message',
+      );
+
+      expect(failureMessage).not.toBe(null);
+      expect(failureMessage.innerHTML).toContain(
+        'Something went wrong when upgrading GitLab Runner. Please check the logs and try again.',
+      );
+    });
+  });
+
+  describe('Version', () => {
+    it('displays a version number if application has been upgraded', () => {
+      const version = '0.1.45';
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        status: APPLICATION_STATUS.UPDATED,
+        version,
+      });
+      const upgradeDetails = vm.$el.querySelector('.js-cluster-application-upgrade-details');
+      const versionEl = vm.$el.querySelector('.js-cluster-application-upgrade-version');
+
+      expect(upgradeDetails.innerHTML).toContain('Upgraded');
+      expect(versionEl).not.toBe(null);
+      expect(versionEl.innerHTML).toContain(version);
+    });
+
+    it('contains a link to the chart repo if application has been upgraded', () => {
+      const version = '0.1.45';
+      const chartRepo = 'https://gitlab.com/charts/gitlab-runner';
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        status: APPLICATION_STATUS.UPDATED,
+        chartRepo,
+        version,
+      });
+      const versionEl = vm.$el.querySelector('.js-cluster-application-upgrade-version');
+
+      expect(versionEl.href).toEqual(chartRepo);
+      expect(versionEl.target).toEqual('_blank');
+    });
+
+    it('does not display a version number if application upgrade failed', () => {
+      const version = '0.1.45';
+      vm = mountComponent(ApplicationRow, {
+        ...DEFAULT_APPLICATION_STATE,
+        status: APPLICATION_STATUS.UPDATE_ERRORED,
+        version,
+      });
+      const upgradeDetails = vm.$el.querySelector('.js-cluster-application-upgrade-details');
+      const versionEl = vm.$el.querySelector('.js-cluster-application-upgrade-version');
+
+      expect(upgradeDetails.innerHTML).toContain('failed');
+      expect(versionEl).toBe(null);
+    });
+  });
+
   describe('Error block', () => {
     it('does not show error block when there is no error', () => {
       vm = mountComponent(ApplicationRow, {
@@ -220,22 +353,31 @@ describe('Application Row', () => {
         status: null,
         requestStatus: null,
       });
-      const generalErrorMessage = vm.$el.querySelector('.js-cluster-application-general-error-message');
+      const generalErrorMessage = vm.$el.querySelector(
+        '.js-cluster-application-general-error-message',
+      );
 
       expect(generalErrorMessage).toBeNull();
     });
 
-    it('shows status reason when APPLICATION_ERROR', () => {
+    it('shows status reason when APPLICATION_STATUS.ERROR', () => {
       const statusReason = 'We broke it 0.0';
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_ERROR,
+        status: APPLICATION_STATUS.ERROR,
         statusReason,
       });
-      const generalErrorMessage = vm.$el.querySelector('.js-cluster-application-general-error-message');
-      const statusErrorMessage = vm.$el.querySelector('.js-cluster-application-status-error-message');
+      const generalErrorMessage = vm.$el.querySelector(
+        '.js-cluster-application-general-error-message',
+      );
+      const statusErrorMessage = vm.$el.querySelector(
+        '.js-cluster-application-status-error-message',
+      );
 
-      expect(generalErrorMessage.textContent.trim()).toEqual(`Something went wrong while installing ${DEFAULT_APPLICATION_STATE.title}`);
+      expect(generalErrorMessage.textContent.trim()).toEqual(
+        `Something went wrong while installing ${DEFAULT_APPLICATION_STATE.title}`,
+      );
+
       expect(statusErrorMessage.textContent.trim()).toEqual(statusReason);
     });
 
@@ -243,14 +385,21 @@ describe('Application Row', () => {
       const requestReason = 'We broke thre request 0.0';
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        status: APPLICATION_INSTALLABLE,
+        status: APPLICATION_STATUS.INSTALLABLE,
         requestStatus: REQUEST_FAILURE,
         requestReason,
       });
-      const generalErrorMessage = vm.$el.querySelector('.js-cluster-application-general-error-message');
-      const requestErrorMessage = vm.$el.querySelector('.js-cluster-application-request-error-message');
+      const generalErrorMessage = vm.$el.querySelector(
+        '.js-cluster-application-general-error-message',
+      );
+      const requestErrorMessage = vm.$el.querySelector(
+        '.js-cluster-application-request-error-message',
+      );
 
-      expect(generalErrorMessage.textContent.trim()).toEqual(`Something went wrong while installing ${DEFAULT_APPLICATION_STATE.title}`);
+      expect(generalErrorMessage.textContent.trim()).toEqual(
+        `Something went wrong while installing ${DEFAULT_APPLICATION_STATE.title}`,
+      );
+
       expect(requestErrorMessage.textContent.trim()).toEqual(requestReason);
     });
   });

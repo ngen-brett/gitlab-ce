@@ -19,6 +19,31 @@ describe PreviewMarkdownService do
     end
   end
 
+  describe 'suggestions' do
+    let(:params) { { text: "```suggestion\nfoo\n```", preview_suggestions: preview_suggestions } }
+    let(:service) { described_class.new(project, user, params) }
+
+    context 'when preview markdown param is present' do
+      let(:preview_suggestions) { true }
+
+      it 'returns users referenced in text' do
+        result = service.execute
+
+        expect(result[:suggestions]).to eq(['foo'])
+      end
+    end
+
+    context 'when preview markdown param is not present' do
+      let(:preview_suggestions) { false }
+
+      it 'returns users referenced in text' do
+        result = service.execute
+
+        expect(result[:suggestions]).to eq([])
+      end
+    end
+  end
+
   context 'new note with quick actions' do
     let(:issue) { create(:issue, project: project) }
     let(:params) do
@@ -65,15 +90,28 @@ describe PreviewMarkdownService do
     end
   end
 
-  it 'sets correct markdown engine' do
-    service = described_class.new(project, user, { markdown_version: CacheMarkdownField::CACHE_REDCARPET_VERSION })
-    result  = service.execute
+  context 'commit description' do
+    let(:project) { create(:project, :repository) }
+    let(:commit) { project.commit }
+    let(:params) do
+      {
+        text: "My work\n/tag v1.2.3 Stable release",
+        quick_actions_target_type: 'Commit',
+        quick_actions_target_id: commit.id
+      }
+    end
+    let(:service) { described_class.new(project, user, params) }
 
-    expect(result[:markdown_engine]).to eq :redcarpet
+    it 'removes quick actions from text' do
+      result = service.execute
 
-    service = described_class.new(project, user, { markdown_version: CacheMarkdownField::CACHE_COMMONMARK_VERSION })
-    result  = service.execute
+      expect(result[:text]).to eq 'My work'
+    end
 
-    expect(result[:markdown_engine]).to eq :common_mark
+    it 'explains quick actions effect' do
+      result = service.execute
+
+      expect(result[:commands]).to eq 'Tags this commit to v1.2.3 with "Stable release".'
+    end
   end
 end

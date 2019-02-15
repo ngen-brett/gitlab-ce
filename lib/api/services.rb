@@ -298,6 +298,14 @@ module API
           desc: 'Title'
         }
       ],
+      'discord' => [
+        {
+          required: true,
+          name: :webhook,
+          type: String,
+          desc: 'Discord webhook. e.g. https://discordapp.com/api/webhooks/…'
+        }
+      ],
       'drone-ci' => [
         {
           required: true,
@@ -354,66 +362,15 @@ module API
           desc: 'Flowdock token'
         }
       ],
-      'gemnasium' => [
-        {
-          required: true,
-          name: :api_key,
-          type: String,
-          desc: 'Your personal API key on gemnasium.com'
-        },
-        {
-          required: true,
-          name: :token,
-          type: String,
-          desc: "The project's slug on gemnasium.com"
-        }
-      ],
       'hangouts-chat' => [
         {
           required: true,
           name: :webhook,
           type: String,
           desc: 'The Hangouts Chat webhook. e.g. https://chat.googleapis.com/v1/spaces…'
-        }
-      ],
-      'hipchat' => [
-        {
-          required: true,
-          name: :token,
-          type: String,
-          desc: 'The room token'
         },
-        {
-          required: false,
-          name: :room,
-          type: String,
-          desc: 'The room name or ID'
-        },
-        {
-          required: false,
-          name: :color,
-          type: String,
-          desc: 'The room color'
-        },
-        {
-          required: false,
-          name: :notify,
-          type: Boolean,
-          desc: 'Enable notifications'
-        },
-        {
-          required: false,
-          name: :api_version,
-          type: String,
-          desc: 'Leave blank for default (v2)'
-        },
-        {
-          required: false,
-          name: :server,
-          type: String,
-          desc: 'Leave blank for default. https://hipchat.example.com'
-        }
-      ],
+        CHAT_NOTIFICATION_EVENTS
+      ].flatten,
       'irker' => [
         {
           required: true,
@@ -691,13 +648,12 @@ module API
       BuildkiteService,
       CampfireService,
       CustomIssueTrackerService,
+      DiscordService,
       DroneCiService,
       EmailsOnPushService,
       ExternalWikiService,
       FlowdockService,
-      GemnasiumService,
       HangoutsChatService,
-      HipchatService,
       IrkerService,
       JiraService,
       KubernetesService,
@@ -769,7 +725,7 @@ module API
     params do
       requires :id, type: String, desc: 'The ID of a project'
     end
-    resource :projects, requirements: API::PROJECT_ENDPOINT_REQUIREMENTS  do
+    resource :projects, requirements: API::NAMESPACE_OR_PROJECT_REQUIREMENTS do
       before { authenticate! }
       before { authorize_admin_project }
 
@@ -836,17 +792,19 @@ module API
 
     TRIGGER_SERVICES.each do |service_slug, settings|
       helpers do
+        # rubocop: disable CodeReuse/ActiveRecord
         def slash_command_service(project, service_slug, params)
           project.services.active.where(template: false).find do |service|
             service.try(:token) == params[:token] && service.to_param == service_slug.underscore
           end
         end
+        # rubocop: enable CodeReuse/ActiveRecord
       end
 
       params do
         requires :id, type: String, desc: 'The ID of a project'
       end
-      resource :projects, requirements: API::PROJECT_ENDPOINT_REQUIREMENTS  do
+      resource :projects, requirements: API::NAMESPACE_OR_PROJECT_REQUIREMENTS do
         desc "Trigger a slash command for #{service_slug}" do
           detail 'Added in GitLab 8.13'
         end

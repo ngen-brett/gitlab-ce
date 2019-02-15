@@ -7,8 +7,8 @@
 Legacy Storage is the storage behavior prior to version 10.0. For historical
 reasons, GitLab replicated the same mapping structure from the projects URLs:
 
-* Project's repository: `#{namespace}/#{project_name}.git`
-* Project's wiki: `#{namespace}/#{project_name}.wiki.git`
+- Project's repository: `#{namespace}/#{project_name}.git`
+- Project's wiki: `#{namespace}/#{project_name}.wiki.git`
 
 This structure made it simple to migrate from existing solutions to GitLab and
 easy for Administrators to find where the repository is stored.
@@ -41,11 +41,8 @@ Registry, etc.
 
 ## Hashed Storage
 
-> **Warning:** Hashed storage is in **Beta**. For the latest updates, check the
-> associated [issue](https://gitlab.com/gitlab-com/infrastructure/issues/2821)
-> and please report any problems you encounter.
 
-Hashed Storage is the new storage behavior we are rolling out with 10.0. Instead
+Hashed Storage is the new storage behavior we rolled out with 10.0. Instead
 of coupling project URL and the folder structure where the repository will be
 stored on disk, we are coupling a hash, based on the project's ID. This makes
 the folder structure immutable, and therefore eliminates any requirement to
@@ -73,7 +70,7 @@ by another folder with the next 2 characters. They are both stored in a special
 ### How to migrate to Hashed Storage
 
 In GitLab, go to **Admin > Settings**, find the **Repository Storage** section
-and select "_Create new projects using hashed storage paths_".
+and select "_Use hashed storage paths for newly created and renamed projects_".
 
 To migrate your existing projects to the new storage type, check the specific
 [rake tasks].
@@ -96,6 +93,23 @@ need to be performed on these nodes as well. Database changes will propagate wit
 
 You must make sure the migration event was already processed or otherwise it may migrate
 the files back to Hashed state again.
+
+#### Hashed object pools
+
+For deduplication of public forks and their parent repository, objects are pooled
+in an object pool. These object pools are a third repository where shared objects
+are stored.
+
+```ruby
+# object pool paths
+"@pools/#{hash[0..1]}/#{hash[2..3]}/#{hash}.git"
+```
+
+The object pool feature is behind the `object_pools` feature flag, and can be
+enabled for individual projects by executing
+`Feature.enable(:object_pools, Project.find(<id>))`. Note that the project has to
+be on hashed storage, should not be a fork itself, and hashed storage should be
+enabled for all new projects.
 
 ##### Attachments
 

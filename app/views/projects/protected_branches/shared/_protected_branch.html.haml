@@ -15,10 +15,10 @@
         = link_to(commit.short_id, namespace_project_commit_path(@project.namespace, @project, commit.id), class: 'commit-sha')
         = time_ago_with_tooltip(commit.committed_date)
       - else
-        (branch was removed from repository)
+        (branch was deleted from repository)
 
   = yield
 
   - if can_admin_project
     %td
-      = link_to 'Unprotect', [@project.namespace.becomes(Namespace), @project, protected_branch], disabled: local_assigns[:disabled], data: { confirm: 'Branch will be writable for developers. Are you sure?' }, method: :delete, class: "btn btn-warning"
+      = link_to 'Unprotect', [@project.namespace.becomes(Namespace), @project, protected_branch, { update_section: 'js-protected-branches-settings' }], disabled: local_assigns[:disabled], data: { confirm: 'Branch will be writable for developers. Are you sure?' }, method: :delete, class: "btn btn-warning"

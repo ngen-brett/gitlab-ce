@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # A non-diff discussion on an issue, merge request, commit, or snippet, consisting of `DiscussionNote` notes.
 #
 # A discussion of this type can be resolvable.
@@ -111,6 +113,10 @@ class Discussion
   end
 
   def individual_note?
+    false
+  end
+
+  def can_convert_to_discussion?
     false
   end
 

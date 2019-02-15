@@ -2,6 +2,13 @@ require 'spec_helper'
 
 describe PreferencesHelper do
   describe '#dashboard_choices' do
+    let(:user) { build(:user) }
+
+    before do
+      allow(helper).to receive(:current_user).and_return(user)
+      allow(helper).to receive(:can?).and_return(false)
+    end
+
     it 'raises an exception when defined choices may be missing' do
       expect(User).to receive(:dashboards).and_return(foo: 'foo')
       expect { helper.dashboard_choices }.to raise_error(RuntimeError)
@@ -24,6 +31,30 @@ describe PreferencesHelper do
         ["Your Todos", 'todos'],
         ["Assigned Issues", 'issues'],
         ["Assigned Merge Requests", 'merge_requests']
+      ]
+    end
+  end
+
+  describe '#first_day_of_week_choices' do
+    it 'returns Sunday and Monday as choices' do
+      expect(helper.first_day_of_week_choices).to eq [
+        ['Sunday', 0],
+        ['Monday', 1]
+      ]
+    end
+  end
+
+  describe '#first_day_of_week_choices_with_default' do
+    it 'returns choices including system default' do
+      expect(helper.first_day_of_week_choices_with_default).to eq [
+        ['System default (Sunday)', nil], ['Sunday', 0], ['Monday', 1]
+      ]
+    end
+
+    it 'returns choices including system default set to Monday' do
+      stub_application_setting(first_day_of_week: 1)
+      expect(helper.first_day_of_week_choices_with_default).to eq [
+        ['System default (Monday)', nil], ['Sunday', 0], ['Monday', 1]
       ]
     end
   end

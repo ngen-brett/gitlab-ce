@@ -1,4 +1,6 @@
 module GraphqlHelpers
+  MutationDefinition = Struct.new(:query, :variables)
+
   # makes an underscored string look like a fieldname
   # "merge_request" => "mergeRequest"
   def self.fieldnamerize(underscored_field_name)
@@ -41,6 +43,37 @@ module GraphqlHelpers
     QUERY
   end
 
+  def graphql_mutation(name, input, fields = nil)
+    mutation_name = GraphqlHelpers.fieldnamerize(name)
+    input_variable_name = "$#{input_variable_name_for_mutation(name)}"
+    mutation_field = GitlabSchema.mutation.fields[mutation_name]
+    fields ||= all_graphql_fields_for(mutation_field.type)
+
+    query = <<~MUTATION
+      mutation(#{input_variable_name}: #{mutation_field.arguments['input'].type}) {
+        #{mutation_name}(input: #{input_variable_name}) {
+          #{fields}
+        }
+      }
+    MUTATION
+    variables = variables_for_mutation(name, input)
+
+    MutationDefinition.new(query, variables)
+  end
+
+  def variables_for_mutation(name, input)
+    graphql_input = input.map { |name, value| [GraphqlHelpers.fieldnamerize(name), value] }.to_h
+    { input_variable_name_for_mutation(name) => graphql_input }.to_json
+  end
+
+  def input_variable_name_for_mutation(mutation_name)
+    mutation_name = GraphqlHelpers.fieldnamerize(mutation_name)
+    mutation_field = GitlabSchema.mutation.fields[mutation_name]
+    input_type = field_type(mutation_field.arguments['input'])
+
+    GraphqlHelpers.fieldnamerize(input_type)
+  end
+
   def query_graphql_field(name, attributes = {}, fields = nil)
     fields ||= all_graphql_fields_for(name.classify)
     attributes = attributes_to_graphql(attributes)
@@ -51,7 +84,7 @@ module GraphqlHelpers
     QUERY
   end
 
-  def all_graphql_fields_for(class_name)
+  def all_graphql_fields_for(class_name, parent_types = Set.new)
     type = GitlabSchema.types[class_name.to_s]
     return "" unless type
 
@@ -59,8 +92,17 @@ module GraphqlHelpers
       # We can't guess arguments, so skip fields that require them
       next if required_arguments?(field)
 
+      singular_field_type = field_type(field)
+
+      # If field type is the same as parent type, then we're hitting into
+      # mutual dependency. Break it from infinite recursion
+      next if parent_types.include?(singular_field_type)
+
       if nested_fields?(field)
-        "#{name} { #{all_graphql_fields_for(field_type(field))} }"
+        fields =
+          all_graphql_fields_for(singular_field_type, parent_types | [type])
+
+        "#{name} { #{fields} }"
       else
         name
       end
@@ -73,8 +115,12 @@ module GraphqlHelpers
     end.join(", ")
   end
 
-  def post_graphql(query, current_user: nil)
-    post api('/', current_user, version: 'graphql'), query: query
+  def post_graphql(query, current_user: nil, variables: nil)
+    post api('/', current_user, version: 'graphql'), params: { query: query, variables: variables }
+  end
+
+  def post_graphql_mutation(mutation, current_user: nil)
+    post_graphql(mutation.query, current_user: current_user, variables: mutation.variables)
   end
 
   def graphql_data
@@ -82,7 +128,11 @@ module GraphqlHelpers
   end
 
   def graphql_errors
-    json_response['data']
+    json_response['errors']
+  end
+
+  def graphql_mutation_response(mutation_name)
+    graphql_data[GraphqlHelpers.fieldnamerize(mutation_name)]
   end
 
   def nested_fields?(field)
@@ -102,10 +152,14 @@ module GraphqlHelpers
   end
 
   def field_type(field)
-    if field.type.respond_to?(:of_type)
-      field.type.of_type
-    else
-      field.type
-    end
+    field_type = field.type
+
+    # The type could be nested. For example `[GraphQL::STRING_TYPE]`:
+    # - List
+    # - String!
+    # - String
+    field_type = field_type.of_type while field_type.respond_to?(:of_type)
+
+    field_type
   end
 end

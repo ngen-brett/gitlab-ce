@@ -49,6 +49,7 @@ describe MergeRequests::MergeService do
         issue  = create :issue, project: project
         commit = double('commit', safe_message: "Fixes #{issue.to_reference}")
         allow(merge_request).to receive(:commits).and_return([commit])
+        merge_request.cache_merge_request_closes_issues!
 
         service.execute(merge_request)
 
@@ -257,7 +258,7 @@ describe MergeRequests::MergeService do
         it 'logs and saves error if there is an error when squashing' do
           error_message = 'Failed to squash. Should be done manually'
 
-          allow_any_instance_of(MergeRequests::SquashService).to receive(:squash).and_return(nil)
+          allow_any_instance_of(MergeRequests::SquashService).to receive(:squash!).and_return(nil)
           merge_request.update(squash: true)
 
           service.execute(merge_request)

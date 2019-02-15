@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class MergeRequestBasicEntity < IssuableSidebarEntity
+class MergeRequestBasicEntity < Grape::Entity
   expose :assignee_id
   expose :merge_status
   expose :merge_error
@@ -11,4 +11,5 @@ class MergeRequestBasicEntity < IssuableSidebarEntity
   expose :labels, using: LabelEntity
   expose :assignee, using: API::Entities::UserBasic
   expose :task_status, :task_status_short
+  expose :lock_version, :lock_version
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module HookData
     class IssuableBuilder < BaseBuilder
@@ -28,7 +30,7 @@ module Gitlab
       end
 
       def safe_keys
-        issuable_builder::SAFE_HOOK_ATTRIBUTES + issuable_builder::SAFE_HOOK_RELATIONS
+        issuable_builder.safe_hook_attributes + issuable_builder::SAFE_HOOK_RELATIONS
       end
 
       private

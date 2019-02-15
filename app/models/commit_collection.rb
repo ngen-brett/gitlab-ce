@@ -3,6 +3,7 @@
 # A collection of Commit instances for a specific project and Git reference.
 class CommitCollection
   include Enumerable
+  include Gitlab::Utils::StrongMemoize
 
   attr_reader :project, :ref, :commits
 
@@ -19,12 +20,24 @@ class CommitCollection
     commits.each(&block)
   end
 
+  def committers
+    emails = without_merge_commits.map(&:committer_email).uniq
+
+    User.by_any_email(emails)
+  end
+
+  def without_merge_commits
+    strong_memoize(:without_merge_commits) do
+      commits.reject(&:merge_commit?)
+    end
+  end
+
   # Sets the pipeline status for every commit.
   #
   # Setting this status ahead of time removes the need for running a query for
   # every commit we're displaying.
   def with_pipeline_status
-    statuses = project.pipelines.latest_status_per_commit(map(&:id), ref)
+    statuses = project.ci_pipelines.latest_status_per_commit(map(&:id), ref)
 
     each do |commit|
       commit.set_status_for_ref(ref, statuses[commit.id])

@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module SelectForProjectAuthorization
   extend ActiveSupport::Concern
 
-  module ClassMethods
+  class_methods do
     def select_for_project_authorization
       select("projects.id AS project_id, members.access_level")
     end

@@ -45,7 +45,7 @@ if Settings.ldap['enabled'] || Rails.env.test?
 end
 
 Settings['omniauth'] ||= Settingslogic.new({})
-Settings.omniauth['enabled'] = false if Settings.omniauth['enabled'].nil?
+Settings.omniauth['enabled'] = true if Settings.omniauth['enabled'].nil?
 Settings.omniauth['auto_sign_in_with_provider'] = false if Settings.omniauth['auto_sign_in_with_provider'].nil?
 Settings.omniauth['allow_single_sign_on'] = false if Settings.omniauth['allow_single_sign_on'].nil?
 Settings.omniauth['external_providers'] = [] if Settings.omniauth['external_providers'].nil?
@@ -136,12 +136,12 @@ Settings.gitlab['signup_enabled'] ||= true if Settings.gitlab['signup_enabled'].
 Settings.gitlab['signin_enabled'] ||= true if Settings.gitlab['signin_enabled'].nil?
 Settings.gitlab['restricted_visibility_levels'] = Settings.__send__(:verify_constant_array, Gitlab::VisibilityLevel, Settings.gitlab['restricted_visibility_levels'], [])
 Settings.gitlab['username_changing_enabled'] = true if Settings.gitlab['username_changing_enabled'].nil?
-Settings.gitlab['issue_closing_pattern'] = '((?:[Cc]los(?:e[sd]?|ing)|[Ff]ix(?:e[sd]|ing)?|[Rr]esolv(?:e[sd]?|ing)|[Ii]mplement(?:s|ed|ing)?)(:?) +(?:(?:issues? +)?%{issue_ref}(?:(?: *,? +and +| *,? *)?)|([A-Z][A-Z0-9_]+-\d+))+)' if Settings.gitlab['issue_closing_pattern'].nil?
+Settings.gitlab['issue_closing_pattern'] = '\b((?:[Cc]los(?:e[sd]?|ing)|\b[Ff]ix(?:e[sd]|ing)?|\b[Rr]esolv(?:e[sd]?|ing)|\b[Ii]mplement(?:s|ed|ing)?)(:?) +(?:(?:issues? +)?%{issue_ref}(?:(?: *,? +and +| *,? *)?)|([A-Z][A-Z0-9_]+-\d+))+)' if Settings.gitlab['issue_closing_pattern'].nil?
 Settings.gitlab['default_projects_features'] ||= {}
 Settings.gitlab['webhook_timeout'] ||= 10
 Settings.gitlab['max_attachment_size'] ||= 10
 Settings.gitlab['session_expire_delay'] ||= 10080
-Settings.gitlab['unauthenticated_session_expire_delay'] ||= 1.hour.to_i
+Settings.gitlab['unauthenticated_session_expire_delay'] ||= 2.hours.to_i
 Settings.gitlab.default_projects_features['issues']             = true if Settings.gitlab.default_projects_features['issues'].nil?
 Settings.gitlab.default_projects_features['merge_requests']     = true if Settings.gitlab.default_projects_features['merge_requests'].nil?
 Settings.gitlab.default_projects_features['wiki']               = true if Settings.gitlab.default_projects_features['wiki'].nil?
@@ -153,6 +153,7 @@ Settings.gitlab['domain_whitelist'] ||= []
 Settings.gitlab['import_sources'] ||= Gitlab::ImportSources.values
 Settings.gitlab['trusted_proxies'] ||= []
 Settings.gitlab['no_todos_messages'] ||= YAML.load_file(Rails.root.join('config', 'no_todos_messages.yml'))
+Settings.gitlab['impersonation_enabled'] ||= true if Settings.gitlab['impersonation_enabled'].nil?
 Settings.gitlab['usage_ping_enabled'] = true if Settings.gitlab['usage_ping_enabled'].nil?
 
 #
@@ -200,6 +201,7 @@ Settings.registry['path']            = Settings.absolute(Settings.registry['path
 #
 Settings['pages'] ||= Settingslogic.new({})
 Settings.pages['enabled']           = false if Settings.pages['enabled'].nil?
+Settings.pages['access_control']    = false if Settings.pages['access_control'].nil?
 Settings.pages['path']              = Settings.absolute(Settings.pages['path'] || File.join(Settings.shared['path'], "pages"))
 Settings.pages['https']             = false if Settings.pages['https'].nil?
 Settings.pages['host']              ||= "example.com"
@@ -212,6 +214,14 @@ Settings.pages['artifacts_server']  ||= Settings.pages['enabled'] if Settings.pa
 
 Settings.pages['admin'] ||= Settingslogic.new({})
 Settings.pages.admin['certificate'] ||= ''
+
+#
+# External merge request diffs
+#
+Settings['external_diffs'] ||= Settingslogic.new({})
+Settings.external_diffs['enabled']      = false if Settings.external_diffs['enabled'].nil?
+Settings.external_diffs['storage_path'] = Settings.absolute(Settings.external_diffs['storage_path'] || File.join(Settings.shared['path'], 'external-diffs'))
+Settings.external_diffs['object_store'] = ObjectStoreSettings.parse(Settings.external_diffs['object_store'])
 
 #
 # Git LFS
@@ -299,10 +309,6 @@ Settings.cron_jobs['stuck_import_jobs_worker']['job_class'] = 'StuckImportJobsWo
 Settings.cron_jobs['gitlab_usage_ping_worker'] ||= Settingslogic.new({})
 Settings.cron_jobs['gitlab_usage_ping_worker']['cron'] ||= Settings.__send__(:cron_for_usage_ping)
 Settings.cron_jobs['gitlab_usage_ping_worker']['job_class'] = 'GitlabUsagePingWorker'
-
-Settings.cron_jobs['remove_old_web_hook_logs_worker'] ||= Settingslogic.new({})
-Settings.cron_jobs['remove_old_web_hook_logs_worker']['cron'] ||= '40 0 * * *'
-Settings.cron_jobs['remove_old_web_hook_logs_worker']['job_class'] = 'RemoveOldWebHookLogsWorker'
 
 Settings.cron_jobs['stuck_merge_jobs_worker'] ||= Settingslogic.new({})
 Settings.cron_jobs['stuck_merge_jobs_worker']['cron'] ||= '0 */2 * * *'
@@ -394,6 +400,7 @@ Settings.backup['archive_permissions'] ||= 0600
 Settings.backup['upload'] ||= Settingslogic.new({ 'remote_directory' => nil, 'connection' => nil })
 Settings.backup['upload']['multipart_chunk_size'] ||= 104857600
 Settings.backup['upload']['encryption'] ||= nil
+Settings.backup['upload']['encryption_key'] ||= ENV['GITLAB_BACKUP_ENCRYPTION_KEY']
 Settings.backup['upload']['storage_class'] ||= nil
 
 #

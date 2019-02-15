@@ -26,6 +26,24 @@ describe Users::ActivityService do
                 .from(last_activity_on)
                 .to(Date.today)
       end
+
+      it 'tries to obtain ExclusiveLease' do
+        expect(Gitlab::ExclusiveLease).to receive(:new).and_call_original
+
+        subject.execute
+      end
+    end
+
+    context 'when a bad object is passed' do
+      let(:fake_object) { double(username: 'hello') }
+
+      it 'does not record activity' do
+        service = described_class.new(fake_object, 'pull')
+
+        expect(service).not_to receive(:record_activity)
+
+        service.execute
+      end
     end
 
     context 'when last activity is today' do
@@ -33,6 +51,12 @@ describe Users::ActivityService do
 
       it 'does not update last_activity_on' do
         expect { subject.execute }.not_to change(user, :last_activity_on)
+      end
+
+      it 'does not try to obtain ExclusiveLease' do
+        expect(Gitlab::ExclusiveLease).not_to receive(:new)
+
+        subject.execute
       end
     end
 

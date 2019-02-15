@@ -1,4 +1,6 @@
-/* eslint-disable jasmine/no-global-setup, jasmine/no-unsafe-spy, no-underscore-dangle */
+/* eslint-disable
+  jasmine/no-global-setup, jasmine/no-unsafe-spy, no-underscore-dangle, no-console
+*/
 
 import $ from 'jquery';
 import 'vendor/jasmine-jquery';
@@ -19,6 +21,16 @@ Vue.config.productionTip = false;
 
 let hasVueWarnings = false;
 Vue.config.warnHandler = (msg, vm, trace) => {
+  // The following workaround is necessary, so we are able to use setProps from Vue test utils
+  // see https://github.com/vuejs/vue-test-utils/issues/631#issuecomment-421108344
+  const currentStack = new Error().stack;
+  const isInVueTestUtils = currentStack
+    .split('\n')
+    .some(line => line.startsWith('    at VueWrapper.setProps ('));
+  if (isInVueTestUtils) {
+    return;
+  }
+
   hasVueWarnings = true;
   fail(`${msg}${trace}`);
 };
@@ -39,8 +51,8 @@ jasmine.getJSONFixtures().fixturesPath = FIXTURES_PATH;
 beforeAll(() => {
   jasmine.addMatchers(
     jasmineDiff(jasmine, {
-      colors: true,
-      inline: true,
+      colors: window.__karma__.config.color,
+      inline: window.__karma__.config.color,
     }),
   );
   jasmine.addMatchers(customMatchers);
@@ -89,6 +101,19 @@ const builtinVueHttpInterceptors = Vue.http.interceptors.slice();
 beforeEach(() => {
   // restore interceptors so we have no remaining ones from previous tests
   Vue.http.interceptors = builtinVueHttpInterceptors.slice();
+});
+
+let longRunningTestTimeoutHandle;
+
+beforeEach(done => {
+  longRunningTestTimeoutHandle = setTimeout(() => {
+    done.fail('Test is running too long!');
+  }, 2000);
+  done();
+});
+
+afterEach(() => {
+  clearTimeout(longRunningTestTimeoutHandle);
 });
 
 const axiosDefaultAdapter = getDefaultAdapter();
@@ -172,6 +197,7 @@ if (process.env.BABEL_ENV === 'coverage') {
     './terminal/terminal_bundle.js',
     './users/users_bundle.js',
     './issue_show/index.js',
+    './pages/admin/application_settings/show/index.js',
   ];
 
   describe('Uncovered files', function() {

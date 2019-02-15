@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'securerandom'
 
 class Repository
@@ -15,7 +17,6 @@ class Repository
     #{REF_ENVIRONMENTS}
   ].freeze
 
-  include Gitlab::ShellAdapter
   include Gitlab::RepositoryCacheAdapter
 
   attr_accessor :full_path, :disk_path, :project, :is_wiki
@@ -24,6 +25,7 @@ class Repository
   delegate :bundle_to_disk, to: :raw_repository
 
   CreateTreeError = Class.new(StandardError)
+  AmbiguousRefError = Class.new(StandardError)
 
   # Methods that cache data from the Git repository.
   #
@@ -33,8 +35,8 @@ class Repository
   #
   # For example, for entry `:commit_count` there's a method called `commit_count` which
   # stores its data in the `commit_count` cache key.
-  CACHED_METHODS = %i(size commit_count rendered_readme contribution_guide
-                      changelog license_blob license_key gitignore koding_yml
+  CACHED_METHODS = %i(size commit_count rendered_readme readme_path contribution_guide
+                      changelog license_blob license_key gitignore
                       gitlab_ci_yml branch_names tag_names branch_count
                       tag_count avatar exists? root_ref has_visible_content?
                       issue_template_names merge_request_template_names xcode_project?).freeze
@@ -46,12 +48,11 @@ class Repository
   # changed. This Hash maps file types (as returned by Gitlab::FileDetector) to
   # the corresponding methods to call for refreshing caches.
   METHOD_CACHES_FOR_FILE_TYPES = {
-    readme: :rendered_readme,
+    readme: %i(rendered_readme readme_path),
     changelog: :changelog,
     license: %i(license_blob license_key license),
     contributing: :contribution_guide,
     gitignore: :gitignore,
-    koding: :koding_yml,
     gitlab_ci: :gitlab_ci_yml,
     avatar: :avatar,
     issue_template: :issue_template_names,
@@ -68,7 +69,13 @@ class Repository
   end
 
   def ==(other)
-    @disk_path == other.disk_path
+    other.is_a?(self.class) && @disk_path == other.disk_path
+  end
+
+  alias_method :eql?, :==
+
+  def hash
+    [self.class, @disk_path].hash
   end
 
   def raw_repository
@@ -78,10 +85,6 @@ class Repository
   end
 
   alias_method :raw, :raw_repository
-
-  def cleanup
-    @raw_repository&.cleanup
-  end
 
   # Don't use this! It's going away. Use Gitaly to read or write from repos.
   def path_to_repo
@@ -179,6 +182,18 @@ class Repository
     tags.find { |tag| tag.name == name }
   end
 
+  def ambiguous_ref?(ref)
+    tag_exists?(ref) && branch_exists?(ref)
+  end
+
+  def expand_ref(ref)
+    if tag_exists?(ref)
+      Gitlab::Git::TAG_REF_PREFIX + ref
+    elsif branch_exists?(ref)
+      Gitlab::Git::BRANCH_REF_PREFIX + ref
+    end
+  end
+
   def add_branch(user, branch_name, ref)
     branch = raw_repository.add_branch(branch_name, user: user, target: ref)
 
@@ -235,19 +250,32 @@ class Repository
     false
   end
 
+  def languages
+    return [] if empty?
+
+    raw_repository.languages(root_ref)
+  end
+
   # Makes sure a commit is kept around when Git garbage collection runs.
   # Git GC will delete commits from the repository that are no longer in any
   # branches or tags, but we want to keep some of these commits around, for
   # example if they have comments or CI builds.
-  def keep_around(sha)
-    return unless sha.present? && commit_by(oid: sha)
+  #
+  # For Geo's sake, pass in multiple shas rather than calling it multiple times,
+  # to avoid unnecessary syncing.
+  def keep_around(*shas)
+    shas.each do |sha|
+      begin
+        next unless sha.present? && commit_by(oid: sha)
 
-    return if kept_around?(sha)
+        next if kept_around?(sha)
 
-    # This will still fail if the file is corrupted (e.g. 0 bytes)
-    raw_repository.write_ref(keep_around_ref_name(sha), sha, shell: false)
-  rescue Gitlab::Git::CommandError => ex
-    Rails.logger.error "Unable to create keep-around reference for repository #{disk_path}: #{ex}"
+        # This will still fail if the file is corrupted (e.g. 0 bytes)
+        raw_repository.write_ref(keep_around_ref_name(sha), sha)
+      rescue Gitlab::Git::CommandError => ex
+        Rails.logger.error "Unable to create keep-around reference for repository #{disk_path}: #{ex}"
+      end
+    end
   end
 
   def kept_around?(sha)
@@ -260,13 +288,16 @@ class Repository
       # Rugged seems to throw a `ReferenceError` when given branch_names rather
       # than SHA-1 hashes
       number_commits_behind, number_commits_ahead =
-        raw_repository.count_commits_between(
+        raw_repository.diverging_commit_count(
           @root_ref_hash,
           branch.dereferenced_target.sha,
-          left_right: true,
           max_count: MAX_DIVERGING_COUNT)
 
-      { behind: number_commits_behind, ahead: number_commits_ahead }
+      if number_commits_behind + number_commits_ahead >= MAX_DIVERGING_COUNT
+        { distance: MAX_DIVERGING_COUNT }
+      else
+        { behind: number_commits_behind, ahead: number_commits_ahead }
+      end
     end
   end
 
@@ -312,6 +343,8 @@ class Repository
   # types - An Array of file types (e.g. `:readme`) used to refresh extra
   #         caches.
   def refresh_method_caches(types)
+    return if types.empty?
+
     to_refresh = []
 
     types.each do |type|
@@ -430,6 +463,8 @@ class Repository
   # Runs code after a repository has been forked/imported.
   def after_import
     expire_content_cache
+
+    DetectRepositoryLanguagesWorker.perform_async(project.id, project.owner.id)
   end
 
   # Runs code after a new commit has been pushed.
@@ -473,13 +508,28 @@ class Repository
   end
 
   def blob_at(sha, path)
-    Blob.decorate(raw_repository.blob_at(sha, path), project)
+    blob = Blob.decorate(raw_repository.blob_at(sha, path), project)
+
+    # Don't attempt to return a special result if there is no blob at all
+    return unless blob
+
+    # Don't attempt to return a special result unless we're looking at HEAD
+    return blob unless head_commit&.sha == sha
+
+    case path
+    when head_tree&.readme_path
+      ReadmeBlob.new(blob, self)
+    else
+      blob
+    end
   rescue Gitlab::Git::Repository::NoRepository
     nil
   end
 
   # items is an Array like: [[oid, path], [oid1, path1]]
   def blobs_at(items)
+    return [] unless exists?
+
     raw_repository.batch_blobs(items).map { |blob| Blob.decorate(blob, project) }
   end
 
@@ -495,7 +545,7 @@ class Repository
 
     raw_repository.exists?
   end
-  cache_method :exists?
+  cache_method_asymmetrically :exists?
 
   # We don't need to cache the output of this method because both exists? and
   # has_visible_content? are already memoized and cached. There's no guarantee
@@ -555,13 +605,20 @@ class Repository
   cache_method :merge_request_template_names, fallback: []
 
   def readme
-    if readme = tree(:head)&.readme
-      ReadmeBlob.new(readme, self)
-    end
+    head_tree&.readme
   end
 
+  def readme_path
+    readme&.path
+  end
+  cache_method :readme_path
+
   def rendered_readme
-    MarkupHelper.markup_unsafe(readme.name, readme.data, project: project, markdown_engine: :redcarpet) if readme
+    return unless readme
+
+    context = { project: project }
+
+    MarkupHelper.markup_unsafe(readme.name, readme.data, context)
   end
   cache_method :rendered_readme
 
@@ -592,17 +649,12 @@ class Repository
 
     Licensee::License.new(license_key)
   end
-  cache_method :license, memoize_only: true
+  memoize_method :license
 
   def gitignore
     file_on_head(:gitignore)
   end
   cache_method :gitignore
-
-  def koding_yml
-    file_on_head(:koding)
-  end
-  cache_method :koding_yml
 
   def gitlab_ci_yml
     file_on_head(:gitlab_ci)
@@ -645,6 +697,14 @@ class Repository
       blob_at(last_commit.sha, path)
     else
       nil
+    end
+  end
+
+  def list_last_commits_for_tree(sha, path, offset: 0, limit: 25)
+    commits = raw_repository.list_last_commits_for_tree(sha, path, offset: offset, limit: limit)
+
+    commits.each do |path, commit|
+      commits[path] = ::Commit.new(commit, @project)
     end
   end
 
@@ -853,10 +913,12 @@ class Repository
 
   delegate :merged_branch_names, to: :raw_repository
 
-  def merge_base(first_commit_id, second_commit_id)
-    first_commit_id = commit(first_commit_id).try(:id) || first_commit_id
-    second_commit_id = commit(second_commit_id).try(:id) || second_commit_id
-    raw_repository.merge_base(first_commit_id, second_commit_id)
+  def merge_base(*commits_or_ids)
+    commit_ids = commits_or_ids.map do |commit_or_id|
+      commit_or_id.is_a?(::Commit) ? commit_or_id.id : commit_or_id
+    end
+
+    raw_repository.merge_base(*commit_ids)
   end
 
   def ancestor?(ancestor_id, descendant_id)
@@ -875,10 +937,6 @@ class Repository
     fetch_remote(remote_name, forced: forced, prune: prune)
   ensure
     async_remove_remote(remote_name) if tmp_remote_name
-  end
-
-  def fetch_remote(remote, forced: false, ssh_auth: nil, no_tags: false, prune: true)
-    gitlab_shell.fetch_remote(raw_repository, remote, ssh_auth: ssh_auth, forced: forced, no_tags: no_tags, prune: prune)
   end
 
   def async_remove_remote(remote_name)
@@ -975,20 +1033,32 @@ class Repository
                                        remote_branch: merge_request.target_branch)
   end
 
+  def squash(user, merge_request, message)
+    raw.squash(user, merge_request.id, branch: merge_request.target_branch,
+                                       start_sha: merge_request.diff_start_sha,
+                                       end_sha: merge_request.diff_head_sha,
+                                       author: merge_request.author,
+                                       message: message)
+  end
+
+  def update_submodule(user, submodule, commit_sha, message:, branch:)
+    with_cache_hooks do
+      raw.update_submodule(
+        user: user,
+        submodule: submodule,
+        commit_sha: commit_sha,
+        branch: branch,
+        message: message
+      )
+    end
+  end
+
   def blob_data_at(sha, path)
     blob = blob_at(sha, path)
     return unless blob
 
     blob.load_all_data!
     blob.data
-  end
-
-  def squash(user, merge_request)
-    raw.squash(user, merge_request.id, branch: merge_request.target_branch,
-                                       start_sha: merge_request.diff_start_sha,
-                                       end_sha: merge_request.diff_head_sha,
-                                       author: merge_request.author,
-                                       message: merge_request.title)
   end
 
   private
@@ -1007,6 +1077,10 @@ class Repository
 
   def cache
     @cache ||= Gitlab::RepositoryCache.new(self)
+  end
+
+  def request_store_cache
+    @request_store_cache ||= Gitlab::RepositoryCache.new(self, backend: Gitlab::SafeRequestStore)
   end
 
   def tags_sorted_by_committed_date
@@ -1029,10 +1103,13 @@ class Repository
   end
 
   def repository_event(event, tags = {})
-    Gitlab::Metrics.add_event(event, { path: full_path }.merge(tags))
+    Gitlab::Metrics.add_event(event, tags)
   end
 
   def initialize_raw_repository
-    Gitlab::Git::Repository.new(project.repository_storage, disk_path + '.git', Gitlab::GlRepository.gl_repository(project, is_wiki))
+    Gitlab::Git::Repository.new(project.repository_storage,
+                                disk_path + '.git',
+                                Gitlab::GlRepository.gl_repository(project, is_wiki),
+                                project.full_path)
   end
 end

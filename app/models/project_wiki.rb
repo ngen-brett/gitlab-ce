@@ -60,7 +60,7 @@ class ProjectWiki
   def wiki
     @wiki ||= begin
       gl_repository = Gitlab::GlRepository.gl_repository(project, true)
-      raw_repository = Gitlab::Git::Repository.new(project.repository_storage, disk_path + '.git', gl_repository)
+      raw_repository = Gitlab::Git::Repository.new(project.repository_storage, disk_path + '.git', gl_repository, full_path)
 
       create_repo!(raw_repository) unless raw_repository.exists?
 
@@ -80,7 +80,7 @@ class ProjectWiki
     pages(limit: 1).empty?
   end
 
-  # Returns an Array of Gitlab WikiPage instances or an
+  # Returns an Array of GitLab WikiPage instances or an
   # empty Array if this Wiki has no pages.
   def pages(limit: 0)
     wiki.pages(limit: limit).map { |page| WikiPage.new(self, page, true) }
@@ -175,7 +175,7 @@ class ProjectWiki
   private
 
   def create_repo!(raw_repository)
-    gitlab_shell.create_repository(project.repository_storage, disk_path)
+    gitlab_shell.create_wiki_repository(project)
 
     raise CouldNotCreateWikiError unless raw_repository.exists?
 
@@ -184,11 +184,12 @@ class ProjectWiki
 
   def commit_details(action, message = nil, title = nil)
     commit_message = message || default_message(action, title)
+    git_user = Gitlab::Git::User.from_gitlab(@user)
 
     Gitlab::Git::Wiki::CommitDetails.new(@user.id,
-                                         @user.username,
-                                         @user.name,
-                                         @user.email,
+                                         git_user.username,
+                                         git_user.name,
+                                         git_user.email,
                                          commit_message)
   end
 

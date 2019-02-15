@@ -7,15 +7,10 @@ describe Gitlab::Shell do
   let(:repository) { project.repository }
   let(:gitlab_shell) { described_class.new }
   let(:popen_vars) { { 'GIT_TERMINAL_PROMPT' => ENV['GIT_TERMINAL_PROMPT'] } }
-  let(:gitlab_projects) { double('gitlab_projects') }
   let(:timeout) { Gitlab.config.gitlab_shell.git_timeout }
 
   before do
     allow(Project).to receive(:find).and_return(project)
-
-    allow(gitlab_shell).to receive(:gitlab_projects)
-      .with(project.repository_storage, project.disk_path + '.git')
-      .and_return(gitlab_projects)
   end
 
   it { is_expected.to respond_to :add_key }
@@ -417,7 +412,7 @@ describe Gitlab::Shell do
       end
 
       it 'creates a repository' do
-        expect(gitlab_shell.create_repository(repository_storage, repo_name)).to be_truthy
+        expect(gitlab_shell.create_repository(repository_storage, repo_name, repo_name)).to be_truthy
 
         expect(File.stat(created_path).mode & 0o777).to eq(0o770)
 
@@ -432,7 +427,7 @@ describe Gitlab::Shell do
         # should cause #create_repository to fail.
         FileUtils.touch(created_path)
 
-        expect(gitlab_shell.create_repository(repository_storage, repo_name)).to be_falsy
+        expect(gitlab_shell.create_repository(repository_storage, repo_name, repo_name)).to be_falsy
       end
     end
 
@@ -479,13 +474,10 @@ describe Gitlab::Shell do
     end
 
     describe '#fork_repository' do
+      let(:target_project) { create(:project) }
+
       subject do
-        gitlab_shell.fork_repository(
-          project.repository_storage,
-          project.disk_path,
-          'nfs-file05',
-          'fork/path'
-        )
+        gitlab_shell.fork_repository(project, target_project)
       end
 
       it 'returns true when the command succeeds' do
@@ -503,126 +495,6 @@ describe Gitlab::Shell do
       end
     end
 
-    describe '#fetch_remote' do
-      def fetch_remote(ssh_auth = nil, prune = true)
-        gitlab_shell.fetch_remote(repository.raw_repository, 'remote-name', ssh_auth: ssh_auth, prune: prune)
-      end
-
-      def expect_call(fail, options = {})
-        receive_fetch_remote =
-          if fail
-            receive(:fetch_remote).and_raise(GRPC::NotFound)
-          else
-            receive(:fetch_remote).and_return(true)
-          end
-
-        expect_any_instance_of(Gitlab::GitalyClient::RepositoryService).to receive_fetch_remote
-      end
-
-      def build_ssh_auth(opts = {})
-        defaults = {
-          ssh_import?: true,
-          ssh_key_auth?: false,
-          ssh_known_hosts: nil,
-          ssh_private_key: nil
-        }
-
-        double(:ssh_auth, defaults.merge(opts))
-      end
-
-      it 'returns true when the command succeeds' do
-        expect_call(false, force: false, tags: true, prune: true)
-
-        expect(fetch_remote).to be_truthy
-      end
-
-      it 'returns true when the command succeeds' do
-        expect_call(false, force: false, tags: true, prune: false)
-
-        expect(fetch_remote(nil, false)).to be_truthy
-      end
-
-      it 'raises an exception when the command fails' do
-        expect_call(true, force: false, tags: true, prune: true)
-
-        expect { fetch_remote }.to raise_error(Gitlab::Shell::Error)
-      end
-
-      it 'allows forced and no_tags to be changed' do
-        expect_call(false, force: true, tags: false, prune: true)
-
-        result = gitlab_shell.fetch_remote(repository.raw_repository, 'remote-name', forced: true, no_tags: true, prune: true)
-        expect(result).to be_truthy
-      end
-
-      context 'SSH auth' do
-        it 'passes the SSH key if specified' do
-          expect_call(false, force: false, tags: true, prune: true, ssh_key: 'foo')
-
-          ssh_auth = build_ssh_auth(ssh_key_auth?: true, ssh_private_key: 'foo')
-
-          expect(fetch_remote(ssh_auth)).to be_truthy
-        end
-
-        it 'does not pass an empty SSH key' do
-          expect_call(false, force: false, tags: true, prune: true)
-
-          ssh_auth = build_ssh_auth(ssh_key_auth: true, ssh_private_key: '')
-
-          expect(fetch_remote(ssh_auth)).to be_truthy
-        end
-
-        it 'does not pass the key unless SSH key auth is to be used' do
-          expect_call(false, force: false, tags: true, prune: true)
-
-          ssh_auth = build_ssh_auth(ssh_key_auth: false, ssh_private_key: 'foo')
-
-          expect(fetch_remote(ssh_auth)).to be_truthy
-        end
-
-        it 'passes the known_hosts data if specified' do
-          expect_call(false, force: false, tags: true, prune: true, known_hosts: 'foo')
-
-          ssh_auth = build_ssh_auth(ssh_known_hosts: 'foo')
-
-          expect(fetch_remote(ssh_auth)).to be_truthy
-        end
-
-        it 'does not pass empty known_hosts data' do
-          expect_call(false, force: false, tags: true, prune: true)
-
-          ssh_auth = build_ssh_auth(ssh_known_hosts: '')
-
-          expect(fetch_remote(ssh_auth)).to be_truthy
-        end
-
-        it 'does not pass known_hosts data unless SSH is to be used' do
-          expect_call(false, force: false, tags: true, prune: true)
-
-          ssh_auth = build_ssh_auth(ssh_import?: false, ssh_known_hosts: 'foo')
-
-          expect(fetch_remote(ssh_auth)).to be_truthy
-        end
-      end
-
-      context 'gitaly call' do
-        let(:remote_name) { 'remote-name' }
-        let(:ssh_auth) { double(:ssh_auth) }
-
-        subject do
-          gitlab_shell.fetch_remote(repository.raw_repository, remote_name,
-                                    forced: true, no_tags: true, ssh_auth: ssh_auth)
-        end
-
-        it 'passes the correct params to the gitaly service' do
-          expect(repository.gitaly_repository_client).to receive(:fetch_remote)
-            .with(remote_name, ssh_auth: ssh_auth, forced: true, no_tags: true, prune: true, timeout: timeout)
-
-          subject
-        end
-      end
-    end
-
     describe '#import_repository' do
       let(:import_url) { 'https://gitlab.com/gitlab-org/gitlab-ce.git' }
 
@@ -630,7 +502,7 @@ describe Gitlab::Shell do
         it 'returns true when the command succeeds' do
           expect_any_instance_of(Gitlab::GitalyClient::RepositoryService).to receive(:import_repository).with(import_url)
 
-          result = gitlab_shell.import_repository(project.repository_storage, project.disk_path, import_url)
+          result = gitlab_shell.import_repository(project.repository_storage, project.disk_path, import_url, project.full_path)
 
           expect(result).to be_truthy
         end
@@ -641,7 +513,7 @@ describe Gitlab::Shell do
           expect_any_instance_of(Gitlab::Shell::GitalyGitlabProjects).to receive(:output) { 'error'}
 
           expect do
-            gitlab_shell.import_repository(project.repository_storage, project.disk_path, import_url)
+            gitlab_shell.import_repository(project.repository_storage, project.disk_path, import_url, project.full_path)
           end.to raise_error(Gitlab::Shell::Error, "error")
         end
       end

@@ -2,7 +2,6 @@ import * as getters from '~/diffs/store/getters';
 import state from '~/diffs/store/modules/diff_state';
 import { PARALLEL_DIFF_VIEW_TYPE, INLINE_DIFF_VIEW_TYPE } from '~/diffs/constants';
 import discussion from '../mock_data/diff_discussions';
-import diffFile from '../mock_data/diff_file';
 
 describe('Diffs Module Getters', () => {
   let localState;
@@ -50,15 +49,17 @@ describe('Diffs Module Getters', () => {
     });
   });
 
-  describe('areAllFilesCollapsed', () => {
+  describe('hasCollapsedFile', () => {
     it('returns true when all files are collapsed', () => {
       localState.diffFiles = [{ collapsed: true }, { collapsed: true }];
-      expect(getters.areAllFilesCollapsed(localState)).toEqual(true);
+
+      expect(getters.hasCollapsedFile(localState)).toEqual(true);
     });
 
-    it('returns false when at least one file is not collapsed', () => {
+    it('returns true when at least one file is collapsed', () => {
       localState.diffFiles = [{ collapsed: false }, { collapsed: true }];
-      expect(getters.areAllFilesCollapsed(localState)).toEqual(false);
+
+      expect(getters.hasCollapsedFile(localState)).toEqual(true);
     });
   });
 
@@ -105,13 +106,13 @@ describe('Diffs Module Getters', () => {
     });
   });
 
-  describe('diffHasAllCollpasedDiscussions', () => {
+  describe('diffHasAllCollapsedDiscussions', () => {
     it('returns true when all discussions are collapsed', () => {
       discussionMock.diff_file.file_hash = diffFileMock.fileHash;
       discussionMock.expanded = false;
 
       expect(
-        getters.diffHasAllCollpasedDiscussions(localState, {
+        getters.diffHasAllCollapsedDiscussions(localState, {
           getDiffFileDiscussions: () => [discussionMock],
         })(diffFileMock),
       ).toEqual(true);
@@ -119,7 +120,7 @@ describe('Diffs Module Getters', () => {
 
     it('returns false when there are no discussions', () => {
       expect(
-        getters.diffHasAllCollpasedDiscussions(localState, {
+        getters.diffHasAllCollapsedDiscussions(localState, {
           getDiffFileDiscussions: () => [],
         })(diffFileMock),
       ).toEqual(false);
@@ -129,7 +130,7 @@ describe('Diffs Module Getters', () => {
       discussionMock1.expanded = false;
 
       expect(
-        getters.diffHasAllCollpasedDiscussions(localState, {
+        getters.diffHasAllCollapsedDiscussions(localState, {
           getDiffFileDiscussions: () => [discussionMock, discussionMock1],
         })(diffFileMock),
       ).toEqual(false);
@@ -167,9 +168,27 @@ describe('Diffs Module Getters', () => {
     });
   });
 
+  describe('diffHasDiscussions', () => {
+    it('returns true when getDiffFileDiscussions returns discussions', () => {
+      expect(
+        getters.diffHasDiscussions(localState, {
+          getDiffFileDiscussions: () => [discussionMock],
+        })(diffFileMock),
+      ).toEqual(true);
+    });
+
+    it('returns false when getDiffFileDiscussions returns no discussions', () => {
+      expect(
+        getters.diffHasDiscussions(localState, {
+          getDiffFileDiscussions: () => [],
+        })(diffFileMock),
+      ).toEqual(false);
+    });
+  });
+
   describe('getDiffFileDiscussions', () => {
     it('returns an array with discussions when fileHash matches and the discussion belongs to a diff', () => {
-      discussionMock.diff_file.file_hash = diffFileMock.fileHash;
+      discussionMock.diff_file.file_hash = diffFileMock.file_hash;
 
       expect(
         getters.getDiffFileDiscussions(localState, {}, {}, { discussions: [discussionMock] })(
@@ -189,10 +208,10 @@ describe('Diffs Module Getters', () => {
   describe('getDiffFileByHash', () => {
     it('returns file by hash', () => {
       const fileA = {
-        fileHash: '123',
+        file_hash: '123',
       };
       const fileB = {
-        fileHash: '456',
+        file_hash: '456',
       };
       localState.diffFiles = [fileA, fileB];
 
@@ -201,41 +220,54 @@ describe('Diffs Module Getters', () => {
 
     it('returns null if no matching file is found', () => {
       localState.diffFiles = [];
+
       expect(getters.getDiffFileByHash(localState)('123')).toBeUndefined();
     });
   });
 
-  describe('discussionsByLineCode', () => {
-    let mockState;
+  describe('allBlobs', () => {
+    it('returns an array of blobs', () => {
+      localState.treeEntries = {
+        file: {
+          type: 'blob',
+          path: 'file',
+          parentPath: '/',
+          tree: [],
+        },
+        tree: {
+          type: 'tree',
+          path: 'tree',
+          parentPath: '/',
+          tree: [],
+        },
+      };
 
-    beforeEach(() => {
-      mockState = { diffFiles: [diffFile] };
+      expect(
+        getters.allBlobs(localState, {
+          flatBlobsList: getters.flatBlobsList(localState),
+        }),
+      ).toEqual([
+        {
+          isHeader: true,
+          path: '/',
+          tree: [
+            {
+              parentPath: '/',
+              path: 'file',
+              tree: [],
+              type: 'blob',
+            },
+          ],
+        },
+      ]);
     });
+  });
 
-    it('should return a map of diff lines with their line codes', () => {
-      const mockGetters = { discussions: [discussionMock] };
+  describe('diffFilesLength', () => {
+    it('returns length of diff files', () => {
+      localState.diffFiles.push('test', 'test 2');
 
-      const map = getters.discussionsByLineCode(mockState, {}, {}, mockGetters);
-      expect(map['1c497fbb3a46b78edf04cc2a2fa33f67e3ffbe2a_1_2']).toBeDefined();
-      expect(Object.keys(map).length).toEqual(1);
-    });
-
-    it('should have the diff discussion on the map if the original position matches', () => {
-      discussionMock.position.formatter.base_sha = 'ff9200';
-      const mockGetters = { discussions: [discussionMock] };
-
-      const map = getters.discussionsByLineCode(mockState, {}, {}, mockGetters);
-      expect(map['1c497fbb3a46b78edf04cc2a2fa33f67e3ffbe2a_1_2']).toBeDefined();
-      expect(Object.keys(map).length).toEqual(1);
-    });
-
-    it('should not add an outdated diff discussion to the returned map', () => {
-      discussionMock.position.formatter.base_sha = 'ff9200';
-      discussionMock.original_position.formatter.base_sha = 'ff9200';
-      const mockGetters = { discussions: [discussionMock] };
-
-      const map = getters.discussionsByLineCode(mockState, {}, {}, mockGetters);
-      expect(Object.keys(map).length).toEqual(0);
+      expect(getters.diffFilesLength(localState)).toBe(2);
     });
   });
 });

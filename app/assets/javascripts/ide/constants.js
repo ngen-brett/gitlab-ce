@@ -1,8 +1,3 @@
-// Fuzzy file finder
-export const MAX_FILE_FINDER_RESULTS = 40;
-export const FILE_FINDER_ROW_HEIGHT = 55;
-export const FILE_FINDER_EMPTY_ROW_HEIGHT = 33;
-
 export const MAX_WINDOW_HEIGHT_COMPACT = 750;
 
 // Commit message textarea
@@ -26,15 +21,39 @@ export const diffModes = {
   new: 'new',
   deleted: 'deleted',
   renamed: 'renamed',
+  mode_changed: 'mode_changed',
 };
 
 export const rightSidebarViews = {
-  pipelines: 'pipelines-list',
-  jobsDetail: 'jobs-detail',
-  mergeRequestInfo: 'merge-request-info',
+  pipelines: { name: 'pipelines-list', keepAlive: true },
+  jobsDetail: { name: 'jobs-detail', keepAlive: false },
+  mergeRequestInfo: { name: 'merge-request-info', keepAlive: true },
+  clientSidePreview: { name: 'clientside', keepAlive: false },
 };
 
 export const stageKeys = {
   unstaged: 'unstaged',
   staged: 'staged',
 };
+
+export const commitItemIconMap = {
+  addition: {
+    icon: 'file-addition',
+    class: 'ide-file-addition',
+  },
+  modified: {
+    icon: 'file-modified',
+    class: 'ide-file-modified',
+  },
+  deleted: {
+    icon: 'file-deletion',
+    class: 'ide-file-deletion',
+  },
+};
+
+export const modalTypes = {
+  rename: 'rename',
+  tree: 'tree',
+};
+
+export const packageJsonPath = 'package.json';

@@ -1,7 +1,7 @@
+# frozen_string_literal: true
+
 class ProjectMember < Member
   SOURCE_TYPE = 'Project'.freeze
-
-  include Gitlab::ShellAdapter
 
   belongs_to :project, foreign_key: 'source_id'
 
@@ -12,6 +12,10 @@ class ProjectMember < Member
   default_scope { where(source_type: SOURCE_TYPE) }
 
   scope :in_project, ->(project) { where(source_id: project.id) }
+  scope :in_namespaces, ->(groups) do
+    joins('INNER JOIN projects ON projects.id = members.source_id')
+      .where('projects.namespace_id in (?)', groups.select(:id))
+  end
 
   class << self
     # Add users to projects with passed access option
@@ -136,7 +140,9 @@ class ProjectMember < Member
     super
   end
 
+  # rubocop: disable CodeReuse/ServiceClass
   def event_service
     EventCreateService.new
   end
+  # rubocop: enable CodeReuse/ServiceClass
 end

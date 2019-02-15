@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Auth
     MissingPersonalAccessTokenError = Class.new(StandardError)
@@ -9,6 +11,9 @@ module Gitlab
 
     # Scopes used for OpenID Connect
     OPENID_SCOPES = [:openid].freeze
+
+    # OpenID Connect profile scopes
+    PROFILE_SCOPES = [:profile, :email].freeze
 
     # Default scopes for OAuth applications that don't define their own
     DEFAULT_SCOPES = [:api].freeze
@@ -136,6 +141,7 @@ module Gitlab
         Gitlab::Auth::Result.new(user, nil, :gitlab_or_ldap, full_authentication_abilities)
       end
 
+      # rubocop: disable CodeReuse/ActiveRecord
       def oauth_access_token_check(login, password)
         if login == "oauth2" && password.present?
           token = Doorkeeper::AccessToken.by_token(password)
@@ -146,11 +152,12 @@ module Gitlab
           end
         end
       end
+      # rubocop: enable CodeReuse/ActiveRecord
 
       def personal_access_token_check(password)
         return unless password.present?
 
-        token = PersonalAccessTokensFinder.new(state: 'active').find_by(token: password)
+        token = PersonalAccessTokensFinder.new(state: 'active').find_by_token(password)
 
         if token && valid_scoped_token?(token, available_scopes)
           Gitlab::Auth::Result.new(token.user, nil, :personal_access_token, abilities_for_scopes(token.scopes))
@@ -177,6 +184,7 @@ module Gitlab
         end.uniq
       end
 
+      # rubocop: disable CodeReuse/ActiveRecord
       def deploy_token_check(login, password)
         return unless password.present?
 
@@ -192,8 +200,9 @@ module Gitlab
           Gitlab::Auth::Result.new(token, token.project, :deploy_token, scopes)
         end
       end
+      # rubocop: enable CodeReuse/ActiveRecord
 
-      def lfs_token_check(login, password, project)
+      def lfs_token_check(login, encoded_token, project)
         deploy_key_matches = login.match(/\Alfs\+deploy-key-(\d+)\z/)
 
         actor =
@@ -216,7 +225,7 @@ module Gitlab
             read_authentication_abilities
           end
 
-        if Devise.secure_compare(token_handler.token, password)
+        if token_handler.token_valid?(encoded_token)
           Gitlab::Auth::Result.new(actor, nil, token_handler.type, authentication_abilities)
         end
       end
@@ -278,7 +287,7 @@ module Gitlab
 
       # Other available scopes
       def optional_scopes
-        available_scopes + OPENID_SCOPES - DEFAULT_SCOPES
+        available_scopes + OPENID_SCOPES + PROFILE_SCOPES - DEFAULT_SCOPES
       end
 
       def registry_scopes

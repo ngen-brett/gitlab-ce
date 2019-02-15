@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Banzai
   module Pipeline
     class PostProcessPipeline < BasePipeline
@@ -12,7 +14,8 @@ module Banzai
         [
           Filter::RedactorFilter,
           Filter::RelativeLinkFilter,
-          Filter::IssuableStateFilter
+          Filter::IssuableStateFilter,
+          Filter::SuggestionFilter
         ]
       end
 

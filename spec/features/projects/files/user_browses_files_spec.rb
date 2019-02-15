@@ -11,6 +11,7 @@ describe "User browses files" do
   let(:user) { project.owner }
 
   before do
+    stub_feature_flags(csslab: false)
     sign_in(user)
   end
 
@@ -210,9 +211,10 @@ describe "User browses files" do
     end
   end
 
-  context "when browsing a file content" do
+  context "when browsing a file content", :js do
     before do
       visit(tree_path_root_ref)
+      wait_for_requests
 
       click_link(".gitignore")
     end

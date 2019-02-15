@@ -246,7 +246,6 @@ describe Gitlab::Workhorse do
         GL_ID: "user-#{user.id}",
         GL_USERNAME: user.username,
         GL_REPOSITORY: "project-#{project.id}",
-        RepoPath: repo_path,
         ShowAllRefs: false
       }
     end
@@ -261,7 +260,6 @@ describe Gitlab::Workhorse do
           GL_ID: "user-#{user.id}",
           GL_USERNAME: user.username,
           GL_REPOSITORY: "wiki-#{project.id}",
-          RepoPath: repo_path,
           ShowAllRefs: false
         }
       end
@@ -334,6 +332,22 @@ describe Gitlab::Workhorse do
         let(:action) { 'download' }
 
         it { expect { subject }.to raise_exception('Unsupported action: download') }
+      end
+    end
+
+    context 'when receive_max_input_size has been updated' do
+      it 'returns custom git config' do
+        allow(Gitlab::CurrentSettings).to receive(:receive_max_input_size) { 1 }
+
+        expect(subject[:GitConfigOptions]).to be_present
+      end
+    end
+
+    context 'when receive_max_input_size is empty' do
+      it 'returns an empty git config' do
+        allow(Gitlab::CurrentSettings).to receive(:receive_max_input_size) { nil }
+
+        expect(subject[:GitConfigOptions]).to be_empty
       end
     end
   end

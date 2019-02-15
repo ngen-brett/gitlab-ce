@@ -22,7 +22,7 @@ describe 'Multi-file editor new file', :js do
   end
 
   it 'creates file in current directory' do
-    first('.ide-tree-header button').click
+    first('.ide-tree-actions button').click
 
     page.within('.modal') do
       find('.form-control').set('file name')
@@ -35,7 +35,7 @@ describe 'Multi-file editor new file', :js do
     find('.js-ide-commit-mode').click
 
     find('.multi-file-commit-list-item').hover
-    first('.multi-file-discard-btn .btn').click
+    click_button 'Stage'
 
     fill_in('commit-message', with: 'commit message ide')
 

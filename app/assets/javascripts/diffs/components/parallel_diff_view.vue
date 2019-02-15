@@ -1,9 +1,7 @@
 <script>
-import { mapState, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 import parallelDiffTableRow from './parallel_diff_table_row.vue';
 import parallelDiffCommentRow from './parallel_diff_comment_row.vue';
-import { EMPTY_CELL_TYPE } from '../constants';
-import { trimFirstCharOfLineContent } from '../store/utils';
 
 export default {
   components: {
@@ -19,73 +17,44 @@ export default {
       type: Array,
       required: true,
     },
+    helpPagePath: {
+      type: String,
+      required: false,
+      default: '',
+    },
   },
   computed: {
-    ...mapGetters('diffs', [
-      'commitId',
-      'singleDiscussionByLineCode',
-      'shouldRenderParallelCommentRow',
-    ]),
-    ...mapState({
-      diffLineCommentForms: state => state.diffs.diffLineCommentForms,
-    }),
-    parallelDiffLines() {
-      return this.diffLines.map(line => {
-        const parallelLine = Object.assign({}, line);
-
-        if (line.left) {
-          parallelLine.left = trimFirstCharOfLineContent(line.left);
-        } else {
-          parallelLine.left = { type: EMPTY_CELL_TYPE };
-        }
-
-        if (line.right) {
-          parallelLine.right = trimFirstCharOfLineContent(line.right);
-        } else {
-          parallelLine.right = { type: EMPTY_CELL_TYPE };
-        }
-
-        return parallelLine;
-      });
-    },
+    ...mapGetters('diffs', ['commitId']),
     diffLinesLength() {
-      return this.parallelDiffLines.length;
-    },
-    userColorScheme() {
-      return window.gon.user_color_scheme;
+      return this.diffLines.length;
     },
   },
+  userColorScheme: window.gon.user_color_scheme,
 };
 </script>
 
 <template>
   <div
-    :class="userColorScheme"
+    :class="$options.userColorScheme"
     :data-commit-id="commitId"
     class="code diff-wrap-lines js-syntax-highlight text-file"
   >
     <table>
       <tbody>
-        <template
-          v-for="(line, index) in parallelDiffLines"
-        >
+        <template v-for="(line, index) in diffLines">
           <parallel-diff-table-row
-            :file-hash="diffFile.fileHash"
-            :context-lines-path="diffFile.contextLinesPath"
+            :key="line.line_code"
+            :file-hash="diffFile.file_hash"
+            :context-lines-path="diffFile.context_lines_path"
             :line="line"
             :is-bottom="index + 1 === diffLinesLength"
-            :key="index"
-            :left-discussions="singleDiscussionByLineCode(line.left.lineCode)"
-            :right-discussions="singleDiscussionByLineCode(line.right.lineCode)"
           />
           <parallel-diff-comment-row
-            v-if="shouldRenderParallelCommentRow(line)"
-            :key="`dcr-${index}`"
+            :key="`dcr-${line.line_code || index}`"
             :line="line"
-            :diff-file-hash="diffFile.fileHash"
+            :diff-file-hash="diffFile.file_hash"
             :line-index="index"
-            :left-discussions="singleDiscussionByLineCode(line.left.lineCode)"
-            :right-discussions="singleDiscussionByLineCode(line.right.lineCode)"
+            :help-page-path="helpPagePath"
           />
         </template>
       </tbody>

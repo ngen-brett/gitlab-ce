@@ -13,34 +13,6 @@ describe DiffFileEntity do
 
   subject { entity.as_json }
 
-  shared_examples 'diff file entity' do
-    it 'exposes correct attributes' do
-      expect(subject).to include(
-        :submodule, :submodule_link, :submodule_tree_url, :file_path,
-        :deleted_file, :old_path, :new_path, :mode_changed,
-        :a_mode, :b_mode, :text, :old_path_html,
-        :new_path_html, :highlighted_diff_lines, :parallel_diff_lines,
-        :blob, :file_hash, :added_lines, :removed_lines, :diff_refs, :content_sha,
-        :stored_externally, :external_storage, :too_large, :collapsed, :new_file,
-        :context_lines_path
-      )
-    end
-
-    # Converted diff files from GitHub import does not contain blob file
-    # and content sha.
-    context 'when diff file does not have a blob and content sha' do
-      it 'exposes some attributes as nil' do
-        allow(diff_file).to receive(:content_sha).and_return(nil)
-        allow(diff_file).to receive(:blob).and_return(nil)
-
-        expect(subject[:context_lines_path]).to be_nil
-        expect(subject[:view_path]).to be_nil
-        expect(subject[:highlighted_diff_lines]).to be_nil
-        expect(subject[:can_modify_blob]).to be_nil
-      end
-    end
-  end
-
   context 'when there is no merge request' do
     it_behaves_like 'diff file entity'
   end
@@ -64,6 +36,23 @@ describe DiffFileEntity do
 
       exposed_urls.each do |attribute|
         expect(response[attribute]).to include(merge_request.target_project.to_param)
+      end
+    end
+  end
+
+  context '#parallel_diff_lines' do
+    it 'exposes parallel diff lines correctly' do
+      response = subject
+
+      lines = response[:parallel_diff_lines]
+
+      # make sure at least one line is present for each side
+      expect(lines.map { |line| line[:right] }.compact).to be_present
+      expect(lines.map { |line| line[:left] }.compact).to be_present
+      # make sure all lines are in correct format
+      lines.each do |parallel_line|
+        expect(parallel_line[:left].as_json).to match_schema('entities/diff_line') if parallel_line[:left]
+        expect(parallel_line[:right].as_json).to match_schema('entities/diff_line') if parallel_line[:right]
       end
     end
   end

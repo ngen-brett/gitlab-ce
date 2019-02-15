@@ -1,6 +1,7 @@
 import state from '~/reports/store/state';
 import mutations from '~/reports/store/mutations';
 import * as types from '~/reports/store/mutation_types';
+import { issue } from '../mock_data/mock_data';
 
 describe('Reports Store Mutations', () => {
   let stateCopy;
@@ -12,6 +13,7 @@ describe('Reports Store Mutations', () => {
   describe('SET_ENDPOINT', () => {
     it('should set endpoint', () => {
       mutations[types.SET_ENDPOINT](stateCopy, 'endpoint.json');
+
       expect(stateCopy.endpoint).toEqual('endpoint.json');
     });
   });
@@ -19,6 +21,7 @@ describe('Reports Store Mutations', () => {
   describe('REQUEST_REPORTS', () => {
     it('should set isLoading to true', () => {
       mutations[types.REQUEST_REPORTS](stateCopy);
+
       expect(stateCopy.isLoading).toEqual(true);
     });
   });
@@ -42,24 +45,21 @@ describe('Reports Store Mutations', () => {
             {
               name: 'StringHelper#concatenate when a is git and b is lab returns summary',
               execution_time: 0.0092435,
-              system_output:
-                'Failure/Error: is_expected.to eq(\'gitlab\')',
+              system_output: "Failure/Error: is_expected.to eq('gitlab')",
             },
           ],
           resolved_failures: [
             {
               name: 'StringHelper#concatenate when a is git and b is lab returns summary',
               execution_time: 0.009235,
-              system_output:
-                'Failure/Error: is_expected.to eq(\'gitlab\')',
+              system_output: "Failure/Error: is_expected.to eq('gitlab')",
             },
           ],
           existing_failures: [
             {
               name: 'StringHelper#concatenate when a is git and b is lab returns summary',
               execution_time: 1232.08,
-              system_output:
-                'Failure/Error: is_expected.to eq(\'gitlab\')',
+              system_output: "Failure/Error: is_expected.to eq('gitlab')",
             },
           ],
         },
@@ -72,6 +72,10 @@ describe('Reports Store Mutations', () => {
 
     it('should reset isLoading', () => {
       expect(stateCopy.isLoading).toEqual(false);
+    });
+
+    it('should reset hasError', () => {
+      expect(stateCopy.hasError).toEqual(false);
     });
 
     it('should set summary counts', () => {
@@ -89,6 +93,7 @@ describe('Reports Store Mutations', () => {
     beforeEach(() => {
       mutations[types.RECEIVE_REPORTS_ERROR](stateCopy);
     });
+
     it('should reset isLoading', () => {
       expect(stateCopy.isLoading).toEqual(false);
     });
@@ -97,5 +102,25 @@ describe('Reports Store Mutations', () => {
       expect(stateCopy.hasError).toEqual(true);
     });
 
+    it('should reset reports', () => {
+      expect(stateCopy.reports).toEqual([]);
+    });
+  });
+
+  describe('SET_ISSUE_MODAL_DATA', () => {
+    beforeEach(() => {
+      mutations[types.SET_ISSUE_MODAL_DATA](stateCopy, {
+        issue,
+      });
+    });
+
+    it('should set modal title', () => {
+      expect(stateCopy.modal.title).toEqual(issue.name);
+    });
+
+    it('should set modal data', () => {
+      expect(stateCopy.modal.data.execution_time.value).toEqual(issue.execution_time);
+      expect(stateCopy.modal.data.system_output.value).toEqual(issue.system_output);
+    });
   });
 });

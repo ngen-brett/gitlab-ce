@@ -9,11 +9,11 @@ module Auth
 
       return error('UNAVAILABLE', status: 404, message: 'registry not enabled') unless registry.enabled
 
-      unless scope || current_user || project
+      unless scopes.any? || current_user || project
         return error('DENIED', status: 403, message: 'access forbidden')
       end
 
-      { token: authorized_token(scope).encoded }
+      { token: authorized_token(*scopes).encoded }
     end
 
     def self.full_access_token(*names)
@@ -47,10 +47,12 @@ module Auth
       end
     end
 
-    def scope
-      return unless params[:scope]
+    def scopes
+      return [] unless params[:scopes]
 
-      @scope ||= process_scope(params[:scope])
+      @scopes ||= params[:scopes].map do |scope|
+        process_scope(scope)
+      end.compact
     end
 
     def process_scope(scope)
@@ -97,7 +99,7 @@ module Auth
     ##
     # Because we do not have two way communication with registry yet,
     # we create a container repository image resource when push to the
-    # registry is successfuly authorized.
+    # registry is successfully authorized.
     #
     def ensure_container_repository!(path, actions)
       return if path.has_repository?
@@ -158,7 +160,8 @@ module Auth
     ##
     # We still support legacy pipeline triggers which do not have associated
     # actor. New permissions model and new triggers are always associated with
-    # an actor, so this should be improved in 10.0 version of GitLab.
+    # an actor. So this should be improved once
+    # https://gitlab.com/gitlab-org/gitlab-ce/issues/37452 is resolved.
     #
     def build_can_push?(requested_project)
       # Build can push only to the project from which it originates

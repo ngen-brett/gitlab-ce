@@ -12,24 +12,27 @@
  *    css-class="btn-transparent"
  * />
  */
-import tooltip from '../directives/tooltip';
+import { GlButton, GlTooltipDirective } from '@gitlab/ui';
 import Icon from '../components/icon.vue';
 
 export default {
   name: 'ClipboardButton',
-
   directives: {
-    tooltip,
+    GlTooltip: GlTooltipDirective,
   },
-
   components: {
+    GlButton,
     Icon,
   },
-
   props: {
     text: {
       type: String,
       required: true,
+    },
+    gfm: {
+      type: String,
+      required: false,
+      default: null,
     },
     title: {
       type: String,
@@ -51,20 +54,24 @@ export default {
       default: 'btn-default',
     },
   },
+  computed: {
+    clipboardText() {
+      if (this.gfm !== null) {
+        return JSON.stringify({ text: this.text, gfm: this.gfm });
+      }
+      return this.text;
+    },
+  },
 };
 </script>
 
 <template>
-  <button
-    v-tooltip
+  <gl-button
+    v-gl-tooltip="{ placement: tooltipPlacement, container: tooltipContainer }"
     :class="cssClass"
     :title="title"
-    :data-clipboard-text="text"
-    :data-container="tooltipContainer"
-    :data-placement="tooltipPlacement"
-    type="button"
-    class="btn"
+    :data-clipboard-text="clipboardText"
   >
     <icon name="duplicate" />
-  </button>
+  </gl-button>
 </template>

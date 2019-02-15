@@ -6,16 +6,15 @@ module QA
           include Page::Component::Select2
 
           view 'app/views/import/github/new.html.haml' do
-            element :personal_access_token_field, 'text_field_tag :personal_access_token'
-            element :list_repos_button, "submit_tag _('List your GitHub repositories')"
+            element :personal_access_token_field, 'text_field_tag :personal_access_token' # rubocop:disable QA/ElementWithPattern
+            element :list_repos_button, "submit_tag _('List your GitHub repositories')" # rubocop:disable QA/ElementWithPattern
           end
 
-          view 'app/views/import/_githubish_status.html.haml' do
-            element :project_import_row, 'data: { qa: { repo_path: repo.full_name } }'
+          view 'app/assets/javascripts/import_projects/components/provider_repo_table_row.vue' do
+            element :project_import_row
             element :project_namespace_select
-            element :project_namespace_field, 'select_tag :namespace_id'
-            element :project_path_field, 'text_field_tag :path, repo.name'
-            element :import_button, "_('Import')"
+            element :project_path_field
+            element :import_button
           end
 
           def add_personal_access_token(personal_access_token)

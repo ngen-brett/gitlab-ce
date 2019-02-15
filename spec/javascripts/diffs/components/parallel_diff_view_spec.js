@@ -14,15 +14,15 @@ describe('ParallelDiffView', () => {
 
     component = createComponentWithStore(Vue.extend(ParallelDiffView), store, {
       diffFile,
-      diffLines: diffFile.parallelDiffLines,
+      diffLines: diffFile.parallel_diff_lines,
     }).$mount();
   });
 
-  describe('computed', () => {
-    describe('parallelDiffLines', () => {
+  describe('assigned', () => {
+    describe('diffLines', () => {
       it('should normalize lines for empty cells', () => {
-        expect(component.parallelDiffLines[0].left.type).toEqual(constants.EMPTY_CELL_TYPE);
-        expect(component.parallelDiffLines[1].left.type).toEqual(constants.EMPTY_CELL_TYPE);
+        expect(component.diffLines[0].left.type).toEqual(constants.EMPTY_CELL_TYPE);
+        expect(component.diffLines[1].left.type).toEqual(constants.EMPTY_CELL_TYPE);
       });
     });
   });

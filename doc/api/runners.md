@@ -11,14 +11,18 @@ Get a list of specific runners available to the user.
 ```
 GET /runners
 GET /runners?scope=active
+GET /runners?type=project_type
+GET /runners?status=active
 ```
 
 | Attribute | Type    | Required | Description         |
 |-----------|---------|----------|---------------------|
-| `scope`   | string  | no       | The scope of specific runners to show, one of: `active`, `paused`, `online`; showing all runners if none provided |
+| `scope`   | string  | no       | Deprecated: Use `type` or `status` instead. The scope of specific runners to show, one of: `active`, `paused`, `online`, `offline`; showing all runners if none provided |
+| `type`    | string  | no       | The type of runners to show, one of: `instance_type`, `group_type`, `project_type` |
+| `status`  | string  | no       | The status of runners to show, one of: `active`, `paused`, `online`, `offline` |
 
 ```
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/runners"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/runners"
 ```
 
 Example response:
@@ -56,14 +60,18 @@ is restricted to users with `admin` privileges.
 ```
 GET /runners/all
 GET /runners/all?scope=online
+GET /runners/all?type=project_type
+GET /runners/all?status=active
 ```
 
 | Attribute | Type    | Required | Description         |
 |-----------|---------|----------|---------------------|
-| `scope`   | string  | no       | The scope of runners to show, one of: `specific`, `shared`, `active`, `paused`, `online`; showing all runners if none provided |
+| `scope`   | string  | no       | Deprecated: Use `type` or `status` instead. The scope of runners to show, one of: `specific`, `shared`, `active`, `paused`, `online`, `offline`; showing all runners if none provided |
+| `type`    | string  | no       | The type of runners to show, one of: `instance_type`, `group_type`, `project_type` |
+| `status`  | string  | no       | The status of runners to show, one of: `active`, `paused`, `online`, `offline` |
 
 ```
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/runners/all"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/runners/all"
 ```
 
 Example response:
@@ -126,7 +134,7 @@ GET /runners/:id
 | `id`      | integer | yes      | The ID of a runner  |
 
 ```
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/runners/6"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/runners/6"
 ```
 
 Example response:
@@ -185,7 +193,7 @@ PUT /runners/:id
 | `maximum_timeout` | integer | no | Maximum timeout set when this Runner will handle the job |
 
 ```
-curl --request PUT --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/runners/6" --form "description=test-1-20150125-test" --form "tag_list=ruby,mysql,tag1,tag2"
+curl --request PUT --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/runners/6" --form "description=test-1-20150125-test" --form "tag_list=ruby,mysql,tag1,tag2"
 ```
 
 Example response:
@@ -239,7 +247,7 @@ DELETE /runners/:id
 | `id`      | integer | yes      | The ID of a runner  |
 
 ```
-curl --request DELETE --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/runners/6"
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/runners/6"
 ```
 
 ## List runner's jobs
@@ -256,7 +264,7 @@ GET /runners/:id/jobs
 | `status`  | string  | no       | Status of the job; one of: `running`, `success`, `failed`, `canceled` |
 
 ```
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/runners/1/jobs?status=running"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/runners/1/jobs?status=running"
 ```
 
 Example response:
@@ -286,6 +294,7 @@ Example response:
             "created_at": "2017-11-16T18:38:46.000Z",
             "bio": null,
             "location": null,
+            "public_email": "",
             "skype": "",
             "linkedin": "",
             "twitter": "",
@@ -331,19 +340,24 @@ Example response:
 ## List project's runners
 
 List all runners (specific and shared) available in the project. Shared runners
-are listed if at least one shared runner is defined **and** shared runners
-usage is enabled in the project's settings.
+are listed if at least one shared runner is defined.
 
 ```
 GET /projects/:id/runners
+GET /projects/:id/runners?scope=active
+GET /projects/:id/runners?type=project_type
+GET /projects/:id/runners?status=active
 ```
 
-| Attribute | Type    | Required | Description         |
-|-----------|---------|----------|---------------------|
+| Attribute | Type           | Required | Description         |
+|-----------|----------------|----------|---------------------|
 | `id`      | integer/string | yes      | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) owned by the authenticated user |
+| `scope`   | string         | no       | Deprecated: Use `type` or `status` instead. The scope of specific runners to show, one of: `active`, `paused`, `online`, `offline`; showing all runners if none provided |
+| `type`    | string         | no       | The type of runners to show, one of: `instance_type`, `group_type`, `project_type` |
+| `status`  | string         | no       | The status of runners to show, one of: `active`, `paused`, `online`, `offline` |
 
 ```
-curl --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/9/runners"
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/9/runners"
 ```
 
 Example response:
@@ -387,7 +401,7 @@ POST /projects/:id/runners
 | `runner_id` | integer | yes      | The ID of a runner  |
 
 ```
-curl --request POST --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/9/runners" --form "runner_id=9"
+curl --request POST --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/9/runners" --form "runner_id=9"
 ```
 
 Example response:
@@ -421,7 +435,7 @@ DELETE /projects/:id/runners/:runner_id
 | `runner_id` | integer | yes      | The ID of a runner  |
 
 ```
-curl --request DELETE --header "PRIVATE-TOKEN: 9koXpg98eAheJpvBs5tK" "https://gitlab.example.com/api/v4/projects/9/runners/9"
+curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/projects/9/runners/9"
 ```
 
 ## Register a new Runner

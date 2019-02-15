@@ -55,6 +55,8 @@ describe Issues::UpdateService, :mailer do
       end
 
       it 'updates the issue with the given params' do
+        expect(TodosDestroyer::ConfidentialIssueWorker).not_to receive(:perform_in)
+
         update_issue(opts)
 
         expect(issue).to be_valid
@@ -72,6 +74,21 @@ describe Issues::UpdateService, :mailer do
 
         expect { update_issue(confidential: true) }
           .to change { project.open_issues_count }.from(1).to(0)
+      end
+
+      it 'enqueues ConfidentialIssueWorker when an issue is made confidential' do
+        expect(TodosDestroyer::ConfidentialIssueWorker).to receive(:perform_in).with(Todo::WAIT_FOR_DELETE, issue.id)
+
+        update_issue(confidential: true)
+      end
+
+      it 'does not enqueue ConfidentialIssueWorker when an issue is made non confidential' do
+        # set confidentiality to true before the actual update
+        issue.update!(confidential: true)
+
+        expect(TodosDestroyer::ConfidentialIssueWorker).not_to receive(:perform_in)
+
+        update_issue(confidential: false)
       end
 
       it 'updates open issue counter for assignees when issue is reassigned' do
@@ -172,11 +189,12 @@ describe Issues::UpdateService, :mailer do
           expect(note.note).to include "assigned to #{user2.to_reference}"
         end
 
-        it 'creates system note about issue label edit' do
-          note = find_note('added ~')
+        it 'creates a resource label event' do
+          event = issue.resource_label_events.last
 
-          expect(note).not_to be_nil
-          expect(note.note).to include "added #{label.to_reference} label"
+          expect(event).not_to be_nil
+          expect(event.label_id).to eq label.id
+          expect(event.user_id).to eq user.id
         end
 
         it 'creates system note about title change' do
@@ -325,7 +343,42 @@ describe Issues::UpdateService, :mailer do
         end
       end
 
-      context 'when the milestone change' do
+      context 'when the milestone is removed' do
+        let!(:non_subscriber) { create(:user) }
+
+        let!(:subscriber) do
+          create(:user) do |u|
+            issue.toggle_subscription(u, project)
+            project.add_developer(u)
+          end
+        end
+
+        it_behaves_like 'system notes for milestones'
+
+        it 'sends notifications for subscribers of changed milestone' do
+          issue.milestone = create(:milestone)
+
+          issue.save
+
+          perform_enqueued_jobs do
+            update_issue(milestone_id: "")
+          end
+
+          should_email(subscriber)
+          should_not_email(non_subscriber)
+        end
+      end
+
+      context 'when the milestone is changed' do
+        let!(:non_subscriber) { create(:user) }
+
+        let!(:subscriber) do
+          create(:user) do |u|
+            issue.toggle_subscription(u, project)
+            project.add_developer(u)
+          end
+        end
+
         it 'marks todos as done' do
           update_issue(milestone: create(:milestone))
 
@@ -333,6 +386,15 @@ describe Issues::UpdateService, :mailer do
         end
 
         it_behaves_like 'system notes for milestones'
+
+        it 'sends notifications for subscribers of changed milestone' do
+          perform_enqueued_jobs do
+            update_issue(milestone: create(:milestone))
+          end
+
+          should_email(subscriber)
+          should_not_email(non_subscriber)
+        end
       end
 
       context 'when the labels change' do
@@ -356,7 +418,7 @@ describe Issues::UpdateService, :mailer do
       let!(:non_subscriber) { create(:user) }
 
       let!(:subscriber) do
-        create(:user).tap do |u|
+        create(:user) do |u|
           label.toggle_subscription(u, project)
           project.add_developer(u)
         end
@@ -408,6 +470,8 @@ describe Issues::UpdateService, :mailer do
       end
 
       it { expect(issue.tasks?).to eq(true) }
+
+      it_behaves_like 'updating a single task'
 
       context 'when tasks are marked as completed' do
         before do

@@ -30,9 +30,9 @@ export const setLastCommitMessage = ({ rootState, commit }, data) => {
   const currentProject = rootState.projects[rootState.currentProjectId];
   const commitStats = data.stats
     ? sprintf(__('with %{additions} additions, %{deletions} deletions.'), {
-        additions: data.stats.additions, // eslint-disable-line indent-legacy
-        deletions: data.stats.deletions, // eslint-disable-line indent-legacy
-      }) // eslint-disable-line indent-legacy
+        additions: data.stats.additions,
+        deletions: data.stats.deletions,
+      })
     : '';
   const commitMsg = sprintf(
     __('Your changes have been committed. Commit %{commitId} %{commitStats}'),
@@ -174,11 +174,13 @@ export const commitChanges = ({ commit, state, getters, dispatch, rootState, roo
             dispatch('updateActivityBarView', activityBarViews.edit, { root: true });
             dispatch('updateViewer', 'editor', { root: true });
 
-            router.push(
-              `/project/${rootState.currentProjectId}/blob/${getters.branchName}/-/${
-                rootGetters.activeFile.path
-              }`,
-            );
+            if (rootGetters.activeFile) {
+              router.push(
+                `/project/${rootState.currentProjectId}/blob/${getters.branchName}/-/${
+                  rootGetters.activeFile.path
+                }`,
+              );
+            }
           }
         })
         .then(() => dispatch('updateCommitAction', consts.COMMIT_TO_CURRENT_BRANCH))
@@ -200,7 +202,7 @@ export const commitChanges = ({ commit, state, getters, dispatch, rootState, roo
         dispatch(
           'setErrorMessage',
           {
-            text: __('An error accured whilst committing your changes.'),
+            text: __('An error occurred whilst committing your changes.'),
             action: () =>
               dispatch('commitChanges').then(() =>
                 dispatch('setErrorMessage', null, { root: true }),

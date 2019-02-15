@@ -26,6 +26,7 @@
 # - allow_local_network: Allow urls pointing to private network addresses. Default: true
 # - ports: Allowed ports. Default: all.
 # - enforce_user: Validate user format. Default: false
+# - enforce_sanitization: Validate that there are no html/css/js tags. Default: false
 #
 # Example:
 #   class User < ActiveRecord::Base
@@ -41,11 +42,12 @@ class UrlValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
     @record = record
 
-    if value.present?
-      value.strip!
-    else
+    unless value.present?
       record.errors.add(attribute, 'must be a valid URL')
+      return
     end
+
+    value = strip_value!(record, attribute, value)
 
     Gitlab::UrlBlocker.validate!(value, blocker_args)
   rescue Gitlab::UrlBlocker::BlockedUrlError => e
@@ -54,6 +56,13 @@ class UrlValidator < ActiveModel::EachValidator
 
   private
 
+  def strip_value!(record, attribute, value)
+    new_value = value.strip
+    return value if new_value == value
+
+    record.public_send("#{attribute}=", new_value) # rubocop:disable GitlabSecurity/PublicSend
+  end
+
   def default_options
     # By default the validator doesn't block any url based on the ip address
     {
@@ -61,7 +70,9 @@ class UrlValidator < ActiveModel::EachValidator
       ports: [],
       allow_localhost: true,
       allow_local_network: true,
-      enforce_user: false
+      ascii_only: false,
+      enforce_user: false,
+      enforce_sanitization: false
     }
   end
 

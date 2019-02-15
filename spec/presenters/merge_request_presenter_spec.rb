@@ -117,9 +117,9 @@ describe MergeRequestPresenter do
 
     before do
       project.add_developer(user)
-
       allow(resource.project).to receive(:default_branch)
         .and_return(resource.target_branch)
+      resource.cache_merge_request_closes_issues!
     end
 
     describe '#closing_issues_links' do
@@ -402,6 +402,15 @@ describe MergeRequestPresenter do
 
       is_expected
         .to eq("<a href=\"/#{resource.source_project.full_path}/tree/#{resource.source_branch}\">#{resource.source_branch}</a>")
+    end
+
+    it 'escapes html, when source_branch does not exist' do
+      xss_attempt = "<img src='x' onerror=alert('bad stuff') />"
+
+      allow(resource).to receive(:source_branch) { xss_attempt }
+      allow(resource).to receive(:source_branch_exists?) { false }
+
+      is_expected.to eq(ERB::Util.html_escape(xss_attempt))
     end
   end
 

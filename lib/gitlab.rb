@@ -1,8 +1,18 @@
+# frozen_string_literal: true
+
 require_dependency 'gitlab/popen'
 
 module Gitlab
   def self.root
     Pathname.new(File.expand_path('..', __dir__))
+  end
+
+  def self.version_info
+    Gitlab::VersionInfo.parse(Gitlab::VERSION)
+  end
+
+  def self.pre_release?
+    VERSION.include?('pre')
   end
 
   def self.config
@@ -46,5 +56,13 @@ module Gitlab
 
   def self.dev_env_or_com?
     Rails.env.development? || org? || com?
+  end
+
+  def self.process_name
+    return 'sidekiq' if Sidekiq.server?
+    return 'console' if defined?(Rails::Console)
+    return 'test' if Rails.env.test?
+
+    'web'
   end
 end

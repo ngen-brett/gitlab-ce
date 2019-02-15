@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Projects::BranchesController < Projects::ApplicationController
   include ActionView::Helpers::SanitizeHelper
   include SortingHelper
@@ -20,14 +22,15 @@ class Projects::BranchesController < Projects::ApplicationController
         # Fetch branches for the specified mode
         fetch_branches_by_mode
 
-        @refs_pipelines = @project.pipelines.latest_successful_for_refs(@branches.map(&:name))
+        @refs_pipelines = @project.ci_pipelines.latest_successful_for_refs(@branches.map(&:name))
         @merged_branch_names = repository.merged_branch_names(@branches.map(&:name))
 
         # n+1: https://gitlab.com/gitlab-org/gitaly/issues/992
         Gitlab::GitalyClient.allow_n_plus_1_calls do
           @max_commits = @branches.reduce(0) do |memo, branch|
             diverging_commit_counts = repository.diverging_commit_counts(branch)
-            [memo, diverging_commit_counts[:behind], diverging_commit_counts[:ahead]].max
+            [memo, diverging_commit_counts.values_at(:behind, :ahead, :distance)]
+              .flatten.compact.max
           end
         end
 
@@ -48,6 +51,7 @@ class Projects::BranchesController < Projects::ApplicationController
     @branches = @repository.recent_branches
   end
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def create
     branch_name = sanitize(strip_tags(params[:branch_name]))
     branch_name = Addressable::URI.unescape(branch_name)
@@ -88,6 +92,7 @@ class Projects::BranchesController < Projects::ApplicationController
       end
     end
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def destroy
     @branch_name = Addressable::URI.unescape(params[:id])
@@ -101,7 +106,7 @@ class Projects::BranchesController < Projects::ApplicationController
         redirect_to project_branches_path(@project), status: :see_other
       end
 
-      format.js { render nothing: true, status: result[:return_code] }
+      format.js { head result[:return_code] }
       format.json { render json: { message: result[:message] }, status: result[:return_code] }
     end
   end

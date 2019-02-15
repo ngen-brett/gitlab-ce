@@ -73,9 +73,13 @@ RSpec.shared_examples 'an editable merge request' do
 
   it 'description has autocomplete', :js do
     find('#merge_request_description').native.send_keys('')
-    fill_in 'merge_request_description', with: '@'
+    fill_in 'merge_request_description', with: user.to_reference[0..4]
 
-    expect(page).to have_selector('.atwho-view')
+    wait_for_requests
+
+    page.within('.atwho-view') do
+      expect(page).to have_content(user2.name)
+    end
   end
 
   it 'has class js-quick-submit in form' do
@@ -125,12 +129,12 @@ RSpec.shared_examples 'an editable merge request' do
       expect(merge_request.merge_params['force_remove_source_branch']).to be_truthy
 
       visit edit_project_merge_request_path(target_project, merge_request)
-      uncheck 'Remove source branch when merge request is accepted'
+      uncheck 'Delete source branch when merge request is accepted'
 
       click_button 'Save changes'
 
       expect(page).to have_unchecked_field 'remove-source-branch-input'
-      expect(page).to have_content 'Remove source branch'
+      expect(page).to have_content 'Delete source branch'
     end
   end
 end

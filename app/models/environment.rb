@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 class Environment < ActiveRecord::Base
+  include Gitlab::Utils::StrongMemoize
   # Used to generate random suffixes for the slug
   LETTERS = 'a'..'z'
   NUMBERS = '0'..'9'
@@ -6,9 +9,9 @@ class Environment < ActiveRecord::Base
 
   belongs_to :project, required: true
 
-  has_many :deployments, dependent: :destroy # rubocop:disable Cop/ActiveRecordDependent
+  has_many :deployments, -> { success }, dependent: :destroy # rubocop:disable Cop/ActiveRecordDependent
 
-  has_one :last_deployment, -> { order('deployments.id DESC') }, class_name: 'Deployment'
+  has_one :last_deployment, -> { success.order('deployments.id DESC') }, class_name: 'Deployment'
 
   before_validation :nullify_external_url
   before_validation :generate_slug, if: ->(env) { env.slug.blank? }
@@ -46,6 +49,17 @@ class Environment < ActiveRecord::Base
     order(Gitlab::Database.nulls_first_order("(#{max_deployment_id_sql})", 'ASC'))
   end
   scope :in_review_folder, -> { where(environment_type: "review") }
+  scope :for_name, -> (name) { where(name: name) }
+
+  ##
+  # Search environments which have names like the given query.
+  # Do not set a large limit unless you've confirmed that it works on gitlab.com scale.
+  scope :for_name_like, -> (query, limit: 5) do
+    where('name LIKE ?', "#{sanitize_sql_like(query)}%").limit(limit)
+  end
+
+  scope :for_project, -> (project) { where(project_id: project) }
+  scope :with_deployment, -> (sha) { where('EXISTS (?)', Deployment.select(1).where('deployments.environment_id = environments.id').where(sha: sha)) }
 
   state_machine :state, initial: :available do
     event :start do
@@ -62,6 +76,10 @@ class Environment < ActiveRecord::Base
     after_transition do |environment|
       environment.expire_etag_cache
     end
+  end
+
+  def self.pluck_names
+    pluck(:name)
   end
 
   def predefined_variables
@@ -145,7 +163,7 @@ class Environment < ActiveRecord::Base
   end
 
   def has_metrics?
-    prometheus_adapter&.can_query? && available? && last_deployment.present?
+    prometheus_adapter&.can_query? && available?
   end
 
   def metrics
@@ -156,9 +174,11 @@ class Environment < ActiveRecord::Base
     prometheus_adapter.query(:additional_metrics_environment, self) if has_metrics?
   end
 
+  # rubocop: disable CodeReuse/ServiceClass
   def prometheus_adapter
     @prometheus_adapter ||= Prometheus::AdapterService.new(project, deployment_platform).prometheus_adapter
   end
+  # rubocop: enable CodeReuse/ServiceClass
 
   def slug
     super.presence || generate_slug
@@ -173,7 +193,7 @@ class Environment < ActiveRecord::Base
   #   * cannot end with `-`
   def generate_slug
     # Lowercase letters and numbers only
-    slugified = name.to_s.downcase.gsub(/[^a-z0-9]/, '-')
+    slugified = +name.to_s.downcase.gsub(/[^a-z0-9]/, '-')
 
     # Must start with a letter
     slugified = 'env-' + slugified unless LETTERS.cover?(slugified[0])
@@ -224,7 +244,9 @@ class Environment < ActiveRecord::Base
   end
 
   def deployment_platform
-    project.deployment_platform(environment: self.name)
+    strong_memoize(:deployment_platform) do
+      project.deployment_platform(environment: self.name)
+    end
   end
 
   private

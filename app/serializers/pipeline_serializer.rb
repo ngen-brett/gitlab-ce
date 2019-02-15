@@ -4,6 +4,7 @@ class PipelineSerializer < BaseSerializer
   include WithPagination
   entity PipelineDetailsEntity
 
+  # rubocop: disable CodeReuse/ActiveRecord
   def represent(resource, opts = {})
     if resource.is_a?(ActiveRecord::Relation)
       resource = resource.preload([
@@ -11,10 +12,16 @@ class PipelineSerializer < BaseSerializer
         :retryable_builds,
         :cancelable_statuses,
         :trigger_requests,
-        :project,
         :manual_actions,
+        :scheduled_actions,
         :artifacts,
-        { pending_builds: :project }
+        {
+          pending_builds: :project,
+          project: [:route, { namespace: :route }],
+          artifacts: {
+            project: [:route, { namespace: :route }]
+          }
+        }
       ])
     end
 
@@ -28,6 +35,7 @@ class PipelineSerializer < BaseSerializer
 
     super(resource, opts)
   end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   def represent_status(resource)
     return {} unless resource.present?

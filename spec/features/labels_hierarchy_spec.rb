@@ -156,7 +156,7 @@ describe 'Labels Hierarchy', :js, :nested_groups do
       find('a.label-item', text: parent_group_label.title).click
       find('a.label-item', text: project_label_1.title).click
 
-      find('.btn-create').click
+      find('.btn-success').click
 
       expect(page.find('.issue-details h2.title')).to have_content('new created issue')
       expect(page).to have_selector('span.badge', text: grandparent_group_label.title)
@@ -179,7 +179,7 @@ describe 'Labels Hierarchy', :js, :nested_groups do
     end
 
     context 'on project board issue sidebar' do
-      let(:board)   { create(:board, project: project_1) }
+      let(:board) { create(:board, project: project_1) }
 
       before do
         project_1.add_developer(user)
@@ -195,7 +195,7 @@ describe 'Labels Hierarchy', :js, :nested_groups do
     end
 
     context 'on group board issue sidebar' do
-      let(:board)   { create(:board, group: parent) }
+      let(:board) { create(:board, group: parent) }
 
       before do
         parent.add_developer(user)

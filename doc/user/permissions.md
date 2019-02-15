@@ -42,11 +42,15 @@ The following table depicts the various user permission levels in a project.
 | See a job log                         | ✓ [^3]  | ✓          | ✓           | ✓        | ✓      |
 | Download and browse job artifacts     | ✓ [^3]  | ✓          | ✓           | ✓        | ✓      |
 | View wiki pages                       | ✓ [^1]  | ✓          | ✓           | ✓        | ✓      |
+| View license management reports **[ULTIMATE]** | ✓ [^1]  | ✓          | ✓           | ✓        | ✓      |
+| View Security reports **[ULTIMATE]**  | ✓ [^1]  | ✓          | ✓           | ✓        | ✓      |
+| View project code                     | [^1]    | ✓          | ✓           | ✓        | ✓      |
 | Pull project code                     | [^1]    | ✓          | ✓           | ✓        | ✓      |
 | Download project                      | [^1]    | ✓          | ✓           | ✓        | ✓      |
 | Assign issues                         |         | ✓          | ✓           | ✓        | ✓      |
 | Assign merge requests                 |         |            | ✓           | ✓        | ✓      |
-| Label issues and merge requests       |         | ✓          | ✓           | ✓        | ✓      |
+| Label issues                          |         | ✓          | ✓           | ✓        | ✓      |
+| Label merge requests                  |         |            | ✓           | ✓        | ✓      |
 | Create code snippets                  |         | ✓          | ✓           | ✓        | ✓      |
 | Manage issue tracker                  |         | ✓          | ✓           | ✓        | ✓      |
 | Manage labels                         |         | ✓          | ✓           | ✓        | ✓      |
@@ -56,6 +60,8 @@ The following table depicts the various user permission levels in a project.
 | See a list of merge requests          |         | ✓          | ✓           | ✓        | ✓      |
 | Manage related issues **[STARTER]**   |         | ✓          | ✓           | ✓        | ✓      |
 | Lock issue discussions                |         | ✓          | ✓           | ✓        | ✓      |
+| Create issue from vulnerability **[ULTIMATE]** |         | ✓          | ✓           | ✓        | ✓      |
+| View Error Tracking list              |         | ✓          | ✓           | ✓        | ✓      |
 | Lock merge request discussions        |         |            | ✓           | ✓        | ✓      |
 | Create new environments               |         |            | ✓           | ✓        | ✓      |
 | Stop environments                     |         |            | ✓           | ✓        | ✓      |
@@ -72,6 +78,10 @@ The following table depicts the various user permission levels in a project.
 | Update a container registry           |         |            | ✓           | ✓        | ✓      |
 | Remove a container registry image     |         |            | ✓           | ✓        | ✓      |
 | Create/edit/delete project milestones |         |            | ✓           | ✓        | ✓      |
+| View approved/blacklisted licenses **[ULTIMATE]** |         |            | ✓           | ✓        | ✓      |
+| Use security dashboard **[ULTIMATE]** |         |            | ✓           | ✓        | ✓      |
+| Dismiss vulnerability **[ULTIMATE]**  |         |            | ✓           | ✓        | ✓      |
+| Apply code change suggestions         |         |            | ✓           | ✓        | ✓      |
 | Use environment terminals             |         |            |             | ✓        | ✓      |
 | Add new team members                  |         |            |             | ✓        | ✓      |
 | Push to protected branches            |         |            |             | ✓        | ✓      |
@@ -88,8 +98,11 @@ The following table depicts the various user permission levels in a project.
 | Manage GitLab Pages                   |         |            |             | ✓        | ✓      |
 | Manage GitLab Pages domains and certificates |         |            |             | ✓        | ✓      |
 | Remove GitLab Pages                   |         |            |             |          | ✓      |
+| View GitLab Pages protected by [access control](project/pages/introduction.md#gitlab-pages-access-control-core-only) | ✓       | ✓          | ✓           | ✓        | ✓      |
 | Manage clusters                       |         |            |             | ✓        | ✓      |
+| Manage license policy **[ULTIMATE]**  |         |            |             | ✓        | ✓      |
 | Edit comments (posted by any user)    |         |            |             | ✓        | ✓      |
+| Manage Error Tracking                 |         |            |             | ✓        | ✓      |
 | Switch visibility level               |         |            |             |          | ✓      |
 | Transfer project to another namespace |         |            |             |          | ✓      |
 | Remove project                        |         |            |             |          | ✓      |
@@ -97,7 +110,7 @@ The following table depicts the various user permission levels in a project.
 | Remove pages                          |         |            |             |          | ✓      |
 | Force push to protected branches [^4] |         |            |             |          |        |
 | Remove protected branches [^4]        |         |            |             |          |        |
-| View project Audit Events   |         |            |             | ✓        | ✓      |
+| View project Audit Events             |         |            |             | ✓        | ✓      |
 
 ## Project features permissions
 
@@ -109,6 +122,7 @@ which visibility level you select on project settings.
 - Disabled: disabled for everyone
 - Only team members: only team members will see even if your project is public or internal
 - Everyone with access: everyone can see depending on your project visibility level
+- Everyone: enabled for everyone (only available for GitLab Pages)
 
 ### Protected branches
 
@@ -147,6 +161,13 @@ Confidential issues can be accessed by reporters and higher permission levels,
 as well as by guest users that create a confidential issue. To learn more,
 read through the documentation on [permissions and access to confidential issues](project/issues/confidential_issues.md#permissions-and-access-to-confidential-issues).
 
+### Releases permissions
+
+[Project Releases](project/releases/index.md) can be read by all project
+members (Reporters, Developers, Maintainers, Owners) **except Guests**.
+Releases can be created, updated, or deleted via [Releases APIs](../api/releases/index.md)
+by project Developers, Maintainers, and Owners.
+
 ## Group members permissions
 
 NOTE: **Note:**
@@ -161,14 +182,12 @@ group.
 | Browse group            | ✓     | ✓        | ✓         | ✓      | ✓     |
 | Edit group              |       |          |           |        | ✓     |
 | Create subgroup         |       |          |           |        | ✓     |
-| Create project in group |       |          |           | ✓      | ✓     |
+| Create project in group |       |          |  ✓         | ✓      | ✓     |
 | Manage group members    |       |          |           |        | ✓     |
 | Remove group            |       |          |           |        | ✓     |
 | Manage group labels     |       | ✓        | ✓         | ✓      | ✓     |
 | Create/edit/delete group milestones | |    | ✓         | ✓      | ✓     |
-| View private group epic **[ULTIMATE]** |         | ✓        | ✓         | ✓      | ✓     |
-| View internal group epic **[ULTIMATE]** | ✓       | ✓        | ✓         | ✓      | ✓     |
-| View public group epic **[ULTIMATE]**   | ✓       | ✓        | ✓         | ✓      | ✓     |
+| View group epic **[ULTIMATE]**   | ✓       | ✓        | ✓         | ✓      | ✓     |
 | Create/edit group epic **[ULTIMATE]**  |         | ✓        | ✓         | ✓      | ✓     |
 | Delete group epic **[ULTIMATE]**       |         |          |           |        | ✓     |
 | View group Audit Events  |         |          |           |        | ✓     |
@@ -206,6 +225,21 @@ will find the option to flag the user as external.
 By default new users are not set as external users. This behavior can be changed
 by an administrator under **Admin > Application Settings**.
 
+### Default internal users
+
+The "Internal users" field allows specifying an e-mail address regex pattern to identify default internal users.
+
+New users whose email address matches the regex pattern will be set to internal by default rather than an external collaborator.
+
+The regex pattern format is Ruby, but it needs to be convertible to JavaScript, and the ignore case flag will be set, e.g. "/regex pattern/i".
+
+Here are some examples:
+
+- Use `\.internal@domain\.com` to mark email addresses containing ".internal@domain.com" internal.
+- Use `^(?:(?!\.ext@domain\.com).)*$\r?` to mark users with email addresses NOT including .ext@domain.com internal.
+
+Please be aware that this regex could lead to a DOS attack, [see](https://en.wikipedia.org/wiki/ReDoS?) ReDos on Wikipedia.
+
 ## Auditor users **[PREMIUM ONLY]**
 
 >[Introduced][ee-998] in [GitLab Premium][eep] 8.17.
@@ -226,6 +260,7 @@ which visibility level you select on project settings.
 - Disabled: disabled for everyone
 - Only team members: only team members will see even if your project is public or internal
 - Everyone with access: everyone can see depending on your project visibility level
+- Everyone: enabled for everyone (only available for GitLab Pages)
 
 ## GitLab CI/CD permissions
 

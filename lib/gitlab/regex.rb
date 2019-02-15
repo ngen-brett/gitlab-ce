@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Regex
     extend self
@@ -98,6 +100,10 @@ module Gitlab
             \n<\/[^>]+?>\ *$
           )
       }mx
+    end
+
+    def jira_transition_id_regex
+      @jira_transition_id_regex ||= /\d+/
     end
   end
 end

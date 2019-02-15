@@ -75,20 +75,12 @@ export default {
 <template>
   <div class="ide-pipeline build-page d-flex flex-column flex-fill">
     <header class="ide-job-header d-flex align-items-center">
-      <button
-        class="btn btn-default btn-sm d-flex"
-        @click="setDetailJob(null)"
-      >
-        <icon
-          name="chevron-left"
-        />
-        {{ __('View jobs') }}
+      <button class="btn btn-default btn-sm d-flex" @click="setDetailJob(null)">
+        <icon name="chevron-left" /> {{ __('View jobs') }}
       </button>
     </header>
     <div class="top-bar d-flex border-left-0">
-      <job-description
-        :job="detailJob"
-      />
+      <job-description :job="detailJob" />
       <div class="controllers ml-auto">
         <a
           v-tooltip
@@ -99,28 +91,13 @@ export default {
           class="controllers-buttons"
           target="_blank"
         >
-          <i
-            aria-hidden="true"
-            class="fa fa-file-text-o"
-          ></i>
+          <i aria-hidden="true" class="fa fa-file-text-o"></i>
         </a>
-        <scroll-button
-          :disabled="isScrolledToTop"
-          direction="up"
-          @click="scrollUp"
-        />
-        <scroll-button
-          :disabled="isScrolledToBottom"
-          direction="down"
-          @click="scrollDown"
-        />
+        <scroll-button :disabled="isScrolledToTop" direction="up" @click="scrollUp" />
+        <scroll-button :disabled="isScrolledToBottom" direction="down" @click="scrollDown" />
       </div>
     </div>
-    <pre
-      ref="buildTrace"
-      class="build-trace mb-0 h-100"
-      @scroll="scrollBuildLog"
-    >
+    <pre ref="buildTrace" class="build-trace mb-0 h-100" @scroll="scrollBuildLog">
       <code
         v-show="!detailJob.isLoading"
         class="bash"
@@ -131,6 +108,9 @@ export default {
         v-show="detailJob.isLoading"
         class="build-loader-animation"
       >
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
       </div>
     </pre>
   </div>

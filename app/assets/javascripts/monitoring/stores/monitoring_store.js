@@ -7,20 +7,44 @@ function sortMetrics(metrics) {
     .value();
 }
 
+function checkQueryEmptyData(query) {
+  return {
+    ...query,
+    result: query.result.filter(timeSeries => {
+      const newTimeSeries = timeSeries;
+      const hasValue = series =>
+        !Number.isNaN(series[1]) && (series[1] !== null || series[1] !== undefined);
+      const hasNonNullValue = timeSeries.values.find(hasValue);
+
+      newTimeSeries.values = hasNonNullValue ? newTimeSeries.values : [];
+
+      return newTimeSeries.values.length > 0;
+    }),
+  };
+}
+
+function removeTimeSeriesNoData(queries) {
+  return queries.reduce((series, query) => series.concat(checkQueryEmptyData(query)), []);
+}
+
 function normalizeMetrics(metrics) {
-  return metrics.map(metric => ({
-    ...metric,
-    queries: metric.queries.map(query => ({
+  return metrics.map(metric => {
+    const queries = metric.queries.map(query => ({
       ...query,
       result: query.result.map(result => ({
         ...result,
-        values: result.values.map(([timestamp, value]) => ({
-          time: new Date(timestamp * 1000),
-          value: Number(value),
-        })),
+        values: result.values.map(([timestamp, value]) => [
+          new Date(timestamp * 1000).toISOString(),
+          Number(value),
+        ]),
       })),
-    })),
-  }));
+    }));
+
+    return {
+      ...metric,
+      queries: removeTimeSeriesNoData(queries),
+    };
+  });
 }
 
 export default class MonitoringStore {
@@ -42,9 +66,7 @@ export default class MonitoringStore {
   }
 
   storeEnvironmentsData(environmentsData = []) {
-    this.environmentsData = environmentsData.filter(
-      environment => !!environment.latest.last_deployment,
-    );
+    this.environmentsData = environmentsData.filter(environment => !!environment.last_deployment);
   }
 
   getMetricsCount() {

@@ -3,8 +3,8 @@ require 'spec_helper'
 describe GitPushService, services: true do
   include RepoHelpers
 
-  let(:user)     { create(:user) }
-  let(:project)  { create(:project, :repository) }
+  set(:user)     { create(:user) }
+  set(:project)  { create(:project, :repository) }
   let(:blankrev) { Gitlab::Git::BLANK_SHA }
   let(:oldrev)   { sample_commit.parent_id }
   let(:newrev)   { sample_commit.id }
@@ -15,7 +15,7 @@ describe GitPushService, services: true do
   end
 
   describe 'with remote mirrors' do
-    let(:project)  { create(:project, :repository, :remote_mirror) }
+    let(:project) { create(:project, :repository, :remote_mirror) }
 
     subject do
       described_class.new(project, user, oldrev: oldrev, newrev: newrev, ref: ref)
@@ -204,16 +204,37 @@ describe GitPushService, services: true do
   end
 
   describe "Push Event" do
-    let!(:push_data) { push_data_from_service(project, user, oldrev, newrev, ref) }
-    let(:event) { Event.find_by_action(Event::PUSHED) }
+    context "with an existing branch" do
+      let!(:push_data) { push_data_from_service(project, user, oldrev, newrev, ref) }
+      let(:event) { Event.find_by_action(Event::PUSHED) }
 
-    it { expect(event).to be_an_instance_of(PushEvent) }
-    it { expect(event.project).to eq(project) }
-    it { expect(event.action).to eq(Event::PUSHED) }
-    it { expect(event.push_event_payload).to be_an_instance_of(PushEventPayload) }
-    it { expect(event.push_event_payload.commit_from).to eq(oldrev) }
-    it { expect(event.push_event_payload.commit_to).to eq(newrev) }
-    it { expect(event.push_event_payload.ref).to eq('master') }
+      it 'generates a push event with one commit' do
+        expect(event).to be_an_instance_of(PushEvent)
+        expect(event.project).to eq(project)
+        expect(event.action).to eq(Event::PUSHED)
+        expect(event.push_event_payload).to be_an_instance_of(PushEventPayload)
+        expect(event.push_event_payload.commit_from).to eq(oldrev)
+        expect(event.push_event_payload.commit_to).to eq(newrev)
+        expect(event.push_event_payload.ref).to eq('master')
+        expect(event.push_event_payload.commit_count).to eq(1)
+      end
+    end
+
+    context "with a new branch" do
+      let!(:new_branch_data) { push_data_from_service(project, user, Gitlab::Git::BLANK_SHA, newrev, ref) }
+      let(:event) { Event.find_by_action(Event::PUSHED) }
+
+      it 'generates a push event with more than one commit' do
+        expect(event).to be_an_instance_of(PushEvent)
+        expect(event.project).to eq(project)
+        expect(event.action).to eq(Event::PUSHED)
+        expect(event.push_event_payload).to be_an_instance_of(PushEventPayload)
+        expect(event.push_event_payload.commit_from).to be_nil
+        expect(event.push_event_payload.commit_to).to eq(newrev)
+        expect(event.push_event_payload.ref).to eq('master')
+        expect(event.push_event_payload.commit_count).to be > 1
+      end
+    end
 
     context "Updates merge requests" do
       it "when pushing a new branch for the first time" do
@@ -223,10 +244,17 @@ describe GitPushService, services: true do
       end
     end
 
-    context "Sends System Push data" do
-      it "when pushing on a branch" do
-        expect(SystemHookPushWorker).to receive(:perform_async).with(push_data, :push_hooks)
+    describe 'system hooks' do
+      let!(:push_data) { push_data_from_service(project, user, oldrev, newrev, ref) }
+      let!(:system_hooks_service) { SystemHooksService.new }
+
+      it "sends a system hook after pushing a branch" do
+        allow(SystemHooksService).to receive(:new).and_return(system_hooks_service)
+        allow(system_hooks_service).to receive(:execute_hooks)
+
         execute_service(project, user, oldrev, newrev, ref)
+
+        expect(system_hooks_service).to have_received(:execute_hooks).with(push_data, :push_hooks)
       end
     end
   end
@@ -519,7 +547,7 @@ describe GitPushService, services: true do
       end
 
       context "closing an issue" do
-        let(:message)         { "this is some work.\n\ncloses JIRA-1" }
+        let(:message) { "this is some work.\n\ncloses JIRA-1" }
         let(:comment_body) do
           {
             body: "Issue solved with [#{closing_commit.id}|http://#{Gitlab.config.gitlab.host}/#{project.full_path}/commit/#{closing_commit.id}]."
@@ -761,7 +789,7 @@ describe GitPushService, services: true do
         end
 
         it 'does not queue a CreateGpgSignatureWorker' do
-          expect(CreateGpgSignatureWorker).not_to receive(:perform_async).with(sample_commit.id, project.id)
+          expect(CreateGpgSignatureWorker).not_to receive(:perform_async)
 
           execute_service(project, user, oldrev, newrev, ref)
         end
@@ -769,7 +797,15 @@ describe GitPushService, services: true do
 
       context 'when the signature is not yet cached' do
         it 'queues a CreateGpgSignatureWorker' do
-          expect(CreateGpgSignatureWorker).to receive(:perform_async).with(sample_commit.id, project.id)
+          expect(CreateGpgSignatureWorker).to receive(:perform_async).with([sample_commit.id], project.id)
+
+          execute_service(project, user, oldrev, newrev, ref)
+        end
+
+        it 'can queue several commits to create the gpg signature' do
+          allow(Gitlab::Git::Commit).to receive(:shas_with_signatures).and_return([sample_commit.id, another_sample_commit.id])
+
+          expect(CreateGpgSignatureWorker).to receive(:perform_async).with([sample_commit.id, another_sample_commit.id], project.id)
 
           execute_service(project, user, oldrev, newrev, ref)
         end

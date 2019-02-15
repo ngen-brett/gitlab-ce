@@ -21,14 +21,12 @@ export const showTreeEntry = ({ commit, dispatch, state }, path) => {
 export const handleTreeEntryAction = ({ commit, dispatch }, row) => {
   if (row.type === 'tree') {
     dispatch('toggleTreeOpen', row.path);
-  } else if (row.type === 'blob' && (row.opened || row.changed)) {
-    if (row.changed && !row.opened) {
+  } else if (row.type === 'blob') {
+    if (!row.opened) {
       commit(types.TOGGLE_FILE_OPEN, row.path);
     }
 
     dispatch('setFileActive', row.path);
-  } else {
-    dispatch('getFileData', { path: row.path });
   }
 
   dispatch('showTreeEntry', row.path);
@@ -78,7 +76,7 @@ export const getFiles = ({ state, commit, dispatch }, { projectId, branchId } = 
             dispatch('showBranchNotFoundError', branchId);
           } else {
             dispatch('setErrorMessage', {
-              text: __('An error occured whilst loading all the files.'),
+              text: __('An error occurred whilst loading all the files.'),
               action: payload =>
                 dispatch('getFiles', payload).then(() => dispatch('setErrorMessage', null)),
               actionText: __('Please try again'),
@@ -91,3 +89,13 @@ export const getFiles = ({ state, commit, dispatch }, { projectId, branchId } = 
       resolve();
     }
   });
+
+export const restoreTree = ({ dispatch, commit, state }, path) => {
+  const entry = state.entries[path];
+
+  commit(types.RESTORE_TREE, path);
+
+  if (entry.parentPath) {
+    dispatch('restoreTree', entry.parentPath);
+  }
+};

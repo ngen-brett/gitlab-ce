@@ -42,7 +42,7 @@ describe 'Merge request > User sees versions', :js do
         expect(page).to have_content 'latest version'
       end
 
-      expect(page).to have_content '8 changed files'
+      expect(page).to have_content '8 Files'
     end
 
     it_behaves_like 'allows commenting',
@@ -64,9 +64,19 @@ describe 'Merge request > User sees versions', :js do
       end
     end
 
+    it 'shows the commit SHAs for every version in the dropdown' do
+      page.within '.mr-version-dropdown' do
+        find('.btn-default').click
+
+        page.within('.dropdown-content') do
+          shas = merge_request.merge_request_diffs.map { |diff| Commit.truncate_sha(diff.head_commit_sha) }
+          shas.each { |sha| expect(page).to have_content(sha) }
+        end
+      end
+    end
+
     it 'shows comments that were last relevant at that version' do
-      expect(page).to have_content '5 changed files'
-      expect(page).to have_content 'Not all comments are displayed'
+      expect(page).to have_content '5 Files'
 
       position = Gitlab::Diff::Position.new(
         old_path: ".gitmodules",
@@ -110,8 +120,15 @@ describe 'Merge request > User sees versions', :js do
         diff_id: merge_request_diff3.id,
         start_sha: '6f6d7e7ed97bb5f0054f2b1df789b39ca89b6ff9'
       )
-      expect(page).to have_content '4 changed files with 15 additions and 6 deletions'
-      expect(page).to have_content 'Not all comments are displayed'
+      expect(page).to have_content '4 Files'
+
+      additions_content = page.find('.diff-stats.is-compare-versions-header .diff-stats-group svg.ic-file-addition')
+                              .ancestor('.diff-stats-group').text
+      deletions_content = page.find('.diff-stats.is-compare-versions-header .diff-stats-group svg.ic-file-deletion')
+                              .ancestor('.diff-stats-group').text
+
+      expect(additions_content).to eq '15'
+      expect(deletions_content).to eq '6'
 
       position = Gitlab::Diff::Position.new(
         old_path: ".gitmodules",
@@ -131,7 +148,14 @@ describe 'Merge request > User sees versions', :js do
     end
 
     it 'show diff between new and old version' do
-      expect(page).to have_content '4 changed files with 15 additions and 6 deletions'
+      additions_content = page.find('.diff-stats.is-compare-versions-header .diff-stats-group svg.ic-file-addition')
+                              .ancestor('.diff-stats-group').text
+      deletions_content = page.find('.diff-stats.is-compare-versions-header .diff-stats-group svg.ic-file-deletion')
+                              .ancestor('.diff-stats-group').text
+
+      expect(page).to have_content '4 Files'
+      expect(additions_content).to eq '15'
+      expect(deletions_content).to eq '6'
     end
 
     it 'returns to latest version when "Show latest version" button is clicked' do
@@ -139,7 +163,7 @@ describe 'Merge request > User sees versions', :js do
       page.within '.mr-version-dropdown' do
         expect(page).to have_content 'latest version'
       end
-      expect(page).to have_content '8 changed files'
+      expect(page).to have_content '8 Files'
     end
 
     it_behaves_like 'allows commenting',
@@ -158,14 +182,14 @@ describe 'Merge request > User sees versions', :js do
 
     it 'has 0 chages between versions' do
       page.within '.mr-version-compare-dropdown' do
-        expect(find('.dropdown-toggle')).to have_content 'version 1'
+        expect(find('.dropdown-menu-toggle')).to have_content 'version 1'
       end
 
       page.within '.mr-version-dropdown' do
         find('.btn-default').click
         click_link 'version 1'
       end
-      expect(page).to have_content '0 changed files'
+      expect(page).to have_content '0 Files'
     end
   end
 
@@ -179,7 +203,7 @@ describe 'Merge request > User sees versions', :js do
 
     it 'sets the compared versions to be the same' do
       page.within '.mr-version-compare-dropdown' do
-        expect(find('.dropdown-toggle')).to have_content 'version 2'
+        expect(find('.dropdown-menu-toggle')).to have_content 'version 2'
       end
 
       page.within '.mr-version-dropdown' do
@@ -191,7 +215,7 @@ describe 'Merge request > User sees versions', :js do
         expect(page).to have_content 'version 1'
       end
 
-      expect(page).to have_content '0 changed files'
+      expect(page).to have_content '0 Files'
     end
   end
 

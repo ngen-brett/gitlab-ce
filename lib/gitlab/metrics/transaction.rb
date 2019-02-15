@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   module Metrics
     # Class for storing metrics information of a single transaction.
@@ -62,7 +64,7 @@ module Gitlab
       end
 
       def add_metric(series, values, tags = {})
-        @metrics << Metric.new("#{Metrics.series_prefix}#{series}", values, tags)
+        @metrics << Metric.new("#{::Gitlab::Metrics.series_prefix}#{series}", values, tags)
       end
 
       # Tracks a business level event
@@ -125,7 +127,7 @@ module Gitlab
           hash
         end
 
-        Metrics.submit_metrics(submit_hashes)
+        ::Gitlab::Metrics.submit_metrics(submit_hashes)
       end
 
       def labels

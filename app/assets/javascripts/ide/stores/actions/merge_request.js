@@ -1,6 +1,8 @@
-import { __ } from '../../../locale';
+import flash from '~/flash';
+import { __ } from '~/locale';
 import service from '../../services';
 import * as types from '../mutation_types';
+import { activityBarViews } from '../../constants';
 
 export const getMergeRequestData = (
   { commit, dispatch, state },
@@ -23,7 +25,7 @@ export const getMergeRequestData = (
         })
         .catch(() => {
           dispatch('setErrorMessage', {
-            text: __('An error occured whilst loading the merge request.'),
+            text: __('An error occurred whilst loading the merge request.'),
             action: payload =>
               dispatch('getMergeRequestData', payload).then(() =>
                 dispatch('setErrorMessage', null),
@@ -56,7 +58,7 @@ export const getMergeRequestChanges = (
         })
         .catch(() => {
           dispatch('setErrorMessage', {
-            text: __('An error occured whilst loading the merge request changes.'),
+            text: __('An error occurred whilst loading the merge request changes.'),
             action: payload =>
               dispatch('getMergeRequestChanges', payload).then(() =>
                 dispatch('setErrorMessage', null),
@@ -90,7 +92,7 @@ export const getMergeRequestVersions = (
         })
         .catch(() => {
           dispatch('setErrorMessage', {
-            text: __('An error occured whilst loading the merge request version data.'),
+            text: __('An error occurred whilst loading the merge request version data.'),
             action: payload =>
               dispatch('getMergeRequestVersions', payload).then(() =>
                 dispatch('setErrorMessage', null),
@@ -104,3 +106,68 @@ export const getMergeRequestVersions = (
       resolve(state.projects[projectId].mergeRequests[mergeRequestId].versions);
     }
   });
+
+export const openMergeRequest = (
+  { dispatch, state },
+  { projectId, targetProjectId, mergeRequestId } = {},
+) =>
+  dispatch('getMergeRequestData', {
+    projectId,
+    targetProjectId,
+    mergeRequestId,
+  })
+    .then(mr => {
+      dispatch('setCurrentBranchId', mr.source_branch);
+
+      dispatch('getBranchData', {
+        projectId,
+        branchId: mr.source_branch,
+      });
+
+      return dispatch('getFiles', {
+        projectId,
+        branchId: mr.source_branch,
+      });
+    })
+    .then(() =>
+      dispatch('getMergeRequestVersions', {
+        projectId,
+        targetProjectId,
+        mergeRequestId,
+      }),
+    )
+    .then(() =>
+      dispatch('getMergeRequestChanges', {
+        projectId,
+        targetProjectId,
+        mergeRequestId,
+      }),
+    )
+    .then(mrChanges => {
+      if (mrChanges.changes.length) {
+        dispatch('updateActivityBarView', activityBarViews.review);
+      }
+
+      mrChanges.changes.forEach((change, ind) => {
+        const changeTreeEntry = state.entries[change.new_path];
+
+        if (changeTreeEntry) {
+          dispatch('setFileMrChange', {
+            file: changeTreeEntry,
+            mrChange: change,
+          });
+
+          if (ind < 10) {
+            dispatch('getFileData', {
+              path: change.new_path,
+              makeFileActive: ind === 0,
+              openFile: true,
+            });
+          }
+        }
+      });
+    })
+    .catch(e => {
+      flash(__('Error while loading the merge request. Please try again.'));
+      throw e;
+    });

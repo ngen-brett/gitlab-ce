@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 # To add new service you should build a class inherited from Service
 # and implement a set of methods
 class Service < ActiveRecord::Base
   include Sortable
   include Importable
+  include ProjectServicesLoggable
 
   serialize :properties, JSON # rubocop:disable Cop/ActiveRecordSerialize
 
@@ -207,11 +210,7 @@ class Service < ActiveRecord::Base
       class_eval %{
         def #{arg}?
           # '!!' is used because nil or empty string is converted to nil
-          if Gitlab.rails5?
-            !!ActiveRecord::Type::Boolean.new.cast(#{arg})
-          else
-            !!ActiveRecord::Type::Boolean.new.type_cast_from_database(#{arg})
-          end
+          !!ActiveRecord::Type::Boolean.new.cast(#{arg})
         end
       }
     end
@@ -250,12 +249,12 @@ class Service < ActiveRecord::Base
       bugzilla
       campfire
       custom_issue_tracker
+      discord
       drone_ci
       emails_on_push
       external_wiki
       flowdock
       hangouts_chat
-      hipchat
       irker
       jira
       kubernetes

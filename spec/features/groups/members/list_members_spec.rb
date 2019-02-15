@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe 'Groups > Members > List members' do
   include Select2Helper
+  include Spec::Support::Helpers::Features::ListRowsHelpers
 
   let(:user1) { create(:user, name: 'John Doe') }
   let(:user2) { create(:user, name: 'Mary Jane') }
@@ -9,7 +10,7 @@ describe 'Groups > Members > List members' do
   let(:nested_group) { create(:group, parent: group) }
 
   before do
-    gitlab_sign_in(user1)
+    sign_in(user1)
   end
 
   it 'show members from current group and parent', :nested_groups do
@@ -32,11 +33,15 @@ describe 'Groups > Members > List members' do
     expect(second_row).to be_blank
   end
 
-  def first_row
-    page.all('ul.content-list > li')[0]
-  end
+  describe 'showing status of members' do
+    before do
+      group.add_developer(user2)
+    end
 
-  def second_row
-    page.all('ul.content-list > li')[1]
+    subject { visit group_group_members_path(group) }
+
+    it_behaves_like 'showing user status' do
+      let(:user_with_status) { user2 }
+    end
   end
 end

@@ -1,13 +1,17 @@
+# frozen_string_literal: true
+
 module Gitlab
   module ImportExport
     class RelationFactory
       OVERRIDES = { snippets: :project_snippets,
+                    ci_pipelines: 'Ci::Pipeline',
                     pipelines: 'Ci::Pipeline',
                     stages: 'Ci::Stage',
                     statuses: 'commit_status',
                     triggers: 'Ci::Trigger',
                     pipeline_schedules: 'Ci::PipelineSchedule',
                     builds: 'Ci::Build',
+                    runners: 'Ci::Runner',
                     hooks: 'ProjectHook',
                     merge_access_levels: 'ProtectedBranch::MergeAccessLevel',
                     push_access_levels: 'ProtectedBranch::PushAccessLevel',
@@ -19,7 +23,9 @@ module Gitlab
                     custom_attributes: 'ProjectCustomAttribute',
                     project_badges: 'Badge',
                     metrics: 'MergeRequest::Metrics',
-                    ci_cd_settings: 'ProjectCiCdSetting' }.freeze
+                    ci_cd_settings: 'ProjectCiCdSetting',
+                    error_tracking_setting: 'ErrorTracking::ProjectErrorTrackingSetting',
+                    links: 'Releases::Link' }.freeze
 
       USER_REFERENCES = %w[author_id assignee_id updated_by_id merged_by_id latest_closed_by_id user_id created_by_id last_edited_by_id merge_user_id resolved_by_id closed_by_id].freeze
 
@@ -31,7 +37,7 @@ module Gitlab
 
       EXISTING_OBJECT_CHECK = %i[milestone milestones label labels project_label project_labels group_label group_labels project_feature].freeze
 
-      TOKEN_RESET_MODELS = %w[Ci::Trigger Ci::Build ProjectHook].freeze
+      TOKEN_RESET_MODELS = %w[Project Namespace Ci::Trigger Ci::Build Ci::Runner ProjectHook].freeze
 
       def self.create(*args)
         new(*args).create
@@ -47,7 +53,7 @@ module Gitlab
       end
 
       def initialize(relation_sym:, relation_hash:, members_mapper:, user:, project:, excluded_keys: [])
-        @relation_name = OVERRIDES[relation_sym] || relation_sym
+        @relation_name = self.class.overrides[relation_sym] || relation_sym
         @relation_hash = relation_hash.except('noteable_id')
         @members_mapper = members_mapper
         @user = user
@@ -76,19 +82,24 @@ module Gitlab
         generate_imported_object
       end
 
+      def self.overrides
+        OVERRIDES
+      end
+
       private
 
       def setup_models
         case @relation_name
         when :merge_request_diff_files       then setup_diff
         when :notes                          then setup_note
-        when 'Ci::Pipeline'                  then setup_pipeline
         end
 
         update_user_references
         update_project_references
         update_group_references
         remove_duplicate_assignees
+
+        setup_pipeline if @relation_name == 'Ci::Pipeline'
 
         reset_tokens!
         remove_encrypted_attributes!
@@ -140,6 +151,7 @@ module Gitlab
         if BUILD_MODELS.include?(@relation_name)
           @relation_hash.delete('trace') # old export files have trace
           @relation_hash.delete('token')
+          @relation_hash.delete('commands')
 
           imported_object
         elsif @relation_name == :merge_requests
@@ -206,7 +218,7 @@ module Gitlab
 
       def update_note_for_missing_author(author_name)
         @relation_hash['note'] = '*Blank note*' if @relation_hash['note'].blank?
-        @relation_hash['note'] += missing_author_note(@relation_hash['updated_at'], author_name)
+        @relation_hash['note'] = "#{@relation_hash['note']}#{missing_author_note(@relation_hash['updated_at'], author_name)}"
       end
 
       def admin_user?

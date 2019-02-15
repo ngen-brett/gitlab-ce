@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Ci
   class Stage < ActiveRecord::Base
     extend Gitlab::Ci::Model
@@ -12,6 +14,7 @@ module Ci
 
     has_many :statuses, class_name: 'CommitStatus', foreign_key: :stage_id
     has_many :builds, foreign_key: :stage_id
+    has_many :bridges, foreign_key: :stage_id
 
     with_options unless: :importing? do
       validates :project, presence: true
@@ -63,6 +66,10 @@ module Ci
       event :block do
         transition any - [:manual] => :manual
       end
+
+      event :delay do
+        transition any - [:scheduled] => :scheduled
+      end
     end
 
     def update_status
@@ -75,6 +82,7 @@ module Ci
         when 'failed' then drop
         when 'canceled' then cancel
         when 'manual' then block
+        when 'scheduled' then delay
         when 'skipped', nil then skip
         else
           raise HasStatus::UnknownStatusError,

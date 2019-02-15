@@ -1,4 +1,5 @@
 <script>
+import _ from 'underscore';
 import { mapActions, mapState, mapGetters } from 'vuex';
 import { sprintf, __ } from '~/locale';
 import * as consts from '../../stores/modules/commit/constants';
@@ -14,7 +15,7 @@ export default {
     commitToCurrentBranchText() {
       return sprintf(
         __('Commit to %{branchName} branch'),
-        { branchName: `<strong class="monospace">${this.currentBranchId}</strong>` },
+        { branchName: `<strong class="monospace">${_.escape(this.currentBranchId)}</strong>` },
         false,
       );
     },
@@ -56,11 +57,7 @@ export default {
       :disabled="currentBranch && !currentBranch.can_push"
       :title="$options.currentBranchPermissionsTooltip"
     >
-      <span
-        class="ide-radio-label"
-        v-html="commitToCurrentBranchText"
-      >
-      </span>
+      <span class="ide-radio-label" v-html="commitToCurrentBranchText"> </span>
     </radio-group>
     <radio-group
       :value="$options.commitToNewBranch"
