@@ -15,3 +15,4 @@ look and feel to meet your needs:
 - [Custom favicon](favicon.md)
 - [Libravatar](libravatar.md)
 - [New project page](new_project_page.md)
+- [Custom `/help` message](help_message.md)
