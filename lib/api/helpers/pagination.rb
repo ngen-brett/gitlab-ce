@@ -155,7 +155,7 @@ module API
         end
 
         def page_href(next_page_params)
-          request_url = request.url.split('?').first
+          request_url = Gitlab.config.gitlab.url + '/' 
           request_params = params.dup
           request_params[:per_page] = per_page
 
