@@ -3,7 +3,7 @@ author: Vincent Tunru
 author_gitlab: Vinnl
 level: advanced
 article_type: user guide
-date: 2018-07-26
+date: 2019-02-18
 description: 'Confidence checking your entire app every time a new feature is added can quickly become repetitive. Learn how to automate it with GitLab CI/CD.'
 ---
 
