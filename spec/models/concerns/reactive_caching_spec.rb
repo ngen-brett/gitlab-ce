@@ -94,6 +94,24 @@ describe ReactiveCaching, :use_clean_rails_memory_store_caching do
         end
       end
     end
+
+    context 'when cache contains non-nil but blank value' do
+      class CacheTestBlank < CacheTest
+        def result
+          with_reactive_cache do |data|
+            data
+          end
+        end
+      end
+
+      let(:instance) { CacheTestBlank.new(1, &calculation) }
+
+      before do
+        stub_reactive_cache(instance, false)
+      end
+
+      it { is_expected.to eq(false)}
+    end
   end
 
   describe '#clear_reactive_cache!' do
