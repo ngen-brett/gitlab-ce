@@ -197,9 +197,7 @@ class GfmAutoComplete {
 
             const autoCompleteAvatar = m.avatar_url || m.username.charAt(0).toUpperCase();
 
-            // TODO: ideally we should check whether the item is of type user or project
-            const rectAvatarClass =
-              typeof m.count !== 'undefined' && m.count !== null ? 'rect-avatar' : '';
+            const rectAvatarClass = m.type && m.type === 'Group' ? 'rect-avatar' : '';
             const imgAvatar = `<img src="${m.avatar_url}" alt="${
               m.username
             }" class="avatar ${rectAvatarClass} avatar-inline center s26"/>`;
