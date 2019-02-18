@@ -125,12 +125,27 @@
 }
 
 .rect-avatar {
-  border-radius: 4px;
+  border-radius: 2px;
   &.s16 { border-radius: 2px; }
+  &.s18 { border-radius: 2px; }
+  &.s19 { border-radius: 2px; }
+  &.s20 { border-radius: 2px; }  
   &.s24 { border-radius: 4px; }
+  &.s26 { border-radius: 4px; }
   &.s32 { border-radius: 4px; }
+  &.s36 { border-radius: 4px; }
+  &.s40 { border-radius: 4px; }
+  &.s46 { border-radius: 4px; }
+  &.s48 { border-radius: 8px; }
+  &.s60 { border-radius: 8px; }
   &.s64 { border-radius: 8px; }
+  &.s70 { border-radius: 8px; }
+  &.s90 { border-radius: 8px; }
   &.s96 { border-radius: 8px; }
+  &.s100 { border-radius: 8px; }
+  &.s110 { border-radius: 8px; }
+  &.s140 { border-radius: 8px; }
+  &.s160 { border-radius: 8px; }
 }
 
 .avatar-counter {
