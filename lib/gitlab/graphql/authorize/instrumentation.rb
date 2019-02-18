@@ -10,15 +10,14 @@ module Gitlab
         # Collections are not supported. Apply permissions checks for those at the
         # database level instead, to avoid loading superfluous data from the DB
         def instrument(_type, field)
-          field_definition = field.metadata[:type_class]
-          return field unless field_definition.respond_to?(:required_permissions)
-          return field if field_definition.required_permissions.empty?
+          authorization_checks = Array.wrap(field.metadata[:authorize])
+          return field if authorization_checks.empty?
 
           old_resolver = field.resolve_proc
 
           new_resolver = -> (obj, args, ctx) do
             resolved_obj = old_resolver.call(obj, args, ctx)
-            checker = build_checker(ctx[:current_user], field_definition.required_permissions)
+            checker = build_checker(ctx[:current_user], authorization_checks)
 
             if resolved_obj.respond_to?(:then)
               resolved_obj.then(&checker)

@@ -12,16 +12,14 @@ add a `HTTP_PRIVATE_TOKEN` header.
 ### Authorization
 
 Fields can be authorized using the same abilities used in the Rails
-app. This can be done using the `authorize` helper:
+app. This can be done using the `authorize` option:
 
 ```ruby
 module Types
   class QueryType < BaseObject
     graphql_name 'Query'
 
-    field :project, Types::ProjectType, null: true, resolver: Resolvers::ProjectResolver do
-      authorize :read_project
-    end
+    field :project, Types::ProjectType, null: true, resolver: Resolvers::ProjectResolver, authorize: :read_project
   end
 ```
 
