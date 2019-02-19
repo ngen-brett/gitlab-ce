@@ -30,8 +30,7 @@ describe 'projects/commits/_commit.html.haml' do
     let(:commit) { repository.commit('master') }
     let(:user) { create(:user) }
 
-    it 'does not display a ci status icon when pipelines are disabled' do
-      allow(project).to receive(:builds_enabled?).and_return(false)
+    before do
       allow(view).to receive(:current_user).and_return(user)
       project.add_developer(user)
       create(
@@ -41,6 +40,10 @@ describe 'projects/commits/_commit.html.haml' do
         status: 'success',
         project: project
       )
+    end
+
+    it 'does not display a ci status icon when pipelines are disabled' do
+      allow(project).to receive(:builds_enabled?).and_return(false)
 
       render partial: 'projects/commits/commit', locals: {
         project: project,
@@ -53,15 +56,6 @@ describe 'projects/commits/_commit.html.haml' do
 
     it 'does display a ci status icon when pipelines are enabled' do
       allow(project).to receive(:builds_enabled?).and_return(true)
-      allow(view).to receive(:current_user).and_return(user)
-      project.add_developer(user)
-      create(
-        :ci_empty_pipeline,
-        ref: 'master',
-        sha: commit.id,
-        status: 'success',
-        project: project
-      )
 
       render partial: 'projects/commits/commit', locals: {
         project: project,
