@@ -34,7 +34,7 @@ describe Gitlab::GithubImport::Importer::MilestonesImporter, :clean_gitlab_redis
         .with(Milestone, [milestone_hash])
 
       expect(importer)
-         .to receive(:build_milestones_cache)
+        .to receive(:build_milestones_cache)
 
       importer.execute
     end
