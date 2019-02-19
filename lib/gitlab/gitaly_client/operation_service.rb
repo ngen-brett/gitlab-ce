@@ -258,6 +258,7 @@ module Gitlab
         end
       end
 
+      # rubocop:disable Metrics/ParameterLists
       def user_commit_files(
         user, branch_name, commit_message, actions, author_email, author_name,
         start_branch_name, start_repository, force = false)
@@ -299,6 +300,7 @@ module Gitlab
 
         Gitlab::Git::OperationService::BranchUpdate.from_gitaly(response.branch_update)
       end
+      # rubocop:enable Metrics/ParameterLists
 
       def user_commit_patches(user, branch_name, patches)
         header = Gitaly::UserApplyPatchRequest::Header.new(
@@ -362,6 +364,7 @@ module Gitlab
         Gitlab::Git::OperationService::BranchUpdate.from_gitaly(response.branch_update)
       end
 
+      # rubocop:disable Metrics/ParameterLists
       def user_commit_files_request_header(
         user, branch_name, commit_message, actions, author_email, author_name,
         start_branch_name, start_repository, force)
@@ -378,6 +381,7 @@ module Gitlab
           force: force
         )
       end
+      # rubocop:enable Metrics/ParameterLists
 
       def user_commit_files_action_header(action)
         Gitaly::UserCommitFilesActionHeader.new(

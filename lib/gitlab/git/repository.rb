@@ -839,6 +839,7 @@ module Gitlab
         true
       end
 
+      # rubocop:disable Metrics/ParameterLists
       def multi_action(
         user, branch_name:, message:, actions:,
         author_email: nil, author_name: nil,
@@ -851,6 +852,7 @@ module Gitlab
               start_branch_name, start_repository, force)
         end
       end
+      # rubocop:enable Metrics/ParameterLists
 
       def write_config(full_path:)
         return unless full_path.present?
