@@ -15,11 +15,13 @@ import { s__, sprintf } from '../../locale';
 import applicationRow from './application_row.vue';
 import clipboardButton from '../../vue_shared/components/clipboard_button.vue';
 import { CLUSTER_TYPE, APPLICATION_STATUS, INGRESS } from '../constants';
+import LoadingButton from '~/vue_shared/components/loading_button.vue';
 
 export default {
   components: {
     applicationRow,
     clipboardButton,
+    LoadingButton,
   },
   props: {
     type: {
@@ -178,6 +180,9 @@ export default {
     },
     knativeExternalIp() {
       return this.applications.knative.externalIp;
+    },
+    isUpdatingDomain() {
+      return false; // TODO check if updating
     },
   },
   created() {
@@ -471,24 +476,29 @@ export default {
             }}
           </p>
 
+          <div class="row">
           <template v-if="knativeInstalled">
-            <div class="form-group">
+            <div class="form-group col-9 mb-0">
               <label for="knative-domainname">
-                {{ s__('ClusterIntegration|Knative Domain Name:') }}
+                <strong>
+                  {{ s__('ClusterIntegration|Knative Domain Name:') }}
+                </strong>
               </label>
               <input
                 id="knative-domainname"
                 v-model="applications.knative.hostname"
+                v-once
                 type="text"
                 class="form-control js-domainname"
-                readonly
               />
             </div>
           </template>
           <template v-else-if="helmInstalled && rbac">
             <div class="form-group">
               <label for="knative-domainname">
-                {{ s__('ClusterIntegration|Knative Domain Name:') }}
+                <strong>
+                  {{ s__('ClusterIntegration|Knative Domain Name:') }}
+                </strong>
               </label>
               <input
                 id="knative-domainname"
@@ -499,9 +509,11 @@ export default {
             </div>
           </template>
           <template v-if="knativeInstalled">
-            <div class="form-group">
+            <div class="form-group col-3 pl-0 mb-0">
               <label for="knative-ip-address">
-                {{ s__('ClusterIntegration|Knative IP Address:') }}
+                <strong>
+                  {{ s__('ClusterIntegration|Knative IP Address:') }}
+                </strong>
               </label>
               <div v-if="knativeExternalIp" class="input-group">
                 <input
@@ -530,17 +542,27 @@ export default {
               }}
             </p>
 
-            <p>
+            <div class="row col-12 ml-0">
+            <p class="form-text text-muted col-9 p-0">
               {{
-                s__(`ClusterIntegration|Point a wildcard DNS to this
-              generated IP address in order to access
-              your application after it has been deployed.`)
+                s__(`ClusterIntegration|To access your application after deployment, point a wildcard DNS to the IP address.`)
               }}
-              <a :href="ingressDnsHelpPath" target="_blank" rel="noopener noreferrer">
-                {{ __('More information') }}
-              </a>
             </p>
+            <a :href="ingressDnsHelpPath" target="_blank" rel="noopener noreferrer" class="col-3 mt-1">
+              {{ __('More information') }}
+            </a>
+            </div>
+
+            <loading-button
+              v-if="knativeExternalIp"
+              class="btn btn-success js-cluster-application-upgrade-button mt-2 ml-3"
+              :loading="isUpdatingDomain"
+              :disabled="isUpdatingDomain"
+              :label="s__('ClusterIntegration|Save changes')"
+              @click="upgradeClicked"
+            />
           </template>
+          </div>
         </div>
       </application-row>
     </div>
