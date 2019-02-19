@@ -116,23 +116,10 @@ class IssuableFinder
   #
   # rubocop: disable CodeReuse/ActiveRecord
   def count_by_state
-    count_params = params.merge(state: nil, sort: nil)
+    count_params = params.merge(state: nil, sort: nil, force_cte: true)
     finder = self.class.new(current_user, count_params)
-    counts = Hash.new(0)
 
-    # Searching by label includes a GROUP BY in the query, but ours will be last
-    # because it is added last. Searching by multiple labels also includes a row
-    # per issuable, so we have to count those in Ruby - which is bad, but still
-    # better than performing multiple queries.
-    #
-    # This does not apply when we are using a CTE for the search, as the labels
-    # GROUP BY is inside the subquery in that case, so we set labels_count to 1.
-    labels_count = label_names.any? ? label_names.count : 1
-    labels_count = 1 if use_cte_for_search?
-
-    finder.execute.reorder(nil).group(:state).count.each do |key, value|
-      counts[count_key(key)] += value / labels_count
-    end
+    counts = finder.execute.reorder(nil).group(:state).count
 
     counts[:all] = counts.values.sum
 
@@ -304,20 +291,25 @@ class IssuableFinder
 
   def use_subquery_for_search?
     strong_memoize(:use_subquery_for_search) do
-      attempt_group_search_optimizations? &&
+      !force_cte? &&
+        attempt_group_search_optimizations? &&
         Feature.enabled?(:use_subquery_for_group_issues_search, default_enabled: true)
     end
   end
 
   def use_cte_for_search?
     strong_memoize(:use_cte_for_search) do
-      attempt_group_search_optimizations? &&
-        !use_subquery_for_search? &&
+      force_cte? &&
+        attempt_group_search_optimizations? &&
         Feature.enabled?(:use_cte_for_group_issues_search, default_enabled: true)
     end
   end
 
   private
+
+  def force_cte?
+    !!params[:force_cte]
+  end
 
   def init_collection
     klass.all
