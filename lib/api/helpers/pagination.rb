@@ -13,7 +13,26 @@ module API
         strategy.new(self).paginate(relation)
       end
 
-      class KeysetPaginationInfo
+      class Base
+        private
+
+        def page_href(next_page_params = {})
+          request_uri = URI.parse(request.url)
+          request_uri.host = Gitlab.config.gitlab.host
+          request_uri.port = nil
+
+          request_params = params.merge(**next_page_params, per_page: per_page)
+          request_uri.query = request_params.to_query
+
+          request_uri.to_s
+        end
+
+        def per_page
+          params[:per_page]
+        end
+      end
+
+      class KeysetPaginationInfo < Base
         attr_reader :relation, :request_context
 
         def initialize(relation, request_context)
@@ -141,10 +160,6 @@ module API
           ]
         end
 
-        def per_page
-          params[:per_page]
-        end
-
         def add_default_pagination_headers
           header 'X-Per-Page', per_page.to_s
         end
@@ -154,22 +169,12 @@ module API
           header 'Link', link_for('next', next_page_params)
         end
 
-        def page_href(next_page_params)
-          request_url = Gitlab.config.gitlab.url + '/' 
-          request_params = params.dup
-          request_params[:per_page] = per_page
-
-          request_params.merge!(next_page_params) if next_page_params
-
-          "#{request_url}?#{request_params.to_query}"
-        end
-
         def link_for(rel, next_page_params)
           %(<#{page_href(next_page_params)}>; rel="#{rel}")
         end
       end
 
-      class DefaultPaginationStrategy
+      class DefaultPaginationStrategy < Base
         attr_reader :request_context
         delegate :params, :header, :request, to: :request_context
 
@@ -198,15 +203,14 @@ module API
           end
         end
 
-        # rubocop: disable CodeReuse/ActiveRecord
         def add_default_order(relation)
           if relation.is_a?(ActiveRecord::Relation) && relation.order_values.empty?
-            relation = relation.order(:id)
+            relation = relation.order(:id) # rubocop: disable CodeReuse/ActiveRecord
           end
 
           relation
         end
-        # rubocop: enable CodeReuse/ActiveRecord
+
 
         def add_pagination_headers(paginated_data)
           header 'X-Per-Page',    paginated_data.limit_value.to_s
@@ -222,24 +226,13 @@ module API
         end
 
         def pagination_links(paginated_data)
-          request_url = request.url.split('?').first
-          request_params = params.clone
-          request_params[:per_page] = paginated_data.limit_value
-
           links = []
-
-          request_params[:page] = paginated_data.prev_page
-          links << %(<#{request_url}?#{request_params.to_query}>; rel="prev") if request_params[:page]
-
-          request_params[:page] = paginated_data.next_page
-          links << %(<#{request_url}?#{request_params.to_query}>; rel="next") if request_params[:page]
-
-          request_params[:page] = 1
-          links << %(<#{request_url}?#{request_params.to_query}>; rel="first")
+          links << %(<#{page_href(page: paginated_data.prev_page)}>; rel="prev") if paginated_data.prev_page
+          links << %(<#{page_href(page: paginated_data.next_page)}>; rel="next") if paginated_data.next_page
+          links << %(<#{page_href(page: 1)}>; rel="first")
 
           unless data_without_counts?(paginated_data)
-            request_params[:page] = total_pages(paginated_data)
-            links << %(<#{request_url}?#{request_params.to_query}>; rel="last")
+            links << %(<#{page_href(page: total_pages(paginated_data))}>; rel="last")
           end
 
           links.join(', ')
