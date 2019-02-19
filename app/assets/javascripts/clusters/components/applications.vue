@@ -478,7 +478,7 @@ export default {
 
           <div class="row">
             <template v-if="knativeInstalled">
-              <div class="form-group col-9 mb-0">
+              <div class="form-group col-md-8 col-lg-9 mb-0">
                 <label for="knative-domainname">
                   <strong>
                     {{ s__('ClusterIntegration|Knative Domain Name:') }}
@@ -494,7 +494,7 @@ export default {
               </div>
             </template>
             <template v-else-if="helmInstalled && rbac">
-              <div class="form-group">
+              <div class="form-group col-12">
                 <label for="knative-domainname">
                   <strong>
                     {{ s__('ClusterIntegration|Knative Domain Name:') }}
@@ -509,7 +509,7 @@ export default {
               </div>
             </template>
             <template v-if="knativeInstalled">
-              <div class="form-group col-3 pl-0 mb-0">
+              <div class="form-group col-md-4 col-lg-3 pl-md-0 mb-0 mt-sm-3 mt-md-0">
                 <label for="knative-ip-address">
                   <strong>
                     {{ s__('ClusterIntegration|Knative IP Address:') }}
@@ -534,7 +534,7 @@ export default {
                 <input v-else type="text" class="form-control js-ip-address" readonly value="?" />
               </div>
 
-              <p v-if="!knativeExternalIp" class="settings-message js-no-ip-message">
+              <p v-if="!knativeExternalIp" class="settings-message js-no-ip-message m-3">
                 {{
                   s__(`ClusterIntegration|The IP address is in
               the process of being assigned. Please check your Kubernetes
