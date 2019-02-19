@@ -96,9 +96,9 @@ This can be an array or a multi-line string.
 jobs, including failed ones. This has to be an array or a multi-line string.
 
 The `before_script` and the main `script` are concatenated and run in a single context/container.
-The `after_script` is run separately, so depending on the executor, changes done
-outside of the working tree might not be visible, e.g. software installed in the
-`before_script`.
+The `after_script` is run separately. The current working directory is set back to
+default. Depending on the executor, changes done outside of the working tree might
+not be visible, e.g. software installed in the `before_script`.
 
 It's possible to overwrite the globally defined `before_script` and `after_script`
 if you set it per-job:
@@ -423,10 +423,28 @@ connected with merge requests yet, and because GitLab is creating pipelines
 before an user can create a merge request we don't know a target branch at
 this point.
 
-Without a target branch, it is not possible to know what the common ancestor is,
-thus we always create a job in that case. This feature works best for stable
-branches like `master` because in that case GitLab uses the previous commit
-that is present in a branch to compare against the latest SHA that was pushed.
+#### Using `changes` with `merge_requests`
+
+With [pipelines for merge requests](../merge_request_pipelines/index.md),
+make it possible to define if a job should be created base on files modified
+in a merge request.
+
+For example:
+
+```
+docker build service one:
+  script: docker build -t my-service-one-image:$CI_COMMIT_REF_SLUG .
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - Dockerfile
+      - service-one/**/*
+```
+
+In the scenario above, if you create or update a merge request that changes
+either files in `service-one` folder or `Dockerfile`, GitLab creates and triggers
+the `docker build service one` job.
 
 ## `tags`
 
@@ -776,7 +794,7 @@ In the above example we set up the `review_app` job to deploy to the `review`
 environment, and we also defined a new `stop_review_app` job under `on_stop`.
 Once the `review_app` job is successfully finished, it will trigger the
 `stop_review_app` job based on what is defined under `when`. In this case we
-set it up to `manual` so it will need a [manual action](#manual-actions) via
+set it up to `manual` so it will need a [manual action](#whenmanual) via
 GitLab's web interface in order to run.
 
 The `stop_review_app` job is **required** to have the following keywords defined:

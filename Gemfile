@@ -143,7 +143,7 @@ gem 'diffy', '~> 3.1.0'
 gem 'rack', '2.0.6'
 
 group :unicorn do
-  gem 'unicorn', '~> 5.1.0'
+  gem 'unicorn', '~> 5.4.1'
   gem 'unicorn-worker-killer', '~> 0.4.4'
 end
 
@@ -187,7 +187,7 @@ gem 're2', '~> 1.1.1'
 gem 'version_sorter', '~> 2.1.0'
 
 # Export Ruby Regex to Javascript
-gem 'js_regex', '~> 2.2.1'
+gem 'js_regex', '~> 3.1'
 
 # User agent parsing
 gem 'device_detector'
@@ -201,9 +201,6 @@ gem 'connection_pool', '~> 2.0'
 
 # Discord integration
 gem 'discordrb-webhooks-blackst0ne', '~> 3.3', require: false
-
-# HipChat integration
-gem 'hipchat', '~> 1.5.0'
 
 # JIRA integration
 gem 'jira-ruby', '~> 1.4'
@@ -413,7 +410,7 @@ gem 'sys-filesystem', '~> 1.1.6'
 
 # SSH host key support
 gem 'net-ssh', '~> 5.0'
-gem 'sshkey', '~> 1.9.0'
+gem 'sshkey', '~> 2.0'
 
 # Required for ED25519 SSH host key support
 group :ed25519 do
@@ -422,7 +419,7 @@ group :ed25519 do
 end
 
 # Gitaly GRPC client
-gem 'gitaly-proto', '~> 1.5.0', require: 'gitaly'
+gem 'gitaly-proto', '~> 1.10.0', require: 'gitaly'
 gem 'grpc', '~> 1.15.0'
 
 gem 'google-protobuf', '~> 3.6'

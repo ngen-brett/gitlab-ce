@@ -372,6 +372,7 @@ describe API::MergeRequests do
       expect(json_response['force_close_merge_request']).to be_falsy
       expect(json_response['changes_count']).to eq(merge_request.merge_request_diff.real_size)
       expect(json_response['merge_error']).to eq(merge_request.merge_error)
+      expect(json_response['user']['can_merge']).to be_truthy
       expect(json_response).not_to include('rebase_in_progress')
     end
 
@@ -498,6 +499,15 @@ describe API::MergeRequests do
         expect(json_response['allow_collaboration']).to be_truthy
         expect(json_response['allow_maintainer_to_push']).to be_truthy
       end
+    end
+
+    it 'indicates if a user cannot merge the MR' do
+      user2 = create(:user)
+      project.add_reporter(user2)
+
+      get api("/projects/#{project.id}/merge_requests/#{merge_request.iid}", user2)
+
+      expect(json_response['user']['can_merge']).to be_falsy
     end
   end
 
@@ -950,6 +960,29 @@ describe API::MergeRequests do
       put api("/projects/#{project.id}/merge_requests/#{merge_request.id}/merge", user)
 
       expect(response).to have_gitlab_http_status(404)
+    end
+
+    describe "the squash_commit_message param" do
+      let(:squash_commit) do
+        project.repository.commits_between(json_response['diff_refs']['start_sha'], json_response['merge_commit_sha']).first
+      end
+
+      it "results in a specific squash commit message when set" do
+        squash_commit_message = 'My custom squash commit message'
+
+        put api("/projects/#{project.id}/merge_requests/#{merge_request.iid}/merge", user), params: {
+          squash: true,
+          squash_commit_message: squash_commit_message
+        }
+
+        expect(squash_commit.message.chomp).to eq(squash_commit_message)
+      end
+
+      it "results in a default squash commit message when not set" do
+        put api("/projects/#{project.id}/merge_requests/#{merge_request.iid}/merge", user), params: { squash: true }
+
+        expect(squash_commit.message).to eq(merge_request.default_squash_commit_message)
+      end
     end
   end
 

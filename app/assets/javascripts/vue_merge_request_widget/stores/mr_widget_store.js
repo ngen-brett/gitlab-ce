@@ -32,16 +32,18 @@ export default class MergeRequestStore {
     this.sourceBranchProtected = data.source_branch_protected;
     this.conflictsDocsPath = data.conflicts_docs_path;
     this.mergeStatus = data.merge_status;
-    this.commitMessage = data.merge_commit_message;
+    this.commitMessage = data.default_merge_commit_message;
     this.shortMergeCommitSha = data.short_merge_commit_sha;
     this.mergeCommitSha = data.merge_commit_sha;
-    this.commitMessageWithDescription = data.merge_commit_message_with_description;
+    this.commitMessageWithDescription = data.default_merge_commit_message_with_description;
     this.commitsCount = data.commits_count;
     this.divergedCommitsCount = data.diverged_commits_count;
     this.pipeline = data.pipeline || {};
     this.mergePipeline = data.merge_pipeline || {};
     this.deployments = this.deployments || data.deployments || [];
     this.postMergeDeployments = this.postMergeDeployments || [];
+    this.commits = data.commits_without_merge_commits || [];
+    this.squashCommitMessage = data.default_squash_commit_message;
     this.initRebase(data);
 
     if (data.issues_links) {

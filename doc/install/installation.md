@@ -108,7 +108,7 @@ sudo apt-get install -y libcurl4-openssl-dev libexpat1-dev gettext libz-dev libs
 
 # Download and compile from source
 cd /tmp
-curl --remote-name --progress https://www.kernel.org/pub/software/scm/git/git-2.18.0.tar.gz
+curl --remote-name --location --progress https://www.kernel.org/pub/software/scm/git/git-2.18.0.tar.gz
 echo '94faf2c0b02a7920b0b46f4961d8e9cad08e81418614102898a55f980fa3e7e4  git-2.18.0.tar.gz' | shasum -a256 -c - && tar -xzf git-2.18.0.tar.gz
 cd git-2.18.0/
 ./configure
@@ -139,8 +139,8 @@ Then select 'Internet Site' and press enter to confirm the hostname.
 
 The Ruby interpreter is required to run GitLab.
 
-**Note:** The current supported Ruby (MRI) version is 2.3.x. GitLab 9.0 dropped
-support for Ruby 2.1.x.
+**Note:** The current supported Ruby (MRI) version is 2.5.x. GitLab 11.6
+  dropped support for Ruby 2.4.x.
 
 The use of Ruby version managers such as [RVM], [rbenv] or [chruby] with GitLab
 in production, frequently leads to hard to diagnose problems. For example,
@@ -345,11 +345,15 @@ cd /home/git
 
 ```sh
 # Clone GitLab repository
-sudo -u git -H git clone https://gitlab.com/gitlab-org/gitlab-ce.git -b 11-7-stable gitlab
+sudo -u git -H git clone https://gitlab.com/gitlab-org/gitlab-ce.git -b X-Y-stable gitlab
 ```
 
+Make sure to replace `X-Y-stable` with the stable branch that matches the
+version you want to install. For example, if you want to install 11.8 you would
+use the branch name `11-8-stable`.
+
 CAUTION: **Caution:**
-You can change `11-7-stable` to `master` if you want the *bleeding edge* version, but never install `master` on a production server!
+You can change `X-Y-stable` to `master` if you want the *bleeding edge* version, but never install `master` on a production server!
 
 ### Configure It
 

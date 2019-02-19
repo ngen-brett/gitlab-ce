@@ -38,7 +38,7 @@ module API
         args[:scope] = args[:scope].underscore if args[:scope]
 
         merge_requests = MergeRequestsFinder.new(current_user, args).execute
-                           .reorder(args[:order_by] => args[:sort])
+                           .reorder(order_options_with_tie_breaker)
         merge_requests = paginate(merge_requests)
                            .preload(:source_project, :target_project)
 
@@ -343,6 +343,7 @@ module API
       end
       params do
         optional :merge_commit_message, type: String, desc: 'Custom merge commit message'
+        optional :squash_commit_message, type: String, desc: 'Custom squash commit message'
         optional :should_remove_source_branch, type: Boolean,
                                                desc: 'When true, the source branch will be deleted if possible'
         optional :merge_when_pipeline_succeeds, type: Boolean,
@@ -370,6 +371,7 @@ module API
 
         merge_params = {
           commit_message: params[:merge_commit_message],
+          squash_commit_message: params[:squash_commit_message],
           should_remove_source_branch: params[:should_remove_source_branch]
         }
 

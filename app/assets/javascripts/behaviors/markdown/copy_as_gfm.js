@@ -1,8 +1,5 @@
 import $ from 'jquery';
-import { DOMParser } from 'prosemirror-model';
 import { getSelectedFragment } from '~/lib/utils/common_utils';
-import schema from './schema';
-import markdownSerializer from './serializer';
 
 export class CopyAsGFM {
   constructor() {
@@ -40,8 +37,19 @@ export class CopyAsGFM {
     const html = div.innerHTML;
 
     clipboardData.setData('text/plain', el.textContent);
-    clipboardData.setData('text/x-gfm', this.nodeToGFM(el));
     clipboardData.setData('text/html', html);
+    // We are also setting this as fallback to transform the selection to gfm on paste
+    clipboardData.setData('text/x-gfm-html', html);
+
+    CopyAsGFM.nodeToGFM(el)
+      .then(res => {
+        clipboardData.setData('text/x-gfm', res);
+      })
+      .catch(() => {
+        // Not showing the error as Firefox might doesn't allow
+        // it or other browsers who have a time limit on the execution
+        // of the copy event
+      });
   }
 
   static pasteGFM(e) {
@@ -50,11 +58,28 @@ export class CopyAsGFM {
 
     const text = clipboardData.getData('text/plain');
     const gfm = clipboardData.getData('text/x-gfm');
-    if (!gfm) return;
+    const gfmHtml = clipboardData.getData('text/x-gfm-html');
+    if (!gfm && !gfmHtml) return;
 
     e.preventDefault();
 
-    window.gl.utils.insertText(e.target, textBefore => {
+    // We have the original selection already converted to gfm
+    if (gfm) {
+      CopyAsGFM.insertPastedText(e.target, text, gfm);
+    } else {
+      // Due to the async copy call we are not able to produce gfm so we transform the cached HTML
+      const div = document.createElement('div');
+      div.innerHTML = gfmHtml;
+      CopyAsGFM.nodeToGFM(div)
+        .then(transformedGfm => {
+          CopyAsGFM.insertPastedText(e.target, text, transformedGfm);
+        })
+        .catch(() => {});
+    }
+  }
+
+  static insertPastedText(target, text, gfm) {
+    window.gl.utils.insertText(target, textBefore => {
       // If the text before the cursor contains an odd number of backticks,
       // we are either inside an inline code span that starts with 1 backtick
       // or a code block that starts with 3 backticks.
@@ -137,11 +162,21 @@ export class CopyAsGFM {
   }
 
   static nodeToGFM(node) {
-    const wrapEl = document.createElement('div');
-    wrapEl.appendChild(node.cloneNode(true));
-    const doc = DOMParser.fromSchema(schema).parse(wrapEl);
+    return Promise.all([
+      import(/* webpackChunkName: 'gfm_copy_extra' */ 'prosemirror-model'),
+      import(/* webpackChunkName: 'gfm_copy_extra' */ './schema'),
+      import(/* webpackChunkName: 'gfm_copy_extra' */ './serializer'),
+    ])
+      .then(([prosemirrorModel, schema, markdownSerializer]) => {
+        const { DOMParser } = prosemirrorModel;
+        const wrapEl = document.createElement('div');
+        wrapEl.appendChild(node.cloneNode(true));
+        const doc = DOMParser.fromSchema(schema.default).parse(wrapEl);
 
-    return markdownSerializer.serialize(doc);
+        const res = markdownSerializer.default.serialize(doc);
+        return res;
+      })
+      .catch(() => {});
   }
 }
 

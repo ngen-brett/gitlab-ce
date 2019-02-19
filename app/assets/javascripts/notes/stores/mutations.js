@@ -264,4 +264,16 @@ export default {
     ).length;
     state.hasUnresolvedDiscussions = state.unresolvedDiscussionsCount > 1;
   },
+
+  [types.CONVERT_TO_DISCUSSION](state, discussionId) {
+    const convertedDisscussionIds = [...state.convertedDisscussionIds, discussionId];
+    Object.assign(state, { convertedDisscussionIds });
+  },
+
+  [types.REMOVE_CONVERTED_DISCUSSION](state, discussionId) {
+    const convertedDisscussionIds = [...state.convertedDisscussionIds];
+
+    convertedDisscussionIds.splice(convertedDisscussionIds.indexOf(discussionId), 1);
+    Object.assign(state, { convertedDisscussionIds });
+  },
 };

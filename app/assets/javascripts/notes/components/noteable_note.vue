@@ -44,6 +44,11 @@ export default {
       required: false,
       default: () => null,
     },
+    showReplyButton: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   data() {
     return {
@@ -54,7 +59,7 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['targetNoteHash', 'getNoteableData', 'getUserData']),
+    ...mapGetters(['targetNoteHash', 'getNoteableData', 'getUserData', 'commentsDisabled']),
     author() {
       return this.note.author;
     },
@@ -79,6 +84,12 @@ export default {
     },
     isTarget() {
       return this.targetNoteHash === this.noteAnchorId;
+    },
+    discussionId() {
+      if (this.discussion) {
+        return this.discussion.id;
+      }
+      return '';
     },
     actionText() {
       if (!this.commit) {
@@ -231,6 +242,7 @@ export default {
           :note-id="note.id"
           :note-url="note.noteable_note_url"
           :access-level="note.human_access"
+          :show-reply="showReplyButton"
           :can-edit="note.current_user.can_edit"
           :can-award-emoji="note.current_user.can_award_emoji"
           :can-delete="note.current_user.can_edit"
@@ -244,6 +256,7 @@ export default {
           @handleEdit="editHandler"
           @handleDelete="deleteHandler"
           @handleResolve="resolveHandler"
+          @startReplying="$emit('startReplying')"
         />
       </div>
       <div class="timeline-discussion-body">
