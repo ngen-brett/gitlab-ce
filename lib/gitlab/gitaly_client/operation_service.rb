@@ -260,8 +260,7 @@ module Gitlab
 
       def user_commit_files(
         user, branch_name, commit_message, actions, author_email, author_name,
-        start_branch_name, start_repository, force)
-
+        start_branch_name, start_repository, force = false)
         req_enum = Enumerator.new do |y|
           header = user_commit_files_request_header(user, branch_name,
           commit_message, actions, author_email, author_name,
