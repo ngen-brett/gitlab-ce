@@ -4,6 +4,7 @@ module QA
   module Page
     module MergeRequest
       class Show < Page::Base
+        include Page::Component::DiffAndPatchDownload
         include Page::Component::Note
 
         view 'app/assets/javascripts/vue_merge_request_widget/components/states/ready_to_merge.vue' do
@@ -12,6 +13,12 @@ module QA
           element :merge_moment_dropdown
           element :merge_when_pipeline_succeeds_option
           element :merge_immediately_option
+        end
+
+        view 'app/assets/javascripts/vue_merge_request_widget/components/mr_widget_header.vue' do
+          element :download_button
+          element :email_patches
+          element :plain_diff
         end
 
         view 'app/assets/javascripts/vue_merge_request_widget/components/states/mr_widget_merged.vue' do

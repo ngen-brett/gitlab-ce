@@ -9,6 +9,7 @@ module QA
   # GitLab QA runtime classes, mostly singletons.
   #
   module Runtime
+    autoload :Downloads, 'qa/runtime/downloads'
     autoload :Release, 'qa/runtime/release'
     autoload :User, 'qa/runtime/user'
     autoload :Namespace, 'qa/runtime/namespace'
@@ -298,6 +299,7 @@ module QA
     #
     module Component
       autoload :ClonePanel, 'qa/page/component/clone_panel'
+      autoload :DiffAndPatchDownload, 'qa/page/component/diff_and_patch_download'
       autoload :LazyLoader, 'qa/page/component/lazy_loader'
       autoload :LegacyClonePanel, 'qa/page/component/legacy_clone_panel'
       autoload :Dropzone, 'qa/page/component/dropzone'

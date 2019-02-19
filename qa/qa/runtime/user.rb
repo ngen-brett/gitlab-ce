@@ -7,6 +7,10 @@ module QA
         'root'
       end
 
+      def default_name
+        'Gitlab QA'
+      end
+
       def default_email
         'admin@example.com'
       end
@@ -17,6 +21,14 @@ module QA
 
       def username
         Runtime::Env.user_username || default_username
+      end
+
+      def name
+        Runtime::Env.user_name || default_name
+      end
+
+      def email
+        Runtime::Env.user_email || default_email
       end
 
       def password

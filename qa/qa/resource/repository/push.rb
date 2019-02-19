@@ -57,18 +57,18 @@ module QA
 
             repository.use_lfs = use_lfs
 
-            username = 'GitLab QA'
-            email = 'root@gitlab.com'
+            user_name = Runtime::User.name
+            user_email = Runtime::User.email
 
             if user
               repository.username = user.username
               repository.password = user.password
-              username = user.name
-              email = user.email
+              user_name = user.name
+              user_email = user.email
             end
 
             @output += repository.clone
-            repository.configure_identity(username, email)
+            repository.configure_identity(user_name, user_email)
 
             @output += repository.checkout(branch_name, new_branch: new_branch)
 

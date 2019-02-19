@@ -88,6 +88,14 @@ module QA
         ENV['GITLAB_USERNAME']
       end
 
+      def user_name
+        ENV['GITLAB_NAME']
+      end
+
+      def user_email
+        ENV['GITLAB_EMAIL']
+      end
+
       def user_password
         ENV['GITLAB_PASSWORD']
       end

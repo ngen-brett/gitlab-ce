@@ -5,20 +5,12 @@ module QA
     module Project
       module Commit
         class Show < Page::Base
+          include Page::Component::DiffAndPatchDownload
+
           view 'app/views/projects/commit/_commit_box.html.haml' do
-            element :options_button
+            element :download_button
             element :email_patches
             element :plain_diff
-          end
-
-          def select_email_patches
-            click_element :options_button
-            click_element :email_patches
-          end
-
-          def select_plain_diff
-            click_element :options_button
-            click_element :plain_diff
           end
         end
       end

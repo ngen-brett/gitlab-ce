@@ -58,6 +58,9 @@ module QA
 
           # QA::Runtime::Env.browser.capitalize will work for every driver type except PhantomJS.
           # We will have no use to use PhantomJS so this shouldn't be a problem.
+          profile = Selenium::WebDriver.const_get(QA::Runtime::Env.browser.capitalize)::Profile.new
+          profile['download.default_directory'] = QA::Runtime::Downloads::PATH.to_s
+
           options = Selenium::WebDriver.const_get(QA::Runtime::Env.browser.capitalize)::Options.new
 
           if QA::Runtime::Env.browser == :chrome
@@ -88,6 +91,7 @@ module QA
 
           selenium_options = {
             browser: QA::Runtime::Env.browser,
+            profile: profile,
             clear_local_storage: true,
             desired_capabilities: capabilities,
             options: options
