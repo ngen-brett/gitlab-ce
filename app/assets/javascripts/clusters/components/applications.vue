@@ -477,91 +477,98 @@ export default {
           </p>
 
           <div class="row">
-          <template v-if="knativeInstalled">
-            <div class="form-group col-9 mb-0">
-              <label for="knative-domainname">
-                <strong>
-                  {{ s__('ClusterIntegration|Knative Domain Name:') }}
-                </strong>
-              </label>
-              <input
-                id="knative-domainname"
-                v-model="applications.knative.hostname"
-                v-once
-                type="text"
-                class="form-control js-domainname"
-              />
-            </div>
-          </template>
-          <template v-else-if="helmInstalled && rbac">
-            <div class="form-group">
-              <label for="knative-domainname">
-                <strong>
-                  {{ s__('ClusterIntegration|Knative Domain Name:') }}
-                </strong>
-              </label>
-              <input
-                id="knative-domainname"
-                v-model="applications.knative.hostname"
-                type="text"
-                class="form-control js-domainname"
-              />
-            </div>
-          </template>
-          <template v-if="knativeInstalled">
-            <div class="form-group col-3 pl-0 mb-0">
-              <label for="knative-ip-address">
-                <strong>
-                  {{ s__('ClusterIntegration|Knative IP Address:') }}
-                </strong>
-              </label>
-              <div v-if="knativeExternalIp" class="input-group">
+            <template v-if="knativeInstalled">
+              <div class="form-group col-9 mb-0">
+                <label for="knative-domainname">
+                  <strong>
+                    {{ s__('ClusterIntegration|Knative Domain Name:') }}
+                  </strong>
+                </label>
                 <input
-                  id="knative-ip-address"
-                  :value="knativeExternalIp"
+                  id="knative-domainname"
+                  v-model="applications.knative.hostname"
+                  v-once
                   type="text"
-                  class="form-control js-ip-address"
-                  readonly
+                  class="form-control js-domainname"
                 />
-                <span class="input-group-append">
-                  <clipboard-button
-                    :text="knativeExternalIp"
-                    :title="s__('ClusterIntegration|Copy Knative IP Address to clipboard')"
-                    class="input-group-text js-clipboard-btn"
-                  />
-                </span>
               </div>
-              <input v-else type="text" class="form-control js-ip-address" readonly value="?" />
-            </div>
+            </template>
+            <template v-else-if="helmInstalled && rbac">
+              <div class="form-group">
+                <label for="knative-domainname">
+                  <strong>
+                    {{ s__('ClusterIntegration|Knative Domain Name:') }}
+                  </strong>
+                </label>
+                <input
+                  id="knative-domainname"
+                  v-model="applications.knative.hostname"
+                  type="text"
+                  class="form-control js-domainname"
+                />
+              </div>
+            </template>
+            <template v-if="knativeInstalled">
+              <div class="form-group col-3 pl-0 mb-0">
+                <label for="knative-ip-address">
+                  <strong>
+                    {{ s__('ClusterIntegration|Knative IP Address:') }}
+                  </strong>
+                </label>
+                <div v-if="knativeExternalIp" class="input-group">
+                  <input
+                    id="knative-ip-address"
+                    :value="knativeExternalIp"
+                    type="text"
+                    class="form-control js-ip-address"
+                    readonly
+                  />
+                  <span class="input-group-append">
+                    <clipboard-button
+                      :text="knativeExternalIp"
+                      :title="s__('ClusterIntegration|Copy Knative IP Address to clipboard')"
+                      class="input-group-text js-clipboard-btn"
+                    />
+                  </span>
+                </div>
+                <input v-else type="text" class="form-control js-ip-address" readonly value="?" />
+              </div>
 
-            <p v-if="!knativeExternalIp" class="settings-message js-no-ip-message">
-              {{
-                s__(`ClusterIntegration|The IP address is in
+              <p v-if="!knativeExternalIp" class="settings-message js-no-ip-message">
+                {{
+                  s__(`ClusterIntegration|The IP address is in
               the process of being assigned. Please check your Kubernetes
               cluster or Quotas on Google Kubernetes Engine if it takes a long time.`)
-              }}
-            </p>
+                }}
+              </p>
 
-            <div class="row col-12 ml-0">
-            <p class="form-text text-muted col-9 p-0">
-              {{
-                s__(`ClusterIntegration|To access your application after deployment, point a wildcard DNS to the IP address.`)
-              }}
-            </p>
-            <a :href="ingressDnsHelpPath" target="_blank" rel="noopener noreferrer" class="col-3 mt-1">
-              {{ __('More information') }}
-            </a>
-            </div>
+              <div class="row col-12 ml-0">
+                <p class="form-text text-muted col-9 p-0">
+                  {{
+                    s__(
+                      `ClusterIntegration|To access your application after deployment, point a wildcard DNS to the IP address.`,
+                    )
+                  }}
+                </p>
+                <a
+                  :href="ingressDnsHelpPath"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="col-3 mt-1"
+                >
+                  {{ __('More information') }}
+                </a>
+              </div>
 
-            <loading-button
-              v-if="knativeExternalIp"
-              class="btn btn-success js-cluster-application-upgrade-button mt-2 ml-3"
-              :loading="isUpdatingDomain"
-              :disabled="isUpdatingDomain"
-              :label="s__('ClusterIntegration|Save changes')"
-              @click="upgradeClicked"
-            />
-          </template>
+              <loading-button
+                v-if="knativeExternalIp"
+                class="btn btn-success js-cluster-application-upgrade-button mt-2 ml-3"
+                :loading="isUpdatingDomain"
+                :disabled="isUpdatingDomain"
+                :label="s__('ClusterIntegration|Save changes')"
+                @click="upgradeClicked"
+              />
+            </template>
           </div>
         </div>
       </application-row>
