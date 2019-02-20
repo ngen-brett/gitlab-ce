@@ -1,15 +1,15 @@
 require 'spec_helper'
 
 describe 'projects/commits/_commit.html.haml' do
+  let(:project) { create(:project, :repository) }
+  let(:commit) { project.repository.commit(ref) }
+
   before do
     allow(view).to receive(:current_application_settings).and_return(Gitlab::CurrentSettings.current_application_settings)
   end
 
   context 'with a signed commit' do
-    let(:project) { create(:project, :repository) }
-    let(:repository) { project.repository }
     let(:ref) { GpgHelpers::SIGNED_COMMIT_SHA }
-    let(:commit) { repository.commit(ref) }
 
     it 'does not display a loading spinner for GPG status' do
       render partial: 'projects/commits/commit', locals: {
@@ -25,14 +25,14 @@ describe 'projects/commits/_commit.html.haml' do
   end
 
   context 'with ci status' do
-    let(:project) { create(:project, :repository) }
-    let(:repository) { project.repository }
-    let(:commit) { repository.commit('master') }
+    let(:ref) { 'master' }
     let(:user) { create(:user) }
 
     before do
       allow(view).to receive(:current_user).and_return(user)
+
       project.add_developer(user)
+
       create(
         :ci_empty_pipeline,
         ref: 'master',
@@ -42,28 +42,36 @@ describe 'projects/commits/_commit.html.haml' do
       )
     end
 
-    it 'does not display a ci status icon when pipelines are disabled' do
-      allow(project).to receive(:builds_enabled?).and_return(false)
+    context 'when pipelines are disabled' do
+      before do
+        allow(project).to receive(:builds_enabled?).and_return(false)
+      end
 
-      render partial: 'projects/commits/commit', locals: {
-        project: project,
-        ref: 'master',
-        commit: commit
-      }
+      it 'does not display a ci status icon' do
+        render partial: 'projects/commits/commit', locals: {
+          project: project,
+          ref: ref,
+          commit: commit
+        }
 
-      expect(rendered).not_to have_css('.ci-status-link')
+        expect(rendered).not_to have_css('.ci-status-link')
+      end
     end
 
-    it 'does display a ci status icon when pipelines are enabled' do
-      allow(project).to receive(:builds_enabled?).and_return(true)
+    context 'when pipelines are enabled' do
+      before do
+        allow(project).to receive(:builds_enabled?).and_return(true)
+      end
 
-      render partial: 'projects/commits/commit', locals: {
-        project: project,
-        ref: 'master',
-        commit: commit
-      }
+      it 'does display a ci status icon when pipelines are enabled' do
+        render partial: 'projects/commits/commit', locals: {
+          project: project,
+          ref: ref,
+          commit: commit
+        }
 
-      expect(rendered).to have_css('.ci-status-link')
+        expect(rendered).to have_css('.ci-status-link')
+      end
     end
   end
 end
