@@ -4,6 +4,10 @@ class Admin::ApplicationSettingsController < Admin::ApplicationController
   include InternalRedirect
   before_action :set_application_setting
 
+  VALID_SETTING_PANELS = %w(show integrations repository templates
+                          ci_cd reporting metrics_and_profiling
+                          network geo preferences).freeze
+
   def show
   end
 
@@ -51,7 +55,7 @@ class Admin::ApplicationSettingsController < Admin::ApplicationController
         format.html { redirect_to redirect_path, notice: 'Application settings saved successfully' }
       else
         format.json { head :bad_request }
-        format.html { render :show }
+        format.html { render_update_error }
       end
     end
   end
@@ -131,5 +135,12 @@ class Admin::ApplicationSettingsController < Admin::ApplicationController
       repository_storages: [],
       restricted_visibility_levels: []
     ]
+  end
+
+  def render_update_error
+    panel  = params[:panel]
+    action = VALID_SETTING_PANELS.include?(panel) ? panel : :show
+
+    render action
   end
 end

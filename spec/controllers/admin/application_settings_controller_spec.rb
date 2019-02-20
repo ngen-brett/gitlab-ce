@@ -85,6 +85,20 @@ describe Admin::ApplicationSettingsController do
       expect(response).to redirect_to(admin_application_settings_path)
       expect(ApplicationSetting.current.receive_max_input_size).to eq(1024)
     end
+
+    context 'when validating' do
+      it 'renders correct action on error' do
+        put :update, params: { panel: 'network', application_setting: { domain_blacklist_enabled: true } }
+
+        expect(subject).to render_template(:network)
+      end
+
+      it 'renders default action show' do
+        put :update, params: { panel: 'unknown_panel', application_setting: { domain_blacklist_enabled: true } }
+
+        expect(subject).to render_template(:show)
+      end
+    end
   end
 
   describe 'PUT #reset_registration_token' do
