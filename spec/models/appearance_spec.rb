@@ -78,4 +78,19 @@ describe Appearance do
     it { is_expected.to allow_value(hex).for(:message_font_color) }
     it { is_expected.not_to allow_value('000').for(:message_font_color) }
   end
+
+  describe "email_header_and_footer_enabled" do
+
+    context "default email_header_and_footer_enabled flag value" do
+      let(:appearance) { create(:appearance) }
+
+      it { expect(appearance.email_header_and_footer_enabled?).to eq(false) }
+    end
+
+    context "when setting email_header_and_footer_enabled flag value" do
+      let(:appearance) { create(:appearance, email_header_and_footer_enabled: true) }
+
+      it { expect(appearance.email_header_and_footer_enabled?).to eq(true) }
+    end
+  end
 end
