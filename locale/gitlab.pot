@@ -564,6 +564,9 @@ msgstr ""
 msgid "AdminUsers|Without projects"
 msgstr ""
 
+msgid "Advanced"
+msgstr ""
+
 msgid "Advanced permissions, Large File Storage and Two-Factor authentication settings."
 msgstr ""
 
@@ -1440,6 +1443,27 @@ msgstr ""
 msgid "Choose the top-level group for your repository imports."
 msgstr ""
 
+<<<<<<< HEAD
+=======
+msgid "Choose visibility level, enable/disable project features (issues, repository, wiki, snippets) and set permissions."
+msgstr ""
+
+msgid "Choose what content you want to see on a group’s overview page"
+msgstr ""
+
+msgid "Choose which groups you wish to synchronize to this secondary node."
+msgstr ""
+
+msgid "Choose which repositories you want to connect and run CI/CD pipelines."
+msgstr ""
+
+msgid "Choose which shards you wish to synchronize to this secondary node."
+msgstr ""
+
+msgid "Choose your merge method, set up a default merge request description template."
+msgstr ""
+
+>>>>>>> 9a17bd58c6b... Update project settings section titles and info
 msgid "CiStatusLabel|canceled"
 msgstr ""
 
@@ -2504,6 +2528,12 @@ msgstr ""
 msgid "Customize language and region related settings."
 msgstr ""
 
+<<<<<<< HEAD
+=======
+msgid "Customize your issue restrictions."
+msgstr ""
+
+>>>>>>> 9a17bd58c6b... Update project settings section titles and info
 msgid "Customize your pipeline configuration, view your pipeline status and coverage report."
 msgstr ""
 
@@ -3576,6 +3606,9 @@ msgstr ""
 msgid "General"
 msgstr ""
 
+msgid "General Settings"
+msgstr ""
+
 msgid "General pipelines"
 msgstr ""
 
@@ -3896,6 +3929,9 @@ msgstr ""
 msgid "Housekeeping successfully started"
 msgstr ""
 
+msgid "Housekeeping, export, path, transfer, remove, archive."
+msgstr ""
+
 msgid "However, you are already a member of this %{member_source}. Sign in using a different account to accept the invitation."
 msgstr ""
 
@@ -4196,6 +4232,9 @@ msgstr ""
 msgid "Issue events"
 msgstr ""
 
+msgid "Issue settings"
+msgstr ""
+
 msgid "IssueBoards|Board"
 msgstr ""
 
@@ -4429,6 +4468,24 @@ msgstr ""
 msgid "Learn more about Kubernetes"
 msgstr ""
 
+<<<<<<< HEAD
+=======
+msgid "Learn more about Web Terminal"
+msgstr ""
+
+msgid "Learn more about approvals."
+msgstr ""
+
+msgid "Learn more about custom project templates"
+msgstr ""
+
+msgid "Learn more about group-level project templates"
+msgstr ""
+
+msgid "Learn more about incoming email addresses"
+msgstr ""
+
+>>>>>>> 9a17bd58c6b... Update project settings section titles and info
 msgid "Learn more about protected branches"
 msgstr ""
 
@@ -4846,6 +4903,9 @@ msgid "Name your individual key via a title"
 msgstr ""
 
 msgid "Name:"
+msgstr ""
+
+msgid "Naming, tags, avatar"
 msgstr ""
 
 msgid "Naming, visibility"
@@ -6704,6 +6764,9 @@ msgstr ""
 msgid "Session expiration, projects limit and attachment size."
 msgstr ""
 
+msgid "Set a number of approvals required, the approvers and other approval settings."
+msgstr ""
+
 msgid "Set a password on your account to pull or push via %{protocol}."
 msgstr ""
 
@@ -8129,6 +8192,15 @@ msgstr ""
 msgid "Update your group name, description, avatar, and visibility."
 msgstr ""
 
+<<<<<<< HEAD
+=======
+msgid "Update your project name, tags, description and avatar."
+msgstr ""
+
+msgid "Updated"
+msgstr ""
+
+>>>>>>> 9a17bd58c6b... Update project settings section titles and info
 msgid "Updating"
 msgstr ""
 
@@ -8355,6 +8427,9 @@ msgid "Visibility level"
 msgstr ""
 
 msgid "Visibility level:"
+msgstr ""
+
+msgid "Visibility, project features, permissions"
 msgstr ""
 
 msgid "Visibility:"
