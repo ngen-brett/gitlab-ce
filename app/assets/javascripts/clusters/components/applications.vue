@@ -16,6 +16,7 @@ import applicationRow from './application_row.vue';
 import clipboardButton from '../../vue_shared/components/clipboard_button.vue';
 import { CLUSTER_TYPE, APPLICATION_STATUS, INGRESS } from '../constants';
 import LoadingButton from '~/vue_shared/components/loading_button.vue';
+import eventHub from '../event_hub';
 
 export default {
   components: {
@@ -187,6 +188,15 @@ export default {
   },
   created() {
     this.helmInstallIllustration = helmInstallIllustration;
+  },
+  methods: {
+    saveKnativeDomain() {
+      // TODO figure out why hostname does not pull through correctly
+      eventHub.$emit('saveKnativeDomain', {
+        id: 'knative',
+        params: { hostname: this.applications.knative.hostname },
+      });
+    },
   },
 };
 </script>
@@ -566,7 +576,7 @@ export default {
                 :loading="isUpdatingDomain"
                 :disabled="isUpdatingDomain"
                 :label="s__('ClusterIntegration|Save changes')"
-                @click="upgradeClicked"
+                @click="saveKnativeDomain"
               />
             </template>
           </div>

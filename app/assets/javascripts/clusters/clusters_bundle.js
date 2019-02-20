@@ -129,6 +129,7 @@ export default class Clusters {
     eventHub.$on('upgradeApplication', data => this.upgradeApplication(data));
     eventHub.$on('upgradeFailed', appId => this.upgradeFailed(appId));
     eventHub.$on('dismissUpgradeSuccess', appId => this.dismissUpgradeSuccess(appId));
+    eventHub.$on('saveKnativeDomain', data => this.saveKnativeDomain(data));
   }
 
   removeListeners() {
@@ -137,6 +138,7 @@ export default class Clusters {
     eventHub.$off('upgradeApplication', this.upgradeApplication);
     eventHub.$off('upgradeFailed', this.upgradeFailed);
     eventHub.$off('dismissUpgradeSuccess', this.dismissUpgradeSuccess);
+    eventHub.$off('saveKnativeDomain', this.saveKnativeDomain);
   }
 
   initPolling() {
@@ -270,6 +272,11 @@ export default class Clusters {
 
   dismissUpgradeSuccess(appId) {
     this.store.updateAppProperty(appId, 'requestStatus', null);
+  }
+
+  saveKnativeDomain(data) {
+    const appId = data.id;
+    this.service.installApplication(appId, data.params);
   }
 
   destroy() {
