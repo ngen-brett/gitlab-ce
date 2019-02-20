@@ -717,6 +717,18 @@ module API
         merge_request.subscribed?(options[:current_user], options[:project])
       end
 
+      expose :state_human_name do |merge_request|
+        merge_request.state_human_name
+      end
+
+      expose :state_icon_name do |merge_request|
+        merge_request.state_icon_name
+      end
+
+      expose :project_path do |merge_request|
+        merge_request.target_project_path
+      end
+
       expose :changes_count do |merge_request, _options|
         merge_request.merge_request_diff.real_size
       end

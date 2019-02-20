@@ -203,16 +203,22 @@ module Banzai
         end
       end
 
-      def data_attributes_for(text, parent, object, link_content: false, link_reference: false)
+      def data_attributes_for(text, parent, object, link_content: false, link_reference: false, add_iid: false)
         object_parent_type = parent.is_a?(Group) ? :group : :project
 
-        data_attribute(
+        data = {
           original:             text,
           link:                 link_content,
           link_reference:       link_reference,
           object_parent_type => parent.id,
           object_sym =>         object.id
-        )
+        }
+
+        if add_iid
+          data[:iid] = object.iid
+        end
+
+        data_attribute(data)
       end
 
       def object_link_text_extras(object, matches)

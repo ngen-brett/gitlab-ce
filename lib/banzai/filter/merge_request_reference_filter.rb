@@ -20,7 +20,7 @@ module Banzai
       end
 
       def object_link_title(object, matches)
-        object_link_commit_title(object, matches) || super
+        nil
       end
 
       def object_link_text_extras(object, matches)
@@ -51,6 +51,15 @@ module Banzai
         parent.merge_requests
           .where(iid: ids.to_a)
           .includes(target_project: :namespace)
+      end
+
+      def reference_class(object_sym, tooltip: false)
+        super
+      end
+
+      def data_attributes_for(text, parent, object, data = {})
+        data[:add_iid] = true
+        super(text, parent, object, data)
       end
 
       private
