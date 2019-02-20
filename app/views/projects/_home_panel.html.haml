@@ -19,11 +19,12 @@
             %span.access-request-links.prepend-left-8
               = render 'shared/members/access_request_links', source: @project
           - if @project.tag_list.present?
-            %span.home-panel-topic-list.d-inline-flex.prepend-left-8.has-tooltip{ data: { container: 'body' }, title: @project.has_extra_topics? ? @project.tag_list.join(', ') : nil }
+            %span.home-panel-topic-list.d-inline-flex.prepend-left-8.has-tooltip{ data: { container: 'body' }, title: @project.tag_list.join(', ') }
               = sprite_icon('tag', size: 16, css_class: 'icon append-right-4')
 
               - @project.topics_to_show.each do |topic|
-                %a{ class: 'badge badge-pill badge-secondary append-right-5 str-truncated-30', href: explore_projects_path(tag: topic) }
+                - truncated_topic_class = (topic.length > 15) ? 'str-truncated-30' : ''
+                %a{ class: "badge badge-pill badge-secondary append-right-5 #{truncated_topic_class}", href: explore_projects_path(tag: topic) }
                   = topic.titleize
 
               - if @project.has_extra_topics?
