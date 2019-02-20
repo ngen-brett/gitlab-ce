@@ -169,13 +169,13 @@ describe 'Clusters Applications', :js do
               expect(page).to have_css('.js-cluster-application-install-button', exact_text: 'Installed')
               expect(page).to have_css('.js-cluster-application-install-button[disabled]')
               expect(page).to have_selector('.js-no-ip-message')
-              expect(page.find('.js-ip-address').value).to eq('?')
+              expect(page.find('.js-endpoint').value).to eq('?')
 
               # We receive the external IP address and display
               Clusters::Cluster.last.application_ingress.update!(external_ip: '192.168.1.100')
 
               expect(page).not_to have_selector('.js-no-ip-message')
-              expect(page.find('.js-ip-address').value).to eq('192.168.1.100')
+              expect(page.find('.js-endpoint').value).to eq('192.168.1.100')
             end
 
             expect(page).to have_content('Ingress was successfully installed on your Kubernetes cluster')

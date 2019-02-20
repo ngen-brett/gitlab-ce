@@ -86,8 +86,8 @@ export default {
     ingressInstalled() {
       return this.applications.ingress.status === APPLICATION_STATUS.INSTALLED;
     },
-    ingressExternalIp() {
-      return this.applications.ingress.externalIp;
+    ingressExternalEndpoint() {
+      return this.applications.ingress.externalIp || this.applications.ingress.externalHostname;
     },
     certManagerInstalled() {
       return this.applications.cert_manager.status === APPLICATION_STATUS.INSTALLED;
@@ -110,11 +110,11 @@ export default {
         false,
       );
 
-      const externalIpParagraph = sprintf(
+      const externalEndpointParagraph = sprintf(
         _.escape(
           s__(
             `ClusterIntegration|After installing Ingress, you will need to point your wildcard DNS
-            at the generated external IP address in order to view your app after it is deployed. %{ingressHelpLink}`,
+            at the generated external endpoint in order to view your app after it is deployed. %{ingressHelpLink}`,
           ),
         ),
         {
@@ -130,7 +130,7 @@ export default {
             ${extraCostParagraph}
           </p>
           <p class="settings-message append-bottom-0">
-            ${externalIpParagraph}
+            ${externalEndpointParagraph}
           </p>
         `;
     },
@@ -247,30 +247,30 @@ export default {
 
           <template v-if="ingressInstalled">
             <div class="form-group">
-              <label for="ingress-ip-address">
-                {{ s__('ClusterIntegration|Ingress IP Address') }}
+              <label for="ingress-endpoint">
+                {{ s__('ClusterIntegration|Ingress Endpoint') }}
               </label>
-              <div v-if="ingressExternalIp" class="input-group">
+              <div v-if="ingressExternalEndpoint" class="input-group">
                 <input
-                  id="ingress-ip-address"
-                  :value="ingressExternalIp"
+                  id="ingress-endpoint"
+                  :value="ingressExternalEndpoint"
                   type="text"
-                  class="form-control js-ip-address"
+                  class="form-control js-endpoint"
                   readonly
                 />
                 <span class="input-group-append">
                   <clipboard-button
-                    :text="ingressExternalIp"
-                    :title="s__('ClusterIntegration|Copy Ingress IP Address to clipboard')"
+                    :text="ingressExternalEndpoint"
+                    :title="s__('ClusterIntegration|Copy Ingress Endpoint to clipboard')"
                     class="input-group-text js-clipboard-btn"
                   />
                 </span>
               </div>
-              <input v-else type="text" class="form-control js-ip-address" readonly value="?" />
+              <input v-else type="text" class="form-control js-endpoint" readonly value="?" />
               <p class="form-text text-muted">
                 {{
                   s__(`ClusterIntegration|Point a wildcard DNS to this
-                generated IP address in order to access
+                generated endpoint in order to access
                 your application after it has been deployed.`)
                 }}
                 <a :href="ingressDnsHelpPath" target="_blank" rel="noopener noreferrer">
@@ -279,9 +279,9 @@ export default {
               </p>
             </div>
 
-            <p v-if="!ingressExternalIp" class="settings-message js-no-ip-message">
+            <p v-if="!ingressExternalEndpoint" class="settings-message js-no-ip-message">
               {{
-                s__(`ClusterIntegration|The IP address is in
+                s__(`ClusterIntegration|The endpoint is in
               the process of being assigned. Please check your Kubernetes
               cluster or Quotas on Google Kubernetes Engine if it takes a long time.`)
               }}
@@ -401,7 +401,7 @@ export default {
             }}
           </p>
 
-          <template v-if="ingressExternalIp">
+          <template v-if="ingressExternalEndpoint">
             <div class="form-group">
               <label for="jupyter-hostname">
                 {{ s__('ClusterIntegration|Jupyter Hostname') }}
@@ -508,7 +508,7 @@ export default {
                   id="knative-ip-address"
                   :value="knativeExternalIp"
                   type="text"
-                  class="form-control js-ip-address"
+                  class="form-control js-endpoint"
                   readonly
                 />
                 <span class="input-group-append">
@@ -519,7 +519,7 @@ export default {
                   />
                 </span>
               </div>
-              <input v-else type="text" class="form-control js-ip-address" readonly value="?" />
+              <input v-else type="text" class="form-control js-endpoint" readonly value="?" />
             </div>
 
             <p v-if="!knativeExternalIp" class="settings-message js-no-ip-message">

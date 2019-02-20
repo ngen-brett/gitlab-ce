@@ -78,6 +78,7 @@ describe('Clusters Store', () => {
             requestStatus: null,
             requestReason: null,
             externalIp: null,
+            externalHostname: null,
           },
           runner: {
             title: 'GitLab Runner',

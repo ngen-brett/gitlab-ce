@@ -1581,7 +1581,7 @@ msgstr ""
 msgid "ClusterIntegration|Advanced options on this Kubernetes cluster's integration"
 msgstr ""
 
-msgid "ClusterIntegration|After installing Ingress, you will need to point your wildcard DNS at the generated external IP address in order to view your app after it is deployed. %{ingressHelpLink}"
+msgid "ClusterIntegration|After installing Ingress, you will need to point your wildcard DNS at the generated external endpoint in order to view your app after it is deployed. %{ingressHelpLink}"
 msgstr ""
 
 msgid "ClusterIntegration|Alternatively"
@@ -1638,7 +1638,7 @@ msgstr ""
 msgid "ClusterIntegration|Copy CA Certificate"
 msgstr ""
 
-msgid "ClusterIntegration|Copy Ingress IP Address to clipboard"
+msgid "ClusterIntegration|Copy Ingress Endpoint to clipboard"
 msgstr ""
 
 msgid "ClusterIntegration|Copy Jupyter Hostname to clipboard"
@@ -1725,7 +1725,7 @@ msgstr ""
 msgid "ClusterIntegration|Ingress"
 msgstr ""
 
-msgid "ClusterIntegration|Ingress IP Address"
+msgid "ClusterIntegration|Ingress Endpoint"
 msgstr ""
 
 msgid "ClusterIntegration|Ingress gives you a way to route requests to services based on the request host or path, centralizing a number of services into a single entrypoint."
@@ -1851,6 +1851,9 @@ msgstr ""
 msgid "ClusterIntegration|Point a wildcard DNS to this generated IP address in order to access your application after it has been deployed."
 msgstr ""
 
+msgid "ClusterIntegration|Point a wildcard DNS to this generated endpoint in order to access your application after it has been deployed."
+msgstr ""
+
 msgid "ClusterIntegration|Project cluster"
 msgstr ""
 
@@ -1945,6 +1948,9 @@ msgid "ClusterIntegration|Specifying a domain will allow you to use Auto Review 
 msgstr ""
 
 msgid "ClusterIntegration|The IP address is in the process of being assigned. Please check your Kubernetes cluster or Quotas on Google Kubernetes Engine if it takes a long time."
+msgstr ""
+
+msgid "ClusterIntegration|The endpoint is in the process of being assigned. Please check your Kubernetes cluster or Quotas on Google Kubernetes Engine if it takes a long time."
 msgstr ""
 
 msgid "ClusterIntegration|This account must have permissions to create a Kubernetes cluster in the %{link_to_container_project} specified below"
