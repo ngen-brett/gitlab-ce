@@ -23,7 +23,8 @@ module GitalyTest
       'BUNDLE_FLAGS' => "--jobs=4 --retry=3",
       'BUNDLE_INSTALL_FLAGS' => nil,
       'BUNDLE_GEMFILE' => gemfile,
-      'RUBYOPT' => nil
+      'RUBYOPT' => nil,
+      'GITALY_USE_EMBEDDED_HOOKS' => '1'
     }
 
     if ENV['CI']
