@@ -7,6 +7,7 @@ import {
   DISCUSSION_FILTERS_DEFAULT_VALUE,
   HISTORY_ONLY_FILTER_VALUE,
   DISCUSSION_TAB_LABEL,
+  DISCUSSION_FILTER_TYPES,
 } from '../constants';
 
 export default {
@@ -86,12 +87,23 @@ export default {
         this.setTargetNoteHash(hash);
       }
     },
+    filterType(value) {
+      if (value === 0) {
+        return DISCUSSION_FILTER_TYPES.ALL;
+      } else if (value === 1) {
+        return DISCUSSION_FILTER_TYPES.COMMENTS;
+      }
+      return DISCUSSION_FILTER_TYPES.HISTORY;
+    },
   },
 };
 </script>
 
 <template>
-  <div v-if="displayFilters" class="discussion-filter-container d-inline-block align-bottom">
+  <div
+    v-if="displayFilters"
+    class="discussion-filter-container js-discussion-filter-container d-inline-block align-bottom"
+  >
     <button
       id="discussion-filter-dropdown"
       ref="dropdownToggle"
@@ -107,7 +119,11 @@ export default {
     >
       <div class="dropdown-content">
         <ul>
-          <li v-for="filter in filters" :key="filter.value">
+          <li
+            v-for="filter in filters"
+            :key="filter.value"
+            :data-filter-type="filterType(filter.value)"
+          >
             <button
               :class="{ 'is-active': filter.value === currentValue }"
               class="qa-filter-options"
