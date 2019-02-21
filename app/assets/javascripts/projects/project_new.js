@@ -164,7 +164,7 @@ const bindEvents = () => {
       nfhexo: {
         text: 'Netlify/Hexo',
         icon: '.template-option .icon-netlify',
-      },      
+      },
     };
 
     const selectedTemplate = templates[value];
