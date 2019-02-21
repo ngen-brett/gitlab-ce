@@ -58,10 +58,10 @@ module AppearancesHelper
 
   private
 
-  def render_message(field_sym, class_names = [])
+  def render_message(field_sym, class_names = [], style = message_style)
     class_names << field_sym.to_s.dasherize
 
-    content_tag :div, class: class_names, style: message_style do
+    content_tag :div, class: class_names, style: style do
       markdown_field(current_appearance, field_sym)
     end
   end

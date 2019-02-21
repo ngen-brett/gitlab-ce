@@ -2,6 +2,7 @@
 
 module EmailsHelper
   include AppearancesHelper
+  include MarkupHelper
 
   # Google Actions
   # https://developers.google.com/gmail/markup/reference/go-to-action
@@ -130,5 +131,39 @@ module EmailsHelper
     end
 
     project.id.to_s + "." + project_path_as_domain + "." + Gitlab.config.gitlab.host
+  end
+
+  def html_header_message
+    return unless show_header?
+
+    render_message(:header_message, [], "")
+  end
+
+  def html_footer_message
+    return unless show_footer?
+
+    render_message(:footer_message, [], "")
+  end
+
+  def text_header_message
+    return unless show_header?
+
+    strip_tags(render_message(:header_message, [], ""))
+  end
+
+  def text_footer_message
+    return unless show_footer?
+
+    strip_tags(render_message(:footer_message, [], ""))
+  end
+
+  private
+
+  def show_footer?
+    current_appearance&.email_header_and_footer_enabled? && current_appearance&.show_footer?
+  end
+
+  def show_header?
+    current_appearance&.email_header_and_footer_enabled? && current_appearance&.show_header?
   end
 end
