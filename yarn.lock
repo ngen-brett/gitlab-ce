@@ -658,10 +658,9 @@
   resolved "https://registry.yarnpkg.com/@gitlab/svgs/-/svgs-1.52.0.tgz#870b0112a18b10d2cde5470a48b05025193cd207"
   integrity sha512-xqDYIaSY1MJuCa7lRIDTTPoXn6x57So2qchxwmELE+SAJxlYlpYgDKCNWcGawhyTZRDZuG/qFBWp0sMeTQD//A==
 
-"@gitlab/ui@^2.0.4":
+"@gitlab/ui@https://gitlab.com/gitlab-org/gitlab-ui/-/jobs/165588567/artifacts/raw/gitlab-ui.adriel-add-chart-zoom-scroll.tgz":
   version "2.0.4"
-  resolved "https://registry.yarnpkg.com/@gitlab/ui/-/ui-2.0.4.tgz#ba86f6e5868ef7bc7f504cef9ca504c2d2f6bffd"
-  integrity sha512-dJ+KKpeqIAPYZtYZeciXhC/whNiGPVRjp5IgjQRddh3zsreqmfwQq58nSH7HepAAIepaqTe0UFuzBgrSWvVM6w==
+  resolved "https://gitlab.com/gitlab-org/gitlab-ui/-/jobs/165588567/artifacts/raw/gitlab-ui.adriel-add-chart-zoom-scroll.tgz#23403f4928ee1540ae5fa25a530f05ece92d931c"
   dependencies:
     babel-standalone "^6.26.0"
     bootstrap-vue "^2.0.0-rc.11"
