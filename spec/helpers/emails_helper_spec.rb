@@ -142,4 +142,36 @@ describe EmailsHelper do
       end
     end
   end
+
+  describe 'header and footer enabled' do
+    let(:params) do
+      {
+        header_message: "Header message",
+        footer_message: "Footer message",
+        email_header_and_footer_enabled: true
+      }
+    end
+
+    let!(:appearance) { create :appearance, params }
+
+    it "returns html version of header message" do
+      expect(html_header_message).to eq(
+        %{<div class="header-message" style=""><p>Header message</p></div>}
+      )
+    end
+
+    it "returns html version of footer message" do
+      expect(html_footer_message).to eq(
+        %{<div class="footer-message" style=""><p>Footer message</p></div>}
+      )
+    end
+
+    it "returns text version of header message" do
+      expect(text_header_message).to eq("Header message")
+    end
+
+    it "returns text version of footer message" do
+      expect(text_footer_message).to eq("Footer message")
+    end
+  end
 end

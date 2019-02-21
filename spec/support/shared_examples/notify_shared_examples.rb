@@ -252,3 +252,45 @@ shared_examples 'a note email' do
     end
   end
 end
+
+shared_examples 'appearance header and footer enabled' do
+  let(:params) do
+    {
+      header_message: "Header message",
+      footer_message: "Footer message",
+      email_header_and_footer_enabled: true
+    }
+  end
+  let!(:appearance) { create :appearance, params }
+
+  it "contains header and footer" do
+    aggregate_failures do
+      expect(subject.html_part).to have_body_text("<div class=\"header-message\" style=\"\"><p>Header message</p></div>")
+      expect(subject.html_part).to have_body_text("<div class=\"footer-message\" style=\"\"><p>Footer message</p></div>")
+
+      expect(subject.text_part).to have_body_text(/^Header message/)
+      expect(subject.text_part).to have_body_text(/Footer message$/)
+    end
+  end
+end
+
+shared_examples 'appearance header and footer not enabled' do
+  let(:params) do
+    {
+      header_message: "Header message",
+      footer_message: "Footer message",
+      email_header_and_footer_enabled: false
+    }
+  end
+  let!(:appearance) { create :appearance, params }
+
+  it "does not contain header and footer" do
+    aggregate_failures do
+      expect(subject.html_part).to_not have_body_text("<div class=\"header-message\" style=\"\"><p>Header message</p></div>")
+      expect(subject.html_part).to_not have_body_text("<div class=\"footer-message\" style=\"\"><p>Footer message</p></div>")
+
+      expect(subject.text_part).to_not have_body_text(/^Header message/)
+      expect(subject.text_part).to_not have_body_text(/Footer message$/)
+    end
+  end
+end
