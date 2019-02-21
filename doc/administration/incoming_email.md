@@ -310,7 +310,7 @@ gitlab_rails['incoming_email_port'] = 993
 gitlab_rails['incoming_email_ssl'] = true
 ```
 
-Source:
+Example for source installs:
 
 ```yaml
 incoming_email:
