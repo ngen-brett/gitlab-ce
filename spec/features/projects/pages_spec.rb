@@ -208,22 +208,6 @@ describe 'Pages' do
     end
   end
 
-  context 'when the user is not the owner' do
-    context 'when pages deployed' do
-      before do
-        allow_any_instance_of(Project).to receive(:pages_deployed?) { true }
-      end
-
-      it 'sees "Only the project owner can remove pages" text' do
-        visit project_pages_path(project)
-
-        expect(page).to have_text('Only the project owner can remove pages')
-      end
-    end
-
-    it_behaves_like 'no pages deployed'
-  end
-
   describe 'HTTPS settings', :js, :https_pages_enabled do
     before do
       project.namespace.update(owner: user)
@@ -289,12 +273,8 @@ describe 'Pages' do
   end
 
   describe 'Remove page' do
-    context 'when user is the owner' do
+    context 'when user is the maintainer' do
       let(:project) { create :project, :repository }
-
-      before do
-        project.namespace.update(owner: user)
-      end
 
       context 'when pages are deployed' do
         let(:pipeline) do
