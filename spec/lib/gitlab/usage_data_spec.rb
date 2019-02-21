@@ -115,6 +115,7 @@ describe Gitlab::UsageData do
         projects_slack_slash_active
         projects_prometheus_active
         projects_with_repositories_enabled
+        projects_with_error_tracking_enabled
         pages_domains
         protected_branches
         releases
@@ -144,6 +145,7 @@ describe Gitlab::UsageData do
       expect(count_data[:projects_slack_notifications_active]).to eq(2)
       expect(count_data[:projects_slack_slash_active]).to eq(1)
       expect(count_data[:projects_with_repositories_enabled]).to eq(2)
+      expect(count_data[:projects_with_error_tracking_enabled]).to eq(1)
 
       expect(count_data[:clusters_enabled]).to eq(7)
       expect(count_data[:project_clusters_enabled]).to eq(6)
