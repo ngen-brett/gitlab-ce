@@ -6,6 +6,9 @@ import CreateItemDropdown from '../create_item_dropdown';
 import SecretValues from '../behaviors/secret_values';
 
 const ALL_ENVIRONMENTS_STRING = s__('CiVariable|All environments');
+const invalidInputClass = 'gl-field-error-outline';
+const placeholderSelector = '.js-secret-value-placeholder';
+const maskingMessageSelector = '.masking-validation-error';
 
 function createEnvironmentItem(value) {
   return {
@@ -94,8 +97,11 @@ export default class VariableList {
       }
     });
 
-    // Always make sure there is an empty last row
-    this.$container.on('input trigger-change', inputSelector, () => {
+    this.$container.on('input trigger-change', inputSelector, e => {
+      // If masked, validate value against regex
+      this.validateMaskability($(e.currentTarget).closest('.js-row'));
+
+      // Always make sure there is an empty last row
       const $lastRow = this.$container.find('.js-row').last();
 
       if (this.checkIfRowTouched($lastRow)) {
@@ -181,6 +187,24 @@ export default class VariableList {
       const $el = $row.find(entry.selector);
       return $el.length && $el.val() !== entry.default;
     });
+  }
+
+  validateMaskability($row) {
+    // Eight or more alphanumeric characters plus underscores
+    const regex = /^\w{8,}$/;
+    const maskedChecked = $row.find(this.inputMap.masked.selector).val() === 'true';
+    const variableValue = $row.find(this.inputMap.secret_value.selector).val();
+
+    if (maskedChecked && variableValue !== '' && !regex.test(variableValue)) {
+      $row.find(this.inputMap.secret_value.selector).addClass(invalidInputClass);
+      $row.find(placeholderSelector).addClass(invalidInputClass);
+      $row.find(maskingMessageSelector).show();
+    }
+    else if ($row.find(maskingMessageSelector).is(':visible')) {
+      $row.find(this.inputMap.secret_value.selector).removeClass(invalidInputClass);
+      $row.find(placeholderSelector).removeClass(invalidInputClass);
+      $row.find(maskingMessageSelector).hide();
+    }
   }
 
   toggleEnableRow(isEnabled = true) {

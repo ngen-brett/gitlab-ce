@@ -25,7 +25,7 @@
       name: key_input_name,
       value: key,
       placeholder: s_('CiVariables|Input variable key') }
-    .ci-variable-body-item
+    .ci-variable-body-item.gl-show-field-errors
       .form-control.js-secret-value-placeholder.qa-ci-variable-input-value{ class: ('hide' unless id) }
         = '*' * 20
       %textarea.js-ci-variable-input-value.js-secret-value.qa-ci-variable-input-value.form-control{ class: ('hide' if id),
@@ -33,6 +33,7 @@
         name: value_input_name,
         placeholder: s_('CiVariables|Input variable value') }
         = value
+      %p.masking-validation-error.gl-field-error.hide This variable will not be masked
     - unless only_key_value
       .ci-variable-body-item.ci-variable-protected-item
         .append-right-default
