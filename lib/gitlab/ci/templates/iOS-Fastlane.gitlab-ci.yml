@@ -1,5 +1,5 @@
 # This is a very simple template that mainly relies on FastLane to build and distribute your app.
-# Read more about how to use this template on the blog post https://about.gitlab.com/2019/02/28/ios-publishing-with-gitlab-and-fastlane/
+# Read more about how to use this template on the blog post https://about.gitlab.com/2019/03/06/ios-publishing-with-gitlab-and-fastlane/
 # You will also need fastlane and signing configuration for this to work, along with a MacOS runner. 
 # These details are provided in the blog post.
 
