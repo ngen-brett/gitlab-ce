@@ -24,6 +24,15 @@ describe AbuseReportMailer do
 
         expect(mail).to have_subject "#{report.user.name} (#{report.user.username}) was reported for abuse"
       end
+
+      context 'with footer and header' do
+        let(:report) { create(:abuse_report) }
+
+        subject { described_class.notify(report.id) }
+
+        it_behaves_like 'appearance header and footer enabled'
+        it_behaves_like 'appearance header and footer not enabled'
+      end
     end
 
     context 'with no admin_notification_email set' do
