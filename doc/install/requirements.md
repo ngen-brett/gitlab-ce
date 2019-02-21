@@ -194,7 +194,7 @@ We recommend using a separate machine for each GitLab Runner, if you plan to
 use the CI features.
 
 The server requirements for your GitLab runner depends on resources required to 
-run the build jobs as well as the number of job concurrency you configured on 
+run the build jobs as well as the number of job concurrency and the executors you configured on 
 GitLab runner. Since the nature of the jobs varies for each use case, you will 
 need to experiment by adjusting the job concurrency to get the optimum number. 
 
