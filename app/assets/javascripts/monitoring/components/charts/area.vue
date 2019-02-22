@@ -62,7 +62,7 @@ export default {
   },
   computed: {
     chartData() {
-      return this.graphData.queries.reduce((accumulator, query) => {
+      return this.graphData.queries.reduceRight((accumulator, query) => {
         accumulator[query.unit] = query.result.reduce((acc, res) => acc.concat(res.values), []);
         return accumulator;
       }, {});
