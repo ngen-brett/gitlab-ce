@@ -35,9 +35,12 @@ module Banzai
     # of HTML. This method is analogous to calling render(object.field), but it
     # can cache the rendered HTML in the object, rather than Redis.
     def self.render_field(object, field, context = {})
-      unless object.respond_to?(:cached_markdown_fields)
+      # TODO: figure out how to clear caches once this change is deployed
+      # TODO: also - is this done on save or on serving up text? if done on
+      #       on save then we need to figure out some way to recalculate these??
+      # unless object.respond_to?(:cached_markdown_fields)
         return cacheless_render_field(object, field, context)
-      end
+      # end
 
       object.refresh_markdown_cache! unless object.cached_html_up_to_date?(field)
 

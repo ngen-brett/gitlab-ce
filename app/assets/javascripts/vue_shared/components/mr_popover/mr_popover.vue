@@ -1,12 +1,16 @@
 <script>
 import { GlPopover, GlSkeletonLoading } from '@gitlab/ui';
+import Icon from '../icon.vue';
+import CiIcon from '../ci_icon.vue';
 import timeagoMixin from '../../mixins/timeago';
 
 export default {
   name: 'MRPopover',
   components: {
     GlPopover,
-    GlSkeletonLoading
+    GlSkeletonLoading,
+    Icon,
+    CiIcon,
   },
   mixins: [timeagoMixin],
   props: {
@@ -25,18 +29,25 @@ export default {
       if (Object.keys(this.mergeRequest).length === 0) {
         return null;
       }
-      return this.timeFormated(this.mergeRequest);
-    }
-  }
+
+      return this.timeFormated(this.mergeRequest.created_at);
+    },
+  },
 };
 </script>
 
 <template>
-  <gl-popover  :target="target" boundary="viewport" placement="top" show>
-    <p>{{ mergeRequest.state_icon_name }}</p>
-    <p>{{ mergeRequest.state_human_name }}</p>
-    <time v-text="formattedTime"></time>
-    <h4>{{ mergeRequest.description }}</h4>
-    <p>{{ mergeRequest.project_path }}</p>
+  <gl-popover :target="target" boundary="viewport" width="300" placement="top" show>
+    <div class="d-flex-center justify-content-between">
+      <div>
+        <div class="issuable-status-box status-box status-box-open">
+          {{ mergeRequest.state_human_name }}
+        </div>
+        <span class="text-secondary">Opened <time v-text="formattedTime"></time></span>
+      </div>
+      <ci-icon v-if="mergeRequest.pipeline" :status="{ group: mergeRequest.pipeline.status, icon: `status_${mergeRequest.pipeline.status}` }" />
+    </div>
+    <h5>{{ mergeRequest.description }}</h5>
+    <div class="text-secondary">{{ mergeRequest.project_path }}</div>
   </gl-popover>
 </template>

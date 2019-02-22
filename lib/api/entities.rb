@@ -713,16 +713,11 @@ module API
     end
 
     class MergeRequest < MergeRequestBasic
+      expose :state_human_name
+      expose :state_icon_name
+
       expose :subscribed do |merge_request, options|
         merge_request.subscribed?(options[:current_user], options[:project])
-      end
-
-      expose :state_human_name do |merge_request|
-        merge_request.state_human_name
-      end
-
-      expose :state_icon_name do |merge_request|
-        merge_request.state_icon_name
       end
 
       expose :project_path do |merge_request|

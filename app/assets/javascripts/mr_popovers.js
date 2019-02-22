@@ -57,6 +57,7 @@ const handleMRPopoverMount = ({ target }) => {
 };
 
 export default elements => {
+  // TODO: figure out proper default selector
   const userLinks = elements || [...document.querySelectorAll('.gfm-merge_request')];
 
   userLinks.forEach(el => {
