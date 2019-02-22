@@ -147,8 +147,11 @@ module TestEnv
       task: 'gitlab:shell:install')
 
     # gitlab-shell hooks don't work in our test environment because they try to make internal API calls
-    hooks_dir = File.join(Gitlab.config.gitlab_shell.path, 'hooks')
-    create_fake_git_hooks(hooks_dir)
+    create_fake_git_hooks(gitlab_shell_hooks_dir)
+  end
+
+  def gitlab_shell_hooks_dir
+    File.join(Gitlab.config.gitlab_shell.path, 'hooks')
   end
 
   def create_fake_git_hooks(hooks_dir)

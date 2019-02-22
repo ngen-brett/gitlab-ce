@@ -8,7 +8,7 @@ describe 'gitlab:shell rake tasks' do
   end
 
   after do
-    TestEnv.create_fake_git_hooks(File.join(Gitlab.config.gitlab_shell.path, 'hooks'))
+    TestEnv.create_fake_git_hooks(TestEnv.gitlab_shell_hooks_dir)
   end
 
   describe 'install task' do
