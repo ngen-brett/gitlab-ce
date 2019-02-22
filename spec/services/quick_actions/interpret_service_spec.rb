@@ -1526,5 +1526,26 @@ describe QuickActions::InterpretService do
         end
       end
     end
+
+    context "#commands_executed_count" do
+      it 'counts commands executed' do
+        content = "/close and \n/assign me and \n/title new title"
+
+        service.execute(content, issue)
+
+        expect(service.commands_executed_count).to eq(3)
+      end
+    end
+
+    # EE-specific tests
+
+    describe 'weight command' do
+      let(:content) { '/weight 4' }
+
+      it 'includes the number' do
+        _, explanations = service.explain(content, issue)
+        expect(explanations).to eq(['Sets weight to 4.'])
+      end
+    end
   end
 end
