@@ -100,7 +100,17 @@ describe 'Search bar', :js do
       find('.filtered-search-box .clear-search').click
       filtered_search.click
 
-      expect(find('#js-dropdown-hint')).to have_selector('.filter-dropdown .filter-dropdown-item', count: 6)
+      find('#js-dropdown-hint .filter-dropdown .filter-dropdown-item', match: :first)
+      items = find_all('#js-dropdown-hint .filter-dropdown .filter-dropdown-item')
+      # Reject any EE-specific items
+      items = items.reject {|item| item.text =~ /^weight/}
+
+      expect(items[0].text).to match('author')
+      expect(items[1].text).to match('assignee')
+      expect(items[2].text).to match('milestone')
+      expect(items[3].text).to match('label')
+      expect(items[4].text).to match('my-reaction')
+      expect(items[5].text).to match('confidential')
       expect(get_left_style(find('#js-dropdown-hint')['style'])).to eq(hint_offset)
     end
   end
