@@ -128,7 +128,7 @@ const bindEvents = () => {
       dotnetcore: {
         text: '.NET Core',
         icon: '.template-option .icon-dotnet',
-      },      
+      },
       hugo: {
         text: 'Pages/Hugo',
         icon: '.template-option .icon-hugo',
