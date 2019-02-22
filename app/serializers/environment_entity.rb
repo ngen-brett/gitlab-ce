@@ -35,6 +35,10 @@ class EnvironmentEntity < Grape::Entity
     folder_project_environments_path(environment.project, environment.folder_name)
   end
 
+  expose :name_without_type do |environment|
+    environment.name.delete_prefix("#{environment.environment_type}/")
+  end
+
   expose :created_at, :updated_at
 
   expose :can_stop do |environment|
