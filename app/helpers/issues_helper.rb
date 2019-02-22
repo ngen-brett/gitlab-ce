@@ -49,6 +49,7 @@ module IssuesHelper
     end
   end
 
+  # TODO: Expose this somehow on the MR API request
   def status_box_class(item)
     if item.try(:expired?)
       'status-box-expired'
