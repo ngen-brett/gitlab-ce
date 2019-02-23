@@ -1,11 +1,10 @@
 import Vue from 'vue';
+import Vuex from 'vuex';
 import MRPopover from './vue_shared/components/mr_popover/mr_popover.vue';
 import createMRPopoversStore from './vuex_shared/modules/mr_popovers';
 
 let renderedPopover;
 let renderFn;
-
-const store = createMRPopoversStore();
 
 const handleUserPopoverMouseOut = ({ target }) => {
   target.removeEventListener('mouseleave', handleUserPopoverMouseOut);
@@ -23,9 +22,9 @@ const handleUserPopoverMouseOut = ({ target }) => {
  * Adds a UserPopover component to the body, hands over as much data as the target element has in data attributes.
  * loads based on data-user-id more data about a user from the API and sets it on the popover
  */
-const handleMRPopoverMount = ({ target }) => {
+const handleMRPopoverMount = store => ({ target }) => {
   // Add listener to actually remove it again
-  // target.addEventListener('mouseleave', handleUserPopoverMouseOut);
+  target.addEventListener('mouseleave', handleUserPopoverMouseOut);
 
   const projectID = target.attributes['data-project'].value;
   const mergeRequestIID = target.attributes['data-iid'].value;
@@ -48,10 +47,13 @@ const handleMRPopoverMount = ({ target }) => {
 };
 
 export default elements => {
+  Vue.use(Vuex);
+
+  const store = new Vuex.Store(createMRPopoversStore());
   // TODO: figure out proper default selector
   const userLinks = elements || [...document.querySelectorAll('.gfm-merge_request')];
 
   userLinks.forEach(el => {
-    el.addEventListener('mouseenter', handleMRPopoverMount);
+    el.addEventListener('mouseenter', handleMRPopoverMount(store));
   });
 };
