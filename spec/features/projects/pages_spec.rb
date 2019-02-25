@@ -268,47 +268,45 @@ describe 'Pages' do
   end
 
   describe 'Remove page' do
-    context 'when user is the maintainer' do
-      let(:project) { create :project, :repository }
+    let(:project) { create :project, :repository }
 
-      context 'when pages are deployed' do
-        let(:pipeline) do
-          commit_sha = project.commit('HEAD').sha
+    context 'when pages are deployed' do
+      let(:pipeline) do
+        commit_sha = project.commit('HEAD').sha
 
-          project.ci_pipelines.create(
-            ref: 'HEAD',
-            sha: commit_sha,
-            source: :push,
-            protected: false
-          )
-        end
+        project.ci_pipelines.create(
+          ref: 'HEAD',
+          sha: commit_sha,
+          source: :push,
+          protected: false
+        )
+      end
 
-        let(:ci_build) do
-          create(
-            :ci_build,
-            project: project,
-            pipeline: pipeline,
-            ref: 'HEAD',
-            legacy_artifacts_file: fixture_file_upload(File.join('spec/fixtures/pages.zip')),
-            legacy_artifacts_metadata: fixture_file_upload(File.join('spec/fixtures/pages.zip.meta'))
-          )
-        end
+      let(:ci_build) do
+        create(
+          :ci_build,
+          project: project,
+          pipeline: pipeline,
+          ref: 'HEAD',
+          legacy_artifacts_file: fixture_file_upload(File.join('spec/fixtures/pages.zip')),
+          legacy_artifacts_metadata: fixture_file_upload(File.join('spec/fixtures/pages.zip.meta'))
+        )
+      end
 
-        before do
-          result = Projects::UpdatePagesService.new(project, ci_build).execute
-          expect(result[:status]).to eq(:success)
-          expect(project).to be_pages_deployed
-        end
+      before do
+        result = Projects::UpdatePagesService.new(project, ci_build).execute
+        expect(result[:status]).to eq(:success)
+        expect(project).to be_pages_deployed
+      end
 
-        it 'removes the pages' do
-          visit project_pages_path(project)
+      it 'removes the pages' do
+        visit project_pages_path(project)
 
-          expect(page).to have_link('Remove pages')
+        expect(page).to have_link('Remove pages')
 
-          click_link 'Remove pages'
+        click_link 'Remove pages'
 
-          expect(project.pages_deployed?).to be_falsey
-        end
+        expect(project.pages_deployed?).to be_falsey
       end
     end
   end
