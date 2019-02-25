@@ -405,7 +405,19 @@ class Group < Namespace
     Feature.enabled?(:group_clusters, root_ancestor, default_enabled: true)
   end
 
+  def auto_devops_enabled?
+    if auto_devops_enabled.nil?
+      has_auto_devops_implicitly_enabled?
+    else
+      auto_devops_enabled
+    end
+  end
+
   private
+
+  def has_auto_devops_implicitly_enabled?
+    Gitlab::CurrentSettings.auto_devops_enabled?
+  end
 
   def update_two_factor_requirement
     return unless require_two_factor_authentication_changed? || two_factor_grace_period_changed?

@@ -810,4 +810,34 @@ describe Group do
       it { is_expected.to be_truthy }
     end
   end
+
+  describe '#auto_devops_enabled?' do
+    let(:group) { create(:group) }
+
+    using RSpec::Parameterized::TableSyntax
+
+    where(:instance_level, :group_level, :result) do
+      # Auto DevOps enabled at instance level
+      true  | nil   | true
+      true  | false | false
+      true  | true  | true
+      # Auto DevOps disabled at instance level
+      false | nil   | false
+      false | false | false
+      false | true  | true
+    end
+
+    with_them do
+      before do
+        stub_application_setting(auto_devops_enabled: instance_level)
+        group.update_attribute(:auto_devops_enabled, group_level)
+
+        group.reload
+      end
+
+      subject { group.auto_devops_enabled? }
+
+      it { is_expected.to eq(result) }
+    end
+  end
 end
