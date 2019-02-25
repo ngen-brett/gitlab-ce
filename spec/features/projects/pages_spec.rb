@@ -176,7 +176,6 @@ describe 'Pages' do
 
       expect(page).to have_content('Configure pages')
       expect(page).not_to have_link('Remove pages')
-      expect(page).not_to have_text('Only the project owner can remove pages')
     end
 
     describe 'project settings page' do
