@@ -13,16 +13,6 @@ describe 'Pages' do
     sign_in(user)
   end
 
-  shared_examples 'no pages deployed' do
-    it 'does not see anything to destroy' do
-      visit project_pages_path(project)
-
-      expect(page).to have_content('Configure pages')
-      expect(page).not_to have_link('Remove pages')
-      expect(page).not_to have_text('Only the project owner can remove pages')
-    end
-  end
-
   context 'when user is the owner' do
     before do
       project.namespace.update(owner: user)
@@ -181,7 +171,13 @@ describe 'Pages' do
       end
     end
 
-    it_behaves_like 'no pages deployed'
+    it 'does not see anything to destroy' do
+      visit project_pages_path(project)
+
+      expect(page).to have_content('Configure pages')
+      expect(page).not_to have_link('Remove pages')
+      expect(page).not_to have_text('Only the project owner can remove pages')
+    end
 
     describe 'project settings page' do
       it 'renders "Pages" tab' do
