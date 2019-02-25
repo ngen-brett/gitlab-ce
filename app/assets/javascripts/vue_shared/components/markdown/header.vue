@@ -118,7 +118,7 @@ export default {
         <toolbar-button
           :prepend="true"
           tag="* [ ] "
-          button-title="Add a task list"
+          :button-title="__('MarkdownToolbar|Add a task list')"
           icon="task-done"
         />
         <toolbar-button
