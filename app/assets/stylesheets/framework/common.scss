@@ -427,6 +427,7 @@ img.emoji {
 .gl-pl-3 { padding-left: #{2 * $grid-size}; }
 .gl-pl-4 { padding-left: #{3 * $grid-size}; }
 .gl-pl-5 { padding-left: #{4 * $grid-size}; }
+.gl-pl-8 { padding-left: #{8 * $grid-size}; }
 
 .gl-pr-0 { padding-right: 0; }
 .gl-pr-1 { padding-right: #{0.5 * $grid-size}; }
@@ -434,6 +435,7 @@ img.emoji {
 .gl-pr-3 { padding-right: #{2 * $grid-size}; }
 .gl-pr-4 { padding-right: #{3 * $grid-size}; }
 .gl-pr-5 { padding-right: #{4 * $grid-size}; }
+.gl-pr-8 { padding-right: #{8 * $grid-size}; }
 
 /**
  * Removes browser specific clear icon from input fields in
@@ -462,4 +464,8 @@ img.emoji {
   &.is-dragging {
     background-color: $gray-600;
   }
+}
+
+.pointer {
+  cursor: pointer;
 }
