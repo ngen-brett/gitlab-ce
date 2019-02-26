@@ -132,7 +132,7 @@ const bindEvents = () => {
       gomicro: {
         text: 'Go Micro',
         icon: '.template-option .icon-gomicro',
-      },      
+      },
       hugo: {
         text: 'Pages/Hugo',
         icon: '.template-option .icon-hugo',
