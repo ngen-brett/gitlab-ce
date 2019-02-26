@@ -28,17 +28,6 @@ module Gitlab
         def finder(project = nil)
           Gitlab::Template::Finders::GlobalTemplateFinder.new(self.base_dir, self.extension, self.categories)
         end
-
-        def dropdown_names(context)
-          categories = context == 'autodeploy' ? ['Auto deploy'] : static_dropdown_names
-          super().slice(*categories)
-        end
-
-        protected
-
-        def static_dropdown_names
-          %w(General Pages)
-        end
       end
     end
   end
