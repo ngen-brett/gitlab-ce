@@ -4,8 +4,6 @@ require 'fileutils'
 module JavaScriptFixturesHelpers
   include Gitlab::Popen
 
-  FIXTURE_PATH = 'spec/javascripts/fixtures'.freeze
-
   def self.included(base)
     base.around do |example|
       # pick an arbitrary date from the past, so tests are not time dependent
@@ -15,26 +13,30 @@ module JavaScriptFixturesHelpers
 
   # Public: Removes all fixture files from given directory
   #
-  # directory_name - directory of the fixtures (relative to FIXTURE_PATH)
+  # directory_name - directory of the fixtures (relative to FIXTURE_PATHS)
   #
   def clean_frontend_fixtures(directory_name)
-    directory_name = File.expand_path(directory_name, FIXTURE_PATH)
-    Dir[File.expand_path('*.html.raw', directory_name)].each do |file_name|
-      FileUtils.rm(file_name)
+    fixture_paths.each do |fixture_path|
+      directory_name = File.expand_path(directory_name, fixture_path)
+      Dir[File.expand_path('*.html.raw', directory_name)].each do |file_name|
+        FileUtils.rm(file_name)
+      end
     end
   end
 
   # Public: Store a response object as fixture file
   #
   # response - string or response object to store
-  # fixture_file_name - file name to store the fixture in (relative to FIXTURE_PATH)
+  # fixture_file_name - file name to store the fixture in (relative to FIXTURE_PATHS)
   #
   def store_frontend_fixture(response, fixture_file_name)
-    fixture_file_name = File.expand_path(fixture_file_name, FIXTURE_PATH)
-    fixture = response.respond_to?(:body) ? parse_response(response) : response
+    fixture_paths.each do |fixture_path|
+      fixture_file_name = File.expand_path(fixture_file_name, fixture_path)
+      fixture = response.respond_to?(:body) ? parse_response(response) : response
 
-    FileUtils.mkdir_p(File.dirname(fixture_file_name))
-    File.write(fixture_file_name, fixture)
+      FileUtils.mkdir_p(File.dirname(fixture_file_name))
+      File.write(fixture_file_name, fixture)
+    end
   end
 
   def remove_repository(project)
@@ -42,6 +44,10 @@ module JavaScriptFixturesHelpers
   end
 
   private
+
+  def fixture_paths
+    ['spec/javascripts/fixtures']
+  end
 
   # Private: Prepare a response object for use as a frontend fixture
   #
