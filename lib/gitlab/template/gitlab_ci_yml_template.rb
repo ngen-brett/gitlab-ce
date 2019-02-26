@@ -30,8 +30,14 @@ module Gitlab
         end
 
         def dropdown_names(context)
-          categories = context == 'autodeploy' ? ['Auto deploy'] : %w(General Pages)
+          categories = context == 'autodeploy' ? ['Auto deploy'] : static_dropdown_names
           super().slice(*categories)
+        end
+
+        protected
+
+        def static_dropdown_names
+          %w(General Pages)
         end
       end
     end
