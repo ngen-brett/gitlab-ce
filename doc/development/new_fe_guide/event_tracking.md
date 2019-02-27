@@ -72,3 +72,15 @@ Below is a list of supported `data-track-*` attributes:
 | `data-track-value`    | The `value` in `trackEvent`. If omitted, this will be `target.value` or empty string. For checkboxes, the default value being tracked will be the element's checked attribute if `data-track-value` is omitted. | false    |
 
 Since Snowplow is an Enterprise Edition feature, it's necessary to create a CE backport when adding `data-track-*` attributes to HAML templates in most cases.
+
+## Testing
+
+Snowplow can be enabled under `Integrations` in the `Admin Settings`. The following configruation is required:
+
+| Name          | Value                     |
+| ------------- | ------------------------- |
+| Collector     | `snowplow.trx.gitlab.net` |
+| Site ID       | `gitlab`                  |
+| Cookie domain | `.gitlab.com`             |
+
+Now the implemented tracking events can be inspected locally by looking at the browser's network panel.
