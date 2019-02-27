@@ -1,0 +1,46 @@
+# Read more about this feature here: https://docs.gitlab.com/ee/user/project/merge_requests/dast.html
+
+variables:
+  DAST_WEBSITE: http://example.com # Please edit to be your website to scan for vulnerabilities
+  DAST_TARGET_AVAILABILITY_TIMEOUT: 60 # Number of seconds to wait for the scanned website to respond
+  DAST_AUTH_URL: http://example.com/sign_in # Please edit to be your "sign in" page URL
+  DAST_USERNAME: username # A username to authenticate with
+  DAST_PASSWORD: password # A password to authenticate with
+  DAST_USERNAME_FIELD: user[login] # A "name" field of "username" form field
+  DAST_PASSWORD_FIELD: user[password] # A "name" field of "password" form field
+
+stages:
+  - test
+
+dast:
+  stage: test
+  image: docker:stable
+  variables:
+    DOCKER_DRIVER: overlay2
+  allow_failure: true
+  services:
+    - docker:stable-dind
+  script:
+    - export SP_VERSION=$(echo "$CI_SERVER_VERSION" | sed 's/^\([0-9]*\)\.\([0-9]*\).*/\1-\2-stable/')
+    - docker run
+      --env DAST_TARGET_AVAILABILITY_TIMEOUT=$DAST_TARGET_AVAILABILITY_TIMEOUT
+      --volume "$PWD:/zap/wrk:rw"
+      --volume /var/run/docker.sock:/var/run/docker.sock
+      -w /output
+      "registry.gitlab.com/gitlab-org/security-products/dast:$SP_VERSION" /analyze -t $DAST_WEBSITE
+      --auth-url $DAST_AUTH_URL
+      --auth-username $DAST_USERNAME
+      --auth-password $DAST_PASSWORD
+      --auth-username-field $DAST_USERNAME_FIELD
+      --auth-password-field $DAST_PASSWORD_FIELD
+  artifacts:
+    reports:
+      dast: gl-dast-report.json
+  only:
+    refs:
+      - branches
+    variables:
+      - $GITLAB_FEATURES =~ /\bdast\b/
+  except:
+    variables:
+      - $DAST_DISABLED
