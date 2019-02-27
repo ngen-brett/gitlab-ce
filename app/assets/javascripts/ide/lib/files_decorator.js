@@ -11,64 +11,72 @@ export const decorateFiles = ({
   base64 = false,
 }) => {
   const treeList = [];
+  const entries = {};
   let file;
   let parentPath;
-  const entries = data.reduce((acc, path) => {
-    const pathSplit = path.split('/');
-    const blobName = pathSplit.pop().trim();
 
-    if (pathSplit.length > 0) {
-      pathSplit.reduce((pathAcc, folderName) => {
-        const parentFolder = acc[pathAcc[pathAcc.length - 1]];
-        const folderPath = `${parentFolder ? `${parentFolder.path}/` : ''}${folderName}`;
-        const foundEntry = acc[folderPath];
+  const splitParent = path => {
+    const idx = path.lastIndexOf('/');
 
-        if (!foundEntry) {
-          parentPath = parentFolder ? parentFolder.path : null;
+    return {
+      parent: idx >= 0 ? path.substring(0, idx) : null,
+      name: idx >= 0 ? path.substring(idx + 1) : path,
+    };
+  };
 
-          const tree = decorateData({
-            projectId,
-            branchId,
-            id: folderPath,
-            name: folderName,
-            path: folderPath,
-            url: `/${projectId}/tree/${branchId}/-/${folderPath}/`,
-            type: 'tree',
-            parentTreeUrl: parentFolder ? parentFolder.url : `/${projectId}/tree/${branchId}/`,
-            tempFile,
-            changed: tempFile,
-            opened: tempFile,
-            parentPath,
-          });
-
-          Object.assign(acc, {
-            [folderPath]: tree,
-          });
-
-          if (parentFolder) {
-            parentFolder.tree.push(tree);
-          } else {
-            treeList.push(tree);
-          }
-
-          pathAcc.push(tree.path);
-        } else {
-          pathAcc.push(foundEntry.path);
-        }
-
-        return pathAcc;
-      }, []);
+  const insertParent = path => {
+    if (!path) {
+      return null;
+    } else if (entries[path]) {
+      return entries[path];
     }
 
-    if (blobName !== '') {
-      const fileFolder = acc[pathSplit.join('/')];
-      parentPath = fileFolder ? fileFolder.path : null;
+    const { parent, name } = splitParent(path);
+    const parentFolder = parent && insertParent(parent);
+    const folderPath = path;
+    parentPath = parentFolder ? parentFolder.path : null;
+
+    const tree = decorateData({
+      projectId,
+      branchId,
+      id: folderPath,
+      name,
+      path: folderPath,
+      url: `/${projectId}/tree/${branchId}/-/${folderPath}/`,
+      type: 'tree',
+      parentTreeUrl: parentFolder ? parentFolder.url : `/${projectId}/tree/${branchId}/`,
+      tempFile,
+      changed: tempFile,
+      opened: tempFile,
+      parentPath,
+    });
+
+    Object.assign(entries, {
+      [folderPath]: tree,
+    });
+
+    if (parentFolder) {
+      parentFolder.tree.push(tree);
+    } else {
+      treeList.push(tree);
+    }
+
+    return tree;
+  };
+
+  data.forEach(path => {
+    const { parent, name } = splitParent(path);
+
+    const fileFolder = parent && insertParent(parent);
+
+    if (name) {
+      parentPath = fileFolder && fileFolder.path;
 
       file = decorateData({
         projectId,
         branchId,
         id: path,
-        name: blobName,
+        name,
         path,
         url: `/${projectId}/blob/${branchId}/-/${path}`,
         type: 'blob',
@@ -77,11 +85,11 @@ export const decorateFiles = ({
         changed: tempFile,
         content,
         base64,
-        previewMode: viewerInformationForPath(blobName),
+        previewMode: viewerInformationForPath(name),
         parentPath,
       });
 
-      Object.assign(acc, {
+      Object.assign(entries, {
         [path]: file,
       });
 
@@ -91,9 +99,7 @@ export const decorateFiles = ({
         treeList.push(file);
       }
     }
-
-    return acc;
-  }, {});
+  });
 
   return {
     entries,
