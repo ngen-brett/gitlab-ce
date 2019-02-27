@@ -1,0 +1,6 @@
+---
+title: Fix GitLab::JsonCache when reading back from the cache a persisted instance
+  of ActiveRecord::Base
+merge_request: 25587
+author:
+type: fixed
