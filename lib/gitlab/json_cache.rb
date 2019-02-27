@@ -71,7 +71,28 @@ module Gitlab
     end
 
     def parse_entry(raw, klass)
-      klass.new(raw) if valid_entry?(raw, klass)
+      return unless valid_entry?(raw, klass)
+
+      entry = klass.new(raw)
+      mark_as_persisted(entry)
+      entry
+    end
+
+    def persisted_entry?(entry)
+      entry.respond_to?(:id) && entry.id.present? && entry.is_a?(ActiveRecord::Base)
+    end
+
+    # When the cached value is a persisted instance of ActiveRecord::Base in some
+    # cases a relation can return an empty collection becauses scope.none! is being
+    # applied on ActiveRecord::Associations::CollectionAssociation#scope when the
+    # new_record? method returns false.
+    #
+    # See https://gitlab.com/gitlab-org/gitlab-ee/issues/9903#note_145329964
+    #
+    def mark_as_persisted(entry)
+      return unless persisted_entry?(entry)
+
+      entry.instance_variable_set('@new_record', false)
     end
 
     def valid_entry?(raw, klass)
