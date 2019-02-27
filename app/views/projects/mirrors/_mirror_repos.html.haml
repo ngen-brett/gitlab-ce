@@ -36,7 +36,7 @@
 
     .panel.panel-default
       .table-responsive
-        %table.table.push-pull-table
+        %table.table.table-bordered.push-pull-table
           %thead
             %tr
               %th
@@ -58,7 +58,7 @@
                     - if mirror.last_error.present?
                       .badge.mirror-error-badge{ data: { toggle: 'tooltip', html: 'true' }, title: html_escape(mirror.last_error.try(:strip)) }= _('Error')
                   %td.mirror-action-buttons
-                    .btn-group.mirror-actions-group.pull-right{ role: 'group' }
+                    .btn-group.mirror-actions-group{ role: 'group' }
                       - if mirror.ssh_key_auth?
                         = clipboard_button(text: mirror.ssh_public_key, class: 'btn btn-default', title: _('Copy SSH public key'))
                       = render 'shared/remote_mirror_update_button', remote_mirror: mirror
