@@ -1,7 +1,7 @@
 import { __ } from '../../../locale';
-import service from '../../services';
+import csrf from '~/lib/utils/csrf';
 import * as types from '../mutation_types';
-import FilesDecoratorWorker from '../workers/files_decorator_worker';
+import fetchFiles from '../../lib/fetch_files';
 
 export const toggleTreeOpen = ({ commit }, path) => {
   commit(types.TOGGLE_TREE_OPEN, path);
@@ -42,34 +42,29 @@ export const getFiles = ({ state, commit, dispatch }, { projectId, branchId } = 
       const selectedProject = state.projects[projectId];
       commit(types.CREATE_TREE, { treePath: `${projectId}/${branchId}` });
 
-      service
-        .getFiles(selectedProject.web_url, branchId)
-        .then(({ data }) => {
-          const worker = new FilesDecoratorWorker();
-          worker.addEventListener('message', e => {
-            const { entries, treeList } = e.data;
-            const selectedTree = state.trees[`${projectId}/${branchId}`];
+      fetchFiles({
+        csrf: {
+          token: csrf.token,
+          headerKey: csrf.headerKey,
+        },
+        projectUrl: selectedProject.web_url,
+        branchId,
+        projectId,
+      })
+        .then(({ entries, treeList }) => {
+          const selectedTree = state.trees[`${projectId}/${branchId}`];
 
-            commit(types.SET_ENTRIES, entries);
-            commit(types.SET_DIRECTORY_DATA, {
-              treePath: `${projectId}/${branchId}`,
-              data: treeList,
-            });
-            commit(types.TOGGLE_LOADING, {
-              entry: selectedTree,
-              forceValue: false,
-            });
-
-            worker.terminate();
-
-            resolve();
+          commit(types.SET_ENTRIES, entries);
+          commit(types.SET_DIRECTORY_DATA, {
+            treePath: `${projectId}/${branchId}`,
+            data: treeList,
+          });
+          commit(types.TOGGLE_LOADING, {
+            entry: selectedTree,
+            forceValue: false,
           });
 
-          worker.postMessage({
-            data,
-            projectId,
-            branchId,
-          });
+          resolve();
         })
         .catch(e => {
           if (e.response.status === 404) {

@@ -3,7 +3,7 @@ import Vue from 'vue';
 import { visitUrl } from '~/lib/utils/url_utility';
 import flash from '~/flash';
 import * as types from './mutation_types';
-import FilesDecoratorWorker from './workers/files_decorator_worker';
+import FilesDecoratorWorker from '../lib/files_decorator_worker';
 import { stageKeys } from '../constants';
 
 export const redirectToUrl = (_, url) => visitUrl(url);

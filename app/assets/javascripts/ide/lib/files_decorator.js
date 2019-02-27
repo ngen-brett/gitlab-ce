@@ -1,10 +1,15 @@
 import { viewerInformationForPath } from '~/vue_shared/components/content_viewer/lib/viewer_utils';
-import { decorateData, sortTree } from '../utils';
+import { decorateData, sortTree } from '../stores/utils';
 
-// eslint-disable-next-line no-restricted-globals
-self.addEventListener('message', e => {
-  const { data, projectId, branchId, tempFile = false, content = '', base64 = false } = e.data;
-
+// eslint-disable-next-line import/prefer-default-export
+export const decorateFiles = ({
+  data,
+  projectId,
+  branchId,
+  tempFile = false,
+  content = '',
+  base64 = false,
+}) => {
   const treeList = [];
   let file;
   let parentPath;
@@ -90,11 +95,10 @@ self.addEventListener('message', e => {
     return acc;
   }, {});
 
-  // eslint-disable-next-line no-restricted-globals
-  self.postMessage({
+  return {
     entries,
     treeList: sortTree(treeList),
     file,
     parentPath,
-  });
-});
+  };
+};
