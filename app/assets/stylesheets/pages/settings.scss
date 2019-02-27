@@ -106,6 +106,15 @@
   .form-text.text-muted {
     margin-top: 0;
   }
+
+  .table-bordered {
+    border-radius: 1px;
+
+    th:not(:last-child),
+    td:not(:last-child) {
+      border-right: solid 1px transparent;
+    }
+  }
 }
 
 .settings-list-icon {

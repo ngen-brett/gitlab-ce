@@ -1206,15 +1206,6 @@ pre.light-well {
     border: 0;
   }
 
-  .table-bordered {
-    border-radius: 1px;
-
-    th:not(:last-child),
-    td:not(:last-child) {
-      border-right: solid 1px transparent;
-    }
-  }
-
   .flash-container {
     padding: 0;
   }
