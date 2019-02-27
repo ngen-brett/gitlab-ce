@@ -2812,6 +2812,16 @@ describe Ci::Build do
     end
   end
 
+  describe 'state transition: any => [:preparing]' do
+    let(:build) { create(:ci_build, :created) }
+
+    it 'queues BuildPrepareWorker' do
+      expect(Ci::BuildPrepareWorker).to receive(:perform_async).with(build.id)
+
+      build.prepare
+    end
+  end
+
   describe 'state transition: any => [:pending]' do
     let(:build) { create(:ci_build, :created) }
 

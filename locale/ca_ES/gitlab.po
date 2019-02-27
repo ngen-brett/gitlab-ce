@@ -1797,6 +1797,9 @@ msgstr ""
 msgid "CiStatusText|created"
 msgstr ""
 
+msgid "CiStatusText|preparing"
+msgstr ""
+
 msgid "CiStatusText|delayed"
 msgstr ""
 

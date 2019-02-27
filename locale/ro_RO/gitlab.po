@@ -1794,6 +1794,9 @@ msgstr ""
 msgid "CiStatusLabel|created"
 msgstr ""
 
+msgid "CiStatusLabel|preparing"
+msgstr ""
+
 msgid "CiStatusLabel|delayed"
 msgstr ""
 
@@ -1828,6 +1831,9 @@ msgid "CiStatusText|canceled"
 msgstr ""
 
 msgid "CiStatusText|created"
+msgstr ""
+
+msgid "CiStatusText|preparing"
 msgstr ""
 
 msgid "CiStatusText|delayed"
