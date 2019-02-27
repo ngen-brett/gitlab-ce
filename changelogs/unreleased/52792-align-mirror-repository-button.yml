@@ -1,0 +1,5 @@
+---
+title: Fix repository mirrors table right padding and right/left borders
+merge_request: 25606
+author:
+type: fixed
