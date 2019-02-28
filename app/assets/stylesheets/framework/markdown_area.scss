@@ -148,11 +148,6 @@
     border-color: darken($gray-normal, 8%);
     margin: 10px 0;
   }
-
-
-  table:not(.js-syntax-highlight) {
-    @include markdown-table;
-  }
 }
 
 .toolbar-btn {
