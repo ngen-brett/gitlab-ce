@@ -4,7 +4,7 @@
    and follow the [instructions](../ssh/README.md) to generate your SSH key pair.
 
 1. Once you do that, login to GitLab with your credentials.
-1. On the upper right corner, click on your avatar and go to your **Profile settings**.
+1. On the upper right corner, click on your avatar and go to your **Settings**.
 
     ![Profile settings dropdown](img/profile_settings.png)
 
