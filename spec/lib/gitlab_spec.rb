@@ -95,4 +95,24 @@ describe Gitlab do
       expect(described_class.com?).to eq false
     end
   end
+
+  describe '.ee?' do
+    it 'returns true when using Enterprise Edition' do
+      allow(Object)
+        .to receive(:const_defined?)
+        .with(:License)
+        .and_return(true)
+
+      expect(described_class.ee?).to eq(true)
+    end
+
+    it 'returns false when using Community Edition' do
+      allow(Object)
+        .to receive(:const_defined?)
+        .with(:License)
+        .and_return(false)
+
+      expect(described_class.ee?).to eq(false)
+    end
+  end
 end
