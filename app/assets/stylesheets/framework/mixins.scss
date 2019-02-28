@@ -25,11 +25,16 @@
  * Mixin for markdown tables
  */
 @mixin markdown-table {
+  @extend .table;
+  @extend .table-bordered;
+
   width: auto;
+  margin: 16px 0;
   display: inline-block;
   overflow-x: auto;
+  color: $gl-text-color;
   border: 0;
-  border-color: $gl-gray-100;
+  border-collapse: collapse;
 
   @supports (width: fit-content) {
     display: block;
@@ -37,12 +42,13 @@
   }
 
   tr {
-    th {
-      border-bottom: solid 2px $gl-gray-100;
+    th, td {
+      border-color: $gray-dark;
     }
 
-    td {
-      border-color: $gl-gray-100;
+    th {
+      border-bottom: solid 2px $gl-gray-100;
+      background-color: $label-gray-bg;
     }
   }
 }
