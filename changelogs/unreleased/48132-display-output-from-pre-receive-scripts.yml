@@ -1,0 +1,6 @@
+---
+title: Allow custom hook scripts to send error messages to the GitLab UI when they
+  fail
+merge_request: 25625
+author:
+type: changed
