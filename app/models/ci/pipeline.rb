@@ -21,7 +21,7 @@ module Ci
     belongs_to :user
     belongs_to :auto_canceled_by, class_name: 'Ci::Pipeline'
     belongs_to :pipeline_schedule, class_name: 'Ci::PipelineSchedule'
-    belongs_to :merge_request, class_name: 'MergeRequest'
+    belongs_to :merge_request_as_merge_request_pipeline, foreign_key: "merge_request_id", class_name: 'MergeRequest'
 
     has_internal_id :iid, scope: :project, presence: false, init: ->(s) do
       s&.project&.all_pipelines&.maximum(:iid) || s&.project&.all_pipelines&.count
@@ -39,7 +39,7 @@ module Ci
 
     # Merge requests for which the current pipeline is running against
     # the merge request's latest commit.
-    has_many :merge_requests, foreign_key: "head_pipeline_id"
+    has_many :merge_requests_as_head_pipeline, foreign_key: "head_pipeline_id", class_name: 'MergeRequest'
 
     has_many :pending_builds, -> { pending }, foreign_key: :commit_id, class_name: 'Ci::Build'
     has_many :retryable_builds, -> { latest.failed_or_canceled.includes(:project) }, foreign_key: :commit_id, class_name: 'Ci::Build'
@@ -646,7 +646,7 @@ module Ci
         if merge_request? && merge_request
           variables.append(key: 'CI_MERGE_REQUEST_SOURCE_BRANCH_SHA', value: source_sha.to_s)
           variables.append(key: 'CI_MERGE_REQUEST_TARGET_BRANCH_SHA', value: target_sha.to_s)
-          variables.concat(merge_request.predefined_variables)
+          variables.concat(merge_request_as_merge_request_pipeline.predefined_variables)
         end
       end
     end
@@ -719,7 +719,7 @@ module Ci
     def modified_paths
       strong_memoize(:modified_paths) do
         if merge_request?
-          merge_request.modified_paths
+          merge_request_as_merge_request_pipeline.modified_paths
         elsif branch_updated?
           push_details.modified_paths
         end
