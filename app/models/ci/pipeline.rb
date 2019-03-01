@@ -680,6 +680,22 @@ module Ci
         end
     end
 
+    def first_merge_request
+      return @first_merge_request if defined?(@first_merge_request)
+
+      @first_merge_request ||=
+        begin
+          merge_requests = MergeRequest.includes(:latest_merge_request_diff)
+            .where(source_branch: ref,
+                   source_project: project)
+            .reorder(iid: :desc)
+
+          merge_requests.find do |merge_request|
+            merge_request.commit_shas.include?(sha)
+          end
+        end
+    end
+
     def detailed_status(current_user)
       Gitlab::Ci::Status::Pipeline::Factory
         .new(self, current_user)
