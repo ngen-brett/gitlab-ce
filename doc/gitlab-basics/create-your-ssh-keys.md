@@ -22,7 +22,7 @@
     ![SSH key title](img/profile_settings_ssh_keys_title.png)
 
 1. Finally, click **Add key** to add it to GitLab. You will be able to see
-   its fingerprint, its title, and creation date.
+   its fingerprint, title, and creation date.
 
     ![SSH key single page](img/profile_settings_ssh_keys_single_key.png)
 
