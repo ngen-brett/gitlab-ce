@@ -113,7 +113,8 @@ describe('issue_note_form component', () => {
         it('should ender edit mode', () => {
           // TODO: do not spy on vm
           spyOn(wrapper.vm, 'editMyLastNote').and.callThrough();
-
+          textarea = wrapper.find('textarea');
+          textarea.setValue('Foo');
           textarea.trigger('keydown.up');
 
           expect(wrapper.vm.editMyLastNote).toHaveBeenCalled();
@@ -122,6 +123,8 @@ describe('issue_note_form component', () => {
 
       describe('enter', () => {
         it('should save note when cmd+enter is pressed', () => {
+          textarea = wrapper.find('textarea');
+          textarea.setValue('Foo');
           textarea.trigger('keydown.enter', { metaKey: true });
 
           const { handleFormUpdate } = wrapper.emitted();
@@ -130,6 +133,8 @@ describe('issue_note_form component', () => {
         });
 
         it('should save note when ctrl+enter is pressed', () => {
+          textarea = wrapper.find('textarea');
+          textarea.setValue('Foo');
           textarea.trigger('keydown.enter', { ctrlKey: true });
 
           const { handleFormUpdate } = wrapper.emitted();
@@ -153,7 +158,9 @@ describe('issue_note_form component', () => {
           .then(() => {
             const cancelButton = wrapper.find('.note-edit-cancel');
             cancelButton.trigger('click');
-
+            return wrapper.vm.$nextTick();
+          })
+          .then(() => {
             expect(wrapper.vm.cancelHandler).toHaveBeenCalled();
           })
           .then(done)
@@ -173,7 +180,9 @@ describe('issue_note_form component', () => {
             textarea.setValue('Foo');
             const saveButton = wrapper.find('.js-vue-issue-save');
             saveButton.trigger('click');
-
+            return wrapper.vm.$nextTick();
+          })
+          .then(() => {
             expect(wrapper.vm.isSubmitting).toEqual(true);
           })
           .then(done)
