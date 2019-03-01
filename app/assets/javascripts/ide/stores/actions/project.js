@@ -125,6 +125,37 @@ export const showBranchNotFoundError = ({ dispatch }, branchId) => {
   });
 };
 
+export const getMergeRequestsForBranch = ({ commit }, { projectId, branchId } = {}) =>
+  new Promise((resolve, reject) => {
+    service
+      .getProjectMergeRequests(`${projectId}`, { source_branch: branchId })
+      .then(({ data }) => {
+        if (data.length > 0) {
+          // In case of several MRs associated with the branch, use the first in
+          // the list as the current one:
+          commit(types.SET_MERGE_REQUEST, {
+            projectPath: projectId,
+            mergeRequestId: `${data[0].iid}`,
+            mergeRequest: data[0],
+          });
+          commit(types.SET_CURRENT_MERGE_REQUEST, `${data[0].iid}`);
+        }
+        resolve(data);
+      })
+      .catch(() => {
+        flash(
+          __('Error loading branch data. Please try again.'),
+          'alert',
+          document,
+          null,
+          false,
+          true,
+        );
+
+        reject(new Error(`Can not fetch merge requests for ${projectId}/${branchId}`));
+      });
+  });
+
 export const openBranch = ({ dispatch, state }, { projectId, branchId, basePath }) => {
   dispatch('setCurrentBranchId', branchId);
 
@@ -136,17 +167,24 @@ export const openBranch = ({ dispatch, state }, { projectId, branchId, basePath 
   return dispatch('getFiles', {
     projectId,
     branchId,
-  }).then(() => {
-    if (basePath) {
-      const path = basePath.slice(-1) === '/' ? basePath.slice(0, -1) : basePath;
-      const treeEntryKey = Object.keys(state.entries).find(
-        key => key === path && !state.entries[key].pending,
-      );
-      const treeEntry = state.entries[treeEntryKey];
+  })
+    .then(() => {
+      if (basePath) {
+        const path = basePath.slice(-1) === '/' ? basePath.slice(0, -1) : basePath;
+        const treeEntryKey = Object.keys(state.entries).find(
+          key => key === path && !state.entries[key].pending,
+        );
+        const treeEntry = state.entries[treeEntryKey];
 
-      if (treeEntry) {
-        dispatch('handleTreeEntryAction', treeEntry);
+        if (treeEntry) {
+          dispatch('handleTreeEntryAction', treeEntry);
+        }
       }
-    }
-  });
+    })
+    .then(() => {
+      dispatch('getMergeRequestsForBranch', {
+        projectId,
+        branchId,
+      });
+    });
 };
