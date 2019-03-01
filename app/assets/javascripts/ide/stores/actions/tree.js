@@ -1,7 +1,7 @@
 import { __ } from '../../../locale';
-import csrf from '~/lib/utils/csrf';
+import service from '../../services';
 import * as types from '../mutation_types';
-import fetchFiles from '../../lib/fetch_files';
+import FilesDecoratorWorker from '../../lib/files_decorator_worker';
 
 export const toggleTreeOpen = ({ commit }, path) => {
   commit(types.TOGGLE_TREE_OPEN, path);
@@ -42,29 +42,38 @@ export const getFiles = ({ state, commit, dispatch }, { projectId, branchId } = 
       const selectedProject = state.projects[projectId];
       commit(types.CREATE_TREE, { treePath: `${projectId}/${branchId}` });
 
-      fetchFiles({
-        csrf: {
-          token: csrf.token,
-          headerKey: csrf.headerKey,
-        },
-        projectUrl: selectedProject.web_url,
-        branchId,
-        projectId,
-      })
-        .then(({ entries, treeList }) => {
-          const selectedTree = state.trees[`${projectId}/${branchId}`];
+      const time = Date.now();
+      console.log('start!');
 
-          commit(types.SET_ENTRIES, entries);
-          commit(types.SET_DIRECTORY_DATA, {
-            treePath: `${projectId}/${branchId}`,
-            data: treeList,
-          });
-          commit(types.TOGGLE_LOADING, {
-            entry: selectedTree,
-            forceValue: false,
+      service
+        .getFiles(selectedProject.web_url, branchId)
+        .then(({ data }) => {
+          const worker = new FilesDecoratorWorker();
+          worker.addEventListener('message', e => {
+            console.log(`stop! ${Date.now() - time}`);
+            const { entries, treeList } = e.data;
+            const selectedTree = state.trees[`${projectId}/${branchId}`];
+
+            commit(types.SET_ENTRIES, entries);
+            commit(types.SET_DIRECTORY_DATA, {
+              treePath: `${projectId}/${branchId}`,
+              data: treeList,
+            });
+            commit(types.TOGGLE_LOADING, {
+              entry: selectedTree,
+              forceValue: false,
+            });
+
+            worker.terminate();
+
+            resolve();
           });
 
-          resolve();
+          worker.postMessage({
+            data,
+            projectId,
+            branchId,
+          });
         })
         .catch(e => {
           if (e.response.status === 404) {

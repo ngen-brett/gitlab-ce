@@ -73,6 +73,9 @@ export default {
       }
     },
   },
+  created() {
+    console.log('created');
+  },
   mounted() {
     if (this.hasPathAtCurrentRoute()) {
       this.scrollIntoView(true);
