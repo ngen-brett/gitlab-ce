@@ -161,11 +161,34 @@ in the code.
 
 ### Logging
 
-The usage of a logging library is strongly recommended for daemons. Even though
-there is a `log` package in the standard library, we generally use
-[logrus](https://github.com/sirupsen/logrus). Its plugin ("hooks") system
-makes it a powerful logging library, with the ability to add notifiers and
-formatters at the logger level directly.
+The usage of a logging library is strongly recommended for daemons. Even
+though there is a `log` package in the standard library, we generally use
+[logrus]. Its plugin ("hooks") system makes it a powerful logging library,
+with the ability to add notifiers and formatters at the logger level
+directly.
+
+#### Structured logging
+
+Every binary ideally has to have structured logging in place as this would
+help with the search, and filtering through the logs. At GitLab.com we prefer
+using structure logging in JSON format, as all our infrastructure assumes
+that. When using [logrus] you can turn this on by simply using the build in
+[JSON formmatter](https://github.com/sirupsen/logrus#formatters). This
+follows the same logging type we use in our [ruby
+applications](https://docs.gitlab.com/ee/development/logging.html#use-structured-json-logging).
+
+#### How to use logrus
+
+There are a few guidelines one should follow when using the [logrus].
+
+- When printing an error use
+  [WithError](https://godoc.org/github.com/sirupsen/logrus#WithError). For
+  exmaple `logrus.WithError(err).Error("Failed to do something")`
+- Since we use [Structued logging](#structured-logging) we can log fields
+  such request information using
+  [WithField](https://godoc.org/github.com/sirupsen/logrus#WithField) or
+  [WithFields](https://godoc.org/github.com/sirupsen/logrus#WithFields). For
+  example `logrus.WithField("file", "/app/go).Info("Opening dir")`
 
 ### Tracing and Correlation
 
@@ -214,3 +237,5 @@ it will display its help message (if `cli` has been used).
 ---
 
 [Return to Development documentation](../README.md).
+
+[logrus]: https://github.com/sirupsen/logrus
