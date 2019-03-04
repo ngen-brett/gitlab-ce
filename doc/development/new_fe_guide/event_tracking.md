@@ -75,7 +75,7 @@ Since Snowplow is an Enterprise Edition feature, it's necessary to create a CE b
 
 ## Testing
 
-Snowplow can be enabled under `Integrations` in the `Admin Settings`. The following configruation is required:
+Snowplow can be enabled under `Integrations` in the `Admin Settings`. The following configuration is required:
 
 | Name          | Value                     |
 | ------------- | ------------------------- |
@@ -83,4 +83,4 @@ Snowplow can be enabled under `Integrations` in the `Admin Settings`. The follow
 | Site ID       | `gitlab`                  |
 | Cookie domain | `.gitlab.com`             |
 
-Now the implemented tracking events can be inspected locally by looking at the browser's network panel.
+Now the implemented tracking events can be inspected locally by looking at the network panel of the browser's development tools.
