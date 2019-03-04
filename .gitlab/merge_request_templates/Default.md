@@ -1,3 +1,18 @@
+## What does this MR do?
+
+<!--
+Describe in detail what your merge request does, why it does that, etc.
+
+Please also keep this description up-to-date with any discussion that takes
+place so that reviewers can understand your intent. This is especially
+important if they didn't participate in the discussion.
+
+Make sure to remove this comment when you are done.
+-->
+
+## What are the relevant issue numbers?
+
+
 
 ## Does this MR meet the acceptance criteria?
 
