@@ -22,7 +22,7 @@ class Profiles::TwoFactorAuthsController < Profiles::ApplicationController
         end,
         group: lambda do |groups|
           group_links = groups.map { |group| view_context.link_to group.full_name, group_path(group) }.to_sentence
-          leave_group_links = groups.map{ |group| view_context.link_to "leave #{group.full_name}", leave_group_members_path(group), remote: false, method: :delete}.join(' or ')
+          leave_group_links = groups.map { |group| view_context.link_to "leave #{group.full_name}", leave_group_members_path(group), remote: false, method: :delete}.join(' or ')
 
           flash.now[:alert] = %{
             The group settings for #{group_links} require you to enable
