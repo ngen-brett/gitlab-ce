@@ -442,7 +442,9 @@ describe 'Login' do
             expect(current_path).to eq profile_two_factor_auth_path
             expect(page).to have_content(
               'The group settings for Group 1 and Group 2 require you to enable ' \
-              'Two-Factor Authentication for your account. You need to do this ' \
+              'Two-Factor Authentication for your account. '\
+              'You can leave Group 1 or leave Group 2. '\
+              'You need to do this ' \
               'before ')
           end
 
