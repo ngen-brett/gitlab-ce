@@ -29,10 +29,12 @@ B** because A might need them.
 
 GitLab organizes this object borrowing by creating special **pool
 repositories** which are hidden from the user. We then use Git
-alternates to let user repositories borrow from a pool repository. This
-lets us create star-shaped networks of repositories that borrow from a
-single pool, which will resemble (but not be identical to) the fork
-networks that get formed when users fork projects.
+alternates to let a collection of project repositories borrow from a
+single pool repository. We call such a collection of project
+repositories a pool. Pools form star-shaped networks of repositories
+that borrow from a single pool, which will resemble (but not be
+identical to) the fork networks that get formed when users fork
+projects.
 
 At the Git level, pool repositories are created and managed using Gitaly
 RPC calls. Just like with normal repositories, the authority on which
@@ -61,7 +63,8 @@ are as follows:
 
 -   a `Project` belongs to at most one `PoolRepository`
     (`project.pool_repository`)
--   a `PoolRepository` has many `Project`s
+-   as an automatic consequence of the above, a `PoolRepository` has
+    many `Project`s
 -   a `PoolRepository` has exactly one "source `Project`"
     (`pool.source_project`)
 
@@ -69,19 +72,19 @@ are as follows:
 
 -   All repositories in a pool must use [hashed
     storage](../administration/repository_storage_types.md). This is so
-    that we don't have to worry about invalid paths in
+    that we don't have to every worry about updating paths in
     `object/info/alternates` files.
 -   All repositories in a pool must be on the same Gitaly storage shard.
     The Git alternates mechanism relies on direct disk access across
-    multiple repositories, and we can only assume this to be possible
-    within a Gitaly storage shard.
+    multiple repositories, and we can only assume direct disk access to
+    be possible within a Gitaly storage shard.
 -   All project repositories in a pool must have "Public" visibility in
     GitLab at the time they join. There are gotchas around visibility of
     Git objects across alternates links. This restriction is a defense
     against accidentally leaking private Git data.
--   The only two ways to remove a project from a pool are (1) to delete
-    it or (2) to move it to another Gitaly storage shard.
--   We can never remove Git objects from a pool repository, only add.
+-   The only two ways to remove a member project from a pool are (1) to
+    delete the project or (2) to move the project to another Gitaly
+    storage shard.
 
 ### Creating pools and pool memberships
 
@@ -89,12 +92,21 @@ are as follows:
     contents of the pool repository are a Git clone of the source
     project repository.
 -   The occiasion for creating a pool is when an existing eligible
-    (public, hash storage, etc.) GitLab project gets forked. The fork
-    parent project becomes the source project of the pool, and both the
+    (public, hashed storage, etc.) GitLab project gets forked and this
+    project does not belong to a pool repository yet. The fork parent
+    project becomes the source project of the new pool, and both the
     fork parent and the fork child project become members of the new
     pool.
 -   Once project A has become the source project of a pool, all future
     eligible forks of A will become pool members.
+
+> TODO If A is the source project of pool P, B is a fork of A in pool P,
+> and C gets created as a fork of B. Does project C end up in pool P
+> automatically?
+
+> TODO Suppose B is a fork of A, and A does not belong to an object
+> pool. Now C gets created as a fork of B. Do we get a new pool P? Which
+> project becomes the source project of P?
 
 ### Consequences
 
@@ -107,8 +119,8 @@ are as follows:
     shard or is deleted, we must break the "PoolRepository has one
     source Project" relation.
 
-> The scenario "source project leaves pool" has not been implemented
-> yet, see https://gitlab.com/gitlab-org/gitaly/issues/1488
+> TODO The scenario "source project leaves pool" has not been
+> implemented yet, see https://gitlab.com/gitlab-org/gitaly/issues/1488
 
 ## Consistency between the SQL pool relation and Gitaly
 
