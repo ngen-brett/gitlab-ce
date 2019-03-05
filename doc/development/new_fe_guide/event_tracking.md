@@ -75,7 +75,12 @@ Since Snowplow is an Enterprise Edition feature, it's necessary to create a CE b
 
 ## Testing
 
-Snowplow can be enabled under `Integrations` in the `Admin Settings`. The following configuration is required:
+Snowplow can be enabled by navigating to:
+
+- **Admin area > Settings > Integrations** in the UI.
+- `admin/application_settings/integrations` in your browser.
+
+The following configuration is required:
 
 | Name          | Value                     |
 | ------------- | ------------------------- |
