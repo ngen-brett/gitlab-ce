@@ -28,6 +28,17 @@ module QA
             resource.value = '1'
           end
 
+          # Create and connect K8s cluster
+          @cluster = Service::KubernetesCluster.new.create!
+          Resource::KubernetesCluster.fabricate! do |cluster|
+            cluster.project = @project
+            cluster.cluster = @cluster
+            cluster.install_helm_tiller = false
+            cluster.install_ingress = false
+            cluster.install_prometheus = false
+            cluster.install_runner = false
+          end
+
           # Create Auto DevOps compatible repo
           Resource::Repository::ProjectPush.fabricate! do |push|
             push.project = @project
@@ -35,17 +46,6 @@ module QA
               .new(__dir__)
               .join('../../../../../fixtures/auto_devops_rack')
             push.commit_message = 'Create Auto DevOps compatible rack application'
-          end
-
-          # Create and connect K8s cluster
-          @cluster = Service::KubernetesCluster.new.create!
-          Resource::KubernetesCluster.fabricate! do |cluster|
-            cluster.project = @project
-            cluster.cluster = @cluster
-            cluster.install_helm_tiller = true
-            cluster.install_ingress = true
-            cluster.install_prometheus = true
-            cluster.install_runner = true
           end
         end
 
