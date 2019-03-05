@@ -12,6 +12,8 @@ GitLab implements Git object deduplication.
 
 ## Pool repositories
 
+### Understanding Git alternates
+
 At the Git level, we achieve deduplication by using [Git
 alternates](https://git-scm.com/docs/gitrepository-layout#gitrepository-layout-objects).
 Git alternates is a mechanism that lets a repository borrow objects from
@@ -26,6 +28,8 @@ A is now no longer self-contained but it still has its own refs and
 configuration. Objects in A that are not in B will remain in A. For this
 to work it is of course critical that **no objects ever get deleted from
 B** because A might need them.
+
+### Alternates in GitLab: pool repositories
 
 GitLab organizes this object borrowing by creating special **pool
 repositories** which are hidden from the user. We then use Git
@@ -72,7 +76,7 @@ are as follows:
 
 -   All repositories in a pool must use [hashed
     storage](../administration/repository_storage_types.md). This is so
-    that we don't have to every worry about updating paths in
+    that we don't have to ever worry about updating paths in
     `object/info/alternates` files.
 -   All repositories in a pool must be on the same Gitaly storage shard.
     The Git alternates mechanism relies on direct disk access across
@@ -130,3 +134,20 @@ existence, and the existence of an alternates connection between a
 repository and a pool.
 
 ### Pool existence
+
+If GitLab thinks a pool repository exists (i.e. it exists according to
+SQL), but it does not on the Gitaly server, then certain RPC calls that
+take the object pool as an argument will fail.
+
+> TODO Check or ensure that the system self-heals if SQL says the pool
+> repo exists but Gitaly says it does not.
+
+If GitLab thinks a pool does not exist, while it does exist on disk,
+that has no direct consequences on its own. However if other
+repositories on disk borrow objects from this unknown pool repository
+then we risk data loss, see below.
+
+### Pool relation existence
+
+## Git object deduplication and GitLab Geo
+
