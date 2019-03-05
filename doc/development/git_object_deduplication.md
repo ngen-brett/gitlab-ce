@@ -103,14 +103,17 @@ are as follows:
     pool.
 -   Once project A has become the source project of a pool, all future
     eligible forks of A will become pool members.
+-   If the fork source is itself a fork, the resulting repository will neither
+    join the repository nor will a new pool repository be seeded.
 
-> TODO If A is the source project of pool P, B is a fork of A in pool P,
-> and C gets created as a fork of B. Does project C end up in pool P
-> automatically?
+    eg:
 
-> TODO Suppose B is a fork of A, and A does not belong to an object
-> pool. Now C gets created as a fork of B. Do we get a new pool P? Which
-> project becomes the source project of P?
+    Suppose fork A is part of a pool repository, any forks created off of fork A
+    *will not* be a part of the pool repository that fork A is a part of.
+
+    Suppose B is a fork of A, and A does not belong to an object
+    pool. Now C gets created as a fork of B. C will not be part of a
+    pool repositor.
 
 ### Consequences
 
