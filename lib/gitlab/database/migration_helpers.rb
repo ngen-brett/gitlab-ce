@@ -58,6 +58,12 @@ module Gitlab
 
         if Database.postgresql?
           options = options.merge({ algorithm: :concurrently })
+
+          # For PostgreSQL, concurrent index creation may fail and leave behind INVALID indexes
+          # from failed migrations. On retry, we have to generally remove the invalid index first.
+          #
+          # There's no harm in doing that for all indexes we want to create first.
+          remove_concurrent_index(table_name, column_name, options)
         end
 
         if index_exists?(table_name, column_name, options)
