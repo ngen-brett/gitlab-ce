@@ -5,7 +5,7 @@ description: "Learn how to use GitLab CI/CD, the GitLab built-in Continuous Inte
 
 # GitLab Continuous Integration (GitLab CI/CD)
 
-**GitLab CI/CD** is GitLab's built-in tool for software development using continuous methods (Continuous Integration, Continuous Delivery, Continuous Deployment).
+**GitLab CI/CD** is GitLab's built-in tool for software development using the Continuous Methodology (Continuous Integration, Continuous Delivery, Continuous Deployment).
 
 ## Overview
 
