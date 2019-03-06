@@ -12,7 +12,7 @@ GitLab CI/CD.
 
 ## Introduction to continuous methods
 
-Read below an introduction to continuous methods of software development:
+Read the sections below for an introduction to the continuous methodology of software development:
 
 - [Continuous Integration](#continuous-integration)
 - [Continuous Delivery](#continuous-delivery)
