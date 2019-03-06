@@ -71,7 +71,7 @@ triggered automatically.
 every code change goes through the entire pipeline and is put into
 production automatically, resulting in many production deployments
 every day. It does everything that Continuous Delivery does, but
-the process is fully automated, with no human intervention at all.
+the final deployment step is also fully automated, with no human intervention at all.
 
 <!-- TBA: illustration -->
 
