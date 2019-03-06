@@ -14,8 +14,6 @@ class SearchController < ApplicationController
   layout 'search'
 
   def show
-    search_service = SearchService.new(current_user, params)
-
     @project = search_service.project
     @group = search_service.group
 
@@ -49,6 +47,10 @@ class SearchController < ApplicationController
   # rubocop: enable CodeReuse/ActiveRecord
 
   private
+
+  def search_service
+    @search_service ||= SearchService.new(current_user, params)
+  end
 
   def render_commits
     @search_objects = prepare_commits_for_rendering(@search_objects)
