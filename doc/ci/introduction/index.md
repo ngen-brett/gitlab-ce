@@ -103,7 +103,7 @@ that all the scripts you add to the configuration file are the
 same as the commands you run on a terminal in your computer.
 
 Once you've added your `.gitlab-ci.yml` configuration file to your
-repository, GitLab will identify it and run your scripts with the
+repository, GitLab will detect it and run your scripts with the
 tool called [GitLab Runner](https://docs.gitlab.com/runner/), which
 works similarly to your terminal.
 
