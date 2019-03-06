@@ -4,9 +4,6 @@
 # List of the variables: https://gitlab.com/gitlab-org/security-products/dependency-scanning#settings
 # How to set: https://docs.gitlab.com/ee/ci/yaml/#variables
 
-# Define this section in your CI config and override any entries of the job definition under it
-.dependency_scanning_overrides:
-
 stages:
   - test
 
@@ -44,4 +41,3 @@ dependency_scanning:
   except:
     variables:
       - $DEPENDENCY_SCANNING_DISABLED
-  extends: .dependency_scanning_overrides
