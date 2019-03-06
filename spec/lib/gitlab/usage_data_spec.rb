@@ -14,6 +14,7 @@ describe Gitlab::UsageData do
       create(:service, project: projects[1], type: 'SlackService', active: true)
       create(:service, project: projects[2], type: 'SlackService', active: true)
       create(:project_error_tracking_setting, project: projects[0])
+      create(:project_error_tracking_setting, project: projects[1], enabled: false)
 
       gcp_cluster = create(:cluster, :provided_by_gcp)
       create(:cluster, :provided_by_user)
