@@ -92,7 +92,7 @@ placed at the root of your repository.
 In this file, you define the scripts you want to run, include and
 cache dependencies, choose what commands you want to run in sequence
 and those you want to run in parallel, define where you want to
-deploy your app to, choose if you want to run the script automatically
+deploy your app to, and choose if you want to run the script automatically
 or if you want to trigger it manually. Once you're familiar with
 GitLab CI/CD you can add more advanced steps into the configuration file.
 
