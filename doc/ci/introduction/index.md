@@ -20,7 +20,7 @@ Read the sections below for an introduction to the continuous methodology of sof
 
 ### Continuous Integration
 
-Consider an application in which its code is stored in a Git
+Consider an application which has its code stored in a Git
 repository in GitLab. Developers push code changes every day,
 multiple times a day. For every push to the repository, you
 can create a set of scripts to build and test your application
