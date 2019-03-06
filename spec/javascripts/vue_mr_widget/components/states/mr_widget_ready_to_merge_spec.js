@@ -724,7 +724,9 @@ describe('ReadyToMerge', () => {
       });
 
       it('should  be rendered if squash is enabled and there is more than 1 commit', () => {
-        createLocalComponent({ mr: { squash: true, commitsCount: 2 } });
+        createLocalComponent({
+          mr: { enableSquashBeforeMerge: true, squash: true, commitsCount: 2 },
+        });
 
         expect(findCommitDropdownElement().exists()).toBeTruthy();
       });
