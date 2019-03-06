@@ -506,17 +506,26 @@ enable them.
 You can make use of [environment variables](#environment-variables) to automatically
 scale your pod replicas.
 
-It's important to note that when a project is deployed to a Kubernetes cluster,
-it relies on a Docker image that has been pushed to the
-[GitLab Container Registry](../../user/project/container_registry.md). Kubernetes
-fetches this image and uses it to run the application. If the project is public,
-the image can be accessed by Kubernetes without any authentication, allowing us
-to have deployments more usable. If the project is private/internal, the
-Registry requires credentials to pull the image. Currently, this is addressed
-by providing `CI_JOB_TOKEN` as the password that can be used, but this token will
-no longer be valid as soon as the deployment job finishes. This means that
+> [Introduced][ce-19507] in GitLab 11.0.
+
+For internal and private projects a [GitLab Deploy Token](../../user/project/deploy_tokens/index.md#gitlab-deploy-token)
+will be automatically created, when Auto DevOps is enabled and the Auto DevOps settings are saved. This Deploy Token
+can be used for permanent access to the registry.
+
+Note: **Note**
+When the GitLab Deploy Token has been manually revoked, it won't be automatically created.
+
+Note: **Note**
+If the GitLab Deploy Token cannot be found, Auto DevOps falls back to using 
+`CI_REGISTRY_PASSWORD`. As `CI_REGISTRY_PASSWORD` will
+no longer be valid as soon as the deployment job finishes, this means that
 Kubernetes can run the application, but in case it should be restarted or
 executed somewhere else, it cannot be accessed again.
+
+Note: **Note**
+Prior to GitLab 11.0, Auto DevOps used `CI_REGISTRY_PASSWORD` as the credential
+for private/internal projects to pull images.
+
 
 #### Migrations
 
@@ -550,15 +559,6 @@ NOTE: **Note:**
 The `/app` path is the directory of your project inside the docker image
 as [configured by
 Herokuish](https://github.com/gliderlabs/herokuish#paths)
-
-> [Introduced][ce-19507] in GitLab 11.0.
-
-For internal and private projects a [GitLab Deploy Token](../../user/project/deploy_tokens/index.md#gitlab-deploy-token)
-will be automatically created, when Auto DevOps is enabled and the Auto DevOps settings are saved. This Deploy Token
-can be used for permanent access to the registry.
-
-Note: **Note**
-When the GitLab Deploy Token has been manually revoked, it won't be automatically created.
 
 ### Auto Monitoring
 
