@@ -18,7 +18,7 @@ CI/CD is a vast area, so GitLab provides documentation for all levels of experti
 | A GitLab CI/CD expert               | Jump straight to our [`.gitlab.yml`](yaml/README.md) reference.                                                                                       |
 
 NOTE: **Note:**
-Within the [entire DevOps lifecycle](../README.md#the-entire-devops-lifecycle), GitLab CI/CD spans
+Within the [DevOps lifecycle](../README.md#the-entire-devops-lifecycle), GitLab CI/CD spans
 the [Verify (CI)](../README.md#verify) and [Release (CD)](../README.md#release) stages.
 
 ## Essentials
