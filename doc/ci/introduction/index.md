@@ -85,7 +85,7 @@ integration needed.
 ### How GitLab CI/CD works
 
 To use GitLab CI/CD, all you need is an application codebase hosted in a
-Git repository and configure your build, test, and deployment
+Git repository, and configure your build, test, and deployment
 scripts in a file called [`.gitlab-ci.yml`](../yaml/README.md),
 placed at the root of your repository.
 
