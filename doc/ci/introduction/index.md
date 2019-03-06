@@ -1,5 +1,5 @@
 ---
-description: "An overview of Continuous Integration, Continuous Delivery, Continuous Deployment, and an introduction to GitLab CI/CD."
+description: "An overview of Continuous Integration, Continuous Delivery, and Continuous Deployment, as well as an introduction to GitLab CI/CD."
 ---
 
 # Introduction to CI/CD with GitLab
