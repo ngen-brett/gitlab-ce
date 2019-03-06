@@ -4,7 +4,7 @@ description: "An overview of Continuous Integration, Continuous Delivery, and Co
 
 # Introduction to CI/CD with GitLab
 
-On this document we'll present an overview of Continuous Integration,
+In this document we'll present an overview of Continuous Integration,
 Continuous Delivery, Continuous Deployment, and an introduction to
 GitLab CI/CD.
 
