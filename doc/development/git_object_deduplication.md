@@ -95,25 +95,30 @@ are as follows:
 -   When a pool gets created it must have a source project. The initial
     contents of the pool repository are a Git clone of the source
     project repository.
--   The occiasion for creating a pool is when an existing eligible
-    (public, hashed storage, etc.) GitLab project gets forked and this
-    project does not belong to a pool repository yet. The fork parent
-    project becomes the source project of the new pool, and both the
-    fork parent and the fork child project become members of the new
+-   The occasion for creating a pool is when an existing eligible
+    (public, hashed storage, non-forked) GitLab project gets forked and
+    this project does not belong to a pool repository yet. The fork
+    parent project becomes the source project of the new pool, and both
+    the fork parent and the fork child project become members of the new
     pool.
 -   Once project A has become the source project of a pool, all future
     eligible forks of A will become pool members.
--   If the fork source is itself a fork, the resulting repository will neither
-    join the repository nor will a new pool repository be seeded.
+-   If the fork source is itself a fork, the resulting repository will
+    neither join the repository nor will a new pool repository be
+    seeded.
 
     eg:
 
-    Suppose fork A is part of a pool repository, any forks created off of fork A
-    *will not* be a part of the pool repository that fork A is a part of.
+    Suppose fork A is part of a pool repository, any forks created off
+    of fork A *will not* be a part of the pool repository that fork A is
+    a part of.
 
-    Suppose B is a fork of A, and A does not belong to an object
-    pool. Now C gets created as a fork of B. C will not be part of a
-    pool repositor.
+    Suppose B is a fork of A, and A does not belong to an object pool.
+    Now C gets created as a fork of B. C will not be part of a pool
+    repository.
+
+> TODO should forks of forks be deduplicated?
+> https://gitlab.com/gitlab-org/gitaly/issues/1532
 
 ### Consequences
 
@@ -123,11 +128,12 @@ are as follows:
     implemented, we will automatically get a fresh self-contained copy
     of the project's repository on the new storage shard.
 -   If the source project of a pool gets moved to another Gitaly storage
-    shard or is deleted, we must break the "PoolRepository has one
-    source Project" relation.
+    shard or is deleted, we may have to break the "PoolRepository has
+    one source Project" relation?
 
-> TODO The scenario "source project leaves pool" has not been
-> implemented yet, see https://gitlab.com/gitlab-org/gitaly/issues/1488
+> TODO What happens, or should happen, if a source project changes
+> visibility, is deleted, or moves to another storage shard?
+> https://gitlab.com/gitlab-org/gitaly/issues/1488
 
 ## Consistency between the SQL pool relation and Gitaly
 
@@ -142,8 +148,8 @@ If GitLab thinks a pool repository exists (i.e. it exists according to
 SQL), but it does not on the Gitaly server, then certain RPC calls that
 take the object pool as an argument will fail.
 
-> TODO Check or ensure that the system self-heals if SQL says the pool
-> repo exists but Gitaly says it does not.
+> TODO What happens if SQL says the pool repo exists but Gitaly says it
+> does not? https://gitlab.com/gitlab-org/gitaly/issues/1533
 
 If GitLab thinks a pool does not exist, while it does exist on disk,
 that has no direct consequences on its own. However if other
@@ -152,5 +158,28 @@ then we risk data loss, see below.
 
 ### Pool relation existence
 
-## Git object deduplication and GitLab Geo
+There are three different things that can go wrong here.
 
+#### 1. SQL says repo A belongs to pool P but Gitaly says A has no alternate objects
+
+In this case we miss out on disk space savings but all RPC's on A itself
+will function the same.
+
+#### 2. SQL says repo A belongs to pool P1 but Gitaly says A has alternate objects in pool P2
+
+If we are not careful, this situation can lead to data loss. During some
+operations (repository maintenance), GitLab will try to re-link A to its
+pool P1. If this clobbers the existing link to P2, then A will loose Git
+objects and become invalid.
+
+Also keep in mind that if GitLab's database got messed up, it may not
+even know that P2 exists.
+
+> TODO Ensure that Gitaly will not clobber existing, unexpected
+> alternates links. https://gitlab.com/gitlab-org/gitaly/issues/1534
+
+#### 3. SQL says repo A does not belong to any pool but Gitaly says A belongs to P
+
+This has the same data loss possibility as scenario 2 above.
+
+## Git object deduplication and GitLab Geo
