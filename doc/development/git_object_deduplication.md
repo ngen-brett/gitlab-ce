@@ -163,7 +163,7 @@ There are three different things that can go wrong here.
 #### 1. SQL says repo A belongs to pool P but Gitaly says A has no alternate objects
 
 In this case we miss out on disk space savings but all RPC's on A itself
-will function the same.
+will function fine. As long as Git can find all its objects, it does not matter exactly where those objects are.
 
 #### 2. SQL says repo A belongs to pool P1 but Gitaly says A has alternate objects in pool P2
 
@@ -183,3 +183,4 @@ even know that P2 exists.
 This has the same data loss possibility as scenario 2 above.
 
 ## Git object deduplication and GitLab Geo
+
