@@ -133,6 +133,8 @@ module Gitlab
       end
 
       def safe_commit_for_new_protected_branch?
+        return true if project.empty_repo?
+
         ProtectedBranch.any_protected?(project, project.repository.branch_names_contains_sha(newrev))
       end
     end

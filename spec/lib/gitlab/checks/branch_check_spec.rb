@@ -116,6 +116,15 @@ describe Gitlab::Checks::BranchCheck do
                 .and_return(['branch'])
             end
 
+            context "when repo is empty" do
+              let(:project) { create(:project) }
+              let(:protocol) { 'web' }
+
+              it 'allows branch creation' do
+                expect { subject.validate! }.not_to raise_error
+              end
+            end
+
             context "newrev isn't in any protected branches" do
               before do
                 allow(ProtectedBranch)
