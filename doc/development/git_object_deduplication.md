@@ -8,7 +8,7 @@ storage disk use. To counteract this problem we are adding Git object
 deduplication for forks to GitLab. In this document we will describe how
 GitLab implements Git object deduplication.
 
-> TODO mention in which exact GitLab version this is possible
+> TODO mention in which exact GitLab version object dedup was introduced.
 
 ## Pool repositories
 
