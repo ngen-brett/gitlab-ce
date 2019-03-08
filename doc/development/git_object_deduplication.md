@@ -8,7 +8,8 @@ storage disk use. To counteract this problem we are adding Git object
 deduplication for forks to GitLab. In this document we will describe how
 GitLab implements Git object deduplication.
 
-> TODO mention in which exact GitLab version object dedup was introduced.
+> TODO mention in which exact GitLab version object dedup reached
+> "General Availability" (GA).
 
 ## Pool repositories
 
@@ -163,7 +164,8 @@ There are three different things that can go wrong here.
 #### 1. SQL says repo A belongs to pool P but Gitaly says A has no alternate objects
 
 In this case we miss out on disk space savings but all RPC's on A itself
-will function fine. As long as Git can find all its objects, it does not matter exactly where those objects are.
+will function fine. As long as Git can find all its objects, it does not
+matter exactly where those objects are.
 
 #### 2. SQL says repo A belongs to pool P1 but Gitaly says A has alternate objects in pool P2
 
@@ -184,3 +186,13 @@ This has the same data loss possibility as scenario 2 above.
 
 ## Git object deduplication and GitLab Geo
 
+When a pool repository record is created in SQL on a Geo primary, this
+will eventually trigger an event on the Geo secondary. The Geo secondary
+will then create the pool repository in Gitaly. This leads to an
+"eventually consistent" situation because as each pool participant gets
+synchronized, Geo will eventuall trigger garbage collection in Gitaly on
+the secondary, at which stage Git objects will get deduplicated.
+
+> TODO How do we handle the edge case where at the time the Geo
+> secondary tries to create the pool repository, the source project does
+> not exist? https://gitlab.com/gitlab-org/gitaly/issues/1533
