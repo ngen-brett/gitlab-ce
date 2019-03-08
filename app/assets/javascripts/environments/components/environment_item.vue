@@ -14,6 +14,7 @@ import CommitComponent from '../../vue_shared/components/commit.vue';
 import eventHub from '../event_hub';
 import { convertObjectPropsToCamelCase } from '~/lib/utils/common_utils';
 import { CLUSTER_TYPE } from '~/clusters/constants';
+import environmentItemMixin from 'ee_else_ce/environments/mixins/environment_item_mixin';
 
 /**
  * Environment Item Component
@@ -34,7 +35,7 @@ export default {
     TerminalButtonComponent,
     MonitoringButtonComponent,
   },
-
+  mixins: [environmentItemMixin],
   directives: {
     GlTooltip: GlTooltipDirective,
   },
@@ -467,9 +468,18 @@ export default {
       <div v-if="!model.isFolder" class="table-mobile-header" role="rowheader">
         {{ s__('Environments|Environment') }}
       </div>
+
+      <span v-if="shouldRenderDeployBoard" class="deploy-board-icon" @click="toggleDeployBoard">
+        <icon :name="deployIconName" />
+      </span>
+
       <span v-if="!model.isFolder" class="environment-name table-mobile-content">
         <a class="qa-environment-link" :href="environmentPath"> {{ model.name }} </a>
+        <span v-if="isProtected" class="badge badge-success">
+          {{ s__('Environments|protected') }}
+        </span>
       </span>
+
       <span v-else class="folder-name" role="button" @click="onClickFolder">
         <icon :name="folderIconName" class="folder-icon" />
 
