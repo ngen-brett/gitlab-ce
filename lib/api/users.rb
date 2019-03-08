@@ -33,6 +33,9 @@ module API
         end
         # rubocop: enable CodeReuse/ActiveRecord
 
+        params :optional_attributes_ee do
+        end
+
         params :optional_attributes do
           optional :skype, type: String, desc: 'The Skype username'
           optional :linkedin, type: String, desc: 'The LinkedIn username'
@@ -51,6 +54,8 @@ module API
           optional :avatar, type: File, desc: 'Avatar image for user'
           optional :private_profile, type: Boolean, desc: 'Flag indicating the user has a private profile'
           all_or_none_of :extern_uid, :provider
+
+          use :optional_attributes_ee
         end
 
         params :sort_params do

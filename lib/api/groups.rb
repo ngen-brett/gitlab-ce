@@ -20,8 +20,12 @@ module API
         optional :share_with_group_lock, type: Boolean, desc: 'Prevent sharing a project with another group within this group'
       end
 
+      params :optional_params_ee do
+      end
+
       params :optional_params do
         use :optional_params_ce
+        use :optional_params_ee
       end
 
       params :statistics_params do
@@ -89,6 +93,9 @@ module API
 
         present paginate(groups), options
       end
+
+      def require_admin_on_create
+      end
     end
 
     resource :groups do
@@ -120,6 +127,8 @@ module API
         use :optional_params
       end
       post do
+        require_admin_on_create
+
         parent_group = find_group!(params[:parent_id]) if params[:parent_id].present?
         if parent_group
           authorize! :create_subgroup, parent_group
