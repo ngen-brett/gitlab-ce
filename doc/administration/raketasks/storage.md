@@ -35,7 +35,8 @@ export ID_TO=50
 ```
 
 You can monitor the progress in the _Admin > Monitoring > Background jobs_ screen.
-There is a specific Queue you can watch to see how long it will take to finish: **project_migrate_hashed_storage**
+There is a specific Queue you can watch to see how long it will take to finish: 
+**hashed_storage:hashed_storage_project_migrate**
 
 After it reaches zero, you can confirm every project has been migrated by running the commands bellow. 
 If you find it necessary, you can run this migration script again to schedule missing projects.
@@ -44,6 +45,46 @@ Any error or warning will be logged in the sidekiq's log file.
 
 You only need the `gitlab:storage:migrate_to_hashed` rake task to migrate your repositories, but we have additional
 commands below that helps you inspect projects and attachments in both legacy and hashed storage.
+
+## Rollback existing projects in Hashed storage back to Legacy storage
+
+If you need to rollback the storage migration for any reason, you can follow the steps described here.
+Please note that Hashed Storage will be required in future versions of GitLab.
+
+To prevent new projects from being created in the Hashed Storage, 
+you need to undo the [enable hashed storage][storage-migration] changes.
+
+This task will schedule all your existing projects and attachments associated with to be rolled back to the
+**Legacy** storage type:
+
+**Omnibus Installation**
+
+```bash
+sudo gitlab-rake gitlab:storage:rollback_to_legacy
+```
+
+**Source Installation**
+
+```bash
+sudo -u git -H bundle exec rake gitlab:storage:rollback_to_legacy RAILS_ENV=production
+```
+
+They both also accept a range as environment variable:
+
+```bash
+# to rollback any migrated project from ID 20 to 50.
+export ID_FROM=20 
+export ID_TO=50
+```
+
+You can monitor the progress in the _Admin > Monitoring > Background jobs_ screen.
+There is a specific Queue you can watch to see how long it will take to finish: 
+**hashed_storage:hashed_storage_project_rollback**
+
+After it reaches zero, you can confirm every project has been rolled back by running the commands bellow. 
+If you find it necessary, you can run this rollback script again to schedule missing projects.
+
+Any error or warning will be logged in the sidekiq's log file.
 
 ## List projects on Legacy storage
 
