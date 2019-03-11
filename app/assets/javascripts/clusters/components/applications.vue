@@ -300,7 +300,7 @@ export default {
               </div>
               <div v-else class="input-group">
                 <input type="text" class="form-control js-endpoint" readonly />
-                <span class="position-absolute align-self-center ml-2">
+                <span class="position-absolute align-self-center ml-2 js-loading-icon">
                   <gl-loading-icon />
                 </span>
               </div>
