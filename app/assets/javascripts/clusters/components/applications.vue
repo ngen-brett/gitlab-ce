@@ -300,7 +300,7 @@ export default {
               </div>
               <div v-else class="input-group">
                 <input type="text" class="form-control js-endpoint" readonly />
-                <span class="position-absolute align-self-center ml-2 js-loading-icon">
+                <span class="position-absolute align-self-center ml-2 js-ingress-ip-loading-icon">
                   <gl-loading-icon />
                 </span>
               </div>
@@ -552,13 +552,12 @@ export default {
                     />
                   </span>
                 </div>
-                <input
-                  v-else
-                  type="text"
-                  class="form-control js-knative-endpoint"
-                  readonly
-                  value="?"
-                />
+                <div v-else class="input-group">
+                  <input type="text" class="form-control js-endpoint" readonly />
+                  <span class="position-absolute align-self-center ml-2 js-knative-ip-loading-icon">
+                    <gl-loading-icon />
+                  </span>
+                </div>
               </div>
 
               <p class="form-text text-muted col-12">
