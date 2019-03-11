@@ -11,6 +11,13 @@ namespace :gitlab do
       storage_migrator = Gitlab::HashedStorage::Migrator.new
       helper = Gitlab::HashedStorage::RakeHelper
 
+      if storage_migrator.rollback_pending?
+        warn "There is already a rollback operation in progress, " \
+             "running a migration at the same time may have unexpected consequences."
+
+        next
+      end
+
       if helper.range_single_item?
         project = Project.with_unmigrated_storage.find_by(id: helper.range_from)
 
@@ -55,6 +62,14 @@ namespace :gitlab do
 
       storage_migrator = Gitlab::HashedStorage::Migrator.new
       helper = Gitlab::HashedStorage::RakeHelper
+
+      if storage_migrator.migration_pending?
+        warn "There is already a migration operation in progress, " \
+             "running a rollback at the same time may have unexpected consequences."
+
+        next
+      end
+
 
       if helper.range_single_item?
         project = Project.with_storage_feature(:repository).find_by(id: helper.range_from)
