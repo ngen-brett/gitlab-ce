@@ -53,7 +53,7 @@ module Gitlab
           inverse = 1 / portion
           query = <<~SQL
             SELECT (COUNT(*)*#{inverse})::integer AS count
-            FROM #{model.table_name} TABLESAMPLE SYSTEM (#{portion * 100})
+            FROM #{model.table_name} TABLESAMPLE SYSTEM (#{portion * 100}) REPEATABLE (0)
           SQL
 
           rows = ActiveRecord::Base.connection.select_all(query)
