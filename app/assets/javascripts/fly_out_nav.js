@@ -4,6 +4,7 @@ const HIDE_INTERVAL_TIMEOUT = 300;
 const IS_OVER_CLASS = 'is-over';
 const IS_ABOVE_CLASS = 'is-above';
 const IS_SHOWING_FLY_OUT_CLASS = 'is-showing-fly-out';
+const sidebarCollapsedClass = 'js-sidebar-collapsed';
 let currentOpenMenu = null;
 let menuCornerLocs;
 let timeoutId;
@@ -29,7 +30,7 @@ const setHeaderHeight = () => {
 };
 
 export const isSidebarCollapsed = () =>
-  sidebar && sidebar.classList.contains('sidebar-collapsed-desktop');
+  sidebar && sidebar.classList.contains(sidebarCollapsedClass);
 
 export const canShowActiveSubItems = el => {
   if (el.classList.contains('active') && !isSidebarCollapsed()) {

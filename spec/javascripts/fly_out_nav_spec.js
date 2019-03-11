@@ -19,6 +19,7 @@ import bp from '~/breakpoints';
 describe('Fly out sidebar navigation', () => {
   let el;
   let breakpointSize = 'lg';
+  const sidebarCollapsedClass = 'js-sidebar-collapsed';
 
   beforeEach(() => {
     el = document.createElement('div');
@@ -219,7 +220,7 @@ describe('Fly out sidebar navigation', () => {
     it('shows collapsed only sub-items if icon only sidebar', () => {
       const subItems = el.querySelector('.sidebar-sub-level-items');
       const sidebar = document.createElement('div');
-      sidebar.classList.add('sidebar-collapsed-desktop');
+      sidebar.classList.add(sidebarCollapsedClass);
       subItems.classList.add('is-fly-out-only');
 
       setSidebar(sidebar);
@@ -296,7 +297,7 @@ describe('Fly out sidebar navigation', () => {
 
     it('returns true when active & collapsed sidebar', () => {
       const sidebar = document.createElement('div');
-      sidebar.classList.add('sidebar-collapsed-desktop');
+      sidebar.classList.add(sidebarCollapsedClass);
       el.classList.add('active');
 
       setSidebar(sidebar);

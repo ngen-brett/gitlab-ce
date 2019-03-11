@@ -59,6 +59,7 @@ export default class ContextualSidebar {
     const breakpoint = bp.getBreakpointSize();
     const dbp = ContextualSidebar.isDesktopBreakpoint();
 
+    this.$sidebar.toggleClass('js-sidebar-collapsed', !show);
     this.$sidebar.toggleClass('sidebar-expanded-mobile', !dbp ? show : false);
     this.$overlay.toggleClass(
       'mobile-nav-open',
