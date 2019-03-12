@@ -375,6 +375,9 @@ The different supported drivers are:
 Read more about the individual driver's config options in the
 [Docker Registry docs][storage-config].
 
+> **Note** When using the s3 storage driver, be sure to configure your storage
+bucket with the correct [S3 Permission Scopes](https://docs.docker.com/registry/storage-drivers/s3/#s3-permission-scopes)
+>
 > **Warning** GitLab will not backup Docker images that are not stored on the
 filesystem. Remember to enable backups with your object storage provider if
 desired.
