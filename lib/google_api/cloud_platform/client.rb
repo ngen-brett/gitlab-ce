@@ -64,6 +64,12 @@ module GoogleApi
               "node_config": {
                 "machine_type": machine_type
               },
+              "master_auth": {
+                "username": "admin",
+                "client_certificate_config": {
+                  issue_client_certificate: true
+                }
+              },
               "legacy_abac": {
                 "enabled": legacy_abac
               }
