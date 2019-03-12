@@ -34,6 +34,8 @@ module JavaScriptFixturesHelpers
   #
   def store_frontend_fixture(response, fixture_file_name)
     FIXTURE_PATHS.each do |fixture_path|
+      next unless File.directory?(fixture_path)
+
       fixture_file_name = File.expand_path(fixture_file_name, fixture_path)
       fixture = response.respond_to?(:body) ? parse_response(response) : response
 
