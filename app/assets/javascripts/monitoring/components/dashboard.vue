@@ -7,6 +7,7 @@ import MonitorAreaChart from './charts/area.vue';
 import GraphGroup from './graph_group.vue';
 import EmptyState from './empty_state.vue';
 import MonitoringStore from '../stores/monitoring_store';
+import { timeWindows } from '../constants';
 
 const sidebarAnimationDuration = 150;
 let sidebarMutationObserver;
@@ -89,6 +90,7 @@ export default {
       state: 'gettingStarted',
       showEmptyState: true,
       elWidth: 0,
+      selectedTimeWindow: '',
     };
   },
   created() {
@@ -97,6 +99,9 @@ export default {
       deploymentEndpoint: this.deploymentEndpoint,
       environmentsEndpoint: this.environmentsEndpoint,
     });
+
+    this.timeWindows = timeWindows;
+    this.selectedTimeWindow = this.timeWindows.eightHours;
   },
   beforeDestroy() {
     if (sidebarMutationObserver) {
@@ -145,6 +150,9 @@ export default {
           this.state = 'unableToConnect';
         });
     },
+    getGraphsDataWithTime(timeFrame) {
+      this.selectedTimeWindow = this.timeWindows[timeFrame];
+    },
     onSidebarMutation() {
       setTimeout(() => {
         this.elWidth = this.$el.clientWidth;
@@ -156,27 +164,47 @@ export default {
 
 <template>
   <div v-if="!showEmptyState" class="prometheus-graphs prepend-top-default">
-    <div class="environments d-flex align-items-center">
-      {{ s__('Metrics|Environment') }}
-      <div class="dropdown prepend-left-10">
-        <button class="dropdown-menu-toggle" data-toggle="dropdown" type="button">
-          <span>{{ currentEnvironmentName }}</span>
-          <icon name="chevron-down" />
-        </button>
-        <div
-          v-if="store.environmentsData.length > 0"
-          class="dropdown-menu dropdown-menu-selectable dropdown-menu-drop-up"
-        >
-          <ul>
-            <li v-for="environment in store.environmentsData" :key="environment.id">
-              <a
-                :href="environment.metrics_path"
-                :class="{ 'is-active': environment.name == currentEnvironmentName }"
-                class="dropdown-item"
-                >{{ environment.name }}</a
-              >
-            </li>
-          </ul>
+    <div class="dropdowns d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+        <span class="font-weight-bold">{{ s__('Metrics|Environment') }}</span>
+        <div class="dropdown prepend-left-10">
+          <button class="dropdown-menu-toggle" data-toggle="dropdown" type="button">
+            <span>{{ currentEnvironmentName }}</span>
+            <icon name="chevron-down" />
+          </button>
+          <div
+            v-if="store.environmentsData.length > 0"
+            class="dropdown-menu dropdown-menu-selectable dropdown-menu-drop-up"
+          >
+            <ul>
+              <li v-for="environment in store.environmentsData" :key="environment.id">
+                <a
+                  :href="environment.metrics_path"
+                  :class="{ 'is-active': environment.name == currentEnvironmentName }"
+                  class="dropdown-item"
+                  >{{ environment.name }}</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center">
+        <span class="font-weight-bold">{{ s__('Metrics|Show Last') }}</span>
+        <div class="dropdown prepend-left-10">
+          <button class="dropdown-menu-toggle" data-toggle="dropdown" type="button">
+            <span>{{ selectedTimeWindow }}</span>
+            <icon name="chevron-down" />
+          </button>
+          <div class="dropdown-menu dropdown-menu-selectable dropdown-menu-drop-up">
+            <ul>
+              <li v-for="(value, key) in timeWindows" :key="key">
+                <a href="#" class="dropdown-item" @click="getGraphsDataWithTime(key)">{{
+                  value
+                }}</a>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
