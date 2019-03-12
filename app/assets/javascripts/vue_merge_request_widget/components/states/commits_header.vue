@@ -14,6 +14,10 @@ export default {
       type: Boolean,
       required: true,
     },
+    isFastForwardEnabled: {
+      type: Boolean,
+      required: true,
+    },
     commitsCount: {
       type: Number,
       required: false,
@@ -37,12 +41,27 @@ export default {
       return n__(__('%d commit'), __('%d commits'), this.isSquashEnabled ? 1 : this.commitsCount);
     },
     modifyLinkMessage() {
+      if (this.isFastForwardEnabled) {
+        return __('Modify commit message');
+      }
       return this.isSquashEnabled ? __('Modify commit messages') : __('Modify merge commit');
     },
     ariaLabel() {
       return this.expanded ? __('Collapse') : __('Expand');
     },
     message() {
+      if (this.isFastForwardEnabled) {
+        return sprintf(
+          s__('mrWidgetCommitsAdded|%{commitCount} will be added to %{targetBranch}.'),
+          {
+            commitCount: `<strong class="commits-count-message">${
+              this.commitsCountMessage
+            }</strong>`,
+            targetBranch: `<span class="label-branch">${_.escape(this.targetBranch)}</span>`,
+          },
+          false,
+        );
+      }
       return sprintf(
         s__(
           'mrWidgetCommitsAdded|%{commitCount} and %{mergeCommitCount} will be added to %{targetBranch}.',

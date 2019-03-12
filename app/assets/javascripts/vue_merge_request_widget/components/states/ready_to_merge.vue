@@ -330,6 +330,7 @@ export default {
         :is-squash-enabled="squashBeforeMerge"
         :commits-count="mr.commitsCount"
         :target-branch="mr.targetBranch"
+        :is-fast-forward-enabled="mr.ffOnlyEnabled"
       >
         <ul class="border-top content-list commits-list flex-list">
           <commit-edit
