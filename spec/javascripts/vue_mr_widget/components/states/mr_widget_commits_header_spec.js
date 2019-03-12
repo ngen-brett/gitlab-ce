@@ -15,6 +15,7 @@ describe('Commits header component', () => {
         isSquashEnabled: false,
         targetBranch: 'master',
         commitsCount: 5,
+        isFastForwardEnabled: false,
         ...props,
       },
     });
@@ -30,6 +31,23 @@ describe('Commits header component', () => {
   const findCommitsCountMessage = () => wrapper.find('.commits-count-message');
   const findTargetBranchMessage = () => wrapper.find('.label-branch');
   const findModifyButton = () => wrapper.find('.modify-message-button');
+
+  describe('when fast-forward is enabled', () => {
+    beforeEach(() => {
+      createComponent({
+        isFastForwardEnabled: true,
+        isSquashEnabled: true,
+      });
+    });
+
+    it('has commits count message showing 1 commit', () => {
+      expect(findCommitsCountMessage().text()).toBe('1 commit');
+    });
+
+    it('has button with modify commit message', () => {
+      expect(findModifyButton().text()).toBe('Modify commit message');
+    });
+  });
 
   describe('when collapsed', () => {
     it('toggle has aria-label equal to Expand', () => {
