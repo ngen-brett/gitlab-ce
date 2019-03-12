@@ -126,6 +126,12 @@ class Label < ActiveRecord::Base
     fuzzy_search(query, [:title, :description])
   end
 
+  # Override Gitlab::SQL::Pattern::MIN_CHARS_FOR_PARTIAL_MATCHING as
+  # label queries are never global, and so will not use a trigram index.
+  def self.partial_matching?(query)
+    true
+  end
+
   def open_issues_count(user = nil)
     issues_count(user, state: 'opened')
   end
