@@ -87,6 +87,38 @@ describe Gitlab::Database do
     end
   end
 
+  describe '.postgresql_9_6_or_greater?' do
+    it 'returns false when not using PostgreSQL' do
+      allow(described_class).to receive(:postgresql?).and_return(false)
+
+      expect(described_class.postgresql_9_6_or_greater?).to eq(false)
+    end
+
+    context 'when using PostgreSQL' do
+      before do
+        allow(described_class).to receive(:postgresql?).and_return(true)
+      end
+
+      it 'returns false when using PostgreSQL 9.5' do
+        allow(described_class).to receive(:version).and_return('9.5')
+
+        expect(described_class.postgresql_9_6_or_greater?).to eq(false)
+      end
+
+      it 'returns true when using PostgreSQL 9.6' do
+        allow(described_class).to receive(:version).and_return('9.6')
+
+        expect(described_class.postgresql_9_6_or_greater?).to eq(true)
+      end
+
+      it 'returns true when using PostgreSQL 10 or newer' do
+        allow(described_class).to receive(:version).and_return('10')
+
+        expect(described_class.postgresql_9_6_or_greater?).to eq(true)
+      end
+    end
+  end
+
   describe '.join_lateral_supported?' do
     it 'returns false when using MySQL' do
       allow(described_class).to receive(:postgresql?).and_return(false)
@@ -128,6 +160,14 @@ describe Gitlab::Database do
       allow(described_class).to receive(:version).and_return('9.4.0')
 
       expect(described_class.replication_slots_supported?).to eq(true)
+    end
+  end
+
+  describe '.postgresql_minimum_supported_version?' do
+    it 'calls .postgresql_9_6_or_greater?' do
+      expect(described_class).to receive(:postgresql_9_6_or_greater?).and_call_original
+
+      expect(described_class.postgresql_minimum_supported_version?).to eq(true)
     end
   end
 
@@ -192,6 +232,12 @@ describe Gitlab::Database do
       allow(described_class).to receive(:version).and_return('10')
 
       expect(described_class.pg_last_wal_replay_lsn).to eq('pg_last_wal_replay_lsn')
+    end
+  end
+
+  describe '.pg_last_xact_replay_timestamp' do
+    it 'returns pg_last_xact_replay_timestamp' do
+      expect(described_class.pg_last_xact_replay_timestamp).to eq('pg_last_xact_replay_timestamp')
     end
   end
 

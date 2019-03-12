@@ -68,6 +68,10 @@ module Gitlab
       postgresql? && version.to_f < 10
     end
 
+    def self.postgresql_9_6_or_greater?
+      postgresql? && version.to_f >= 9.6
+    end
+
     def self.join_lateral_supported?
       postgresql? && version.to_f >= 9.3
     end
@@ -76,8 +80,8 @@ module Gitlab
       postgresql? && version.to_f >= 9.4
     end
 
-    def self.pg_stat_wal_receiver_supported?
-      postgresql? && version.to_f >= 9.6
+    def self.postgresql_minimum_supported_version?
+      postgresql_9_6_or_greater?
     end
 
     # map some of the function names that changed between PostgreSQL 9 and 10
@@ -96,6 +100,10 @@ module Gitlab
 
     def self.pg_last_wal_replay_lsn
       Gitlab::Database.postgresql_9_or_less? ? 'pg_last_xlog_replay_location' : 'pg_last_wal_replay_lsn'
+    end
+
+    def self.pg_last_xact_replay_timestamp
+      'pg_last_xact_replay_timestamp'
     end
 
     def self.nulls_last_order(field, direction = 'ASC')
