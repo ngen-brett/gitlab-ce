@@ -649,41 +649,122 @@ describe('ReadyToMerge', () => {
     });
 
     describe('commits count collapsible header', () => {
-      it('should be rendered if fast-forward is disabled', () => {
+      it('should be rendered when fast-forward is disabled', () => {
         createLocalComponent();
 
         expect(findCommitsHeaderElement().exists()).toBeTruthy();
       });
 
-      it('should be rendered if fast-forward and squash are enabled', () => {
-        createLocalComponent({
-          mr: {
-            ffOnlyEnabled: true,
-            enableSquashBeforeMerge: true,
-            squash: true,
-            commitsCount: 2,
-          },
+      describe('when fast-forward is enabled', () => {
+        it('should be rendered if squash and squash before are enabled and there is more than 1 commit', () => {
+          createLocalComponent({
+            mr: {
+              ffOnlyEnabled: true,
+              enableSquashBeforeMerge: true,
+              squash: true,
+              commitsCount: 2,
+            },
+          });
+
+          expect(findCommitsHeaderElement().exists()).toBeTruthy();
         });
 
-        expect(findCommitsHeaderElement().exists()).toBeTruthy();
-      });
+        it('should not be rendered if squash before merge is disabled', () => {
+          createLocalComponent({
+            mr: {
+              ffOnlyEnabled: true,
+              enableSquashBeforeMerge: false,
+              squash: true,
+              commitsCount: 2,
+            },
+          });
 
-      it('should not be rendered if fast-forward is enabled and squash before merge is disabled', () => {
-        createLocalComponent({
-          mr: { ffOnlyEnabled: true, enableSquashBeforeMerge: false },
+          expect(findCommitsHeaderElement().exists()).toBeFalsy();
         });
 
-        expect(findCommitsHeaderElement().exists()).toBeFalsy();
-      });
+        it('should not be rendered if squash is disabled', () => {
+          createLocalComponent({
+            mr: {
+              ffOnlyEnabled: true,
+              squash: false,
+              enableSquashBeforeMerge: true,
+              commitsCount: 2,
+            },
+          });
 
-      it('should not be rendered if fast-forward is enabled and squash is disabled', () => {
-        createLocalComponent({ mr: { ffOnlyEnabled: true, squash: false } });
+          expect(findCommitsHeaderElement().exists()).toBeFalsy();
+        });
 
-        expect(findCommitsHeaderElement().exists()).toBeFalsy();
+        it('should not be rendered if commits count is 1', () => {
+          createLocalComponent({
+            mr: {
+              ffOnlyEnabled: true,
+              squash: true,
+              enableSquashBeforeMerge: true,
+              commitsCount: 1,
+            },
+          });
+
+          expect(findCommitsHeaderElement().exists()).toBeFalsy();
+        });
       });
     });
 
     describe('commits edit components', () => {
+      describe('when fast-forward merge is enabled', () => {
+        it('should not be rendered if squash is disabled', () => {
+          createLocalComponent({
+            mr: {
+              ffOnlyEnabled: true,
+              squash: false,
+              enableSquashBeforeMerge: true,
+              commitsCount: 2,
+            },
+          });
+
+          expect(findCommitEditElements().length).toBe(0);
+        });
+
+        it('should not be rendered if squash before merge is disabled', () => {
+          createLocalComponent({
+            mr: {
+              ffOnlyEnabled: true,
+              squash: true,
+              enableSquashBeforeMerge: false,
+              commitsCount: 2,
+            },
+          });
+
+          expect(findCommitEditElements().length).toBe(0);
+        });
+
+        it('should not be rendered if there is only one commit', () => {
+          createLocalComponent({
+            mr: {
+              ffOnlyEnabled: true,
+              squash: true,
+              enableSquashBeforeMerge: true,
+              commitsCount: 1,
+            },
+          });
+
+          expect(findCommitEditElements().length).toBe(0);
+        });
+
+        it('should have one edit component if squash is enabled and there is more than 1 commit', () => {
+          createLocalComponent({
+            mr: {
+              ffOnlyEnabled: true,
+              squash: true,
+              enableSquashBeforeMerge: true,
+              commitsCount: 2,
+            },
+          });
+
+          expect(findCommitEditElements().length).toBe(1);
+        });
+      });
+
       it('should have one edit component when squash is disabled', () => {
         createLocalComponent();
 
