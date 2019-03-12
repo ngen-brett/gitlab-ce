@@ -18,6 +18,7 @@ const createTestMr = customConfig => {
     isPipelinePassing: false,
     isMergeAllowed: true,
     onlyAllowMergeIfPipelineSucceeds: false,
+    ffOnlyEnabled: false,
     hasCI: false,
     ciStatus: null,
     sha: '12345678',
@@ -654,8 +655,29 @@ describe('ReadyToMerge', () => {
         expect(findCommitsHeaderElement().exists()).toBeTruthy();
       });
 
-      it('should not be rendered if fast-forward is enabled', () => {
-        createLocalComponent({ mr: { ffOnlyEnabled: true } });
+      it('should be rendered if fast-forward and squash are enabled', () => {
+        createLocalComponent({
+          mr: {
+            ffOnlyEnabled: true,
+            enableSquashBeforeMerge: true,
+            squash: true,
+            commitsCount: 2,
+          },
+        });
+
+        expect(findCommitsHeaderElement().exists()).toBeTruthy();
+      });
+
+      it('should not be rendered if fast-forward is enabled and squash before merge is disabled', () => {
+        createLocalComponent({
+          mr: { ffOnlyEnabled: true, enableSquashBeforeMerge: false },
+        });
+
+        expect(findCommitsHeaderElement().exists()).toBeFalsy();
+      });
+
+      it('should not be rendered if fast-forward is enabled and squash is disabled', () => {
+        createLocalComponent({ mr: { ffOnlyEnabled: true, squash: false } });
 
         expect(findCommitsHeaderElement().exists()).toBeFalsy();
       });
