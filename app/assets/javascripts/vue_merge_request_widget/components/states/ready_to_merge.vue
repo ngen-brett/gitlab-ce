@@ -113,9 +113,11 @@ export default {
     shouldShowMergeControls() {
       return this.mr.isMergeAllowed || this.shouldShowMergeWhenPipelineSucceedsText;
     },
-    shouldShowCommitsHeader() {
-      if (this.mr.ffOnlyEnabled) return this.squashBeforeMerge && this.shouldShowSquashBeforeMerge;
-      return true;
+    shouldShowSquashEdit() {
+      return this.squashBeforeMerge && this.shouldShowSquashBeforeMerge;
+    },
+    shouldShowMergeEdit() {
+      return !this.mr.ffOnlyEnabled;
     },
   },
   methods: {
@@ -326,7 +328,7 @@ export default {
         {{ __('Fast-forward merge without a merge commit') }}
       </div>
       <commits-header
-        v-if="shouldShowCommitsHeader"
+        v-if="shouldShowSquashEdit || shouldShowMergeEdit"
         :is-squash-enabled="squashBeforeMerge"
         :commits-count="mr.commitsCount"
         :target-branch="mr.targetBranch"
@@ -334,7 +336,7 @@ export default {
       >
         <ul class="border-top content-list commits-list flex-list">
           <commit-edit
-            v-if="squashBeforeMerge && shouldShowSquashBeforeMerge"
+            v-if="shouldShowSquashEdit"
             v-model="squashCommitMessage"
             :label="__('Squash commit message')"
             input-id="squash-message-edit"
@@ -347,7 +349,7 @@ export default {
             />
           </commit-edit>
           <commit-edit
-            v-if="!mr.ffOnlyEnabled"
+            v-if="shouldShowMergeEdit"
             v-model="commitMessage"
             :label="__('Merge commit message')"
             input-id="merge-message-edit"
