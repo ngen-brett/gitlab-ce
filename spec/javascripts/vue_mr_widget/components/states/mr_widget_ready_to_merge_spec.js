@@ -625,6 +625,10 @@ describe('ReadyToMerge', () => {
     const findCommitsHeaderElement = () => wrapper.find(CommitsHeader);
     const findCommitEditElements = () => wrapper.findAll(CommitEdit);
     const findCommitDropdownElement = () => wrapper.find(CommitMessageDropdown);
+    const findFirstCommitEditLabel = () =>
+      findCommitEditElements()
+        .at(0)
+        .props('label');
 
     describe('squash checkbox', () => {
       it('should be rendered when squash before merge is enabled and there is more than 1 commit', () => {
@@ -762,6 +766,7 @@ describe('ReadyToMerge', () => {
           });
 
           expect(findCommitEditElements().length).toBe(1);
+          expect(findFirstCommitEditLabel()).toBe('Squash commit message');
         });
       });
 
@@ -770,11 +775,6 @@ describe('ReadyToMerge', () => {
 
         expect(findCommitEditElements().length).toBe(1);
       });
-
-      const findFirstCommitEditLabel = () =>
-        findCommitEditElements()
-          .at(0)
-          .props('label');
 
       it('should have two edit components when squash is enabled and there is more than 1 commit', () => {
         createLocalComponent({
