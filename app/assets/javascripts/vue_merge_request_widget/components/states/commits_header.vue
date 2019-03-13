@@ -49,22 +49,14 @@ export default {
       return this.expanded ? __('Collapse') : __('Expand');
     },
     message() {
-      if (this.isFastForwardEnabled) {
-        return sprintf(
-          s__('mrWidgetCommitsAdded|%{commitCount} will be added to %{targetBranch}.'),
-          {
-            commitCount: `<strong class="commits-count-message">${
-              this.commitsCountMessage
-            }</strong>`,
-            targetBranch: `<span class="label-branch">${_.escape(this.targetBranch)}</span>`,
-          },
-          false,
-        );
-      }
+      const message = this.isFastForwardEnabled
+        ? s__('mrWidgetCommitsAdded|%{commitCount} will be added to %{targetBranch}.')
+        : s__(
+            'mrWidgetCommitsAdded|%{commitCount} and %{mergeCommitCount} will be added to %{targetBranch}.',
+          );
+
       return sprintf(
-        s__(
-          'mrWidgetCommitsAdded|%{commitCount} and %{mergeCommitCount} will be added to %{targetBranch}.',
-        ),
+        message,
         {
           commitCount: `<strong class="commits-count-message">${this.commitsCountMessage}</strong>`,
           mergeCommitCount: `<strong>${s__('mrWidgetCommitsAdded|1 merge commit')}</strong>`,
