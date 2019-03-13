@@ -28,7 +28,7 @@ export default {
   },
   data() {
     return {
-      currentValue: this.selectedValue,
+      currentValue: this.selectedValue || DISCUSSION_FILTERS_DEFAULT_VALUE,
       defaultValue: DISCUSSION_FILTERS_DEFAULT_VALUE,
       displayFilters: true,
     };
@@ -50,7 +50,6 @@ export default {
 
     notesEventHub.$on('dropdownSelect', this.selectFilter);
     window.addEventListener('hashchange', this.handleLocationHash);
-    this.handleLocationHash();
   },
   mounted() {
     this.toggleCommentsForm();

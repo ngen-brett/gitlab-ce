@@ -106,6 +106,8 @@ export default {
     this.setUserData(this.userData);
     this.setTargetNoteHash(getLocationHash());
     eventHub.$once('fetchNotesData', this.fetchNotes);
+
+    window.dispatchEvent(new HashChangeEvent("hashchange"))
   },
   mounted() {
     if (this.shouldShow) {
