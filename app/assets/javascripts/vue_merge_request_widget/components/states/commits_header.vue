@@ -41,10 +41,9 @@ export default {
       return n__(__('%d commit'), __('%d commits'), this.isSquashEnabled ? 1 : this.commitsCount);
     },
     modifyLinkMessage() {
-      if (this.isFastForwardEnabled) {
-        return __('Modify commit message');
-      }
-      return this.isSquashEnabled ? __('Modify commit messages') : __('Modify merge commit');
+      if (this.isFastForwardEnabled) return __('Modify commit message');
+      else if (this.isSquashEnabled) return __('Modify commit messages');
+      else return __('Modify merge commit');
     },
     ariaLabel() {
       return this.expanded ? __('Collapse') : __('Expand');
