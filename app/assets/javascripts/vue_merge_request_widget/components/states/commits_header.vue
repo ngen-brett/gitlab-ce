@@ -43,7 +43,7 @@ export default {
     modifyLinkMessage() {
       if (this.isFastForwardEnabled) return __('Modify commit message');
       else if (this.isSquashEnabled) return __('Modify commit messages');
-      else return __('Modify merge commit');
+      return __('Modify merge commit');
     },
     ariaLabel() {
       return this.expanded ? __('Collapse') : __('Expand');
