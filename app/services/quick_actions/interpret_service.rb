@@ -65,9 +65,9 @@ module QuickActions
     explanation do
       "Closes this #{issuable.to_ability_name.humanize(capitalize: false)}."
     end
+    types Issue, MergeRequest, Issuable
     condition do
-      issuable.is_a?(Issuable) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         issuable.open? &&
         current_user.can?(:"update_#{issuable.to_ability_name}", issuable)
     end
@@ -81,9 +81,9 @@ module QuickActions
     explanation do
       "Reopens this #{issuable.to_ability_name.humanize(capitalize: false)}."
     end
+    types Issue, MergeRequest, Issuable
     condition do
-      issuable.is_a?(Issuable) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         issuable.closed? &&
         current_user.can?(:"update_#{issuable.to_ability_name}", issuable)
     end
@@ -93,9 +93,9 @@ module QuickActions
 
     desc 'Merge (when the pipeline succeeds)'
     explanation 'Merges this merge request when the pipeline succeeds.'
+    types MergeRequest
     condition do
       last_diff_sha = params && params[:merge_request_diff_head_sha]
-      issuable.is_a?(MergeRequest) &&
         issuable.persisted? &&
         issuable.mergeable_with_quick_action?(current_user, autocomplete_precheck: !last_diff_sha, last_diff_sha: last_diff_sha)
     end
@@ -108,6 +108,7 @@ module QuickActions
       "Changes the title to \"#{title_param}\"."
     end
     params '<New title>'
+    types Issue, MergeRequest
     condition do
       issuable.persisted? &&
         current_user.can?(:"update_#{issuable.to_ability_name}", issuable)
@@ -126,6 +127,7 @@ module QuickActions
     params do
       issuable.allows_multiple_assignees? ? '@user1 @user2' : '@user'
     end
+    types Issue, MergeRequest
     condition do
       current_user.can?(:"admin_#{issuable.to_ability_name}", project)
     end
@@ -158,9 +160,9 @@ module QuickActions
     params do
       issuable.allows_multiple_assignees? ? '@user1 @user2' : ''
     end
+    types Issue, MergeRequest, Issuable
     condition do
-      issuable.is_a?(Issuable) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         issuable.assignees.any? &&
         current_user.can?(:"admin_#{issuable.to_ability_name}", project)
     end
@@ -182,6 +184,7 @@ module QuickActions
       "Sets the milestone to #{milestone.to_reference}." if milestone
     end
     params '%"milestone"'
+    types Issue, MergeRequest
     condition do
       current_user.can?(:"admin_#{issuable.to_ability_name}", project) &&
         find_milestones(project, state: 'active').any?
@@ -198,9 +201,9 @@ module QuickActions
     explanation do
       "Removes #{issuable.milestone.to_reference(format: :name)} milestone."
     end
+    types Issue, MergeRequest, Issuable
     condition do
-      issuable.is_a?(Issuable) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         issuable.milestone_id? &&
         current_user.can?(:"admin_#{issuable.to_ability_name}", project)
     end
@@ -215,6 +218,7 @@ module QuickActions
       "Adds #{labels.join(' ')} #{'label'.pluralize(labels.count)}." if labels.any?
     end
     params '~label1 ~"label 2"'
+    types Issue, MergeRequest, Issuable
     condition do
       parent &&
         current_user.can?(:"admin_#{issuable.to_ability_name}", parent) &&
@@ -241,9 +245,9 @@ module QuickActions
       end
     end
     params '~label1 ~"label 2"'
+    types Issue, MergeRequest, Issuable
     condition do
-      issuable.is_a?(Issuable) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         issuable.labels.any? &&
         current_user.can?(:"admin_#{issuable.to_ability_name}", parent)
     end
@@ -268,9 +272,9 @@ module QuickActions
       "Replaces all labels with #{labels.join(' ')} #{'label'.pluralize(labels.count)}." if labels.any?
     end
     params '~label1 ~"label 2"'
+    types Issue, MergeRequest, Issuable
     condition do
-      issuable.is_a?(Issuable) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         issuable.labels.any? &&
         current_user.can?(:"admin_#{issuable.to_ability_name}", project)
     end
@@ -290,9 +294,9 @@ module QuickActions
       "Copy labels and milestone from #{source_issuable.to_reference}."
     end
     params '#issue | !merge_request'
+    types Issue, MergeRequest, Issuable
     condition do
-      [MergeRequest, Issue].include?(issuable.class) &&
-        current_user.can?(:"update_#{issuable.to_ability_name}", issuable)
+      current_user.can?(:"update_#{issuable.to_ability_name}", issuable)
     end
     parse_params do |issuable_param|
       extract_references(issuable_param, :issue).first ||
@@ -307,9 +311,9 @@ module QuickActions
 
     desc 'Add a todo'
     explanation 'Adds a todo.'
+    types Issue, MergeRequest, Issuable
     condition do
-      issuable.is_a?(Issuable) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         !TodoService.new.todo_exist?(issuable, current_user)
     end
     command :todo do
@@ -318,6 +322,7 @@ module QuickActions
 
     desc 'Mark todo as done'
     explanation 'Marks todo as done.'
+    types Issue, MergeRequest, Issuable
     condition do
       issuable.persisted? &&
         TodoService.new.todo_exist?(issuable, current_user)
@@ -330,9 +335,9 @@ module QuickActions
     explanation do
       "Subscribes to this #{issuable.to_ability_name.humanize(capitalize: false)}."
     end
+    types Issue, MergeRequest, Issuable
     condition do
-      issuable.is_a?(Issuable) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         !issuable.subscribed?(current_user, project)
     end
     command :subscribe do
@@ -343,9 +348,9 @@ module QuickActions
     explanation do
       "Unsubscribes from this #{issuable.to_ability_name.humanize(capitalize: false)}."
     end
+    types Issue, MergeRequest, Issuable
     condition do
-      issuable.is_a?(Issuable) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         issuable.subscribed?(current_user, project)
     end
     command :unsubscribe do
@@ -357,6 +362,7 @@ module QuickActions
       "Sets the due date to #{due_date.to_s(:medium)}." if due_date
     end
     params '<in 2 days | this Friday | December 31st>'
+    types Issue
     condition do
       issuable.respond_to?(:due_date) &&
         current_user.can?(:"admin_#{issuable.to_ability_name}", project)
@@ -370,6 +376,7 @@ module QuickActions
 
     desc 'Remove due date'
     explanation 'Removes the due date.'
+    types Issue
     condition do
       issuable.persisted? &&
         issuable.respond_to?(:due_date) &&
@@ -386,6 +393,7 @@ module QuickActions
       noun = issuable.to_ability_name.humanize(capitalize: false)
       "#{verb} this #{noun} as Work In Progress."
     end
+    types MergeRequest
     condition do
       issuable.respond_to?(:work_in_progress?) &&
         # Allow it to mark as WIP on MR creation page _or_ through MR notes.
@@ -400,9 +408,9 @@ module QuickActions
       "Toggles :#{name}: emoji award." if name
     end
     params ':emoji:'
+    types Issue, MergeRequest, Issuable
     condition do
-      issuable.is_a?(Issuable) &&
-        issuable.persisted?
+      issuable.persisted?
     end
     parse_params do |emoji_param|
       match = emoji_param.match(Banzai::Filter::EmojiFilter.emoji_pattern)
@@ -421,6 +429,7 @@ module QuickActions
       "Sets time estimate to #{time_estimate}." if time_estimate
     end
     params '<1w 3d 2h 14m>'
+    types Issue, MergeRequest, TimeTrackable
     condition do
       current_user.can?(:"admin_#{issuable.to_ability_name}", project)
     end
@@ -448,9 +457,9 @@ module QuickActions
       end
     end
     params '<time(1h30m | -1h30m)> <date(YYYY-MM-DD)>'
+    types Issue, MergeRequest, TimeTrackable
     condition do
-      issuable.is_a?(TimeTrackable) &&
-        current_user.can?(:"admin_#{issuable.to_ability_name}", issuable)
+      current_user.can?(:"admin_#{issuable.to_ability_name}", issuable)
     end
     parse_params do |raw_time_date|
       Gitlab::QuickActions::SpendTimeAndDateSeparator.new(raw_time_date).execute
@@ -467,6 +476,7 @@ module QuickActions
 
     desc 'Remove time estimate'
     explanation 'Removes time estimate.'
+    types Issue, MergeRequest, TimeTrackable
     condition do
       issuable.persisted? &&
         current_user.can?(:"admin_#{issuable.to_ability_name}", project)
@@ -481,27 +491,30 @@ module QuickActions
       issuable.persisted? &&
         current_user.can?(:"admin_#{issuable.to_ability_name}", project)
     end
+    types Issue, MergeRequest, TimeTrackable
     command :remove_time_spent do
       @updates[:spend_time] = { duration: :reset, user_id: current_user.id }
     end
 
     desc "Append the comment with #{SHRUG}"
     params '<Comment>'
+    types Issue, MergeRequest, Noteable
     substitution :shrug do |comment|
       "#{comment} #{SHRUG}"
     end
 
     desc "Append the comment with #{TABLEFLIP}"
     params '<Comment>'
+    types Issue, MergeRequest, Noteable
     substitution :tableflip do |comment|
       "#{comment} #{TABLEFLIP}"
     end
 
     desc "Lock the discussion"
     explanation "Locks the discussion"
+    types Issue, MergeRequest, Issuable
     condition do
-      [MergeRequest, Issue].include?(issuable.class) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         !issuable.discussion_locked? &&
         current_user.can?(:"admin_#{issuable.to_ability_name}", issuable)
     end
@@ -511,8 +524,8 @@ module QuickActions
 
     desc "Unlock the discussion"
     explanation "Unlocks the discussion"
+    types Issue, MergeRequest, Issuable
     condition do
-      [MergeRequest, Issue].include?(issuable.class) &&
         issuable.persisted? &&
         issuable.discussion_locked? &&
         current_user.can?(:"admin_#{issuable.to_ability_name}", issuable)
@@ -531,6 +544,7 @@ module QuickActions
       "Sets target branch to #{branch_name}."
     end
     params '<Local branch name>'
+    types MergeRequest
     condition do
       issuable.respond_to?(:target_branch) &&
         (current_user.can?(:"update_#{issuable.to_ability_name}", issuable) ||
@@ -549,9 +563,9 @@ module QuickActions
       "Moves issue to #{label} column in the board." if label
     end
     params '~"Target column"'
+    types Issue
     condition do
-      issuable.is_a?(Issue) &&
-        current_user.can?(:"update_#{issuable.to_ability_name}", issuable) &&
+      current_user.can?(:"update_#{issuable.to_ability_name}", issuable) &&
         issuable.project.boards.count == 1
     end
     # rubocop: disable CodeReuse/ActiveRecord
@@ -576,9 +590,9 @@ module QuickActions
       "Marks this issue as a duplicate of #{duplicate_reference}."
     end
     params '#issue'
+    types Issue
     condition do
-      issuable.is_a?(Issue) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         current_user.can?(:"update_#{issuable.to_ability_name}", issuable)
     end
     command :duplicate do |duplicate_param|
@@ -594,9 +608,9 @@ module QuickActions
       "Moves this issue to #{path_to_project}."
     end
     params 'path/to/project'
+    types Issue
     condition do
-      issuable.is_a?(Issue) &&
-        issuable.persisted? &&
+      issuable.persisted? &&
         current_user.can?(:"admin_#{issuable.to_ability_name}", project)
     end
     command :move do |target_project_path|
@@ -611,8 +625,9 @@ module QuickActions
     explanation do
       'Makes this issue confidential'
     end
+    types Issue
     condition do
-      issuable.is_a?(Issue) && current_user.can?(:"admin_#{issuable.to_ability_name}", issuable)
+      current_user.can?(:"admin_#{issuable.to_ability_name}", issuable)
     end
     command :confidential do
       @updates[:confidential] = true
@@ -627,8 +642,9 @@ module QuickActions
     parse_params do |tag_name_and_message|
       tag_name_and_message.split(' ', 2)
     end
+    types Commit
     condition do
-      issuable.is_a?(Commit) && current_user.can?(:push_code, project)
+      current_user.can?(:push_code, project)
     end
     command :tag do |tag_name, message|
       @updates[:tag_name] = tag_name
@@ -641,8 +657,9 @@ module QuickActions
       "Creates #{branch_text} and a merge request to resolve this issue"
     end
     params "<branch name>"
+    types Issue
     condition do
-      issuable.is_a?(Issue) && current_user.can?(:create_merge_request_in, project) && current_user.can?(:push_code, project)
+      current_user.can?(:create_merge_request_in, project) && current_user.can?(:push_code, project)
     end
     command :create_merge_request do |branch_name = nil|
       @updates[:create_merge_request] = {

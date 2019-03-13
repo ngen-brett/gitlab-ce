@@ -66,6 +66,31 @@ module Gitlab
           @explanation = block_given? ? block : text
         end
 
+
+        # Allows to define type(s) that must be met in order for the command
+        # to be returned by `.command_names` & `.command_definitions`.
+        #
+        # It is being evaluated before the conditions block is being evaluated
+        #
+        # If no types is passed than any type is allowed as the check is simpy skiped.
+        #
+        # Example:
+        #
+        #   types Commit, Issuable
+        #   command :command_key do |arguments|
+        #     # Awesome code block
+        #   end
+        #
+        # or
+        #
+        #   types Commit, Issue
+        #   command :command_key do |arguments|
+        #     # Awesome code block
+        #   end
+        def types(*types)
+          @types = types
+        end
+
         # Allows to define conditions that must be met in order for the command
         # to be returned by `.command_names` & `.command_definitions`.
         # It accepts a block that will be evaluated with the context
@@ -144,7 +169,8 @@ module Gitlab
             params: @params,
             condition_block: @condition_block,
             parse_params_block: @parse_params_block,
-            action_block: block
+            action_block: block,
+            types: @types
           )
 
           self.command_definitions << definition
@@ -159,6 +185,7 @@ module Gitlab
           @condition_block = nil
           @warning = nil
           @parse_params_block = nil
+          @types = nil
         end
       end
     end
