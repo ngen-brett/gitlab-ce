@@ -65,13 +65,16 @@ export default {
       <div class="table-section section-10 js-pipeline-status pipeline-status" role="rowheader">
         {{ s__('Pipeline|Status') }}
       </div>
-      <div class="table-section section-15 js-pipeline-info pipeline-info" role="rowheader">
+      <div class="table-section section-10 js-pipeline-info pipeline-info" role="rowheader">
         {{ s__('Pipeline|Pipeline') }}
+      </div>
+      <div class="table-section section-10 js-triggerer-info triggerer-info" role="rowheader">
+        {{ s__('Pipeline|Triggerer') }}
       </div>
       <div class="table-section section-20 js-pipeline-commit pipeline-commit" role="rowheader">
         {{ s__('Pipeline|Commit') }}
       </div>
-      <div class="table-section section-20 js-pipeline-stages pipeline-stages" role="rowheader">
+      <div class="table-section section-15 js-pipeline-stages pipeline-stages" role="rowheader">
         {{ s__('Pipeline|Stages') }}
       </div>
     </div>
