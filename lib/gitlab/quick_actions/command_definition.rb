@@ -100,7 +100,7 @@ module Gitlab
       end
 
       def valid_type?(context)
-        types.blank? || types.any?{|type| context.issuable.is_a?(type)}
+        types.blank? || types.any?{|type| context.noteable.is_a?(type)}
       end
     end
   end
