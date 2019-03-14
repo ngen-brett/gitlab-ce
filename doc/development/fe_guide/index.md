@@ -9,19 +9,6 @@ GitLab is built on top of [Ruby on Rails][rails] using [Haml][haml] and also a J
 Be wary of [the limitations that come with using Hamlit][hamlit-limits]. We also use [SCSS][scss] and plain JavaScript with
 modern ECMAScript standards supported through [Babel][babel] and ES module support through [webpack][webpack].
 
-### Initiatives
-
-Current high-level frontend goals are listed on [Frontend Epics](https://gitlab.com/groups/gitlab-org/-/epics?label_name%5B%5D=frontend).
-
-### Javascript development
-
-[Vue.js][vue] is used for particularly advanced, dynamic elements and based on previous iterations [jQuery][jquery] is used in lot of places through the application's JavaScript.
-
-We also use [Axios][axios] to handle all of our network requests.
-
-We also utilize [webpack][webpack] to handle the bundling, minification, and
-compression of our assets.
-
 Working with our frontend assets requires Node (v8.10.0 or greater) and Yarn
 (v1.10.0 or greater). You can find information on how to install these on our
 [installation guide][install].
@@ -31,6 +18,14 @@ Working with our frontend assets requires Node (v8.10.0 or greater) and Yarn
 For our currently-supported browsers, see our [requirements][requirements].
 
 ---
+
+## Initiatives
+
+Current high-level frontend goals are listed on [Frontend Epics](https://gitlab.com/groups/gitlab-org/-/epics?label_name%5B%5D=frontend).
+
+## [Principles](principles.md)
+
+Ensure that your frontend contribution starts off in the right direction.
 
 ## [Development Process](development_process.md)
 
@@ -125,14 +120,3 @@ The [externalization part of the guide](../i18n/externalization.md) explains the
 [scss-lint]: https://github.com/brigade/scss-lint
 [install]: ../../install/installation.md#4-node
 [requirements]: ../../install/requirements.md#supported-web-browsers
-
----
-
-## [DropLab](droplab/droplab.md)
-
-Our internal `DropLab` dropdown library.
-
-- [DropLab](droplab/droplab.md)
-- [Ajax plugin](droplab/plugins/ajax.md)
-- [Filter plugin](droplab/plugins/filter.md)
-- [InputSetter plugin](droplab/plugins/input_setter.md)
