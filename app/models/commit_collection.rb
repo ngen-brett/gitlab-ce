@@ -28,8 +28,43 @@ class CommitCollection
 
   def without_merge_commits
     strong_memoize(:without_merge_commits) do
-      commits.reject(&:merge_commit?)
+      # `#enrich!` the collection to ensure all commits contain
+      # the necessary parent data
+      enrich!.commits.reject(&:merge_commit?)
     end
+  end
+
+  def unenriched
+    commits.reject(&:gitaly_commit?)
+  end
+
+  def fully_enriched?
+    unenriched.empty?
+  end
+
+  # Batch load any commits that are not backed by full gitaly data, and
+  # replace them in the collection.
+  def enrich!
+    return self if fully_enriched?
+
+    # Batch load full Commits from the repository
+    enriched = unenriched.map { |c| Commit.lazy(project, c.id) }.compact
+
+    # Sanity check, in case commit is not found in gitaly?
+    if enriched.count != unenriched.count
+      # Do something?
+    end
+
+    # Replace the commits, keeping the same order
+    replacements = Hash[enriched.map { |c| [c.id, c] }]
+
+    @commits = @commits.map do |c|
+      replacements.fetch(c.id, c)
+    end
+
+    # reorder?
+
+    self
   end
 
   # Sets the pipeline status for every commit.
