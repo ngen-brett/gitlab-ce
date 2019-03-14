@@ -1,8 +1,5 @@
 # Frontend Development Guidelines
 
-> **Notice:**
-> We are currently in the process of re-writing our development guide to make it easier to find information. The new guide is still WIP but viewable in [development/new_fe_guide](../new_fe_guide/index.md)
-
 This document describes various guidelines to ensure consistency and quality
 across GitLab's frontend team.
 
@@ -11,6 +8,10 @@ across GitLab's frontend team.
 GitLab is built on top of [Ruby on Rails][rails] using [Haml][haml] and also a JavaScript based Frontend with [Vue.js][vue].
 Be wary of [the limitations that come with using Hamlit][hamlit-limits]. We also use [SCSS][scss] and plain JavaScript with
 modern ECMAScript standards supported through [Babel][babel] and ES module support through [webpack][webpack].
+
+### Initiatives
+
+Current high-level frontend goals are listed on [Frontend Epics](https://gitlab.com/groups/gitlab-org/-/epics?label_name%5B%5D=frontend).
 
 ### Javascript development
 
