@@ -60,7 +60,6 @@ export default {
 <template>
   <div class="ci-job-dropdown-container dropdown dropright">
     <button
-      v-gl-tooltip.hover="{ boundary: 'viewport' }"
       :title="tooltipText"
       type="button"
       data-toggle="dropdown"

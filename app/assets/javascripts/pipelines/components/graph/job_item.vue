@@ -104,7 +104,6 @@ export default {
   <div class="ci-job-component">
     <gl-link
       v-if="status.has_details"
-      v-gl-tooltip
       :href="status.details_path"
       :title="tooltipText"
       :class="cssClassJobName"
@@ -115,7 +114,6 @@ export default {
 
     <div
       v-else
-      v-gl-tooltip
       :title="tooltipText"
       :class="cssClassJobName"
       class="js-job-component-tooltip non-details-job-component"
