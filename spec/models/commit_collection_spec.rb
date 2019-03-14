@@ -38,12 +38,13 @@ describe CommitCollection do
   describe '#without_merge_commits' do
     it 'returns all commits except merge commits' do
       merge_commit = project.commit("60ecb67744cb56576c30214ff52294f8ce2def98")
+      expect(merge_commit).to receive(:merge_commit?).and_return(true)
+
       collection = described_class.new(project, [
         commit,
         merge_commit
       ])
 
-      expect(merge_commit).to receive(:merge_commit?).and_return(true)
       expect(collection.without_merge_commits).to contain_exactly(commit)
     end
   end
@@ -51,9 +52,6 @@ describe CommitCollection do
   describe 'enrichment methods' do
     let(:gitaly_commit) { commit }
     let(:hash_commit) { Commit.from_hash(gitaly_commit.to_hash, project) }
-
-    it { expect(gitaly_commit.gitaly_commit?).to eq(true) }
-    it { expect(hash_commit.gitaly_commit?).to eq(false) }
 
     describe '#unenriched' do
       it 'returns all commits that are not backed by gitaly data' do
@@ -111,7 +109,7 @@ describe CommitCollection do
       end
 
       it 'fetches data if there are unenriched commits' do
-        collection = described_class.new(project, [gitaly_commit, hash_commit])
+        collection = described_class.new(project, [hash_commit])
 
         expect(Commit).to receive(:lazy).exactly(:once)
 
