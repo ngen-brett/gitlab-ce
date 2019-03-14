@@ -14,7 +14,7 @@ const createTranslatedTextForFiles = (files, text) => {
 export const discardDraftButtonDisabled = state =>
   state.commitMessage === '' || state.submitCommitLoading;
 
-export const newBranchName = (state, _, rootState) =>
+export const placeholderBranchName = (state, _, rootState) =>
   `${gon.current_username}-${rootState.currentBranchId}-patch-${`${new Date().getTime()}`.substr(
     -BRANCH_SUFFIX_COUNT,
   )}`;
