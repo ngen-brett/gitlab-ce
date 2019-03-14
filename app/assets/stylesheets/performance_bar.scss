@@ -1,5 +1,4 @@
-@import 'framework/variables';
-@import 'framework/variables_overrides';
+@import "../../../node_modules/@gitlab/ui/scss/variables";
 @import 'peek/views/rblineprof';
 
 #js-peek {
