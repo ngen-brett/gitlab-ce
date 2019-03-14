@@ -1,19 +1,19 @@
 # frozen_string_literal: true
-# rubocop:disable RSpec/FactoriesInMigrationSpecs
+
 require 'spec_helper'
 require Rails.root.join('db', 'post_migrate', '20180723130817_delete_inconsistent_internal_id_records.rb')
 
 describe DeleteInconsistentInternalIdRecords, :migration do
-  let!(:project1) { create(:project) }
-  let!(:project2) { create(:project) }
-  let!(:project3) { create(:project) }
+  let!(:project1) { create(:project) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+  let!(:project2) { create(:project) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+  let!(:project3) { create(:project) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
 
   let(:internal_id_query) { ->(project) { InternalId.where(usage: InternalId.usages[scope.to_s.tableize], project: project) } }
 
   let(:create_models) do
-    3.times { create(scope, project: project1) }
-    3.times { create(scope, project: project2) }
-    3.times { create(scope, project: project3) }
+    3.times { create(scope, project: project1) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+    3.times { create(scope, project: project2) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+    3.times { create(scope, project: project3) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
   end
 
   shared_examples_for 'deleting inconsistent internal_id records' do
@@ -33,11 +33,11 @@ describe DeleteInconsistentInternalIdRecords, :migration do
       end
     end
 
-    it "deletes inconsistent issues" do
+    it "deletes inconsistent records" do
       expect { migrate! }.to change { internal_id_query.call(project1).size }.from(1).to(0)
     end
 
-    it "retains consistent issues" do
+    it "retains consistent records" do
       expect { migrate! }.not_to change { internal_id_query.call(project2).size }
     end
 
@@ -55,9 +55,9 @@ describe DeleteInconsistentInternalIdRecords, :migration do
     let(:scope) { :merge_request }
 
     let(:create_models) do
-      3.times { |i| create(scope, target_project: project1, source_project: project1, source_branch: i.to_s) }
-      3.times { |i| create(scope, target_project: project2, source_project: project2, source_branch: i.to_s) }
-      3.times { |i| create(scope, target_project: project3, source_project: project3, source_branch: i.to_s) }
+      3.times { |i| create(scope, target_project: project1, source_project: project1, source_branch: i.to_s) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+      3.times { |i| create(scope, target_project: project2, source_project: project2, source_branch: i.to_s) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
+      3.times { |i| create(scope, target_project: project3, source_project: project3, source_branch: i.to_s) } # rubocop:disable RSpec/FactoriesInMigrationSpecs
     end
 
     it_behaves_like 'deleting inconsistent internal_id records'
@@ -92,9 +92,9 @@ describe DeleteInconsistentInternalIdRecords, :migration do
     let(:scope) { :ci_pipeline }
 
     let(:create_models) do
-      create_list(:ci_empty_pipeline, 3, project: project1)
-      create_list(:ci_empty_pipeline, 3, project: project2)
-      create_list(:ci_empty_pipeline, 3, project: project3)
+      create_list(:ci_empty_pipeline, 3, project: project1) # rubocop:disable RSpec/FactoriesInMigrationSpecs
+      create_list(:ci_empty_pipeline, 3, project: project2) # rubocop:disable RSpec/FactoriesInMigrationSpecs
+      create_list(:ci_empty_pipeline, 3, project: project3) # rubocop:disable RSpec/FactoriesInMigrationSpecs
     end
 
     it_behaves_like 'deleting inconsistent internal_id records'
@@ -127,11 +127,11 @@ describe DeleteInconsistentInternalIdRecords, :migration do
       end
     end
 
-    it "deletes inconsistent issues" do
+    it "deletes inconsistent records" do
       expect { migrate! }.to change { internal_id_query.call(group1).size }.from(1).to(0)
     end
 
-    it "retains consistent issues" do
+    it "retains consistent records" do
       expect { migrate! }.not_to change { internal_id_query.call(group2).size }
     end
 
