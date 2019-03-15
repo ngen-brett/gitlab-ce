@@ -25,7 +25,7 @@ export const branchName = (state, getters, rootState) => {
     state.commitAction === consts.COMMIT_TO_NEW_BRANCH_MR
   ) {
     if (state.newBranchName === '') {
-      return getters.newBranchName;
+      return getters.placeholderBranchName;
     }
 
     return state.newBranchName;

@@ -29,11 +29,11 @@ describe('IDE commit module getters', () => {
     });
   });
 
-  describe('newBranchName', () => {
+  describe('placeholderBranchName', () => {
     it('includes username, currentBranchId, patch & random number', () => {
       gon.current_username = 'username';
 
-      const branch = getters.newBranchName(state, null, {
+      const branch = getters.placeholderBranchName(state, null, {
         currentBranchId: 'testing',
       });
 
