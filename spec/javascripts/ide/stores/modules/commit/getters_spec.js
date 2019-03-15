@@ -46,7 +46,7 @@ describe('IDE commit module getters', () => {
       currentBranchId: 'master',
     };
     const localGetters = {
-      newBranchName: 'newBranchName',
+      placeholderBranchName: 'newBranchName',
     };
 
     beforeEach(() => {
