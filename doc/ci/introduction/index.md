@@ -144,7 +144,6 @@ so, GitLab CI/CD:
 
 - Runs automated scripts (sequential or parallel) to:
   - Build and test your app.
-  - Deploy to a staging environment.
   - Preview the changes per merge request with Review Apps, as you
   would see in your `localhost`.
 
