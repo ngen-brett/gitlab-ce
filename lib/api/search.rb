@@ -7,18 +7,20 @@ module API
     before { authenticate! }
 
     helpers do
-      SCOPE_ENTITY = {
-        merge_requests: Entities::MergeRequestBasic,
-        issues: Entities::IssueBasic,
-        projects: Entities::BasicProjectDetails,
-        milestones: Entities::Milestone,
-        notes: Entities::Note,
-        commits: Entities::CommitDetail,
-        blobs: Entities::Blob,
-        wiki_blobs: Entities::Blob,
-        snippet_titles: Entities::Snippet,
-        snippet_blobs: Entities::Snippet
-      }.freeze
+      def scope_entity
+        @scope_entities ||= {
+          merge_requests: Entities::MergeRequestBasic,
+          issues: Entities::IssueBasic,
+          projects: Entities::BasicProjectDetails,
+          milestones: Entities::Milestone,
+          notes: Entities::Note,
+          commits: Entities::CommitDetail,
+          blobs: Entities::Blob,
+          wiki_blobs: Entities::Blob,
+          snippet_titles: Entities::Snippet,
+          snippet_blobs: Entities::Snippet
+        }.freeze
+      end
 
       def search(additional_params = {})
         search_params = {
@@ -43,7 +45,7 @@ module API
       end
 
       def entity
-        SCOPE_ENTITY[params[:scope].to_sym]
+        scope_entity[params[:scope].to_sym]
       end
     end
 
