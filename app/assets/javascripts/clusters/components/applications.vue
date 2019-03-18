@@ -393,7 +393,6 @@ export default {
         <div slot="description" v-html="prometheusDescription"></div>
       </application-row>
       <application-row
-        v-if="isProjectCluster"
         id="runner"
         :logo-url="gitlabLogo"
         :title="applications.runner.title"
