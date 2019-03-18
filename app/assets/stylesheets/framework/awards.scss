@@ -58,6 +58,8 @@
 
   @include media-breakpoint-down(xs) {
     width: $award-emoji-width-xs;
+    // ovverride positioning set from the js: app/assets/javascripts/awards_handler.js:267
+    left: $award-emoji-left-xs !important;
   }
 }
 
