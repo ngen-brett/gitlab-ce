@@ -4,6 +4,9 @@ import JobNameComponent from './job_name_component.vue';
 import { GlTooltipDirective, GlLink } from '@gitlab/ui';
 import { sprintf } from '~/locale';
 import delayedJobMixin from '~/jobs/mixins/delayed_job_mixin';
+import TooltipOnTruncate from '~/vue_shared/components/tooltip_on_truncate.vue';
+
+
 
 /**
  * Renders the badge for the pipeline graph and the job's dropdown.
@@ -35,6 +38,7 @@ export default {
     ActionComponent,
     JobNameComponent,
     GlLink,
+    TooltipOnTruncate,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -97,6 +101,9 @@ export default {
     pipelineActionRequestComplete() {
       this.$emit('pipelineActionRequestComplete');
     },
+    getCiTextSpan() {
+      return document.querySelector('.ci-status-text')
+    }
   },
 };
 </script>
@@ -109,7 +116,14 @@ export default {
       :class="cssClassJobName"
       class="js-pipeline-graph-job-link qa-job-link"
     >
-      <job-name-component :name="job.name" :status="job.status" />
+    <tooltip-on-truncate
+     class="grab-me"
+     title="dfjonajkdnljnvsnvljhsfbhvdfhjsbhjfbdhjvb"
+     :truncate-target="getCiTextSpan"
+     placement="bottom">
+     <job-name-component :name="job.name" :status="job.status" />
+   </tooltip-on-truncate>
+
     </gl-link>
 
     <div

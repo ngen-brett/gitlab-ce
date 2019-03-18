@@ -1,10 +1,12 @@
 <script>
 import _ from 'underscore';
-import tooltip from '../directives/tooltip';
+import { GlTooltipDirective } from '@gitlab/ui';
+
+
 
 export default {
   directives: {
-    tooltip,
+    GlTooltip: GlTooltipDirective,
   },
   props: {
     title: {
@@ -52,7 +54,7 @@ export default {
 <template>
   <span
     v-if="showTooltip"
-    v-tooltip
+    v-gl-tooltip="{boundary: 'viewport', placement}"
     :title="title"
     :data-placement="placement"
     class="js-show-tooltip"

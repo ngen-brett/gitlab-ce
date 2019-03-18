@@ -30,13 +30,11 @@ export default {
   <span class="ci-job-name-component">
     <ci-icon :status="status" />
 
-    <!-- <span class="ci-status-text"> {{ name }} </span> -->
+    <!-- <span class="ci-status-text"> {{ name }} </span>
+    :truncate-target="logEl" -->
+
     <span class="ci-status-text">
-      <tooltip-on-truncate
-        title="dfjonajkdnljnvsnvljhsfbhvdfhjsbhjfbdhjvb"
-        placement="top">
-        dfjonajkdnljnvsnvljhsfbhvdfhjsbhjfbdhjvb
-      </tooltip-on-truncate>
+      dfjonajkdnljnvsnvljhsfbhvdfhjsbhjfbdhjv
     </span>
   </span>
 </template>
