@@ -37,7 +37,7 @@ describe 'Clusterable > Show page' do
 
       it 'shows help text with the domain as an alternative to custom domain' do
         within '#cluster-integration' do
-          expect(find(cluster_ingress_help_text_selector)).to_not match_css(hide_modifier_selector)
+          expect(find(cluster_ingress_help_text_selector)).not_to match_css(hide_modifier_selector)
         end
       end
     end
