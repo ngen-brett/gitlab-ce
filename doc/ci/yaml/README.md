@@ -1235,8 +1235,7 @@ job:
 to the paths defined in `artifacts:paths`).
 
 NOTE: **Note:**
-To exclude the folders/files which should not be a part of `untracked` just
-add them to `.gitignore`.
+`artifacts:untracked` ignores configuration in the repository's `.gitignore` file.
 
 Send all Git untracked files:
 
@@ -1703,6 +1702,11 @@ of using YAML anchors, you can use the [`extends` keyword](#extends).
 
 See [usage examples](#include-examples).
 
+NOTE: **Note:**
+`.gitlab-ci.yml` configuration included by all methods is evaluated at pipeline creation.
+The configuration is a snapshot in time and persisted in the database. Any changes to
+referenced `.gitlab-ci.yml` configuration will not be reflected in GitLab until the next pipeline is created.
+
 #### `include:local`
 
 `include:local` includes a file from the same repository as `.gitlab-ci.yml`.
@@ -1792,14 +1796,6 @@ include:
 
 All nested includes will be executed without context as public user, so only another remote,
 or public project, or template is allowed.
-
-NOTE: **Note:**
-Changes to remote includes will not have effect on already created pipelines,
-because the include is being evaluated at the time of pipeline creation.
-This is when full definition of CI yaml is being expanded in order to create
-pipeline with stages with jobs. You always retry job that is already created,
-thus created after pipeline creation. To re-include all (thus re-evaluate the
-configuration), you have to re-create pipeline.
 
 #### Nested includes
 
@@ -2561,4 +2557,4 @@ git push -o ci.skip
 [environment]: ../environments.md "CI/CD environments"
 [schedules]: ../../user/project/pipelines/schedules.md "Pipelines schedules"
 [variables]: ../variables/README.md "CI/CD variables"
-[push-option]: https://git-scm.com/docs/git-push#git-push--oltoptiongt
+[push-option]: https://git-scm.com/docs/git-push#Documentation/git-push.txt--oltoptiongt

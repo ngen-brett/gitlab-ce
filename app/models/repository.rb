@@ -39,7 +39,8 @@ class Repository
                       changelog license_blob license_key gitignore
                       gitlab_ci_yml branch_names tag_names branch_count
                       tag_count avatar exists? root_ref has_visible_content?
-                      issue_template_names merge_request_template_names xcode_project?).freeze
+                      issue_template_names merge_request_template_names xcode_project?
+                      insights_config).freeze
 
   # Methods that use cache_method but only memoize the value
   MEMOIZED_CACHED_METHODS = %i(license).freeze
@@ -57,7 +58,8 @@ class Repository
     avatar: :avatar,
     issue_template: :issue_template_names,
     merge_request_template: :merge_request_template_names,
-    xcode_config: :xcode_project?
+    xcode_config: :xcode_project?,
+    insights_config: :insights_config
   }.freeze
 
   def initialize(full_path, project, disk_path: nil, is_wiki: false)
@@ -265,16 +267,14 @@ class Repository
   # to avoid unnecessary syncing.
   def keep_around(*shas)
     shas.each do |sha|
-      begin
-        next unless sha.present? && commit_by(oid: sha)
+      next unless sha.present? && commit_by(oid: sha)
 
-        next if kept_around?(sha)
+      next if kept_around?(sha)
 
-        # This will still fail if the file is corrupted (e.g. 0 bytes)
-        raw_repository.write_ref(keep_around_ref_name(sha), sha)
-      rescue Gitlab::Git::CommandError => ex
-        Rails.logger.error "Unable to create keep-around reference for repository #{disk_path}: #{ex}"
-      end
+      # This will still fail if the file is corrupted (e.g. 0 bytes)
+      raw_repository.write_ref(keep_around_ref_name(sha), sha)
+    rescue Gitlab::Git::CommandError => ex
+      Rails.logger.error "Unable to create keep-around reference for repository #{disk_path}: #{ex}"
     end
   end
 
@@ -664,6 +664,11 @@ class Repository
     file_on_head(:xcode_config, :tree).present?
   end
   cache_method :xcode_project?
+
+  def insights_config
+    file_on_head(:insights_config)
+  end
+  cache_method :insights_config
 
   def head_commit
     @head_commit ||= commit(self.root_ref)
