@@ -102,6 +102,10 @@ module ApplicationSettingImplementation
     end
 
     def create_from_defaults
+      puts "\n\n===================="
+      puts "ApplicationSettingImplementation.create_from_defaults called from"
+      caller.each { |l| puts l }
+      puts "====================\n\n"
       build_from_defaults.tap(&:save)
     end
 
