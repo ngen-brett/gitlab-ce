@@ -101,6 +101,11 @@ To add an existing Kubernetes cluster to your project:
       It's the URL that GitLab uses to access the Kubernetes API. Kubernetes
       exposes several APIs, we want the "base" URL that is common to all of them,
       e.g., `https://kubernetes.example.com` rather than `https://kubernetes.example.com/api/v1`.
+      - Get the API URL by running this command:
+
+      ```sh
+      kubectl cluster-info | grep 'Kubernetes master' | awk '/http/ {print $NF}'
+      ```
     - **CA certificate** (required) - A valid Kubernetes certificate is needed to authenticate to the EKS cluster. We will use the certificate created by default.
       -  List the secrets with `kubectl get secrets`, and one should named similar to
        `default-token-xxxxx`. Copy that token name for use below.
@@ -211,14 +216,6 @@ To add an existing Kubernetes cluster to your project:
 
 After a couple of minutes, your cluster will be ready to go. You can now proceed
 to install some [pre-defined applications](#installing-applications).
-
-To determine the:
-
-- API URL, run `kubectl cluster-info | grep 'Kubernetes master' | awk '/http/ {print $NF}'`.
-- Token:
-  1. List the secrets by running: `kubectl get secrets`. Note the name of the secret you need the token for.
-  1. Get the token for the appropriate secret by running: `kubectl get secret <SECRET_NAME> -o jsonpath="{['data']['token']}" | base64 --decode`.
-- CA certificate, run `kubectl get secret <secret name> -o jsonpath="{['data']['ca\.crt']}" | base64 --decode`.
 
 ## Security implications
 
