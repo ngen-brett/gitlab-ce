@@ -1,0 +1,6 @@
+---
+title: Update cluster domain help text to indicate ingress external ip can be used
+  as the cluster domain
+merge_request: 26124
+author:
+type: changed
