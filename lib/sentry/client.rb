@@ -93,8 +93,7 @@ module Sentry
     end
 
     def map_to_error(issue)
-      id = issue.fetch('id')
-      project = issue.fetch('project')
+      id = issue.fetch('id', nil)
 
       count = issue.fetch('count', nil)
 
@@ -117,9 +116,9 @@ module Sentry
         short_id: issue.fetch('shortId', nil),
         status: issue.fetch('status', nil),
         frequency: frequency,
-        project_id: project.fetch('id'),
-        project_name: project.fetch('name', nil),
-        project_slug: project.fetch('slug', nil)
+        project_id: issue.dig('project', 'id'),
+        project_name: issue.dig('project', 'name'),
+        project_slug: issue.dig('project', 'slug')
       )
     end
 
@@ -127,12 +126,12 @@ module Sentry
       organization = project.fetch('organization')
 
       Gitlab::ErrorTracking::Project.new(
-        id: project.fetch('id'),
+        id: project.fetch('id', nil),
         name: project.fetch('name'),
         slug: project.fetch('slug'),
         status: project.dig('status'),
         organization_name: organization.fetch('name'),
-        organization_id: organization.fetch('id'),
+        organization_id: organization.fetch('id', nil),
         organization_slug: organization.fetch('slug')
       )
     end
