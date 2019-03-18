@@ -4,6 +4,10 @@ module Gitlab
   module CurrentSettings
     class << self
       def current_application_settings
+        puts "\n\n===================="
+        puts "Gitlab::CurrentSettings.current_application_settings called from"
+        puts "====================\n\n"
+        caller.each { |l| puts l }
         Gitlab::SafeRequestStore.fetch(:current_application_settings) { ensure_application_settings! }
       end
 

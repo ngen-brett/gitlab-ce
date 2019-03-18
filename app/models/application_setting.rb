@@ -318,6 +318,10 @@ class ApplicationSetting < ActiveRecord::Base
   end
 
   def self.create_from_defaults
+    puts "\n\n===================="
+    puts "ApplicationSetting.create_from_defaults called from"
+    caller.each { |l| puts l }
+    puts "====================\n\n"
     build_from_defaults.tap(&:save)
   end
 
