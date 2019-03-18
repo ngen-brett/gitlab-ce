@@ -129,23 +129,7 @@ To add an existing Kubernetes cluster to your project:
           metadata:
             name: gitlab-admin
             namespace: kube-system
-          ```
-
-      2. Apply the service account to your cluster:
-
-          ```bash
-          kubectl apply -f gitlab-admin-service-account.yaml
-          ```
-
-          Output:
-
-            ```bash
-            serviceaccount "gitlab-admin" created
-            ```
-
-      3. Create a file called `gitlab-admin-cluster-role-binding.yaml` with contents:
-
-          ```yaml
+          ---
           apiVersion: rbac.authorization.k8s.io/v1beta1
           kind: ClusterRoleBinding
           metadata:
@@ -160,19 +144,20 @@ To add an existing Kubernetes cluster to your project:
             namespace: kube-system
           ```
 
-      4. Apply the cluster role binding to your cluster:
+      2. Apply the service account and cluster role binding to your cluster:
 
           ```bash
-          kubectl apply -f gitlab-admin-cluster-role-binding.yaml
+          kubectl apply -f gitlab-admin-service-account.yaml
           ```
 
           Output:
 
           ```bash
+          serviceaccount "gitlab-admin" created
           clusterrolebinding "gitlab-admin" created
           ```
 
-      5. Retrieve the token for the `gitlab-admin` service account:
+      3. Retrieve the token for the `gitlab-admin` service account:
 
           ```bash
           kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep gitlab-admin | awk '{print $1}')
