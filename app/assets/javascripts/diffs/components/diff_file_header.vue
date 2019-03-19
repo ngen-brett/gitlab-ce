@@ -77,6 +77,11 @@ export default {
       if (this.diffFile.submodule) {
         return this.diffFile.submodule_tree_url || this.diffFile.submodule_link;
       }
+
+      if (!this.discussionPath) {
+        return `#${this.diffFile.file_path}`;
+      }
+
       return this.discussionPath;
     },
     filePath() {
@@ -152,6 +157,16 @@ export default {
     handleToggleDiscussions() {
       this.toggleFileDiscussions(this.diffFile);
     },
+    handleFileClick(e) {
+      if (
+        !(this.diffFile.submodule_tree_url || this.diffFile.submodule_link) &&
+        !this.discussionPath
+      ) {
+        e.preventDefault();
+        e.target.scrollIntoView();
+        window.scrollBy(0, -192);
+      }
+    },
   },
 };
 </script>
@@ -171,7 +186,15 @@ export default {
         class="diff-toggle-caret append-right-5"
         @click.stop="handleToggle"
       />
-      <a v-once ref="titleWrapper" :href="titleLink" class="append-right-4 js-title-wrapper">
+
+      <a
+        v-once
+        id="diffFile.file_path"
+        ref="titleWrapper"
+        class="append-right-4 js-title-wrapper"
+        :href="titleLink"
+        @click="handleFileClick"
+      >
         <file-icon
           :file-name="filePath"
           :size="18"
