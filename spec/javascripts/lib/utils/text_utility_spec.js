@@ -151,4 +151,10 @@ describe('text_utility', () => {
       );
     });
   });
+
+  describe('slugifyWithUnderscore', () => {
+    it('should replaces whitespaces with underscore and convert to lower case', () => {
+      expect(textUtils.slugifyWithUnderscore('My Input String')).toEqual('my_input_string');
+    });
+  });
 });

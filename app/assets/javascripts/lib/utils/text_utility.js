@@ -56,6 +56,13 @@ export const slugify = str => str.trim().toLowerCase();
 export const slugifyWithHyphens = str => str.toLowerCase().replace(/\s+/g, '-');
 
 /**
+ * Replaces whitespaces with underscore and converts to lower case
+ * @param {String} str
+ * @returns {String}
+ */
+export const slugifyWithUnderscore = str => str.toLowerCase().replace(/\s+/g, '_');
+
+/**
  * Truncates given text
  *
  * @param {String} string
