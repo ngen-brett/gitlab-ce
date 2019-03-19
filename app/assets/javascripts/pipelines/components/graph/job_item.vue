@@ -101,8 +101,8 @@ export default {
     pipelineActionRequestComplete() {
       this.$emit('pipelineActionRequestComplete');
     },
-    getCiTextSpan() {
-      return document.querySelector('.ci-status-text')
+    getCiTextSpan(el) {
+      return el.querySelector('.ci-status-text');
     }
   },
 };
@@ -116,13 +116,13 @@ export default {
       :class="cssClassJobName"
       class="js-pipeline-graph-job-link qa-job-link"
     >
-    <tooltip-on-truncate
-     class="grab-me"
-     title="dfjonajkdnljnvsnvljhsfbhvdfhjsbhjfbdhjvb"
-     :truncate-target="getCiTextSpan"
-     placement="bottom">
-     <job-name-component :name="job.name" :status="job.status" />
-   </tooltip-on-truncate>
+      <tooltip-on-truncate
+       class="grab-me"
+       title="dfjonajkdnljnvsnvljhsfbhvdfhjsbhjfbdhjvb"
+       :truncate-target="getCiTextSpan"
+       placement="bottom">
+       <job-name-component :name="job.name" :status="job.status" />
+     </tooltip-on-truncate>
 
     </gl-link>
 
@@ -132,7 +132,13 @@ export default {
       :class="cssClassJobName"
       class="js-job-component-tooltip non-details-job-component"
     >
-      <job-name-component :name="job.name" :status="job.status" />
+      <tooltip-on-truncate
+       class="grab-me"
+       title="dfjonajkdnljnvsnvljhsfbhvdfhjsbhjfbdhjvb"
+       :truncate-target="getCiTextSpan"
+       placement="bottom">
+       <job-name-component :name="job.name" :status="job.status" />
+     </tooltip-on-truncate>
     </div>
 
     <action-component
