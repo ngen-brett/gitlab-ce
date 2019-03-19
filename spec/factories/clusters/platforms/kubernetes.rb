@@ -19,5 +19,9 @@ FactoryBot.define do
     trait :rbac_disabled do
       authorization_type :abac
     end
+
+    trait :rbac_enabled do
+      authorization_type :rbac
+    end
   end
 end
