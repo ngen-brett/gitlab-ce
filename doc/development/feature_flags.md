@@ -103,6 +103,8 @@ that checking for `gon.features.vim_bindings` would not work.
 
 ### Specs
 
+#### RSpec
+
 In the test environment `Feature.enabled?` is stubbed to always respond to `true`,
 so we make sure behavior under feature flag doesn't go untested in some non-specific
 contexts.
@@ -112,6 +114,29 @@ feature flag. You can stub a feature flag as follows:
 
 ```ruby
 stub_feature_flags(my_feature_flag: false)
+```
+
+#### Karma
+
+In Karma, you can mock the feature property on `gon.features`, which is reset
+to an empty object `beforeEach` test.
+
+```js
+it('works great when newFeature is enabled', () => {
+   gon.features.newFeature = true;
+   // ...
+});
+```
+
+#### Jest
+
+In Jest, tests are evaluated in isolation. `gon.features` will be `undefined`.
+
+```js
+it('works great when newFeature is enabled', () => {
+   gon.features = { newFeature: true };
+   // ...
+});
 ```
 
 ## Enabling a feature flag (in development)
