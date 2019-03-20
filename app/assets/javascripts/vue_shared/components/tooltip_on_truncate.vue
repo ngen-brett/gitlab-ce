@@ -33,7 +33,8 @@ export default {
   mounted() {
     const target = this.selectTarget();
 
-    if (target && (target.scrollWidth > target.offsetWidth || target.offsetWidth > target.parentElement.offsetWidth)) {
+    if (target && (target.scrollWidth > target.offsetWidth
+                  || target.offsetWidth > target.parentElement.offsetWidth)) {
       this.showTooltip = true;
     }
   },

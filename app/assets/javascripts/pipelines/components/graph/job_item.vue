@@ -117,8 +117,7 @@ export default {
       class="js-pipeline-graph-job-link qa-job-link"
     >
       <tooltip-on-truncate
-       class="grab-me"
-       title="dfjonajkdnljnvsnvljhsfbhvdfhjsbhjfbdhjvb"
+       :title="tooltipText"
        :truncate-target="getCiTextSpan"
        placement="bottom">
        <job-name-component :name="job.name" :status="job.status" />
@@ -133,8 +132,7 @@ export default {
       class="js-job-component-tooltip non-details-job-component"
     >
       <tooltip-on-truncate
-       class="grab-me"
-       title="dfjonajkdnljnvsnvljhsfbhvdfhjsbhjfbdhjvb"
+       :title="tooltipText"
        :truncate-target="getCiTextSpan"
        placement="bottom">
        <job-name-component :name="job.name" :status="job.status" />

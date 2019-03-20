@@ -1,6 +1,5 @@
 <script>
 import ciIcon from '../../../vue_shared/components/ci_icon.vue';
-import TooltipOnTruncate from '~/vue_shared/components/tooltip_on_truncate.vue';
 
 /**
  * Component that renders both the CI icon status and the job name.
@@ -11,7 +10,6 @@ import TooltipOnTruncate from '~/vue_shared/components/tooltip_on_truncate.vue';
 export default {
   components: {
     ciIcon,
-    TooltipOnTruncate
   },
   props: {
     name: {
@@ -29,12 +27,8 @@ export default {
 <template>
   <span class="ci-job-name-component">
     <ci-icon :status="status" />
-
-    <!-- <span class="ci-status-text"> {{ name }} </span>
-    :truncate-target="logEl" -->
-
     <span class="ci-status-text">
-      dfjonajkdnljnvsnvljhsfbhvdfhjsbhjfbdhjv
+      {{ name }}
     </span>
   </span>
 </template>
