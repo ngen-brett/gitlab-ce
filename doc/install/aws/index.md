@@ -1,10 +1,12 @@
-# Installing GitLab on Amazon Web Services (AWS)
-
-To install GitLab on AWS, you can use the Amazon Machine Images (AMIs) that GitLab
-provides with [each release](https://about.gitlab.com/releases/).
+# Installing GitLab HA on Amazon Web Services (AWS)
 
 This page offers a walkthrough of a common HA (Highly Available) configuration
 for GitLab on AWS. You should customize it to accommodate your needs.
+
+NOTE: **Note**
+The GitLab HA AWS installation is recommended for organizations with 300 users and up. 
+
+For organizations with 300 users or less, the recommended AWS instatilation method is to launch an EC2 single box [Omnibus installation](https://about.gitlab.com/install/), and implement a snapshot strategy for backing up the data. 
 
 ## Introduction
 
