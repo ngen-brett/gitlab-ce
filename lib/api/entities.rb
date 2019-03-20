@@ -620,6 +620,10 @@ module API
     class PipelineBasic < Grape::Entity
       expose :id, :sha, :ref, :status
 
+      expose :detailed_status, using: DetailedStatusEntity do |pipeline, _options|
+        pipeline.detailed_status(_options[:current_user])
+      end
+
       expose :web_url do |pipeline, _options|
         Gitlab::Routing.url_helpers.project_pipeline_url(pipeline.project, pipeline)
       end
@@ -685,6 +689,10 @@ module API
       expose :allow_collaboration, if: -> (merge_request, _) { merge_request.for_fork? }
       # Deprecated
       expose :allow_collaboration, as: :allow_maintainer_to_push, if: -> (merge_request, _) { merge_request.for_fork? }
+
+      expose :reference do |merge_request, _options|
+        merge_request.to_reference(_options[:project])
+      end
 
       expose :web_url do |merge_request|
         Gitlab::UrlBuilder.build(merge_request)
