@@ -17,7 +17,7 @@ describe 'Gitlab::Graphql::Authorization' do
     it 'returns the protected field when user has permission' do
       permit(permission_single)
 
-      expect(subject).to eq('name' => test_object.name)
+      expect(subject).to include('name' => test_object.name)
     end
 
     it 'returns nil when user is not authorized' do
@@ -29,7 +29,7 @@ describe 'Gitlab::Graphql::Authorization' do
     it 'returns the protected field when user has all permissions' do
       permit(*permission_collection)
 
-      expect(subject).to eq('name' => test_object.name)
+      expect(subject).to include('name' => test_object.name)
     end
 
     it 'returns nil when user only has one of the permissions' do
@@ -56,6 +56,31 @@ describe 'Gitlab::Graphql::Authorization' do
         query_factory do |query|
           query.field :object, type, null: true, resolve: ->(obj, args, ctx) { test_object }, authorize: permission_single
         end
+      end
+
+      include_examples 'authorization with a single permission'
+    end
+
+    describe 'with a single permission on a built in type' do
+      let(:test_object) { double(name: 'My name', built_in_type: 'Built in type') }
+      let(:query_string) { "{ object() { name\nbuiltInType } }" }
+
+      let(:type) do
+        type_factory do |type|
+          type.field :built_in_type, GraphQL::STRING_TYPE, null: true, authorize: permission_single
+        end
+      end
+
+      let(:query_type) do
+        query_factory do |query|
+          query.field :object, type, null: true, resolve: ->(obj, args, ctx) { test_object }, authorize: permission_single
+        end
+      end
+
+      it 'returns the protected field when user has permission' do
+        permit(permission_single)
+
+        expect(subject).to include('builtInType' => test_object.built_in_type)
       end
 
       include_examples 'authorization with a single permission'

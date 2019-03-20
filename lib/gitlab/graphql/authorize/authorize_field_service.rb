@@ -16,7 +16,7 @@ module Gitlab
         def authorized_resolve
           proc do |obj, args, ctx|
             resolved_obj = @old_resolve_proc.call(obj, args, ctx)
-            checker = build_checker(ctx[:current_user])
+            checker      = build_checker(ctx[:current_user], obj)
 
             if resolved_obj.respond_to?(:then)
               resolved_obj.then(&checker)
@@ -51,14 +51,24 @@ module Gitlab
           Array.wrap(@field.metadata[:authorize])
         end
 
-        def build_checker(current_user)
+        # If it's a built-in/scalar type, authorize using it's enclosing object
+        def authorize_against(obj, unresolved_object)
+          if built_in_type? && unresolved_object.respond_to?(:object)
+            unresolved_object.object
+          else
+            obj
+          end
+        end
+
+        def build_checker(current_user, unresolved_object)
           lambda do |value|
             # Load the elements if they were not loaded by BatchLoader yet
             value = value.sync if value.respond_to?(:sync)
 
-            check = lambda do |object|
+            check = lambda do |value_object|
+              authorizing_object = authorize_against(value_object, unresolved_object)
               authorizations.all? do |ability|
-                Ability.allowed?(current_user, ability, object)
+                Ability.allowed?(current_user, ability, authorizing_object)
               end
             end
 
@@ -87,6 +97,10 @@ module Gitlab
         # Returns the singular type for basic connections, for example `[Types::ProjectType]`
         def node_type_for_basic_connection(type)
           type.unwrap
+        end
+
+        def built_in_type?
+          GraphQL::Schema::BUILT_IN_TYPES.has_value?(node_type_for_basic_connection(@field.type))
         end
       end
     end
