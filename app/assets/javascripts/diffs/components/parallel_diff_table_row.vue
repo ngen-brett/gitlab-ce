@@ -11,6 +11,8 @@ import {
   PARALLEL_DIFF_VIEW_TYPE,
   NEW_NO_NEW_LINE_TYPE,
   EMPTY_CELL_TYPE,
+  LINE_SIDE_LEFT,
+  LINE_SIDE_RIGHT,
 } from '../constants';
 
 export default {
@@ -101,6 +103,7 @@ export default {
     // Prevent text selecting on both sides of parallel diff view
     // Backport of the same code from legacy diff notes.
     handleParallelLineMouseDown(e) {
+      console.log('Hello mousedown!');
       const line = $(e.currentTarget);
       const table = line.closest('table');
 
@@ -140,7 +143,7 @@ export default {
         :id="line.left.line_code"
         :class="parallelViewLeftLineType"
         class="line_content parallel left-side"
-        @mousedown.native="handleParallelLineMouseDown"
+        @mousedown="handleParallelLineMouseDown"
         v-html="line.left.rich_text"
       ></td>
     </template>
@@ -171,7 +174,7 @@ export default {
           },
         ]"
         class="line_content parallel right-side"
-        @mousedown.native="handleParallelLineMouseDown"
+        @mousedown="handleParallelLineMouseDown"
         v-html="line.right.rich_text"
       ></td>
     </template>
