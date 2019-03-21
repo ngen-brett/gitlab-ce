@@ -54,12 +54,11 @@ class DiffFileEntity < DiffFileBaseEntity
 
   # Used for inline diffs
   expose :highlighted_diff_lines, using: DiffLineEntity, if: -> (diff_file, _) { diff_file.text? } do |diff_file|
-    diff_file.diff_lines_for_serializer
+    lines = diff_file.highlighted_diff_lines_with_bottom_match_line
+    lines.empty? ? nil : lines
   end
 
-  expose :is_fully_expanded, if: -> (diff_file, _) { Feature.enabled?(:expand_diff_full_file) && diff_file.text? } do |diff_file|
-    diff_file.fully_expanded?
-  end
+  expose :fully_expanded?, as: :is_fully_expanded, if: -> (diff_file, _) { Feature.enabled?(:expand_diff_full_file) && diff_file.text? }
 
   # Used for parallel diffs
   expose :parallel_diff_lines, using: DiffLineParallelEntity, if: -> (diff_file, _) { diff_file.text? }

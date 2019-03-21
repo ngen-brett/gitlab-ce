@@ -129,7 +129,7 @@ module Gitlab
       def bottom_blob_match_line
         strong_memoize(:bottom_blob_match_line) do
           # The bottom line match addition is already handled on
-          # Diff::File#diff_lines_for_serializer
+          # Diff::File#highlighted_diff_lines_with_bottom_match_line
           next if bottom?
           next unless @generate_bottom_match_line
 

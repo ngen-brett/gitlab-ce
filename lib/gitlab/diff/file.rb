@@ -158,7 +158,10 @@ module Gitlab
         new_blob || old_blob
       end
 
-      attr_writer :highlighted_diff_lines
+      def highlighted_diff_lines=(value)
+        clear_memoization(:highlighted_diff_lines_with_bottom_match_line)
+        super
+      end
 
       # Array of Gitlab::Diff::Line objects
       def diff_lines
@@ -311,32 +314,29 @@ module Gitlab
         simple_viewer.is_a?(DiffViewer::Text) && (ignore_errors || simple_viewer.render_error.nil?)
       end
 
-      # This adds the bottom match line to the array if needed. It contains
+      # This adds the bottom match line if needed, containing
       # the data to load more context lines.
-      def diff_lines_for_serializer
-        lines = highlighted_diff_lines
+      def highlighted_diff_lines_with_bottom_match_line
+        strong_memoize(:highlighted_diff_lines_with_bottom_match_line) do
+          lines = highlighted_diff_lines.dup
 
-        return if lines.empty?
-        return if blob.nil?
+          next lines if lines.empty? || blob.nil?
 
-        last_line = lines.last
+          last_line = lines.last
 
-        if last_line.new_pos < total_blob_lines(blob) && !deleted_file?
-          match_line = Gitlab::Diff::Line.new("", 'match', nil, last_line.old_pos, last_line.new_pos)
-          lines.push(match_line)
+          if last_line.new_pos < total_blob_lines(blob) && !deleted_file?
+            match_line = Gitlab::Diff::Line.new("", 'match', nil, last_line.old_pos, last_line.new_pos)
+            lines.push(match_line)
+          end
+
+          lines
         end
-
-        lines
       end
 
       def fully_expanded?
         return true if binary?
 
-        lines = diff_lines_for_serializer
-
-        return true if lines.nil?
-
-        lines.none? { |line| line.type.to_s == 'match' }
+        highlighted_diff_lines_with_bottom_match_line.none? { |line| line.type.to_s == 'match' }
       end
 
       private

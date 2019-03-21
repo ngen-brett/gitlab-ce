@@ -14,7 +14,7 @@ module Gitlab
         free_right_index = nil
 
         lines = []
-        highlighted_diff_lines = diff_file.highlighted_diff_lines
+        highlighted_diff_lines = diff_file.highlighted_diff_lines_with_bottom_match_line
         highlighted_diff_lines.each do |line|
           if line.removed?
             lines << {

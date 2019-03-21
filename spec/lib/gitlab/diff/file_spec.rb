@@ -67,9 +67,15 @@ describe Gitlab::Diff::File do
     end
   end
 
-  describe '#diff_lines_for_serializer' do
+  describe '#highlighted_diff_lines_with_bottom_match_line' do
     it 'includes bottom match line if not in the end' do
-      expect(diff_file.diff_lines_for_serializer.last.type).to eq('match')
+      expect(diff_file.highlighted_diff_lines_with_bottom_match_line.last.type).to eq('match')
+    end
+
+    it 'does not modify highlighted_diff_lines' do
+      expect do
+        diff_file.highlighted_diff_lines_with_bottom_match_line
+      end.not_to change { diff_file.highlighted_diff_lines.size }
     end
 
     context 'when deleted' do
@@ -77,7 +83,7 @@ describe Gitlab::Diff::File do
       let(:diff_file) { commit.diffs.diff_file_with_old_path('files/js/commit.js.coffee') }
 
       it 'does not include bottom match line' do
-        expect(diff_file.diff_lines_for_serializer.last.type).not_to eq('match')
+        expect(diff_file.highlighted_diff_lines_with_bottom_match_line.last.type).not_to eq('match')
       end
     end
   end
