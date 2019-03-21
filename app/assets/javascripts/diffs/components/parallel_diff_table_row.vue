@@ -103,7 +103,6 @@ export default {
     // Prevent text selecting on both sides of parallel diff view
     // Backport of the same code from legacy diff notes.
     handleParallelLineMouseDown(e) {
-      console.log('Hello mousedown!');
       const line = $(e.currentTarget);
       const table = line.closest('table');
 
