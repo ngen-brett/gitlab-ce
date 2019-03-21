@@ -11,8 +11,6 @@ import {
   PARALLEL_DIFF_VIEW_TYPE,
   NEW_NO_NEW_LINE_TYPE,
   EMPTY_CELL_TYPE,
-  LINE_SIDE_LEFT,
-  LINE_SIDE_RIGHT,
 } from '../constants';
 
 export default {
