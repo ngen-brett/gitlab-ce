@@ -64,6 +64,25 @@ describe ErrorTracking::ListIssuesService do
           )
         end
       end
+
+      context 'when list_sentry_issues returns error with http_status' do
+        before do
+          allow(error_tracking_setting)
+            .to receive(:list_sentry_issues)
+            .and_return(
+              error: 'Sentry API response is missing keys. key not found: "id"',
+              http_status: :unprocessable_entity
+            )
+        end
+
+        it 'returns the error with correct http_status' do
+          expect(result).to eq(
+            status: :error,
+            http_status: :unprocessable_entity,
+            message: 'Sentry API response is missing keys. key not found: "id"'
+          )
+        end
+      end
     end
 
     context 'with unauthorized user' do

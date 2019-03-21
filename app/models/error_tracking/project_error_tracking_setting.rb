@@ -91,6 +91,8 @@ module ErrorTracking
       end
     rescue Sentry::Client::Error => e
       { error: e.message }
+    rescue Sentry::Client::SentryError => e
+      { error: e.message, http_status: :unprocessable_entity }
     end
 
     # http://HOST/api/0/projects/ORG/PROJECT

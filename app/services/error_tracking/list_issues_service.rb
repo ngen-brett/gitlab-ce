@@ -18,7 +18,7 @@ module ErrorTracking
       end
 
       if result[:error].present?
-        return error(result[:error], :bad_request)
+        return error(result[:error], result[:http_status] || :bad_request)
       end
 
       success(issues: result[:issues])

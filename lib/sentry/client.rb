@@ -14,17 +14,27 @@ module Sentry
 
     def list_issues(issue_status:, limit:)
       issues = get_issues(issue_status: issue_status, limit: limit)
-      map_to_errors(issues)
+
+      handle_mapping_exceptions do
+        map_to_errors(issues)
+      end
     end
 
     def list_projects
       projects = get_projects
-      map_to_projects(projects)
-    rescue KeyError => e
-      raise Client::SentryError, "Sentry API response is missing keys. #{e.message}"
+
+      handle_mapping_exceptions do
+        map_to_projects(projects)
+      end
     end
 
     private
+
+    def handle_mapping_exceptions(&block)
+      yield
+    rescue KeyError => e
+      raise Client::SentryError, "Sentry API response is missing keys. #{e.message}"
+    end
 
     def request_params
       {
@@ -93,7 +103,7 @@ module Sentry
     end
 
     def map_to_error(issue)
-      id = issue.fetch('id', nil)
+      id = issue.fetch('id')
 
       count = issue.fetch('count', nil)
 

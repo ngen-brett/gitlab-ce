@@ -138,10 +138,9 @@ describe Sentry::Client do
       end
     end
 
-    context 'keys missing in sentry response' do
+    context 'Older sentry versions where keys are not present' do
       let(:sentry_api_response) do
         [] << issues_sample_response[0].tap do |issue|
-          issue.delete(:id)
           issue[:project].delete(:id)
         end
       end
@@ -150,6 +149,24 @@ describe Sentry::Client do
 
       it_behaves_like 'has correct return type', Gitlab::ErrorTracking::Error
       it_behaves_like 'has correct length', 1
+
+      context 'external_url' do
+        it 'is constructed correctly' do
+          expect(subject[0].external_url).to eq('https://sentrytest.gitlab.com/sentry-org/sentry-project/issues/11')
+        end
+      end
+    end
+
+    context 'essential keys missing in API response' do
+      let(:sentry_api_response) do
+        [] << issues_sample_response[0].tap do |issue|
+          issue.delete(:id)
+        end
+      end
+
+      it 'raises exception' do
+        expect { subject }.to raise_error(Sentry::Client::SentryError, 'Sentry API response is missing keys. key not found: "id"')
+      end
     end
   end
 
