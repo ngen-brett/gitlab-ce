@@ -4,26 +4,99 @@
       - @domain.errors.full_messages.each do |msg|
         %p= msg
 
-.form-group.row
-  = f.label :domain, class: 'col-form-label col-sm-2' do
-    = _("Domain")
-  .col-sm-10
-    = f.text_field :domain, required: true, autocomplete: 'off', class: 'form-control', disabled: @domain.persisted?
-
-- if Gitlab.config.pages.external_https
+- if Feature.disabled?(:pages_lets_encrypt)
   .form-group.row
-    = f.label :certificate, class: 'col-form-label col-sm-2' do
-      = _("Certificate (PEM)")
+    = f.label :domain, class: 'col-form-label col-sm-2' do
+      = _("Domain")
     .col-sm-10
-      = f.text_area :certificate, rows: 5, class: 'form-control'
-      %span.help-inline= _("Upload a certificate for your domain with all intermediates")
+      = f.text_field :domain, required: true, autocomplete: 'off', class: 'form-control', disabled: @domain.persisted?
+
+  - if Gitlab.config.pages.external_https
+    .form-group.row
+      = f.label :certificate, class: 'col-form-label col-sm-2' do
+        = _("Certificate (PEM)")
+      .col-sm-10
+        = f.text_area :certificate, rows: 5, class: 'form-control'
+        %span.help-inline= _("Upload a certificate for your domain with all intermediates")
+
+    .form-group.row
+      = f.label :key, class: 'col-form-label col-sm-2' do
+        = _("Key (PEM)")
+      .col-sm-10
+        = f.text_area :key, rows: 5, class: 'form-control'
+        %span.help-inline= _("Upload a private key for your certificate")
+  - else
+    .nothing-here-block
+      = _("Support for custom certificates is disabled. Ask your system's administrator to enable it.")
+
+- if Feature.enabled?(:pages_lets_encrypt)
+  -# TODO: stop using this temporary variable and switch to using the 
+  -# actual instance variable on the pages_domain object instead
+  - lets_encrypt_enabled = true
 
   .form-group.row
-    = f.label :key, class: 'col-form-label col-sm-2' do
-      = _("Key (PEM)")
+    = f.label :domain, class: 'col-form-label col-sm-2' do
+      = _("Domain")
     .col-sm-10
-      = f.text_area :key, rows: 5, class: 'form-control'
-      %span.help-inline= _("Upload a private key for your certificate")
-- else
-  .nothing-here-block
-    = _("Support for custom certificates is disabled. Ask your system's administrator to enable it.")
+      = f.text_field :domain, required: true, autocomplete: 'off', class: 'form-control', disabled: @domain.persisted?
+
+  - if Gitlab.config.pages.external_https
+    .form-group.row
+      = f.label :something, class: 'col-form-label col-sm-2' do
+        = _("Automatic certificate management")
+        %br
+        (via
+        = succeed ")" do
+          = link_to "Let's Encrypt", "https://letsencrypt.org/", :target => "_blank"
+        
+      .col-sm-10.js-lets-encrypt-toggle-container
+        %button{ type: 'button',
+          class: "js-project-feature-toggle project-feature-toggle mt-2 #{'is-checked' if lets_encrypt_enabled}",
+          'aria-label': _("Automatic certificate management via Let's Encrypt") }
+          %input{ type: 'hidden',
+            class: 'js-ci-variable-input-protected js-project-feature-toggle-input',
+            name: 'lets-encrypt-enabled',
+            value: lets_encrypt_enabled,
+            data: { default: lets_encrypt_enabled } }
+          %span.toggle-icon
+            = sprite_icon('status_success_borderless', size: 16, css_class: 'toggle-icon-svg toggle-status-checked')
+            = sprite_icon('status_failed_borderless', size: 16, css_class: 'toggle-icon-svg toggle-status-unchecked')
+    
+    .js-shown-if-lets-encrypt{ style: ('display: none' unless lets_encrypt_enabled) }
+      .form-group.row
+        = f.label :certificate, class: 'col-form-label col-sm-2' do
+          = _("Certificate (PEM)")
+        .col-sm-10
+          - if lets_encrypt_enabled and @domain.certificate
+            = f.text_area :certificate, rows: 5, class: 'form-control', disabled: true, value: (@domain.certificate if lets_encrypt_enabled)
+            %span.help-inline= _("This certificate is automatically managed by Let's Encrypt")
+          - else
+            %p.text-secondary.form-control-plaintext= _("The certificate will be shown here once it has been obtained from Let's Encrypt. This process may take up to an hour to complete.")
+
+    .js-hidden-if-lets-encrypt{ style: ('display: none' if lets_encrypt_enabled) } 
+      .form-group.row
+        = f.label :certificate, class: 'col-form-label col-sm-2' do
+          = _("Certificate (PEM)")
+        .col-sm-10
+          = f.text_area :certificate, rows: 5, class: 'form-control', value: (@domain.certificate unless lets_encrypt_enabled)
+          %span.help-inline= _("Upload a certificate for your domain with all intermediates")
+
+      .form-group.row
+        = f.label :key, class: 'col-form-label col-sm-2' do
+          = _("Key (PEM)")
+        .col-sm-10
+          = f.text_area :key, rows: 5, class: 'form-control', value: (@domain.key unless lets_encrypt_enabled)
+          %span.help-inline= _("Upload a private key for your certificate")  
+        
+    .form-group.row
+      .col-sm-10.offset-sm-2.text-secondary
+        = _("Learn more about adding certificates to your project by following the documentation on ")
+        = succeed "." do
+          = link_to _("GitLab Pages"), 
+            "/help/user/project/pages/getting_started_part_three.md#adding-certificates-to-your-project", 
+            :target => "_blank"  
+      
+  - else
+    .nothing-here-block
+      = _("Support for custom certificates is disabled. Ask your system's administrator to enable it.")
+
