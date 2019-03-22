@@ -22,27 +22,6 @@
 }
 
 /*
- * Mixin for markdown tables
- */
-@mixin markdown-table {
-  width: auto;
-  display: block;
-  overflow-x: auto;
-  border: 0;
-  border-color: $gl-gray-100;
-
-  tr {
-    th {
-      border-bottom: solid 2px $gl-gray-100;
-    }
-
-    td {
-      border-color: $gl-gray-100;
-    }
-  }
-}
-
-/*
  * Base mixin for lists in GitLab
  */
 @mixin basic-list {

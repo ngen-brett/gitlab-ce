@@ -1,4 +1,8 @@
-@mixin md-typography {
+/**
+ * Apply Markdown typography
+ *
+ */
+.md:not(.use-csslab) {
   color: $gl-text-color;
   word-wrap: break-word;
 
@@ -28,6 +32,14 @@
     max-width: 100%;
   }
 
+  &:not(.md-file) img:not(.emoji) {
+    border: 1px solid $white-normal;
+    padding: 5px;
+    margin: 5px 0;
+    // Ensure that image does not exceed viewport
+    max-height: calc(100vh - 100px);
+  }
+
   p a:not(.no-attachment-icon) img {
     // Remove bottom padding because
     // <p> already has $gl-padding bottom
@@ -47,6 +59,7 @@
     font-family: $monospace-font;
     white-space: pre-wrap;
     word-wrap: normal;
+    word-break: keep-all;
   }
 
   kbd {
@@ -136,15 +149,31 @@
     margin: 0 0 16px;
   }
 
-  table:not(.js-syntax-highlight) {
+  hr {
+    // Darken 'whitesmoke' a bit to make it more visible in note bodies
+    border-color: darken($gray-normal, 8%);
+    margin: 10px 0;
+  }
+
+  table:not(.code) {
     @extend .table;
     @extend .table-bordered;
     margin: 16px 0;
     color: $gl-text-color;
     border: 0;
+    width: auto;
+    display: block;
+    overflow-x: auto;
+    border-color: $gl-gray-100;
 
-    th {
-      background: $label-gray-bg;
+    tr {
+      th {
+        background: $label-gray-bg;
+      }
+
+      td {
+        border-color: $gl-gray-100;
+      }
     }
   }
 
@@ -194,6 +223,18 @@
   ul:dir(rtl),
   ol:dir(rtl) {
     margin: 3px 28px 3px 0 !important;
+  }
+
+  > ul {
+    list-style-type: disc;
+
+    ul {
+      list-style-type: circle;
+
+      ul {
+        list-style-type: square;
+      }
+    }
   }
 
   li {
@@ -359,28 +400,6 @@ code {
 
 .git-revision-dropdown .dropdown-content ul li a {
   @extend .ref-name;
-}
-
-/**
- * Apply Markdown typography
- *
- */
-.wiki:not(.use-csslab) {
-  @include md-typography;
-}
-
-.md:not(.use-csslab) {
-  @include md-typography;
-
-  &:not(.wiki) {
-    img:not(.emoji) {
-      border: 1px solid $white-normal;
-      padding: 5px;
-      margin: 5px 0;
-      // Ensure that image does not exceed viewport
-      max-height: calc(100vh - 100px);
-    }
-  }
 }
 
 /**

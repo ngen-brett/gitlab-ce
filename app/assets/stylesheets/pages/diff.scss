@@ -89,13 +89,7 @@
       }
     }
 
-    .note-text {
-      table {
-        font-family: $font-family-sans-serif;
-      }
-    }
-
-    table {
+    > table, table.code {
       width: 100%;
       font-family: $monospace-font;
       border: 0;
@@ -105,118 +99,108 @@
       table-layout: fixed;
       border-radius: 0 0 $border-radius-default $border-radius-default;
 
-      .diff-line-num {
-        width: 50px;
-        position: relative;
+      tr.line_holder {
+        > td {
+          line-height: $code-line-height;
+          font-size: $code-font-size;
+          vertical-align: top;
 
-        a {
-          transition: none;
-        }
-      }
+          &.noteable_line {
+            position: relative;
+          }
 
-      .line_holder td {
-        line-height: $code-line-height;
-        font-size: $code-font-size;
-        vertical-align: top;
+          > span {
+            white-space: pre-wrap;
 
-        &.noteable_line {
-          position: relative;
-        }
+            &.context-cell {
+              display: inline-block;
+              width: 100%;
+              height: 100%;
+            }
 
-        span {
-          white-space: pre-wrap;
+            &.line {
+              word-wrap: break-word;
+            }
+          }
 
-          &.context-cell {
-            display: inline-block;
-            width: 100%;
-            height: 100%;
+          &.diff-line-num {
+            user-select: none;
+            margin: 0;
+            border: 0;
+            padding: 0 10px 0 5px;
+            border-right: 1px solid;
+            text-align: right;
+            width: 50px;
+            position: relative;
+
+            a {
+              transition: none;
+              float: left;
+              width: 100%;
+              font-weight: $gl-font-weight-normal;
+
+              &[disabled] {
+                cursor: default;
+
+                &:hover,
+                &:active {
+                  text-decoration: none;
+                }
+              }
+            }
+          }
+
+          &.line_content {
+            display: block;
+            margin: 0;
+            padding: 0 1.5em;
+            border: 0;
+            position: relative;
+            white-space: pre-wrap;
+
+            &.parallel {
+              display: table-cell;
+              width: 46%;
+
+              span {
+                word-break: break-all;
+              }
+            }
+
+            &.old {
+              &::before {
+                content: '-';
+                position: absolute;
+                left: 0.5em;
+              }
+            }
+
+            &.new {
+              &::before {
+                content: '+';
+                position: absolute;
+                left: 0.5em;
+              }
+            }
           }
         }
 
-        .line {
-          word-wrap: break-word;
+        &.parallel {
+          > .add-diff-note {
+            margin-left: -55px;
+          }
         }
       }
 
       &.left-side-selected {
-        td.line_content.parallel.right-side {
+        > td.line_content.parallel.right-side {
           user-select: none;
         }
       }
 
       &.right-side-selected {
-        td.line_content.parallel.left-side {
+        > td.line_content.parallel.left-side {
           user-select: none;
-        }
-      }
-    }
-
-    tr.line_holder.parallel {
-      td.line_content.parallel {
-        width: 46%;
-      }
-
-      .add-diff-note {
-        margin-left: -55px;
-      }
-    }
-
-    .old_line,
-    .new_line {
-      user-select: none;
-      margin: 0;
-      border: 0;
-      padding: 0 5px;
-      border-right: 1px solid;
-      text-align: right;
-      min-width: 35px;
-      max-width: 50px;
-      width: 35px;
-
-      a {
-        float: left;
-        width: 35px;
-        font-weight: $gl-font-weight-normal;
-
-        &[disabled] {
-          cursor: default;
-
-          &:hover,
-          &:active {
-            text-decoration: none;
-          }
-        }
-      }
-    }
-
-    .line_content {
-      display: block;
-      margin: 0;
-      padding: 0 1.5em;
-      border: 0;
-      position: relative;
-
-      &.parallel {
-        display: table-cell;
-
-        span {
-          word-break: break-all;
-        }
-      }
-
-      &.old {
-        &::before {
-          content: '-';
-          position: absolute;
-          left: 0.5em;
-        }
-      }
-
-      &.new {
-        &::before {
-          content: '+';
-          position: absolute;
-          left: 0.5em;
         }
       }
     }
@@ -441,10 +425,6 @@
         display: none;
       }
     }
-  }
-
-  .line_content {
-    white-space: pre-wrap;
   }
 
   .diff-file-container {
