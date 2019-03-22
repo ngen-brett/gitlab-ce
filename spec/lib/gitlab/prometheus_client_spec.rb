@@ -239,18 +239,19 @@ describe Gitlab::PrometheusClient do
     subject { described_class.compute_step(start, stop) }
 
     where(:time_interval_in_seconds, :step) do
-      1.second    | 0.0016
-      10.minutes  | 1.0
-      3.weeks     | 3024
-      0.0         | 0.0
-      -1.0        | 0.0016
+      0               | 0
+      1.second        | 1
+      9.minutes       | 1
+      10.minutes      | 1
+      11.minutes      | 2
+      8.hours         | 48
     end
 
     with_them do
       let(:start) { now - time_interval_in_seconds }
       let(:stop) { now }
 
-      it { is_expected.to be_within(0.001).of(step) }
+      it { is_expected.to eq(step) }
     end
   end
 end

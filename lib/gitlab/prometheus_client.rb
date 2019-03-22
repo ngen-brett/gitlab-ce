@@ -30,13 +30,16 @@ module Gitlab
     def query_range(query, start: 8.hours.ago, stop: Time.now)
       start = start.to_f
       stop = stop.to_f
+      step = self.class.compute_step(start, stop)
 
       get_result('matrix') do
-        json_api_get('query_range',
-                     query: query,
-                     start: start,
-                     end: stop,
-                     step: self.class.compute_step(start, stop))
+        json_api_get(
+          'query_range',
+          query: query,
+          start: start,
+          end: stop,
+          step: step
+        )
       end
     end
 
@@ -49,9 +52,9 @@ module Gitlab
     end
 
     def self.compute_step(start, stop)
-      diff = (stop - start).abs
+      diff = stop - start
 
-      diff / QUERY_RANGE_DATA_POINTS
+      (diff / QUERY_RANGE_DATA_POINTS).ceil
     end
 
     private
