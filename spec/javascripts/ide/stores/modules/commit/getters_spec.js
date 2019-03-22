@@ -55,7 +55,7 @@ describe('IDE commit module getters', () => {
       });
     });
 
-    it('defualts to currentBranchId', () => {
+    it('defaults to currentBranchId', () => {
       expect(getters.branchName(state, null, rootState)).toBe('master');
     });
 
@@ -71,7 +71,7 @@ describe('IDE commit module getters', () => {
           expect(getters.branchName(state, localGetters, rootState)).toBe('state-newBranchName');
         });
 
-        it('uses getters newBranchName when state newBranchName is empty', () => {
+        it('uses placeholderBranchName when state newBranchName is empty', () => {
           Object.assign(state, {
             newBranchName: '',
           });
