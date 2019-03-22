@@ -59,7 +59,8 @@ export const getBranchData = (
         })
         .catch(e => {
           if (e.response.status === 404) {
-            dispatch('showBranchNotFoundError', branchId);
+            // dispatch('showBranchNotFoundError', branchId);
+            reject(e);
           } else {
             flash(
               __('Error loading branch data. Please try again.'),
@@ -69,8 +70,8 @@ export const getBranchData = (
               false,
               true,
             );
+            reject(new Error(`Branch not loaded - ${projectId}/${branchId}`));
           }
-          reject(new Error(`Branch not loaded - ${projectId}/${branchId}`));
         });
     } else {
       resolve(state.projects[`${projectId}`].branches[branchId]);
@@ -111,6 +112,7 @@ export const createNewBranchFromDefault = ({ state, dispatch, getters }, branch)
     });
 
 export const showBranchNotFoundError = ({ dispatch }, branchId) => {
+  // commit(types.SET_ENTRIES, []);
   dispatch('setErrorMessage', {
     text: sprintf(
       __("Branch %{branchName} was not found in this project's repository."),
@@ -131,29 +133,38 @@ export const openBranch = ({ dispatch, state }, { projectId, branchId, basePath 
   dispatch('getBranchData', {
     projectId,
     branchId,
-  });
-
-  return dispatch('getFiles', {
-    projectId,
-    branchId,
   })
-    .then(() => {
-      if (basePath) {
-        const path = basePath.slice(-1) === '/' ? basePath.slice(0, -1) : basePath;
-        const treeEntryKey = Object.keys(state.entries).find(
-          key => key === path && !state.entries[key].pending,
-        );
-        const treeEntry = state.entries[treeEntryKey];
-
-        if (treeEntry) {
-          dispatch('handleTreeEntryAction', treeEntry);
-        }
-      }
-    })
     .then(() => {
       dispatch('getMergeRequestsForBranch', {
         projectId,
         branchId,
       });
+      dispatch('getFiles', {
+        projectId,
+        branchId,
+      })
+        .then(() => {
+          if (basePath) {
+            const path = basePath.slice(-1) === '/' ? basePath.slice(0, -1) : basePath;
+            const treeEntryKey = Object.keys(state.entries).find(
+              key => key === path && !state.entries[key].pending,
+            );
+            const treeEntry = state.entries[treeEntryKey];
+
+            if (treeEntry) {
+              dispatch('handleTreeEntryAction', treeEntry);
+            }
+          }
+        })
+        .catch(
+          () => new Error(`An error occurred whilst getting files for - ${projectId}/${branchId}`),
+        );
+    })
+    .catch(e => {
+      // If branch doesn't exist we show empty-state view
+      if (e.response && e.response.status === 404) {
+        // 1. Set files to []
+        // 2. Mark branch as empty ?
+      }
     });
 };

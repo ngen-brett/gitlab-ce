@@ -1,6 +1,7 @@
 <script>
 import Vue from 'vue';
 import { mapActions, mapState, mapGetters } from 'vuex';
+import { GlButton } from '@gitlab/ui';
 import { __ } from '~/locale';
 import FindFile from '~/vue_shared/components/file_finder/index.vue';
 import NewModal from './new_dropdown/modal.vue';
@@ -22,6 +23,7 @@ export default {
     FindFile,
     ErrorMessage,
     CommitEditorHeader,
+    GlButton,
   },
   props: {
     rightPaneComponent: {
@@ -106,10 +108,25 @@ export default {
               <div class="col-12">
                 <div class="text-content text-center">
                   <h4>Welcome to the GitLab IDE</h4>
-                  <p>
-                    Select a file from the left sidebar to begin editing. Afterwards, you'll be able
-                    to commit your changes.
-                  </p>
+                  <div v-if="allBlobs.length === 0">
+                    <p>
+                      Create a new file as there are no files yet. Afterwards, you'll be able to
+                      commit your changes
+                    </p>
+                    <gl-button
+                      variant="success"
+                      :title="__('New file')"
+                      :aria-label="__('New file')"
+                    >
+                      {{ __('New file') }}
+                    </gl-button>
+                  </div>
+                  <div v-else>
+                    <p>
+                      Select a file from the left sidebar to begin editing. Afterwards, you'll be
+                      able to commit your changes.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
