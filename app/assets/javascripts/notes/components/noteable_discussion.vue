@@ -93,7 +93,6 @@ export default {
       isReplying: false,
       isResolving: false,
       resolveAsThread: true,
-      isRepliesCollapsed: Boolean(!isDiffDiscussion && resolved),
     };
   },
   computed: {
@@ -179,10 +178,7 @@ export default {
       return '';
     },
     shouldShowDiscussions() {
-      const { expanded, resolved } = this.discussion;
-      const isResolvedNonDiffDiscussion = !this.discussion.diff_discussion && resolved;
-
-      return expanded || this.alwaysExpanded || isResolvedNonDiffDiscussion;
+      return this.discussion.expanded || this.alwaysExpanded;
     },
     actionText() {
       const linkStart = `<a href="${_.escape(this.discussion.discussion_path)}">`;
@@ -281,9 +277,6 @@ export default {
     },
     toggleDiscussionHandler() {
       this.toggleDiscussion({ discussionId: this.discussion.id });
-    },
-    toggleReplies() {
-      this.isRepliesCollapsed = !this.isRepliesCollapsed;
     },
     showReplyForm() {
       this.isReplying = true;
@@ -405,10 +398,11 @@ Please check your network connection and try again.`;
             />
           </div>
         </div>
-        <div v-if="shouldShowDiscussions" class="discussion-body">
+        <div class="discussion-body">
           <component
             :is="wrapperComponent"
             v-bind="wrapperComponentProps"
+            v-if="shouldShowDiscussions"
             class="card discussion-wrapper"
           >
             <div class="discussion-notes">
@@ -436,11 +430,11 @@ Please check your network connection and try again.`;
                   </component>
                   <toggle-replies-widget
                     v-if="hasReplies"
-                    :collapsed="isRepliesCollapsed"
+                    :collapsed="!shouldShowDiscussions"
                     :replies="replies"
-                    @toggle="toggleReplies"
+                    @toggle="toggleDiscussionHandler"
                   />
-                  <template v-if="!isRepliesCollapsed">
+                  <template v-if="shouldShowDiscussions">
                     <component
                       :is="componentName(note)"
                       v-for="note in replies"
@@ -467,7 +461,7 @@ Please check your network connection and try again.`;
                 </template>
               </ul>
               <div
-                v-if="!isRepliesCollapsed || !hasReplies"
+                v-if="shouldShowDiscussions || !hasReplies"
                 :class="{ 'is-replying': isReplying }"
                 class="discussion-reply-holder"
               >
