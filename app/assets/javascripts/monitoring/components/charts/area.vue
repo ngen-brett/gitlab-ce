@@ -119,14 +119,16 @@ export default {
     },
     earliestDatapoint() {
       return this.chartData.reduce((acc, series) => {
-        const [[timestamp]] = series.data.sort(([a], [b]) => {
-          if (a < b) {
-            return -1;
-          }
-          return a > b ? 1 : 0;
-        });
+        const dataLength = series.data.length;
+        if (!dataLength) {
+          return acc;
+        }
 
-        return timestamp < acc || acc === null ? timestamp : acc;
+        const [first] = series.data[0];
+        const [last] = series.data[dataLength - 1];
+        const seriesEarliest = first < last ? first : last;
+
+        return seriesEarliest < acc || acc === null ? seriesEarliest : acc;
       }, null);
     },
     recentDeployments() {
