@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190301182457) do
+ActiveRecord::Schema.define(version: 20190325105715) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2191,6 +2191,9 @@ ActiveRecord::Schema.define(version: 20190301182457) do
     t.integer "first_day_of_week"
     t.string "issues_sort"
     t.string "merge_requests_sort"
+    t.string "timezone", default: "UTC", null: false
+    t.boolean "time_display", default: false, null: false
+    t.boolean "time_format", default: false, null: false
     t.index ["user_id"], name: "index_user_preferences_on_user_id", unique: true, using: :btree
   end
 
