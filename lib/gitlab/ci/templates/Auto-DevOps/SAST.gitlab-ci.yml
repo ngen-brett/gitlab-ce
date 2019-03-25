@@ -1,0 +1,21 @@
+sast:
+  stage: test
+  image: docker:stable
+  allow_failure: true
+  services:
+    - docker:stable-dind
+  script:
+    - setup_docker
+    - sast
+  artifacts:
+    reports:
+      sast: gl-sast-report.json
+  only:
+    refs:
+      - branches
+      - tags
+    variables:
+      - $GITLAB_FEATURES =~ /\bsast\b/
+  except:
+    variables:
+      - $SAST_DISABLED

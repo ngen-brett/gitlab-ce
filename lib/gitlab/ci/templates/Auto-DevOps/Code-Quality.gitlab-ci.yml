@@ -1,0 +1,17 @@
+code_quality:
+  stage: test
+  image: docker:stable
+  allow_failure: true
+  services:
+    - docker:stable-dind
+  script:
+    - setup_docker
+    - code_quality
+  artifacts:
+    paths: [gl-code-quality-report.json]
+  only:
+    - branches
+    - tags
+  except:
+    variables:
+      - $CODE_QUALITY_DISABLED

@@ -1,0 +1,21 @@
+performance:
+  stage: performance
+  image: docker:stable
+  allow_failure: true
+  services:
+    - docker:stable-dind
+  script:
+    - setup_docker
+    - performance
+  artifacts:
+    paths:
+    - performance.json
+    - sitespeed-results/
+  only:
+    refs:
+      - branches
+      - tags
+    kubernetes: active
+  except:
+    variables:
+      - $PERFORMANCE_DISABLED
