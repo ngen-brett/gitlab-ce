@@ -120,6 +120,20 @@ describe Clusters::Gcp::FinalizeCreationService, '#execute' do
     end
   end
 
+  shared_examples 'a user-managed cluster' do
+    it 'should not create GitLab service account' do
+      expect(Clusters::Gcp::Kubernetes::CreateOrUpdateServiceAccountService).not_to receive(:gitlab_creator)
+
+      subject
+    end
+
+    it 'should not request kubernetes token' do
+      expect_any_instance_of(Clusters::Gcp::Kubernetes::FetchKubernetesTokenService).not_to receive(:execute)
+
+      subject
+    end
+  end
+
   context 'With a legacy ABAC cluster' do
     before do
       provider.legacy_abac = true
@@ -138,6 +152,12 @@ describe Clusters::Gcp::FinalizeCreationService, '#execute' do
     end
 
     it_behaves_like 'kubernetes information not successfully fetched'
+
+    context 'with a user-managed cluster' do
+      let(:cluster) { create(:cluster, :providing_by_gcp, :user_managed) }
+
+      it_behaves_like 'a user-managed cluster'
+    end
   end
 
   context 'With an RBAC cluster' do
