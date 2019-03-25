@@ -6,7 +6,7 @@ module Gitlab
     Error = Class.new(StandardError)
     QueryError = Class.new(Gitlab::PrometheusClient::Error)
 
-    # Maximum amount data points for `query_range`.
+    # Target number of data points for `query_range`.
     # Please don't exceed the limit of 11000 data points
     # See https://github.com/prometheus/prometheus/blob/91306bdf24f5395e2601773316945a478b4b263d/web/api/v1/api.go#L347
     QUERY_RANGE_DATA_POINTS = 600
