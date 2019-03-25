@@ -63,10 +63,10 @@ module Gitlab
         ]
       end
 
-      def send_git_archive(repository, ref:, format:, append_sha:)
+      def send_git_archive(repository, ref:, format:, append_sha:, path: nil)
         format ||= 'tar.gz'
         format = format.downcase
-        params = repository.archive_metadata(ref, Gitlab.config.gitlab.repository_downloads_path, format, append_sha: append_sha)
+        params = repository.archive_metadata(ref, Gitlab.config.gitlab.repository_downloads_path, format, append_sha: append_sha, path: path)
         raise "Repository or ref not found" if params.empty?
 
         params['GitalyServer'] = gitaly_server_hash(repository)

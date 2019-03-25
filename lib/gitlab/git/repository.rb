@@ -231,30 +231,32 @@ module Gitlab
         end
       end
 
-      def archive_metadata(ref, storage_path, project_path, format = "tar.gz", append_sha:)
+      def archive_metadata(ref, storage_path, project_path, format = "tar.gz", append_sha:, path: nil)
         ref ||= root_ref
         commit = Gitlab::Git::Commit.find(self, ref)
         return {} if commit.nil?
 
-        prefix = archive_prefix(ref, commit.id, project_path, append_sha: append_sha)
+        prefix = archive_prefix(ref, commit.id, project_path, append_sha: append_sha, path: path)
 
         {
           'ArchivePrefix' => prefix,
           'ArchivePath' => archive_file_path(storage_path, commit.id, prefix, format),
           'CommitId' => commit.id,
-          'GitalyRepository' => gitaly_repository.to_h
+          'GitalyRepository' => gitaly_repository.to_h,
+          'Path' => path
         }
       end
 
       # This is both the filename of the archive (missing the extension) and the
       # name of the top-level member of the archive under which all files go
-      def archive_prefix(ref, sha, project_path, append_sha:)
+      def archive_prefix(ref, sha, project_path, append_sha:, path:)
         append_sha = (ref != sha) if append_sha.nil?
 
         formatted_ref = ref.tr('/', '-')
 
         prefix_segments = [project_path, formatted_ref]
         prefix_segments << sha if append_sha
+        prefix_segments << path.tr('/', '-').gsub(%r{^/|/$}, '') if path
 
         prefix_segments.join('-')
       end
