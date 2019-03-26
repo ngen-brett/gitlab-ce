@@ -26,7 +26,6 @@ module CacheableAttributes
       final_attributes = defaults
         .merge(attributes)
         .stringify_keys
-        .slice(*column_names)
 
       new(final_attributes)
     end
