@@ -208,6 +208,15 @@
         }
       }
     }
+
+    &.weight {
+      .gl-field-error {
+        margin-top: $gl-padding-8;
+        margin-left: -6px;
+        display: flex;
+        align-items: center;
+      }
+    }
   }
 
   .block-first {
@@ -264,6 +273,10 @@
 
   .selectbox {
     display: none;
+
+    &.show {
+      display: block;
+    }
   }
 
   .btn-clipboard:hover {
@@ -317,6 +330,7 @@
     }
 
     .no-value,
+    .btn-default-hover-link,
     .btn-secondary-hover-link {
       color: $gl-text-color-secondary;
     }
@@ -600,7 +614,6 @@
   margin: -7px;
 }
 
-
 .user-list {
   display: flex;
   flex-wrap: wrap;
@@ -724,6 +737,7 @@
       .issuable-main-info {
         flex: 1 auto;
         margin-right: 10px;
+        min-width: 0;
 
         .issue-weight-icon {
           vertical-align: sub;
@@ -785,6 +799,7 @@
     @media(max-width: map-get($grid-breakpoints, lg)-1) {
       .task-status,
       .issuable-due-date,
+      .issuable-weight,
       .project-ref-path {
         display: none;
       }
@@ -920,6 +935,51 @@
   .dropdown-toggle > .icon {
     margin: 0 3px;
   }
+}
+
+.add-issuable-form-input-wrapper {
+  height: auto;
+  padding: $gl-vert-padding $gl-vert-padding 0 $gl-input-padding;
+
+  &.focus,
+  &.focus:hover {
+    border-color: $blue-300;
+    box-shadow: 0 0 4px $dropdown-input-focus-shadow;
+  }
+}
+
+.add-issuable-form-input-token-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  list-style: none;
+  margin-bottom: 0;
+  padding-left: 0;
+}
+
+.add-issuable-form-token-list-item {
+  max-width: 100%;
+  margin-bottom: $gl-vert-padding;
+  margin-right: 5px;
+}
+
+.add-issuable-form-input-list-item {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: $gl-vert-padding;
+}
+
+.add-issuable-form-input {
+  width: 100%;
+  border: 0;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.add-issuable-form-actions {
+  margin-top: $gl-padding;
 }
 
 .right-sidebar-collapsed {
