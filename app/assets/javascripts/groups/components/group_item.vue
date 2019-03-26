@@ -80,7 +80,7 @@ export default {
   <li :id="groupDomId" :class="rowClass" class="group-row" @click.stop="onClickRowGroup">
     <div
       :class="{ 'project-row-contents': !isGroup }"
-      class="group-row-contents d-flex justify-content-end align-items-center"
+      class="group-row-contents d-flex align-items-center"
     >
       <div class="folder-toggle-wrap append-right-4 d-flex align-items-center">
         <item-caret :is-group-open="group.isOpen" />
@@ -88,35 +88,41 @@ export default {
       </div>
       <div
         :class="{ 'content-loading': group.isChildrenLoading }"
-        class="avatar-container rect-avatar s24 d-none d-sm-flex"
+        class="avatar-container rect-avatar s48 d-none d-sm-flex flex-grow-0 flex-shrink-0 "
       >
         <a :href="group.relativePath" class="no-expand">
-          <img v-if="hasAvatar" :src="group.avatarUrl" class="avatar s24" />
-          <identicon v-else :entity-id="group.id" :entity-name="group.name" size-class="s24" />
+          <img v-if="hasAvatar" :src="group.avatarUrl" class="avatar s48" />
+          <identicon v-else :entity-id="group.id" :entity-name="group.name" size-class="s48" />
         </a>
       </div>
-      <div class="group-text flex-grow">
-        <div class="title namespace-title append-right-8">
-          <a
-            v-tooltip
-            :href="group.relativePath"
-            :title="group.fullName"
-            class="no-expand"
-            data-placement="bottom"
-            >{{
-              // ending bracket must be by closing tag to prevent
-              // link hover text-decoration from over-extending
-              group.name
-            }}</a
-          >
-          <span v-if="group.permission" class="user-access-role"> {{ group.permission }} </span>
+      <div class="group-text-container d-flex flex-fill align-items-center">
+        <div class="group-text flex-grow">
+          <div class="title namespace-title append-right-8">
+            <a
+              v-tooltip
+              :href="group.relativePath"
+              :title="group.fullName"
+              class="no-expand"
+              data-placement="bottom"
+              >{{
+                // ending bracket must be by closing tag to prevent
+                // link hover text-decoration from over-extending
+                group.name
+              }}</a
+            >
+            <span v-if="group.permission" class="user-access-role"> {{ group.permission }} </span>
+          </div>
+          <div v-if="group.description" class="description">
+            <span v-html="group.description"> </span>
+          </div>
         </div>
-        <div v-if="group.description" class="description">
-          <span v-html="group.description"> </span>
+        <div
+          class="metadata align-items-md-center d-flex flex-shrink-0 flex-wrap justify-content-md-between"
+        >
+          <item-actions v-if="isGroup" :group="group" :parent-group="parentGroup" />
+          <item-stats :item="group" class="group-stats prepend-top-2 d-none d-md-flex" />
         </div>
       </div>
-      <item-stats :item="group" class="group-stats prepend-top-2" />
-      <item-actions v-if="isGroup" :group="group" :parent-group="parentGroup" />
     </div>
     <group-folder
       v-if="group.isOpen && hasChildren"

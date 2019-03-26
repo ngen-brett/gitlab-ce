@@ -382,8 +382,13 @@
       cursor: pointer;
     }
 
+    .group-text-container {
+      min-width: 0; // allows for truncated text within flex children
+    }
+
     .group-text {
       min-width: 0; // allows for truncated text within flex children
+      flex: 1 1 100%;
     }
 
     .avatar-container {
@@ -392,6 +397,18 @@
       > a {
         width: 100%;
         text-decoration: none;
+      }
+    }
+
+    @include media-breakpoint-down(md) {
+      .avatar-container {
+        @include avatar-size(40px, 10px);
+        min-height: 40px;
+        min-width: 40px;
+
+        .identicon.s64 {
+          font-size: 16px;
+        }
       }
     }
 
@@ -431,10 +448,43 @@
     }
 
     .controls {
-      flex-shrink: 0;
+      flex-basis: 80px;
 
       > .btn {
-        margin: 0 0 0 $btn-margin-5;
+        margin: 0 $btn-margin-5 0 0;
+        color: $gl-text-color-secondary;
+      }
+    }
+
+    .metadata {
+      flex: 1 1 auto;
+
+      @include media-breakpoint-up(md) {
+        flex: 1 1 270px;
+      }
+
+      @include media-breakpoint-up(lg) {
+        flex: 1 1 400px;
+      }
+
+      .icon-wrapper {
+        color: inherit;
+        margin-right: $gl-padding;
+
+        @include media-breakpoint-down(md) {
+          margin-right: 0;
+          margin-left: $gl-padding-8;
+        }
+
+        @include media-breakpoint-down(xs) {
+          &:first-child {
+            margin-left: 0;
+          }
+        }
+      }
+
+      .ci-status-link {
+        display: inline-flex;
       }
     }
   }

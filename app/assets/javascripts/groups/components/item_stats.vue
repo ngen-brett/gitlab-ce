@@ -71,6 +71,7 @@ export default {
       icon-name="star"
     />
     <item-stats-value
+      v-if="isProject"
       :icon-name="visibilityIcon"
       :title="visibilityTooltip"
       css-class="item-visibility"
