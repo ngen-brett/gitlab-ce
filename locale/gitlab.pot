@@ -636,6 +636,9 @@ msgstr ""
 msgid "Allow this key to push to repository as well? (Default only allows pull access.)"
 msgstr ""
 
+msgid "Allow users to make copies of your repository to a new project"
+msgstr ""
+
 msgid "Allow users to register any application to use GitLab as an OAuth provider"
 msgstr ""
 
@@ -646,6 +649,9 @@ msgid "Allow users to request access if visibility is public or internal."
 msgstr ""
 
 msgid "Allowed to fail"
+msgstr ""
+
+msgid "Allowing only private forks will force the visibility of new forks to Private. Existing forks will not be affected."
 msgstr ""
 
 msgid "Allows you to add and manage Kubernetes clusters."

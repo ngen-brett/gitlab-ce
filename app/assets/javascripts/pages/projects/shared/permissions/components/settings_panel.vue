@@ -1,4 +1,5 @@
 <script>
+import { __ } from '~/locale';
 import projectFeatureSetting from './project_feature_setting.vue';
 import projectFeatureToggle from '../../../../../vue_shared/components/toggle_button.vue';
 import projectSettingRow from './project_setting_row.vue';
@@ -80,6 +81,7 @@ export default {
       wikiAccessLevel: 20,
       snippetsAccessLevel: 20,
       pagesAccessLevel: 20,
+      forkingAccessLevel: 20,
       containerRegistryEnabled: true,
       lfsEnabled: true,
       requestAccessEnabled: true,
@@ -111,12 +113,20 @@ export default {
       return this.featureAccessLevelOptions;
     },
 
+    forkingLevelOptions() {
+      return [[30, 'Allow public forks'], [20, 'Only allow private forks']];
+    },
+
     repositoryEnabled() {
       return this.repositoryAccessLevel > 0;
     },
 
     visibilityLevelDescription() {
       return visibilityLevelDescriptions[this.visibilityLevel];
+    },
+
+    isPrivateProject() {
+      return this.visibilityLevel === visibilityOptions.PRIVATE;
     },
   },
 
@@ -278,6 +288,23 @@ export default {
             :options="repoFeatureAccessLevelOptions"
             :disabled-input="!repositoryEnabled"
             name="project[project_feature_attributes][builds_access_level]"
+          />
+        </project-setting-row>
+        <project-setting-row
+          v-if="isPrivateProject"
+          :help-tooltip-text="
+            __(
+              'Allowing only private forks will force the visibility of new forks to Private. Existing forks will not be affected.',
+            )
+          "
+          :label="__('Forks')"
+          :help-text="__('Allow users to make copies of your repository to a new project')"
+        >
+          <project-feature-setting
+            v-model="forkingAccessLevel"
+            :options="forkingLevelOptions"
+            :disabled-input="!repositoryEnabled"
+            name="project[forking_access_level]"
           />
         </project-setting-row>
         <project-setting-row
