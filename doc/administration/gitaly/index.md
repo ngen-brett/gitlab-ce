@@ -303,6 +303,43 @@ certificate_path = '/path/to/cert.pem'
 key_path = '/path/to/key.pem'
 ```
 
+## Gitaly-ruby
+
+Gitaly was developed to replace Ruby application code in gitlab-ce/ee.
+In order to save time and/or avoid the risk of rewriting existing
+application logic, in some cases we chose to copy some application code
+from gitlab-ce into Gitaly almost as-is. To be able to run that code, we
+made gitaly-ruby, which is a sidecar process for the main Gitaly Go
+process. Some examples of things that are implemented in gitaly-ruby are
+RPC's that deal with wiki's, and RPC's that create commits on behalf of
+a user, such as merge commits.
+
+Gitaly-ruby has much less capacity than Gitaly itself. If your Gitaly
+server has to handle a lot of request, the default setting of having
+just 1 active gitaly-ruby sidecar might not be enough. If you see
+ResourceExhausted errors from Gitaly it's very likely that you have not
+enough gitaly-ruby capacity.
+
+You can increase the number of gitaly-ruby processes on your Gitaly
+server with the following settings.
+
+Omnibus:
+
+```ruby
+# /etc/gitlab/gitlab.rb
+# Default is 2 workers. The minimum is 2; 1 worker is always reserved as
+# a passive stand-by.
+gitaly['ruby_num_workers'] = 4
+```
+
+Source:
+
+```toml
+# /home/git/gitaly/config.toml
+[gitaly-ruby]
+num_workers = 4
+```
+
 ## Disabling or enabling the Gitaly service in a cluster environment
 
 If you are running Gitaly [as a remote
