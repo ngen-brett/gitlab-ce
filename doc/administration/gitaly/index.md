@@ -314,6 +314,8 @@ process. Some examples of things that are implemented in gitaly-ruby are
 RPC's that deal with wiki's, and RPC's that create commits on behalf of
 a user, such as merge commits.
 
+### Number of gitaly-ruby workers
+
 Gitaly-ruby has much less capacity than Gitaly itself. If your Gitaly
 server has to handle a lot of request, the default setting of having
 just 1 active gitaly-ruby sidecar might not be enough. If you see
@@ -338,6 +340,27 @@ Source:
 # /home/git/gitaly/config.toml
 [gitaly-ruby]
 num_workers = 4
+```
+
+### Observing gitaly-ruby traffic
+
+Gitaly-ruby is a somewhat hidden, internal implementation detail of
+Gitaly. There is not that much visibility into what goes on inside
+gitaly-ruby processes.
+
+If you have Prometheus set up to scrape your Gitaly process, you can see
+request rates and error codes for individual RPC's in gitaly-ruby by
+querying `grpc_client_handled_total`. Strictly speaking this metric does
+not differentiate between gitaly-ruby and other RPC's, but in practice
+(as of GitLab 11.9), all gRPC calls made by Gitaly itself are internal
+calls from the main Gitaly process to one of its gitaly-ruby sidecars.
+
+Assuming your `grpc_client_handled_total` counter only observes Gitaly,
+the following query shows you RPC's are (most likely) internally
+implemented as calls to gitaly-ruby.
+
+```
+sum(rate(grpc_client_handled_total[5m])) by (grpc_method) > 0
 ```
 
 ## Disabling or enabling the Gitaly service in a cluster environment
