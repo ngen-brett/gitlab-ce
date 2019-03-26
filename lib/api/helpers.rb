@@ -302,6 +302,10 @@ module API
     end
     # rubocop: enable CodeReuse/ActiveRecord
 
+    def filter_by_title(items, title)
+      items.where(title: title)
+    end
+
     def filter_by_search(items, text)
       items.search(text)
     end
