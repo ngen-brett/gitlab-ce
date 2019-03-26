@@ -1,5 +1,4 @@
 <script>
-import { __ } from '~/locale';
 import projectFeatureSetting from './project_feature_setting.vue';
 import projectFeatureToggle from '../../../../../vue_shared/components/toggle_button.vue';
 import projectSettingRow from './project_setting_row.vue';

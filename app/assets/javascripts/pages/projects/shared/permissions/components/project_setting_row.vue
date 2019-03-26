@@ -49,7 +49,7 @@ export default {
         <i aria-hidden="true" data-hidden="true" class="fa fa-question-circle"> </i>
       </a>
       <template v-if="helpTooltipText">
-        <icon :size="14" name="question" id="help-popup-trigger" />
+        <icon id="help-popup-trigger" :size="14" name="question" />
         <gl-popover
           target="help-popup-trigger"
           boundary="viewport"
