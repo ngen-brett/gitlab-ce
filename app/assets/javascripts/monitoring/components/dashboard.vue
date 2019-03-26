@@ -1,6 +1,7 @@
 <script>
 import { s__ } from '~/locale';
 import Icon from '~/vue_shared/components/icon.vue';
+import '~/vue_shared/mixins/is_ee';
 import Flash from '../../flash';
 import MonitoringService from '../services/monitoring_service';
 import MonitorAreaChart from './charts/area.vue';
@@ -18,6 +19,7 @@ export default {
     EmptyState,
     Icon,
   },
+
   props: {
     hasMetrics: {
       type: Boolean,
@@ -104,9 +106,29 @@ export default {
     }
   },
   mounted() {
+    this.servicePromises = [
+      this.service
+        .getGraphsData()
+        .then(data => this.store.storeMetrics(data))
+        .catch(() => Flash(s__('Metrics|There was an error while retrieving metrics'))),
+      this.service
+        .getDeploymentData()
+        .then(data => this.store.storeDeploymentData(data))
+        .catch(() => Flash(s__('Metrics|There was an error getting deployment information.'))),
+    ];
     if (!this.hasMetrics) {
       this.state = 'gettingStarted';
     } else {
+      if (this.environmentsEndpoint) {
+        this.servicePromises.push(
+          this.service
+            .getEnvironmentsData()
+            .then(data => this.store.storeEnvironmentsData(data))
+            .catch(() =>
+              Flash(s__('Metrics|There was an error getting environments information.')),
+            ),
+        );
+      }
       this.getGraphsData();
       sidebarMutationObserver = new MutationObserver(this.onSidebarMutation);
       sidebarMutationObserver.observe(document.querySelector('.layout-page'), {
@@ -122,17 +144,7 @@ export default {
     },
     getGraphsData() {
       this.state = 'loading';
-      Promise.all([
-        this.service.getGraphsData().then(data => this.store.storeMetrics(data)),
-        this.service
-          .getDeploymentData()
-          .then(data => this.store.storeDeploymentData(data))
-          .catch(() => Flash(s__('Metrics|There was an error getting deployment information.'))),
-        this.service
-          .getEnvironmentsData()
-          .then(data => this.store.storeEnvironmentsData(data))
-          .catch(() => Flash(s__('Metrics|There was an error getting environments information.'))),
-      ])
+      Promise.all(this.servicePromises)
         .then(() => {
           if (this.store.groups.length < 1) {
             this.state = 'noData';
@@ -156,7 +168,7 @@ export default {
 
 <template>
   <div v-if="!showEmptyState" class="prometheus-graphs prepend-top-default">
-    <div class="environments d-flex align-items-center">
+    <div v-if="environmentsEndpoint" class="environments d-flex align-items-center">
       {{ s__('Metrics|Environment') }}
       <div class="dropdown prepend-left-10">
         <button class="dropdown-menu-toggle" data-toggle="dropdown" type="button">
@@ -194,7 +206,17 @@ export default {
         :alert-data="getGraphAlerts(graphData.id)"
         :container-width="elWidth"
         group-id="monitor-area-chart"
-      />
+      >
+        <alert-widget
+          v-if="isEE && prometheusAlertsAvailable && alertsEndpoint && graphData.id"
+          :alerts-endpoint="alertsEndpoint"
+          :label="getGraphLabel(graphData)"
+          :current-alerts="getQueryAlerts(graphData)"
+          :custom-metric-id="graphData.id"
+          :alert-data="alertData[graphData.id]"
+          @setAlerts="setAlerts"
+        />
+      </monitor-area-chart>
     </graph-group>
   </div>
   <empty-state
