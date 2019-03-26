@@ -241,6 +241,7 @@ package-and-qa:
     GIT_DEPTH: "1"
     API_TOKEN: "${GITLAB_BOT_MULTI_PROJECT_PIPELINE_POLLING_TOKEN}"
   retry: 0
+  allow_failure: false
   script:
     - apk add --update openssl curl jq
     - gem install gitlab --no-document
@@ -1089,7 +1090,7 @@ review-qa-all:
     - wait_for_job_to_be_done "review-deploy"
     - gitlab-qa Test::Instance::Any "${QA_IMAGE}" "${CI_ENVIRONMENT_URL}"
   when: manual
-
+  allow_failure: false
 
 .review-performance-base: &review-performance-base
   <<: *review-qa-base
