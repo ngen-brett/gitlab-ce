@@ -3,6 +3,7 @@ import { __ } from '../../../locale';
 import service from '../../services';
 import * as types from '../mutation_types';
 import { decorateFiles } from '../../lib/files';
+import { sortTree } from '../utils';
 
 export const toggleTreeOpen = ({ commit }, path) => {
   commit(types.TOGGLE_TREE_OPEN, path);
@@ -38,7 +39,10 @@ export const setDirectoryData = ({ state, commit }, { projectId, branchId, treeL
 
   commit(types.SET_DIRECTORY_DATA, {
     treePath: `${projectId}/${branchId}`,
-    data: treeList,
+    data:
+      selectedTree.loading && selectedTree.tree.length > 0
+        ? sortTree(selectedTree.tree.concat(treeList))
+        : treeList,
   });
   commit(types.TOGGLE_LOADING, {
     entry: selectedTree,
