@@ -19,6 +19,7 @@
 
 .is-ghost {
   opacity: 0.3;
+  pointer-events: none;
 }
 
 .dropdown-projects {
@@ -49,6 +50,41 @@
 .issue-boards-page {
   .content-wrapper {
     padding-bottom: 0;
+  }
+
+  .issues-details-filters {
+    display: flex;
+  }
+
+  .filter-form {
+    width: 100%;
+  }
+}
+
+.board-extra-actions {
+  font-size: 0;
+  white-space: nowrap;
+}
+
+@include media-breakpoint-up(md) {
+  .issue-boards-content.is-focused {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: $white-light;
+    z-index: 9000;
+
+    .boards-list {
+      height: calc(100vh - #{$issue-boards-filter-height});
+      overflow-x: scroll;
+    }
+
+    .issue-boards-sidebar {
+      height: 100%;
+      top: 0;
+    }
   }
 }
 
@@ -236,12 +272,20 @@
   }
 }
 
-.board-blank-state {
+.board-blank-state,
+.board-promotion-state {
   padding: $gl-padding;
   background-color: $white-light;
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.board-promotion-state {
+  .btn.btn-primary {
+    display: block;
+    margin-bottom: 15px;
+  }
 }
 
 .board-blank-state-list {
@@ -445,6 +489,30 @@
   margin: 5px;
 }
 
+.boards-title-holder {
+  padding: 25px 13px $gl-padding;
+
+  .dropdown-menu {
+    margin-top: -15px;
+    margin-left: 8px;
+  }
+}
+
+.board-selector-page-two {
+  padding-left: 10px;
+  padding-right: 10px;
+  white-space: normal;
+}
+
+.form-section-title {
+  font-size: 16px;
+}
+
+.board-delete-btns {
+  padding-top: 12px;
+  border-top: 1px solid $border-color;
+}
+
 .page-with-contextual-sidebar.layout-page .issue-boards-sidebar {
   .issuable-sidebar-header {
     position: relative;
@@ -644,6 +712,45 @@
 
     @include media-breakpoint-up(md) {
       width: 140px;
+    }
+  }
+}
+
+.board-milestone-list {
+  > li {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  a {
+    padding-left: 25px;
+  }
+
+  .fa-check {
+    margin-left: -18px;
+  }
+}
+
+.board-inner-milestone-dropdown {
+  margin-top: 10px;
+
+  .dropdown-menu {
+    position: fixed;
+    left: 10px;
+    top: 175px;
+    min-width: 200px;
+  }
+}
+
+.board-config-modal {
+  width: 440px;
+
+  .block {
+    padding: $gl-padding 0;
+
+    // add a border between all items, but not at the start or end
+    + .block {
+      border-top: solid 1px $border-color;
     }
   }
 }
