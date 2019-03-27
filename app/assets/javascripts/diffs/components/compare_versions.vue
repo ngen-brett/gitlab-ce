@@ -35,6 +35,11 @@ export default {
       required: false,
       default: null,
     },
+    fixedButtonContainer: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   computed: {
     ...mapGetters('diffs', ['hasCollapsedFile', 'diffFilesLength']),
@@ -77,8 +82,14 @@ export default {
 </script>
 
 <template>
-  <div class="mr-version-controls" :class="{ 'is-fileTreeOpen': showTreeList }">
-    <div class="mr-version-menus-container content-block">
+  <div class="mr-version-controls border-top border-bottom">
+    <div
+      :class="[
+        'mr-version-menus-container',
+        'content-block',
+        fixedButtonContainer ? 'container-limited limit-container-width mx-auto px-3' : '',
+      ]"
+    >
       <button
         v-gl-tooltip.hover
         type="button"

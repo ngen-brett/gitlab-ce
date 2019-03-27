@@ -49,8 +49,11 @@ export const stickyMonitor = (el, stickyTop, insertPlaceholder = true) => {
   if (
     typeof CSS === 'undefined' ||
     !CSS.supports('(position: -webkit-sticky) or (position: sticky)')
-  )
+  ) {
     return;
+  }
+
+  console.log({ stickyTop });
 
   document.addEventListener(
     'scroll',
