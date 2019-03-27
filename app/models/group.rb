@@ -241,9 +241,8 @@ class Group < Namespace
   alias_method :has_master?, :has_maintainer?
 
   # Check if user is a last owner of the group.
-  # Parent owners are ignored for nested groups.
   def last_owner?(user)
-    owners.include?(user) && owners.size == 1
+    members_with_parents.owners.where(user_id: user).any? && members_with_parents.owners.size == 1
   end
 
   def ldap_synced?
