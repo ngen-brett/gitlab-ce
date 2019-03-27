@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Treats JIRA DVCS user agent requests in order to be successfully handled
 # by our API.
 #
