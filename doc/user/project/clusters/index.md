@@ -314,12 +314,6 @@ install it manually.
 
 ## Installing applications
 
-NOTE: **Note:**
-Before starting the installation of applications, make sure that time is synchronized
-between your GitLab server and your Kubernetes cluster. Otherwise, installation could fail
-and you may get errors like `Error: remote error: tls: bad certificate`
-in the `stdout` of pods created by GitLab in your Kubernetes cluster.
-
 GitLab provides a one-click install for various applications which can
 be added directly to your configured cluster. Those applications are
 needed for [Review Apps](../../../ci/review_apps/index.md) and
@@ -377,6 +371,17 @@ NOTE: **Note:**
 Upgrades will reset values back to the values built into the `runner`
 chart plus the values set by
 [`values.yaml`](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/vendor/runner/values.yaml)
+
+### Troubleshooting applications
+
+```Error: remote error: tls: bad certificate```
+
+1. Before starting the installation of applications, make sure that time is synchronized
+between your GitLab server and your Kubernetes cluster. 
+
+1. Confirm the certificates are in sync with the current cluster.
+
+See [Unable to install Ingress via Helm Tiller - tls error](https://gitlab.com/gitlab-org/gitlab-ce/issues/56578)
 
 ## Getting the external endpoint
 
