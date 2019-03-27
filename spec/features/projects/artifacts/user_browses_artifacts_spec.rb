@@ -19,7 +19,7 @@ describe "User browses artifacts" do
       visit(browse_project_job_artifacts_path(project, job))
     end
 
-    it "renders to the job in the breacrumbs" do
+    it "renders a link to the job in the breadcrumbs" do
       page.within('.js-breadcrumbs-list') do
         expect(page).to have_link("##{job.id}", href: project_job_path(project, job))
       end
