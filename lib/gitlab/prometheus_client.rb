@@ -11,6 +11,9 @@ module Gitlab
     # See https://github.com/prometheus/prometheus/blob/91306bdf24f5395e2601773316945a478b4b263d/web/api/v1/api.go#L347
     QUERY_RANGE_DATA_POINTS = 600
 
+    # Minimal value of the `step` parameter for `query_range` in seconds.
+    QUERY_RANGE_MIN_STEP = 60
+
     attr_reader :rest_client, :headers
 
     def initialize(rest_client)
@@ -54,7 +57,9 @@ module Gitlab
     def self.compute_step(start, stop)
       diff = stop - start
 
-      (diff / QUERY_RANGE_DATA_POINTS).ceil
+      step = (diff / QUERY_RANGE_DATA_POINTS).ceil
+
+      [QUERY_RANGE_MIN_STEP, step].max
     end
 
     private

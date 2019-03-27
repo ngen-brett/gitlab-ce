@@ -239,12 +239,16 @@ describe Gitlab::PrometheusClient do
     subject { described_class.compute_step(start, stop) }
 
     where(:time_interval_in_seconds, :step) do
-      0               | 0
-      1.second        | 1
-      9.minutes       | 1
-      10.minutes      | 1
-      11.minutes      | 2
-      8.hours         | 48
+      0               | 60
+      10.hours        | 60
+      10.hours + 1    | 61
+      # frontend options
+      30.minutes      | 60
+      3.hours         | 60
+      8.hours         | 60
+      1.day           | 144
+      3.days          | 432
+      1.week          | 1008
     end
 
     with_them do
