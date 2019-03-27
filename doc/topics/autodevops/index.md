@@ -444,13 +444,6 @@ This is an optional step, since many projects do not have a Kubernetes cluster
 available. If the [requirements](#requirements) are not met, the job will
 silently be skipped.
 
-CAUTION: **Caution:**
-Your apps should *not* be manipulated outside of Helm (using Kubernetes directly.)
-This can cause confusion with Helm not detecting the change, and subsequent
-deploys with Auto DevOps can undo your changes. Also, if you change something
-and want to undo it by deploying again, Helm may not detect that anything changed
-in the first place, and thus not realize that it needs to re-apply the old config.
-
 [Review Apps][review-app] are temporary application environments based on the
 branch's code so developers, designers, QA, product managers, and other
 reviewers can actually see and interact with code changes as part of the review
@@ -476,6 +469,13 @@ Since GitLab 11.4, a [local
 Tiller](https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/22036) is
 used. Previous versions of GitLab had a Tiller installed in the project
 namespace.
+
+CAUTION: **Caution:**
+Your apps should *not* be manipulated outside of Helm (using Kubernetes directly.)
+This can cause confusion with Helm not detecting the change, and subsequent
+deploys with Auto DevOps can undo your changes. Also, if you change something
+and want to undo it by deploying again, Helm may not detect that anything changed
+in the first place, and thus not realize that it needs to re-apply the old config.
 
 ### Auto DAST **[ULTIMATE]**
 
@@ -515,13 +515,6 @@ This is an optional step, since many projects do not have a Kubernetes cluster
 available. If the [requirements](#requirements) are not met, the job will
 silently be skipped.
 
-CAUTION: **Caution:**
-Your apps should *not* be manipulated outside of Helm (using Kubernetes directly.)
-This can cause confusion with Helm not detecting the change, and subsequent
-deploys with Auto DevOps can undo your changes. Also, if you change something
-and want to undo it by deploying again, Helm may not detect that anything changed
-in the first place, and thus not realize that it needs to re-apply the old config.
-
 After a branch or merge request is merged into the project's default branch (usually
 `master`), Auto Deploy deploys the application to a `production` environment in
 the Kubernetes cluster, with a namespace based on the project name and unique
@@ -544,6 +537,13 @@ Since GitLab 11.4, a [local
 Tiller](https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/22036) is
 used. Previous versions of GitLab had a Tiller installed in the project
 namespace.
+
+CAUTION: **Caution:**
+Your apps should *not* be manipulated outside of Helm (using Kubernetes directly.)
+This can cause confusion with Helm not detecting the change, and subsequent
+deploys with Auto DevOps can undo your changes. Also, if you change something
+and want to undo it by deploying again, Helm may not detect that anything changed
+in the first place, and thus not realize that it needs to re-apply the old config.
 
 > [Introduced][ce-19507] in GitLab 11.0.
 
