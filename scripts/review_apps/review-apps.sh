@@ -15,6 +15,8 @@ function perform_review_app_deployment() {
 }
 
 function check_kube_domain() {
+  echo "\nChecking that Kube domain exists..."
+
   if [ -z ${REVIEW_APPS_DOMAIN+x} ]; then
     echo "In order to deploy or use Review Apps, REVIEW_APPS_DOMAIN variable must be set"
     echo "You can do it in Auto DevOps project settings or defining a variable at group or project level"
@@ -26,6 +28,8 @@ function check_kube_domain() {
 }
 
 function download_gitlab_chart() {
+  echo "\nDownloading the GitLab chart..."
+
   curl -o gitlab.tar.bz2 https://gitlab.com/charts/gitlab/-/archive/$GITLAB_HELM_CHART_REF/gitlab-$GITLAB_HELM_CHART_REF.tar.bz2
   tar -xjf gitlab.tar.bz2
   cd gitlab-$GITLAB_HELM_CHART_REF
@@ -37,11 +41,14 @@ function download_gitlab_chart() {
 }
 
 function ensure_namespace() {
+  echo "\nEnsuring the ${KUBE_NAMESPACE} namespace exists..."
+
   kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
 }
 
 function install_tiller() {
-  echo "Checking Tiller..."
+  echo "\nChecking deployment/tiller-deploy status in the ${TILLER_NAMESPACE} namespace..."
+
   helm init \
     --upgrade \
     --replicas 2
@@ -50,11 +57,10 @@ function install_tiller() {
     echo "Failed to init Tiller."
     return 1
   fi
-  echo ""
 }
 
 function create_secret() {
-  echo "Create secret..."
+  echo "\nCreating the ${CI_ENVIRONMENT_SLUG}-gitlab-initial-root-password secret in the ${KUBE_NAMESPACE} namespace..."
 
   kubectl create secret generic -n "$KUBE_NAMESPACE" \
     $CI_ENVIRONMENT_SLUG-gitlab-initial-root-password \
@@ -65,21 +71,26 @@ function create_secret() {
 function deployExists() {
   local namespace="${1}"
   local deploy="${2}"
+  echo "\nChecking if ${deploy} exists in the ${namespace} namespace..."
+
   helm status --tiller-namespace "${namespace}" "${deploy}" >/dev/null 2>&1
-  return $?
+  status=$?
+  echo "Deployment status for ${deploy} is ${status}"
+  return status
 }
 
 function previousDeployFailed() {
   set +e
-  deploy="${1}"
-  echo "Checking for previous deployment of ${deploy}"
-  deployment_status=$(helm status ${deploy} >/dev/null 2>&1)
+  local deploy="${1}"
+  echo "\nChecking for previous deployment of ${deploy}"
+
+  helm status ${deploy} >/dev/null 2>&1
   status=$?
   # if `status` is `0`, deployment exists, has a status
   if [ $status -eq 0 ]; then
-    echo "Previous deployment found, checking status"
+    echo "Previous deployment found, checking status..."
     deployment_status=$(helm status ${deploy} | grep ^STATUS | cut -d' ' -f2)
-    echo "Previous deployment state: $deployment_status"
+    echo "Previous deployment state: ${deployment_status}"
     if [[ "$deployment_status" == "FAILED" || "$deployment_status" == "PENDING_UPGRADE" || "$deployment_status" == "PENDING_INSTALL" ]]; then
       status=0;
     else
@@ -88,17 +99,19 @@ function previousDeployFailed() {
   else
     echo "Previous deployment NOT found."
   fi
+  echo "Deployment status for ${deploy} is ${status}"
   set -e
   return $status
 }
 
 function deploy() {
-  track="${1-stable}"
-  name="$CI_ENVIRONMENT_SLUG"
+  local track="${1-stable}"
+  local name="$CI_ENVIRONMENT_SLUG"
 
   if [[ "$track" != "stable" ]]; then
     name="$name-$track"
   fi
+  echo "\nDeploying ${name}..."
 
   replicas="1"
   service_enabled="false"
@@ -195,13 +208,13 @@ EOF
 }
 
 function delete() {
-  track="${1-stable}"
-  name="$CI_ENVIRONMENT_SLUG"
-
   if [ -z "$CI_ENVIRONMENT_SLUG" ]; then
     echo "No release given, aborting the delete!"
     return
   fi
+
+  local track="${1-stable}"
+  local name="$CI_ENVIRONMENT_SLUG"
 
   if [[ "$track" != "stable" ]]; then
     name="$name-$track"
@@ -232,6 +245,7 @@ function cleanup() {
 function install_external_dns() {
   local release_name="dns-gitlab-review-app"
   local domain=$(echo "${REVIEW_APPS_DOMAIN}" | awk -F. '{printf "%s.%s", $(NF-1), $NF}')
+  echo "\nInstalling external DNS for domain ${domain}..."
 
   if ! deployExists "${KUBE_NAMESPACE}" "${release_name}" || previousDeployFailed "${release_name}" ; then
     echo "Installing external-dns helm chart"
