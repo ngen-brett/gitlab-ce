@@ -10,6 +10,7 @@ describe QuickActions::InterpretService do
   let(:milestone) { create(:milestone, project: project, title: '9.10') }
   let(:commit) { create(:commit, project: project) }
   let(:inprogress) { create(:label, project: project, title: 'In Progress') }
+  let(:helmchart) { create(:label, project: project, title: 'Helm Chart Registry') }
   let(:bug) { create(:label, project: project, title: 'Bug') }
   let(:note) { build(:note, commit_id: merge_request.diff_head_sha) }
   let(:service) { described_class.new(project, developer) }
@@ -90,6 +91,17 @@ describe QuickActions::InterpretService do
         _, updates = service.execute(content, issuable)
 
         expect(updates).to eq(add_label_ids: [inprogress.id])
+      end
+    end
+
+    shared_examples 'label name is included in the middle of another label name' do
+      it 'excludes the sublabel when the content contains the include label and not the sublabel' do
+        helmchart # populate the label
+        create(:label, project: project, title: 'Chart')
+
+        _, updates = service.execute(content, issuable)
+
+        expect(updates).to eq(add_label_ids: [helmchart.id])
       end
     end
 
@@ -620,6 +632,11 @@ describe QuickActions::InterpretService do
 
     it_behaves_like 'multiple label with same argument' do
       let(:content) { %(/label ~"#{inprogress.title}" \n/label ~#{inprogress.title}) }
+      let(:issuable) { issue }
+    end
+
+    it_behaves_like 'label name is included in the middle of another label name' do
+      let(:content) { %(/label ~"#{helmchart.title}") }
       let(:issuable) { issue }
     end
 
@@ -1356,7 +1373,7 @@ describe QuickActions::InterpretService do
     end
 
     describe 'relabel command' do
-      let(:content) { '/relabel Bug' }
+      let(:content) { '/relabel ~Bug' }
       let!(:bug) { create(:label, project: project, title: 'Bug') }
       let(:feature) { create(:label, project: project, title: 'Feature') }
 

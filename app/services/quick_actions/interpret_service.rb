@@ -685,14 +685,15 @@ module QuickActions
     end
 
     def find_labels(labels_params = nil)
+      labels_params ? extract_references(labels_params, :label) : find_available_labels
+    end
+
+    def find_available_labels
       finder_params = { include_ancestor_groups: true }
       finder_params[:project_id] = project.id if project
       finder_params[:group_id] = group.id if group
-      finder_params[:name] = labels_params.split if labels_params
 
-      result = LabelsFinder.new(current_user, finder_params).execute
-
-      extract_references(labels_params, :label) | result
+      LabelsFinder.new(current_user, finder_params).execute
     end
 
     def find_label_references(labels_param)
