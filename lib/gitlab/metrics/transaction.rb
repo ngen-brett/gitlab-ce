@@ -8,6 +8,8 @@ module Gitlab
 
       # base labels shared among all transactions
       BASE_LABELS = { controller: nil, action: nil }.freeze
+      # labels that potentially contain sensitive information and will be filtered
+      FILTERED_LABELS = [:branch, :path].freeze
 
       THREAD_KEY = :_gitlab_metrics_transaction
 
@@ -64,7 +66,7 @@ module Gitlab
       end
 
       def add_metric(series, values, tags = {})
-        @metrics << Metric.new("#{::Gitlab::Metrics.series_prefix}#{series}", values, tags)
+        @metrics << Metric.new("#{::Gitlab::Metrics.series_prefix}#{series}", values, self.class.filter_tags(tags))
       end
 
       # Tracks a business level event
@@ -75,8 +77,9 @@ module Gitlab
       # event_name - The name of the event (e.g. "git_push").
       # tags - A set of tags to attach to the event.
       def add_event(event_name, tags = {})
-        self.class.transaction_metric(event_name, :counter, prefix: 'event_', use_feature_flag: true, tags: tags).increment(tags.merge(labels))
-        @metrics << Metric.new(EVENT_SERIES, { count: 1 }, tags.merge(event: event_name), :event)
+        filtered_tags = self.class.filter_tags(tags)
+        self.class.transaction_metric(event_name, :counter, prefix: 'event_', use_feature_flag: true, tags: filtered_tags).increment(filtered_tags.merge(labels))
+        @metrics << Metric.new(EVENT_SERIES, { count: 1 }, filtered_tags.merge(event: event_name), :event)
       end
 
       # Returns a MethodCall object for the given name.
@@ -152,11 +155,16 @@ module Gitlab
         with_feature :prometheus_metrics_transaction_allocated_memory
       end
 
+      def self.filter_tags(tags)
+        tags.except!(*FILTERED_LABELS)
+      end
+
       def self.transaction_metric(name, type, prefix: nil, use_feature_flag: false, tags: {})
         metric_name = "gitlab_transaction_#{prefix}#{name}_total".to_sym
+        filtered_tags = filter_tags(tags)
         fetch_metric(type, metric_name) do
           docstring "Transaction #{prefix}#{name} #{type}"
-          base_labels tags.merge(BASE_LABELS)
+          base_labels filtered_tags.merge(BASE_LABELS)
           with_feature "prometheus_transaction_#{prefix}#{name}_total".to_sym if use_feature_flag
 
           if type == :gauge
