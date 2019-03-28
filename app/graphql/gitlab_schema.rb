@@ -14,7 +14,7 @@ class GitlabSchema < GraphQL::Schema
 
   # starting with a limit of 75.  A complex ProjectType query can easily
   # reach 45
-  max_complexity 75
+  max_complexity 1000
 
   mutation(Types::MutationType)
 end
