@@ -498,6 +498,40 @@ describe API::Internal do
       end
     end
 
+    context "console message" do
+      before do
+        project.add_developer(user)
+      end
+
+      context "git pull" do
+        context 'with no console message' do
+          it "has the correct payload" do
+            pull(key, project)
+
+            expect(response).to have_gitlab_http_status(200)
+            expect(json_response['console_message']).to be_nil
+          end
+        end
+
+        context 'with a console message' do
+          let(:console_message) { 'message for the console' }
+
+          it "has the correct payload" do
+            expect_next_instance_of(Gitlab::GitAccess) do |access|
+              expect(access).to receive(:check_for_message)
+                                  .with('git-upload-pack')
+                                  .and_return(console_message)
+            end
+
+            pull(key, project)
+
+            expect(response).to have_gitlab_http_status(200)
+            expect(json_response['console_message']).to eq(console_message)
+          end
+        end
+      end
+    end
+
     context "blocked user" do
       let(:personal_project) { create(:project, namespace: user.namespace) }
 

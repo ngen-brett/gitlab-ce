@@ -85,7 +85,7 @@ module Gitlab
         check_push_access!
       end
 
-      ::Gitlab::GitAccessResult::Success.new
+      ::Gitlab::GitAccessResult::Success.new(check_for_message(cmd))
     end
 
     def guest_can_download_code?
@@ -113,6 +113,10 @@ module Gitlab
     private
 
     def check_custom_action(cmd)
+      nil
+    end
+
+    def check_for_message(cmd)
       nil
     end
 
