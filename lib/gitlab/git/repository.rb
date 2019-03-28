@@ -242,8 +242,7 @@ module Gitlab
           'ArchivePrefix' => prefix,
           'ArchivePath' => archive_file_path(storage_path, commit.id, prefix, format),
           'CommitId' => commit.id,
-          'GitalyRepository' => gitaly_repository.to_h,
-          'Path' => path
+          'GitalyRepository' => gitaly_repository.to_h
         }
       end
 

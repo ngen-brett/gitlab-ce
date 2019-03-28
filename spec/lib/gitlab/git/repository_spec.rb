@@ -180,10 +180,6 @@ describe Gitlab::Git::Repository, :seed_helper do
     context 'path is set' do
       let(:path) { 'foo/bar' }
 
-      it 'sets Path to the specified path' do
-        expect(metadata['Path']).to eq(path)
-      end
-
       it 'appends the path to the prefix' do
         expect(metadata['ArchivePrefix']).to eq("#{expected_prefix}-foo-bar")
       end
