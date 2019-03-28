@@ -1,4 +1,4 @@
-.top-area
+.nav-block.filter-bar.d-flex
   %ul.nav-links.nav.nav-tabs
     = nav_link(page: [trending_explore_projects_path, explore_root_path]) do
       = link_to trending_explore_projects_path do
@@ -11,7 +11,6 @@
         = _('All')
 
   .nav-controls
-    - unless current_user
-      = render 'shared/projects/search_form'
-      = render 'shared/projects/dropdown'
+    = render 'shared/projects/search_form'
+    = render 'shared/projects/dropdown'
     = render 'filter'

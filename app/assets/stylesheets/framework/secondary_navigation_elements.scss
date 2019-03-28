@@ -102,115 +102,6 @@
     }
   }
 
-  .nav-controls {
-    display: inline-block;
-    float: right;
-    text-align: right;
-    padding: $gl-padding-8 0;
-    margin-bottom: 0;
-
-    > .btn,
-    > .btn-container,
-    > .dropdown,
-    > input,
-    > form {
-      margin-right: $gl-padding-top;
-      display: inline-block;
-      vertical-align: top;
-
-      &:last-child {
-        margin-right: 0;
-        float: right;
-      }
-    }
-
-    > .btn-grouped {
-      float: none;
-    }
-
-    .icon-label {
-      display: none;
-    }
-
-    input {
-      display: inline-block;
-      position: relative;
-
-      /* Medium devices (desktops, 992px and up) */
-      @include media-breakpoint-up(md) { width: 200px; }
-
-      /* Large devices (large desktops, 1200px and up) */
-      @include media-breakpoint-up(lg) { width: 250px; }
-    }
-
-    @include media-breakpoint-down(xs) {
-      padding-bottom: 0;
-      width: 100%;
-
-      .btn,
-      form,
-      .dropdown,
-      .dropdown-toggle,
-      .dropdown-menu-toggle,
-      .form-control {
-        margin: 0 0 10px;
-        display: block;
-        width: 100%;
-      }
-
-      .dropdown-menu-toggle {
-        margin-bottom: 0;
-      }
-
-      form {
-        display: block;
-        height: auto;
-        margin-bottom: 14px;
-
-        input {
-          width: 100%;
-          margin: 0 0 10px;
-        }
-      }
-
-      .icon-label {
-        display: inline-block;
-      }
-
-      .project-item-select-holder {
-        margin: 0;
-        width: 100%;
-      }
-
-      &.inline {
-        display: flex;
-        flex-flow: row wrap;
-        justify-content: space-between;
-
-        > .btn,
-        > .btn-container,
-        > .dropdown,
-        > input,
-        > form {
-          flex: 1 1 auto;
-          margin: 0 0 10px;
-          margin-left: $gl-padding-top;
-          width: auto;
-
-          &:first-child {
-            margin-left: 0;
-            float: none;
-          }
-        }
-
-        .btn-full {
-          flex: 1 1 100%;
-          margin-left: 0;
-        }
-      }
-    }
-  }
-
   &.adjust {
     .nav-text,
     .nav-controls {
@@ -376,7 +267,7 @@
       display: block;
       overflow: visible;
     }
-  }
+  } 
 }
 
 .project-item-select-holder.btn-group {
@@ -413,4 +304,114 @@
 
 .new-project-item-select-button .fa-caret-down {
   margin-left: 2px;
+}
+
+.filter-bar {
+  .nav-controls {
+    display: inline-block;
+    text-align: right;
+    padding: $gl-padding-8 0;
+    margin-bottom: 0;
+
+    > .btn,
+    > .btn-container,
+    > .dropdown,
+    > input,
+    > form {
+      margin-right: $gl-padding-top;
+      display: inline-block;
+      vertical-align: top;
+
+      &:last-child {
+        margin-right: 0;
+        float: right;
+      }
+    }
+
+    > .btn-grouped {
+      float: none;
+    }
+
+    .icon-label {
+      display: none;
+    }
+
+    input {
+      display: inline-block;
+      position: relative;
+
+      /* Medium devices (desktops, 992px and up) */
+      @include media-breakpoint-up(md) { width: 200px; }
+
+      /* Large devices (large desktops, 1200px and up) */
+      @include media-breakpoint-up(lg) { width: 250px; }
+    }
+
+    @include media-breakpoint-down(xs) {
+      padding-bottom: 0;
+      width: 100%;
+
+      .btn,
+      form,
+      .dropdown,
+      .dropdown-toggle,
+      .dropdown-menu-toggle,
+      .form-control {
+        margin: 0 0 10px;
+        display: block;
+        width: 100%;
+      }
+
+      .dropdown-menu-toggle {
+        margin-bottom: 0;
+      }
+
+      form {
+        display: block;
+        height: auto;
+        margin-bottom: 14px;
+
+        input {
+          width: 100%;
+          margin: 0 0 10px;
+        }
+      }
+
+      .icon-label {
+        display: inline-block;
+      }
+
+      .project-item-select-holder {
+        margin: 0;
+        width: 100%;
+      }
+
+      &.inline {
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: space-between;
+
+        > .btn,
+        > .btn-container,
+        > .dropdown,
+        > input,
+        > form {
+          flex: 1 1 auto;
+          margin: 0 0 10px;
+          margin-left: $gl-padding-top;
+          width: auto;
+
+          &:first-child {
+            margin-left: 0;
+            float: none;
+          }
+        }
+
+        .btn-full {
+          flex: 1 1 100%;
+          margin-left: 0;
+        }
+      }
+    }
+  } 
 }
