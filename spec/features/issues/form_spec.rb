@@ -11,8 +11,13 @@ describe 'New/edit issue', :js do
   let!(:label)     { create(:label, project: project) }
   let!(:label2)    { create(:label, project: project) }
   let!(:issue)     { create(:issue, project: project, assignees: [user], milestone: milestone) }
+  let(:FormHelper) { EE::FormHelper || FormHelper }
 
   before do
+    if respond_to?(:stub_licensed_features)
+      stub_licensed_features(multiple_issue_assignees: false, issue_weights: false)
+    end
+
     project.add_maintainer(user)
     project.add_maintainer(user2)
     sign_in(user)
@@ -30,8 +35,9 @@ describe 'New/edit issue', :js do
         # the original method, resulting in infinite recursion when called.
         # This is likely a bug with helper modules included into dynamically generated view classes.
         # To work around this, we have to hold on to and call to the original implementation manually.
-        original_issue_dropdown_options = FormHelper.instance_method(:issue_assignees_dropdown_options)
-        allow_any_instance_of(FormHelper).to receive(:issue_assignees_dropdown_options).and_wrap_original do |original, *args|
+        form_helper = EE::FormHelper || FormHelper
+        original_issue_dropdown_options = form_helper.instance_method(:issue_assignees_dropdown_options)
+        allow_any_instance_of(form_helper).to receive(:issue_assignees_dropdown_options).and_wrap_original do |original, *args|
           options = original_issue_dropdown_options.bind(original.receiver).call(*args)
           options[:data][:per_page] = 2
 
