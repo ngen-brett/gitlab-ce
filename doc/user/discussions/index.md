@@ -11,7 +11,7 @@ You can leave a comment in the following places:
 - commit diffs
 
 There are standard comments, and you also have the option to create a comment
-in the form of a threaded discussion. A comment can also be [turned into a discussion](#start-a-discussion-by-replying-to-a-non-discussion-comment)
+in the form of a threaded discussion. A comment can also be [turned into a discussion](#start-a-discussion-by-replying-to-a-standard-comment)
 when it receives a reply.
 
 The comment area supports [Markdown] and [quick actions]. You can edit your own
@@ -19,13 +19,14 @@ comment at any time, and anyone with [Maintainer access level][permissions] or
 higher can also edit a comment made by someone else.
 
 You can also reply to a comment notification email to reply to the comment if
-[Reply by email] is configured for your GitLab instance. Replying to a standard comment 
+[Reply by email] is configured for your GitLab instance. Replying to a standard comment
 creates another standard comment. Replying to a discussion comment creates a reply in the
 discussion thread. Email replies support [Markdown] and [quick actions], just as if you replied from the web.
 
 ## Resolvable comments and discussions
 
 > **Notes:**
+>
 > - The main feature was [introduced][ce-5022] in GitLab 8.11.
 > - Resolvable discussions can be added only to merge request diffs.
 
@@ -357,7 +358,7 @@ Clicking on the **Reply to comment** button will bring the reply area into focus
 
 ![Reply to comment feature](img/reply_to_comment.gif)
 
-Relying to a non-discussion comment will convert the non-discussion comment to a 
+Relying to a non-discussion comment will convert the non-discussion comment to a
 threaded discussion once the reply is submitted. This conversion is considered an edit
 to the original comment, so a note about when it was last edited will appear underneath it.
 

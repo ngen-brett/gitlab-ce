@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190301182457) do
+ActiveRecord::Schema.define(version: 20190322132835) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1201,6 +1201,14 @@ ActiveRecord::Schema.define(version: 20190301182457) do
     t.index ["user_id"], name: "index_members_on_user_id", using: :btree
   end
 
+  create_table "merge_request_assignees", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "merge_request_id", null: false
+    t.index ["merge_request_id", "user_id"], name: "index_merge_request_assignees_on_merge_request_id_and_user_id", unique: true, using: :btree
+    t.index ["merge_request_id"], name: "index_merge_request_assignees_on_merge_request_id", using: :btree
+    t.index ["user_id"], name: "index_merge_request_assignees_on_user_id", using: :btree
+  end
+
   create_table "merge_request_diff_commits", id: false, force: :cascade do |t|
     t.datetime_with_timezone "authored_date"
     t.datetime_with_timezone "committed_date"
@@ -1248,6 +1256,7 @@ ActiveRecord::Schema.define(version: 20190301182457) do
     t.integer "external_diff_store"
     t.boolean "stored_externally"
     t.index ["merge_request_id", "id"], name: "index_merge_request_diffs_on_merge_request_id_and_id", using: :btree
+    t.index ["merge_request_id", "id"], name: "index_merge_request_diffs_on_merge_request_id_and_id_partial", where: "((NOT stored_externally) OR (stored_externally IS NULL))", using: :btree
   end
 
   create_table "merge_request_metrics", force: :cascade do |t|
@@ -1263,7 +1272,9 @@ ActiveRecord::Schema.define(version: 20190301182457) do
     t.integer "latest_closed_by_id"
     t.datetime_with_timezone "latest_closed_at"
     t.index ["first_deployed_to_production_at"], name: "index_merge_request_metrics_on_first_deployed_to_production_at", using: :btree
+    t.index ["latest_closed_at"], name: "index_merge_request_metrics_on_latest_closed_at", where: "(latest_closed_at IS NOT NULL)", using: :btree
     t.index ["latest_closed_by_id"], name: "index_merge_request_metrics_on_latest_closed_by_id", using: :btree
+    t.index ["merge_request_id", "merged_at"], name: "index_merge_request_metrics_on_merge_request_id_and_merged_at", where: "(merged_at IS NOT NULL)", using: :btree
     t.index ["merge_request_id"], name: "index_merge_request_metrics", using: :btree
     t.index ["merged_by_id"], name: "index_merge_request_metrics_on_merged_by_id", using: :btree
     t.index ["pipeline_id"], name: "index_merge_request_metrics_on_pipeline_id", using: :btree
@@ -2031,6 +2042,9 @@ ActiveRecord::Schema.define(version: 20190301182457) do
     t.string "commit_id"
     t.text "from_content", null: false
     t.text "to_content", null: false
+    t.integer "lines_above", default: 0, null: false
+    t.integer "lines_below", default: 0, null: false
+    t.boolean "outdated", default: false, null: false
     t.index ["note_id", "relative_order"], name: "index_suggestions_on_note_id_and_relative_order", unique: true, using: :btree
   end
 
@@ -2454,6 +2468,8 @@ ActiveRecord::Schema.define(version: 20190301182457) do
   add_foreign_key "lists", "boards", name: "fk_0d3f677137", on_delete: :cascade
   add_foreign_key "lists", "labels", name: "fk_7a5553d60f", on_delete: :cascade
   add_foreign_key "members", "users", name: "fk_2e88fb7ce9", on_delete: :cascade
+  add_foreign_key "merge_request_assignees", "merge_requests", on_delete: :cascade
+  add_foreign_key "merge_request_assignees", "users", on_delete: :cascade
   add_foreign_key "merge_request_diff_commits", "merge_request_diffs", on_delete: :cascade
   add_foreign_key "merge_request_diff_files", "merge_request_diffs", on_delete: :cascade
   add_foreign_key "merge_request_diffs", "merge_requests", name: "fk_8483f3258f", on_delete: :cascade

@@ -19,7 +19,7 @@ class Repository
 
   include Gitlab::RepositoryCacheAdapter
 
-  attr_accessor :full_path, :disk_path, :project, :is_wiki
+  attr_accessor :full_path, :disk_path, :project, :repo_type
 
   delegate :ref_name_for_sha, to: :raw_repository
   delegate :bundle_to_disk, to: :raw_repository
@@ -39,8 +39,7 @@ class Repository
                       changelog license_blob license_key gitignore
                       gitlab_ci_yml branch_names tag_names branch_count
                       tag_count avatar exists? root_ref has_visible_content?
-                      issue_template_names merge_request_template_names xcode_project?
-                      insights_config).freeze
+                      issue_template_names merge_request_template_names xcode_project?).freeze
 
   # Methods that use cache_method but only memoize the value
   MEMOIZED_CACHED_METHODS = %i(license).freeze
@@ -58,16 +57,15 @@ class Repository
     avatar: :avatar,
     issue_template: :issue_template_names,
     merge_request_template: :merge_request_template_names,
-    xcode_config: :xcode_project?,
-    insights_config: :insights_config
+    xcode_config: :xcode_project?
   }.freeze
 
-  def initialize(full_path, project, disk_path: nil, is_wiki: false)
+  def initialize(full_path, project, disk_path: nil, repo_type: Gitlab::GlRepository::PROJECT)
     @full_path = full_path
     @disk_path = disk_path || full_path
     @project = project
     @commit_cache = {}
-    @is_wiki = is_wiki
+    @repo_type = repo_type
   end
 
   def ==(other)
@@ -665,11 +663,6 @@ class Repository
   end
   cache_method :xcode_project?
 
-  def insights_config
-    file_on_head(:insights_config)
-  end
-  cache_method :insights_config
-
   def head_commit
     @head_commit ||= commit(self.root_ref)
   end
@@ -1119,7 +1112,7 @@ class Repository
   def initialize_raw_repository
     Gitlab::Git::Repository.new(project.repository_storage,
                                 disk_path + '.git',
-                                Gitlab::GlRepository.gl_repository(project, is_wiki),
+                                repo_type.identifier_for_subject(project),
                                 project.full_path)
   end
 end

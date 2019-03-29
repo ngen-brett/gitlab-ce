@@ -2379,6 +2379,12 @@ describe Project do
       project.change_head(project.default_branch)
     end
 
+    it 'updates commit count' do
+      expect(ProjectCacheWorker).to receive(:perform_async).with(project.id, [], [:commit_count])
+
+      project.change_head(project.default_branch)
+    end
+
     it 'copies the gitattributes' do
       expect(project.repository).to receive(:copy_gitattributes).with(project.default_branch)
       project.change_head(project.default_branch)
@@ -2704,7 +2710,7 @@ describe Project do
   end
 
   describe '#any_lfs_file_locks?', :request_store do
-    set(:project) { create(:project) }
+    let!(:project) { create(:project) }
 
     it 'returns false when there are no LFS file locks' do
       expect(project.any_lfs_file_locks?).to be_falsey
@@ -3142,6 +3148,53 @@ describe Project do
         expect(projects).to eq([public_project])
       end
     end
+
+    context 'with requested visibility levels' do
+      set(:internal_project) { create(:project, :internal, :repository) }
+      set(:private_project_2) { create(:project, :private) }
+
+      context 'with admin user' do
+        set(:admin) { create(:admin) }
+
+        it 'returns all projects' do
+          projects = described_class.all.public_or_visible_to_user(admin, [])
+
+          expect(projects).to match_array([public_project, private_project, private_project_2, internal_project])
+        end
+
+        it 'returns all public and private projects' do
+          projects = described_class.all.public_or_visible_to_user(admin, [Gitlab::VisibilityLevel::PUBLIC, Gitlab::VisibilityLevel::PRIVATE])
+
+          expect(projects).to match_array([public_project, private_project, private_project_2])
+        end
+
+        it 'returns all private projects' do
+          projects = described_class.all.public_or_visible_to_user(admin, [Gitlab::VisibilityLevel::PRIVATE])
+
+          expect(projects).to match_array([private_project, private_project_2])
+        end
+      end
+
+      context 'with regular user' do
+        it 'returns authorized projects' do
+          projects = described_class.all.public_or_visible_to_user(user, [])
+
+          expect(projects).to match_array([public_project, private_project, internal_project])
+        end
+
+        it "returns user's public and private projects" do
+          projects = described_class.all.public_or_visible_to_user(user, [Gitlab::VisibilityLevel::PUBLIC, Gitlab::VisibilityLevel::PRIVATE])
+
+          expect(projects).to match_array([public_project, private_project])
+        end
+
+        it 'returns one private project' do
+          projects = described_class.all.public_or_visible_to_user(user, [Gitlab::VisibilityLevel::PRIVATE])
+
+          expect(projects).to eq([private_project])
+        end
+      end
+    end
   end
 
   describe '.with_feature_available_for_user' do
@@ -3422,7 +3475,7 @@ describe Project do
       end
 
       it 'schedules HashedStorage::ProjectMigrateWorker with delayed start when the project repo is in use' do
-        Gitlab::ReferenceCounter.new(project.gl_repository(is_wiki: false)).increase
+        Gitlab::ReferenceCounter.new(Gitlab::GlRepository::PROJECT.identifier_for_subject(project)).increase
 
         expect(HashedStorage::ProjectMigrateWorker).to receive(:perform_in)
 
@@ -3430,7 +3483,7 @@ describe Project do
       end
 
       it 'schedules HashedStorage::ProjectMigrateWorker with delayed start when the wiki repo is in use' do
-        Gitlab::ReferenceCounter.new(project.gl_repository(is_wiki: true)).increase
+        Gitlab::ReferenceCounter.new(Gitlab::GlRepository::WIKI.identifier_for_subject(project)).increase
 
         expect(HashedStorage::ProjectMigrateWorker).to receive(:perform_in)
 
@@ -3560,16 +3613,6 @@ describe Project do
           expect { project.rollback_to_legacy_storage! }.to change(HashedStorage::ProjectRollbackWorker.jobs, :size).by(1)
         end
       end
-    end
-  end
-
-  describe '#gl_repository' do
-    let(:project) { create(:project) }
-
-    it 'delegates to Gitlab::GlRepository.gl_repository' do
-      expect(Gitlab::GlRepository).to receive(:gl_repository).with(project, true)
-
-      project.gl_repository(is_wiki: true)
     end
   end
 

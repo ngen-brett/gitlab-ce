@@ -84,7 +84,7 @@ class Project < ActiveRecord::Base
   default_value_for :snippets_enabled, gitlab_config_features.snippets
   default_value_for :only_allow_merge_if_all_discussions_are_resolved, false
 
-  add_authentication_token_field :runners_token, encrypted: -> { Feature.enabled?(:projects_tokens_optional_encryption) ? :optional : :required }
+  add_authentication_token_field :runners_token, encrypted: -> { Feature.enabled?(:projects_tokens_optional_encryption, default_enabled: true) ? :optional : :required }
 
   before_validation :mark_remote_mirrors_for_removal, if: -> { RemoteMirror.table_exists? }
 
@@ -459,14 +459,41 @@ class Project < ActiveRecord::Base
 
   # Returns a collection of projects that is either public or visible to the
   # logged in user.
-  def self.public_or_visible_to_user(user = nil)
-    if user
-      where('EXISTS (?) OR projects.visibility_level IN (?)',
-            user.authorizations_for_projects,
-            Gitlab::VisibilityLevel.levels_for_user(user))
-    else
-      public_to_user
+  #
+  # requested_visiblity_levels: Normally all projects that are visible
+  # to the user (e.g. internal and public) are queried, but this
+  # parameter allows the caller to narrow the search space to optimize
+  # database queries. For instance, a caller may only want to see
+  # internal projects. Instead of querying for internal and public
+  # projects and throwing away public projects, this parameter allows
+  # the query to be targeted for only internal projects.
+  def self.public_or_visible_to_user(user = nil, requested_visibility_levels = [])
+    return public_to_user unless user
+
+    visible_levels = Gitlab::VisibilityLevel.levels_for_user(user)
+    include_private = true
+    requested_visibility_levels = Array(requested_visibility_levels)
+
+    if requested_visibility_levels.present?
+      visible_levels &= requested_visibility_levels
+      include_private = requested_visibility_levels.include?(Gitlab::VisibilityLevel::PRIVATE)
     end
+
+    public_or_internal_rel =
+      if visible_levels.present?
+        where('projects.visibility_level IN (?)', visible_levels)
+      else
+        Project.none
+      end
+
+    private_rel =
+      if include_private
+        where('EXISTS (?)', user.authorizations_for_projects)
+      else
+        Project.none
+      end
+
+    public_or_internal_rel.or(private_rel)
   end
 
   # project features may be "disabled", "internal", "enabled" or "public". If "internal",
@@ -1384,6 +1411,7 @@ class Project < ActiveRecord::Base
       repository.raw_repository.write_ref('HEAD', "refs/heads/#{branch}")
       repository.copy_gitattributes(branch)
       repository.after_change_head
+      ProjectCacheWorker.perform_async(self.id, [], [:commit_count])
       reload_default_branch
     else
       errors.add(:base, "Could not change HEAD: branch '#{branch}' does not exist")
@@ -2002,12 +2030,8 @@ class Project < ActiveRecord::Base
     @storage = nil if storage_version_changed?
   end
 
-  def gl_repository(is_wiki:)
-    Gitlab::GlRepository.gl_repository(self, is_wiki)
-  end
-
-  def reference_counter(wiki: false)
-    Gitlab::ReferenceCounter.new(gl_repository(is_wiki: wiki))
+  def reference_counter(type: Gitlab::GlRepository::PROJECT)
+    Gitlab::ReferenceCounter.new(type.identifier_for_subject(self))
   end
 
   def badges
@@ -2151,7 +2175,7 @@ class Project < ActiveRecord::Base
   end
 
   def wiki_reference_count
-    reference_counter(wiki: true).value
+    reference_counter(type: Gitlab::GlRepository::WIKI).value
   end
 
   def check_repository_absence!

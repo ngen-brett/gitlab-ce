@@ -86,6 +86,11 @@ by another folder with the next 2 characters. They are both stored in a special
 
 ### Hashed object pools
 
+CAUTION: **Beta:**
+Hashed objects pools are considered beta, and are not ready for production use.
+Follow [gitaly#1548](https://gitlab.com/gitlab-org/gitaly/issues/1548) for
+updates.
+
 For deduplication of public forks and their parent repository, objects are pooled
 in an object pool. These object pools are a third repository where shared objects
 are stored.
@@ -137,7 +142,7 @@ projects:
 2. Uncheck the **Use hashed storage paths for newly created and renamed projects** checkbox.
 
 To schedule a complete rollback, see the 
-[rake task documentation for storage rollback][rake/rollback-to-legacy] for instructions.
+[rake task documentation for storage rollback](raketasks/storage.md#rollback-from-hashed-storage-to-legacy-storage) for instructions.
 
 The rollback task also supports specifying a range of Project IDs. Here is an example
 of limiting the rollout to Project IDs 50 to 100, in an Omnibus Gitlab installation:
@@ -200,6 +205,5 @@ They are also S3 compatible since **10.0** (GitLab Premium), and available in Gi
 [ce-2821]: https://gitlab.com/gitlab-com/infrastructure/issues/2821
 [ce-28283]: https://gitlab.com/gitlab-org/gitlab-ce/issues/28283
 [rake/migrate-to-hashed]: raketasks/storage.md#migrate-existing-projects-to-hashed-storage
-[rake/rollback-to-legacy]: raketasks/storage.md#rollback
 [storage-paths]: repository_storage_types.md
 [gitaly]: gitaly/index.md

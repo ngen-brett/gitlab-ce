@@ -230,8 +230,25 @@ can enable/disable Auto DevOps at either the project-level or instance-level.
 1. Click **Save changes** for the changes to take effect.
 
 NOTE: **Note:**
-Even when disabled at the instance level, project maintainers are still able to enable
-Auto DevOps at the project level.
+Even when disabled at the instance level, group owners and project maintainers are still able to enable
+Auto DevOps at group-level and project-level, respectively.
+
+### Enabling/disabling Auto DevOps at the group-level
+
+> [Introduced](https://gitlab.com/gitlab-org/gitlab-ce/issues/52447) in GitLab 11.10.
+
+To enable or disable Auto DevOps at the group-level:
+
+1. Go to group's **Settings > CI/CD > Auto DevOps** page.
+1. Toggle the **Default to Auto DevOps pipeline** checkbox (checked to enable, unchecked to disable).
+1. Click **Save changes** button for the changes to take effect.
+
+When enabling or disabling Auto DevOps at group-level, group configuration will be implicitly used for
+the subgroups and projects inside that group, unless Auto DevOps is specifically enabled or disabled on
+the subgroup or project.
+
+NOTE: **Note**
+Only administrators and group owners are allowed to enable or disable Auto DevOps at group-level.
 
 ### Enabling/disabling Auto DevOps at the project-level
 
@@ -635,7 +652,7 @@ repo or by specifying a project variable:
 
 ### Custom Helm chart per environment **[PREMIUM]**
 
-You can specify the use of a custom Helm chart per environment by scoping the environment variable 
+You can specify the use of a custom Helm chart per environment by scoping the environment variable
 to the desired environment. See [Limiting environment scopes of variables](https://docs.gitlab.com/ee/ci/variables/#limiting-environment-scopes-of-variables-premium).
 
 ### Customizing `.gitlab-ci.yml`
@@ -884,7 +901,7 @@ increasing the rollout up to 100%.
 
 If `INCREMENTAL_ROLLOUT_MODE` is set to `manual` in your project, then instead
 of the standard `production` job, 4 different
-[manual jobs](../../ci/pipelines.md#manual-actions-from-the-pipeline-graph)
+[manual jobs](../../ci/pipelines.md#manual-actions-from-pipeline-graphs)
 will be created:
 
 1. `rollout 10%`
@@ -1005,6 +1022,9 @@ planned for a subsequent release.
   buildpack](#custom-buildpacks).
 - Auto Test may fail because of a mismatch between testing frameworks. In this
   case, you may need to customize your `.gitlab-ci.yml` with your test commands.
+- Auto Deploy will fail if GitLab can not create a Kubernetes namespace and
+  service account for your project. For help debugging this issue, see
+  [Troubleshooting failed deployment jobs](../../user/project/clusters/index.md#troubleshooting-failed-deployment-jobs).
 
 ### Disable the banner instance wide
 

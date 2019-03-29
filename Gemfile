@@ -18,7 +18,7 @@ gem 'gitlab-default_value_for', '~> 3.1.1', require: 'default_value_for'
 gem 'mysql2', '~> 0.4.10', group: :mysql
 gem 'pg', '~> 1.1', group: :postgres
 
-gem 'rugged', '~> 0.27'
+gem 'rugged', '~> 0.28'
 gem 'grape-path-helpers', '~> 1.0'
 
 gem 'faraday', '~> 0.12'
@@ -116,7 +116,7 @@ gem 'seed-fu', '~> 2.3.7'
 # Markdown and HTML processing
 gem 'html-pipeline', '~> 2.8'
 gem 'deckar01-task_list', '2.2.0'
-gem 'gitlab-markup', '~> 1.6.5'
+gem 'gitlab-markup', '~> 1.7.0'
 gem 'github-markup', '~> 1.7.0', require: 'github/markup'
 gem 'commonmarker', '~> 0.17'
 gem 'RedCloth', '~> 4.3.2'
@@ -128,7 +128,7 @@ gem 'asciidoctor', '~> 1.5.8'
 gem 'asciidoctor-plantuml', '0.0.8'
 gem 'rouge', '~> 3.1'
 gem 'truncato', '~> 0.7.11'
-gem 'bootstrap_form', '~> 2.7.0'
+gem 'bootstrap_form', '~> 4.2.0'
 gem 'nokogiri', '~> 1.10.1'
 gem 'escape_utils', '~> 1.1'
 
@@ -170,7 +170,7 @@ gem 'gitlab-sidekiq-fetcher', '~> 0.4.0', require: 'sidekiq-reliable-fetch'
 gem 'fugit', '~> 1.1'
 
 # HTTP requests
-gem 'httparty', '~> 0.13.3'
+gem 'httparty', '~> 0.16.4'
 
 # Colored output to console
 gem 'rainbow', '~> 3.0'
