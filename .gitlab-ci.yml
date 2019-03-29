@@ -275,6 +275,8 @@ review-docs-deploy-manual:
     - gem install gitlab --no-document
     - ./$SCRIPT_NAME deploy
   when: manual
+  except:
+    - /^(?!master).+@/
   only:
     - branches@gitlab-org/gitlab-ce
     - branches@gitlab-org/gitlab-ee
