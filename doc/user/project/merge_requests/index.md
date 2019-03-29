@@ -219,6 +219,34 @@ apply the patches. The target branch can be specified using the
 [`/target_branch` quick action](../quick_actions.md). If the source
 branch already exists, the patches will be applied on top of it.
 
+## Git push options
+
+> [Introduced](https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/26752) in GitLab 11.10.
+
+GitLab supports using [Git push options](https://git-scm.com/docs/git-push#Documentation/git-push.txt--oltoptiongt) to create merge requests and set the target branch during a push. Note that git push options are only available with Git 2.10 or newer.
+
+### Create a new merge request using git push options
+
+To create a new merge request for a branch use the `merge_request.create` push option:
+
+```
+git push -o merge_request.create
+```
+
+### Set the target branch of a merge request using git push options
+
+When provided for a branch with an existing open merge request, the `merge_request.target=<branch>` push option will update the existing merge request's target branch:
+
+```
+git push -o merge_request.target=branch_name
+```
+
+Or, you can create a merge request and set its target branch at the same time using a `-o` flag per push option:
+
+```
+git push -o merge_request.create -o merge_request.target=branch_name
+```
+
 ## Find the merge request that introduced a change
 
 > [Introduced](https://gitlab.com/gitlab-org/gitlab-ce/issues/2383) in GitLab 10.5.
