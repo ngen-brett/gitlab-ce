@@ -40,15 +40,6 @@ describe MergeRequests::MergeToRefService do
   end
 
   shared_examples_for 'successfully evaluates pre-condition checks' do
-    it 'returns error when feature is disabled' do
-      stub_feature_flags(merge_to_tmp_merge_ref_path: false)
-
-      result = service.execute(merge_request)
-
-      expect(result[:status]).to eq(:error)
-      expect(result[:message]).to eq('Feature is not enabled')
-    end
-
     it 'returns an error when the failing to process the merge' do
       allow(project.repository).to receive(:merge_to_ref).and_return(nil)
 

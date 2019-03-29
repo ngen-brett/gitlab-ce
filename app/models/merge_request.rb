@@ -808,7 +808,7 @@ class MergeRequest < ActiveRecord::Base
 
   def mergeable_to_ref?
     return false if merged?
-    return false if broken?
+    return false if mergeable_state?(skip_ci_check: true, skip_discussions_check: true)
 
     # Given the `merge_ref_path` will have the same
     # state the `target_branch` would have. Ideally
