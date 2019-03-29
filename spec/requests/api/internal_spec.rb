@@ -888,6 +888,44 @@ describe API::Internal do
       expect(json_response['merge_request_urls']).to eq([])
     end
 
+    it 'does not invoke MergeRequests::PushOptionsHandlerService' do
+      expect(MergeRequests::PushOptionsHandlerService).not_to receive(:new)
+
+      post api("/internal/post_receive"), params: valid_params
+    end
+
+    context 'when there are merge_request push options' do
+      before do
+        valid_params[:push_options] = ['merge_request.create']
+      end
+
+      it 'invokes MergeRequests::PushOptionsHandlerService' do
+        expect(MergeRequests::PushOptionsHandlerService).to receive(:new)
+
+        post api("/internal/post_receive"), params: valid_params
+      end
+
+      it 'links to the newly created merge request' do
+        post api("/internal/post_receive"), params: valid_params
+
+        expect(json_response['merge_request_urls']).to match [{
+          "branch_name" => "new_branch",
+          "url" => "http://#{Gitlab.config.gitlab.host}/#{project.namespace.name}/#{project.path}/merge_requests/1",
+          "new_merge_request" => false
+        }]
+      end
+
+      it 'adds errors from MergeRequests::PushOptionsHandlerService to warnings' do
+        expect(MergeRequests::PushOptionsHandlerService).to receive(:new).and_raise(
+          MergeRequests::PushOptionsHandlerService::Error, 'my warning'
+        )
+
+        post api("/internal/post_receive"), params: valid_params
+
+        expect(json_response['warnings']).to eq('Could not handle push options \'merge_request.create\': my warning')
+      end
+    end
+
     context 'broadcast message exists' do
       let!(:broadcast_message) { create(:broadcast_message, starts_at: 1.day.ago, ends_at: 1.day.from_now ) }
 
