@@ -663,10 +663,9 @@
   resolved "https://registry.yarnpkg.com/@gitlab/svgs/-/svgs-1.57.0.tgz#969ac7bf16337d5de3808fee6fb5c13eefd99478"
   integrity sha512-AAVvPDaxCsojmOyVVTyaOcob+bPhtYJ+GbtmmNNCHg2dXYDAEgy3+TYzAfV5fQ08TCZ9DPiKEjDIi2ODh0x/8g==
 
-"@gitlab/ui@^3.0.1":
+"@gitlab/ui@https://gitlab.com/gitlab-org/gitlab-ui/-/jobs/187247002/artifacts/raw/gitlab-ui.adriel-feat-add-series-label.tgz":
   version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@gitlab/ui/-/ui-3.0.2.tgz#29a17699751261657487b939c651c0f93264df2a"
-  integrity sha512-JZhcS5cDxtpxopTc55UWvUbZAwKvxygYHT9I01QmUtKgaKIJlnjBj8zkcg1xHazX7raSjjtjqfDEla39a+luuQ==
+  resolved "https://gitlab.com/gitlab-org/gitlab-ui/-/jobs/187247002/artifacts/raw/gitlab-ui.adriel-feat-add-series-label.tgz#74abb85fb01768344c2ffabf890306c3c5feb6f7"
   dependencies:
     "@babel/standalone" "^7.0.0"
     bootstrap-vue "^2.0.0-rc.11"
