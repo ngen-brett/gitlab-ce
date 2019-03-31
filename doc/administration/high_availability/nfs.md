@@ -101,6 +101,11 @@ stored on a local volume.
 For more details on another person's experience with EFS, see
 [Amazon's Elastic File System: Burst Credits](https://rawkode.com/2017/04/16/amazons-elastic-file-system-burst-credits/)
 
+## Avoid using CephFS and GlusterFS
+
+GitLab strongly recommends against using CephFS and GlusterFS.
+These distributed file systems are not well-suited for GitLab's input/output access patterns.
+
 ## Avoid using PostgreSQL with NFS
 
 GitLab strongly recommends against running your PostgreSQL database
