@@ -5,6 +5,13 @@ easy to maintain, and performant for the end-user.
 
 ## Rules
 
+### Utility Classes
+As part of the effort for [cleaning up our CSS and move our components into GitLab-UI](https://gitlab.com/groups/gitlab-org/-/epics/950)
+lead by the [GitLab UI WG](https://gitlab.com/gitlab-com/www-gitlab-com/merge_requests/20623) we prefer the use of utility classes over adding new CSS.
+
+We have a few internal utility classes in [common.scss](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/app/assets/stylesheets/framework/common.scss)
+and we use [Bootstrap's Utility Classes](https://getbootstrap.com/docs/4.3/utilities/)
+
 ### Naming
 
 Filenames should use `snake_case`.
