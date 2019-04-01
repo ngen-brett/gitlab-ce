@@ -20,10 +20,7 @@ export const placeholderBranchName = (state, _, rootState) =>
   )}`;
 
 export const branchName = (state, getters, rootState) => {
-  if (
-    state.commitAction === consts.COMMIT_TO_NEW_BRANCH ||
-    state.commitAction === consts.COMMIT_TO_NEW_BRANCH_MR
-  ) {
+  if (state.commitAction === consts.COMMIT_TO_NEW_BRANCH) {
     if (state.newBranchName === '') {
       return getters.placeholderBranchName;
     }
@@ -48,6 +45,8 @@ export const preBuiltCommitMessage = (state, _, rootState) => {
     .filter(t => t)
     .join('\n');
 };
+
+export const shouldCreateMR = state => state.shouldCreateMR;
 
 // prevent babel-plugin-rewire from generating an invalid default during karma tests
 export default () => {};

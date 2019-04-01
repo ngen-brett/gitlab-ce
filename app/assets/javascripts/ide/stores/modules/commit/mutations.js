@@ -21,4 +21,9 @@ export default {
       submitCommitLoading,
     });
   },
+  [types.TOGGLE_SHOULD_CREATE_MR](state) {
+    Object.assign(state, {
+      shouldCreateMR: !state.shouldCreateMR,
+    });
+  },
 };

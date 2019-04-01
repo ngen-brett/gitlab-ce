@@ -28,12 +28,24 @@ describe('IDE commit sidebar actions', () => {
     resetStore(vm.$store);
   });
 
-  it('renders 3 groups', () => {
-    expect(vm.$el.querySelectorAll('input[type="radio"]').length).toBe(3);
+  it('renders 2 groups', () => {
+    expect(vm.$el.querySelectorAll('input[type="radio"]').length).toBe(2);
   });
 
   it('renders current branch text', () => {
     expect(vm.$el.textContent).toContain('Commit to master branch');
+  });
+
+  it('disables `createMR` button when an MR already exists', () => {});
+
+  it('toggles `shouldCreateMR` when clicking checkbox', () => {
+    const el = vm.$el.querySelector('input[type="checkbox"]');
+    el.click();
+
+    vm.$nextTick(() => {
+      console.log(vm.shouldCreateMR);
+      expect(vm.$store.commit.shouldCreateMR).toBe(true);
+    });
   });
 
   it('hides merge request option when project merge requests are disabled', done => {

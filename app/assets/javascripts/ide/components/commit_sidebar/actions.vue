@@ -22,6 +22,14 @@ export default {
     disableMergeRequestRadio() {
       return this.changedFiles.length > 0 && this.stagedFiles.length > 0;
     },
+    shouldCreateMR: {
+      get() {
+        return this.$store.commit.shouldCreateMR;
+      },
+      set() {
+        this.toggleShouldCreateMR();
+      },
+    },
   },
   watch: {
     disableMergeRequestRadio() {
@@ -32,7 +40,7 @@ export default {
     this.updateSelectedCommitAction();
   },
   methods: {
-    ...mapActions('commit', ['updateCommitAction']),
+    ...mapActions('commit', ['updateCommitAction', 'toggleShouldCreateMR']),
     updateSelectedCommitAction() {
       if (this.currentBranch && !this.currentBranch.can_push) {
         this.updateCommitAction(consts.COMMIT_TO_NEW_BRANCH);
@@ -43,7 +51,7 @@ export default {
   },
   commitToCurrentBranch: consts.COMMIT_TO_CURRENT_BRANCH,
   commitToNewBranch: consts.COMMIT_TO_NEW_BRANCH,
-  commitToNewBranchMR: consts.COMMIT_TO_NEW_BRANCH_MR,
+  commitWithNewMR: consts.COMMIT_WITH_NEW_MR,
   currentBranchPermissionsTooltip: __(
     "This option is disabled as you don't have write permissions for the current branch",
   ),
@@ -64,13 +72,10 @@ export default {
       :label="__('Create a new branch')"
       :show-input="true"
     />
-    <radio-group
-      v-if="currentProject.merge_requests_enabled"
-      :value="$options.commitToNewBranchMR"
-      :label="__('Create a new branch and merge request')"
-      :title="__('This option is disabled while you still have unstaged changes')"
-      :show-input="true"
-      :disabled="disableMergeRequestRadio"
-    />
+    <hr class="my-2" />
+    <label class="mb0">
+      <input v-model="shouldCreateMR" type="checkbox" :value="$options.commitWithNewMR" />
+      <span class="prepend-left-10">{{ __('Create a merge request for this branch') }}</span>
+    </label>
   </div>
 </template>

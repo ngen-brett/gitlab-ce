@@ -39,4 +39,12 @@ describe('IDE commit module mutations', () => {
       expect(state.submitCommitLoading).toBeTruthy();
     });
   });
+
+  describe('TOGGLE_SHOULD_CREATE_MR', () => {
+    it('changes shouldCreateMR', () => {
+      mutations.TOGGLE_SHOULD_CREATE_MR(state);
+
+      expect(state.shouldCreateMR).toBe(true);
+    });
+  });
 });
