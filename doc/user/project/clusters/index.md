@@ -379,9 +379,14 @@ chart plus the values set by
 1. Before starting the installation of applications, make sure that time is synchronized
 between your GitLab server and your Kubernetes cluster. 
 
-1. Confirm the certificates are in sync with the current cluster.
+1. Certificates can become out of sync, it is expectated that it is a new cluster with no previous installation of Tiller.  
+You can confirm that the certificates match via
 
-See [Unable to install Ingress via Helm Tiller - tls error](https://gitlab.com/gitlab-org/gitlab-ce/issues/56578)
+```
+kubectl get configmaps/values-content-configuration-ingress -n gitlab-managed-apps -o "jsonpath={.data['cert\.pem']}" |base64 -d > a.pem
+kubectl get secrets/tiller-secret -n gitlab-managed-apps -o "jsonpath={.data['ca\.crt']}" | base64 -d > b.pem 
+diff a.pem b.pem
+```
 
 ## Getting the external endpoint
 
