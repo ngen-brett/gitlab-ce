@@ -308,7 +308,15 @@
 
 .filter-bar {
   background: $gray-light;
-  
+
+  .input-group-append {
+    background: $white;
+
+    svg {
+      top: 0;
+    }
+  }
+
   .nav-controls {
     display: inline-block;
     text-align: right;

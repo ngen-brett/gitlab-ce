@@ -10,6 +10,11 @@
   = render "projects/last_push"
   = render 'dashboard/projects_head'
 
+  -# TODO: might be able to DRY this out
+  .nav-block.filter-bar.d-flex
+    .nav-controls
+      = render 'shared/projects/search_form'
+
   - if params[:filter_projects] || any_projects?(@projects)
     = render 'projects'
   - else

@@ -1,11 +1,14 @@
 = form_tag filter_projects_path, method: :get, class: 'project-filter-form', id: 'project-filter-form' do |f|
-  = search_field_tag :name, params[:name],
-    placeholder: 'Filter by name...',
-    class: 'project-filter-form-field form-control input-short js-projects-list-filter',
-    spellcheck: false,
-    id: 'project-filter-form-field',
-    tabindex: "2",
-    autofocus: local_assigns[:autofocus]
+  .input-group
+    = search_field_tag :name, params[:name],
+      placeholder: 'Filter by name...',
+      class: 'project-filter-form-field form-control input-short js-projects-list-filter',
+      spellcheck: false,
+      id: 'project-filter-form-field',
+      tabindex: "2",
+      autofocus: local_assigns[:autofocus]
+    %button.input-group-append.btn.btn-secondary{ type: 'submit' }
+      = sprite_icon('search', size: 18, css_class: 'search-icon ')
 
   - if local_assigns[:icon]
     = icon("search", class: "search-icon")
