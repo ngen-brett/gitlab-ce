@@ -1,0 +1,19 @@
+- form = local_assigns.fetch(:form)
+
+.form-group
+  %b= s_('ProjectSettings|Merge checks')
+  %p.text-secondary= s_('ProjectSettings|These checks must pass before merge requests can be merged')
+  .form-check.mb-2.builds-feature{ class: ("hidden" if @project && @project.project_feature.send(:builds_access_level) == 0) }
+    = form.check_box :only_allow_merge_if_pipeline_succeeds, class: 'form-check-input'
+    = form.label :only_allow_merge_if_pipeline_succeeds, class: 'form-check-label' do
+      = s_('ProjectSettings|Pipelines must succeed')
+      .descr.text-secondary
+        Pipelines need to be configured to enable this feature.
+        = link_to icon('question-circle'),
+          help_page_path('user/project/merge_requests/merge_when_pipeline_succeeds',
+          anchor: 'only-allow-merge-requests-to-be-merged-if-the-pipeline-succeeds'),
+          target: '_blank'
+  .form-check.mb-2
+    = form.check_box :only_allow_merge_if_all_discussions_are_resolved, class: 'form-check-input'
+    = form.label :only_allow_merge_if_all_discussions_are_resolved, class: 'form-check-label' do
+      = s_('ProjectSettings|All discussions must be resolved')

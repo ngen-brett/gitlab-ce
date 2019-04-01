@@ -30,16 +30,16 @@ describe 'Projects > Settings > User manages merge request settings' do
   context 'when Merge Request and Pipelines are initially enabled', :js do
     context 'when Pipelines are initially enabled' do
       it 'shows the Merge Requests settings' do
-        expect(page).to have_content('Only allow merge requests to be merged if the pipeline succeeds')
-        expect(page).to have_content('Only allow merge requests to be merged if all discussions are resolved')
+        expect(page).to have_content 'Pipelines must succeed'
+        expect(page).to have_content 'All discussions must be resolved'
 
         within('.sharing-permissions-form') do
           find('.project-feature-controls[data-for="project[project_feature_attributes][merge_requests_access_level]"] .project-feature-toggle').click
           find('input[value="Save changes"]').send_keys(:return)
         end
 
-        expect(page).not_to have_content('Only allow merge requests to be merged if the pipeline succeeds')
-        expect(page).not_to have_content('Only allow merge requests to be merged if all discussions are resolved')
+        expect(page).not_to have_content 'Pipelines must succeed'
+        expect(page).not_to have_content 'All discussions must be resolved'
       end
     end
 
@@ -50,16 +50,16 @@ describe 'Projects > Settings > User manages merge request settings' do
       end
 
       it 'shows the Merge Requests settings that do not depend on Builds feature' do
-        expect(page).not_to have_content('Only allow merge requests to be merged if the pipeline succeeds')
-        expect(page).to have_content('Only allow merge requests to be merged if all discussions are resolved')
+        expect(page).not_to have_content('Pipelines must succeed')
+        expect(page).to have_content('All discussions must be resolved')
 
         within('.sharing-permissions-form') do
           find('.project-feature-controls[data-for="project[project_feature_attributes][builds_access_level]"] .project-feature-toggle').click
           find('input[value="Save changes"]').send_keys(:return)
         end
 
-        expect(page).to have_content('Only allow merge requests to be merged if the pipeline succeeds')
-        expect(page).to have_content('Only allow merge requests to be merged if all discussions are resolved')
+        expect(page).to have_content('Pipelines must succeed')
+        expect(page).to have_content('All discussions must be resolved')
       end
     end
   end
@@ -71,16 +71,16 @@ describe 'Projects > Settings > User manages merge request settings' do
     end
 
     it 'does not show the Merge Requests settings' do
-      expect(page).not_to have_content('Only allow merge requests to be merged if the pipeline succeeds')
-      expect(page).not_to have_content('Only allow merge requests to be merged if all discussions are resolved')
+      expect(page).not_to have_content('Pipelines must succeed')
+      expect(page).not_to have_content('All discussions must be resolved')
 
       within('.sharing-permissions-form') do
         find('.project-feature-controls[data-for="project[project_feature_attributes][merge_requests_access_level]"] .project-feature-toggle').click
         find('input[value="Save changes"]').send_keys(:return)
       end
 
-      expect(page).to have_content('Only allow merge requests to be merged if the pipeline succeeds')
-      expect(page).to have_content('Only allow merge requests to be merged if all discussions are resolved')
+      expect(page).to have_content('Pipelines must succeed')
+      expect(page).to have_content('All discussions must be resolved')
     end
   end
 
