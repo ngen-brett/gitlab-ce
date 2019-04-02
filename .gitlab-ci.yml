@@ -529,6 +529,11 @@ rspec-mysql:
   <<: *rspec-metadata-mysql
   parallel: 50
 
+rspec-fast-spec-helper:
+  <<: *rspec-metadata
+  script:
+    - bundle exec rspec spec/fast_spec_helper.rb
+
 .rspec-quarantine: &rspec-quarantine
   retry: 0
   script:
