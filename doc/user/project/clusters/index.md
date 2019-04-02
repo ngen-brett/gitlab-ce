@@ -381,12 +381,12 @@ Applications can fail with the following error:
 To avoid installation errors:
 1. Before starting the installation of applications, make sure that time is synchronized
 between your GitLab server and your Kubernetes cluster. 
-
-1. Certificates can become out of sync, it is expectated that it is a new cluster with no previous installation of Tiller.  
+1. Ensure certificates are not out of sync.  It is expectated that it is a new cluster with no previous installation of Tiller.  
 You can confirm that the certificates match via `kubectl`:
 
 ```sh
-kubectl get configmaps/values-content-configuration-ingress -n gitlab-managed-apps -o "jsonpath={.data['cert\.pem']}" | base64 -d > a.pem
+kubectl get configmaps/values-content-configuration-ingress -n gitlab-managed-apps -o \
+"jsonpath={.data['cert\.pem']}" | base64 -d > a.pem
 kubectl get secrets/tiller-secret -n gitlab-managed-apps -o "jsonpath={.data['ca\.crt']}" | base64 -d > b.pem 
 diff a.pem b.pem
 ```
