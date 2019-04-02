@@ -857,7 +857,7 @@ describe API::Internal do
       expect(PostReceive).to receive(:perform_async)
         .with(gl_repository, identifier, changes, push_options)
 
-      post api("/internal/post_receive"), params: valid_params
+      post api('/internal/post_receive'), params: valid_params
     end
 
     it 'decreases the reference counter and returns the result' do
@@ -865,13 +865,13 @@ describe API::Internal do
         .and_return(reference_counter)
       expect(reference_counter).to receive(:decrease).and_return(true)
 
-      post api("/internal/post_receive"), params: valid_params
+      post api('/internal/post_receive'), params: valid_params
 
       expect(json_response['reference_counter_decreased']).to be(true)
     end
 
     it 'returns link to create new merge request' do
-      post api("/internal/post_receive"), params: valid_params
+      post api('/internal/post_receive'), params: valid_params
 
       expect(json_response['merge_request_urls']).to match [{
         "branch_name" => "new_branch",
@@ -883,7 +883,7 @@ describe API::Internal do
     it 'returns empty array if printing_merge_request_link_enabled is false' do
       project.update!(printing_merge_request_link_enabled: false)
 
-      post api("/internal/post_receive"), params: valid_params
+      post api('/internal/post_receive'), params: valid_params
 
       expect(json_response['merge_request_urls']).to eq([])
     end
@@ -891,7 +891,7 @@ describe API::Internal do
     it 'does not invoke MergeRequests::PushOptionsHandlerService' do
       expect(MergeRequests::PushOptionsHandlerService).not_to receive(:new)
 
-      post api("/internal/post_receive"), params: valid_params
+      post api('/internal/post_receive'), params: valid_params
     end
 
     context 'when there are merge_request push options' do
@@ -902,16 +902,16 @@ describe API::Internal do
       it 'invokes MergeRequests::PushOptionsHandlerService' do
         expect(MergeRequests::PushOptionsHandlerService).to receive(:new)
 
-        post api("/internal/post_receive"), params: valid_params
+        post api('/internal/post_receive'), params: valid_params
       end
 
       it 'links to the newly created merge request' do
-        post api("/internal/post_receive"), params: valid_params
+        post api('/internal/post_receive'), params: valid_params
 
         expect(json_response['merge_request_urls']).to match [{
-          "branch_name" => "new_branch",
-          "url" => "http://#{Gitlab.config.gitlab.host}/#{project.namespace.name}/#{project.path}/merge_requests/1",
-          "new_merge_request" => false
+          'branch_name' => 'new_branch',
+          'url' => "http://#{Gitlab.config.gitlab.host}/#{project.namespace.name}/#{project.path}/merge_requests/1",
+          'new_merge_request' => false
         }]
       end
 
@@ -920,7 +920,7 @@ describe API::Internal do
           MergeRequests::PushOptionsHandlerService::Error, 'my warning'
         )
 
-        post api("/internal/post_receive"), params: valid_params
+        post api('/internal/post_receive'), params: valid_params
 
         expect(json_response['warnings']).to eq('Error encountered with push options \'merge_request.create\': my warning')
       end
@@ -930,7 +930,7 @@ describe API::Internal do
           MergeRequests::PushOptionsHandlerService
         ).to receive(:errors).at_least(:once).and_return(['my error'])
 
-        post api("/internal/post_receive"), params: valid_params
+        post api('/internal/post_receive'), params: valid_params
 
         expect(json_response['warnings']).to eq('Error encountered with push options \'merge_request.create\': my error')
       end
@@ -943,7 +943,7 @@ describe API::Internal do
           MergeRequests::CreateService
         ).to receive(:execute).and_return(invalid_merge_request)
 
-        post api("/internal/post_receive"), params: valid_params
+        post api('/internal/post_receive'), params: valid_params
 
         expect(json_response['warnings']).to eq('Error encountered with push options \'merge_request.create\': my error')
       end
@@ -953,7 +953,7 @@ describe API::Internal do
       let!(:broadcast_message) { create(:broadcast_message, starts_at: 1.day.ago, ends_at: 1.day.from_now ) }
 
       it 'returns one broadcast message' do
-        post api("/internal/post_receive"), params: valid_params
+        post api('/internal/post_receive'), params: valid_params
 
         expect(response).to have_gitlab_http_status(200)
         expect(json_response['broadcast_message']).to eq(broadcast_message.message)
@@ -962,7 +962,7 @@ describe API::Internal do
 
     context 'broadcast message does not exist' do
       it 'returns empty string' do
-        post api("/internal/post_receive"), params: valid_params
+        post api('/internal/post_receive'), params: valid_params
 
         expect(response).to have_gitlab_http_status(200)
         expect(json_response['broadcast_message']).to eq(nil)
@@ -973,7 +973,7 @@ describe API::Internal do
       it 'returns empty string' do
         allow(BroadcastMessage).to receive(:current).and_return(nil)
 
-        post api("/internal/post_receive"), params: valid_params
+        post api('/internal/post_receive'), params: valid_params
 
         expect(response).to have_gitlab_http_status(200)
         expect(json_response['broadcast_message']).to eq(nil)
@@ -985,7 +985,7 @@ describe API::Internal do
         project_moved = Gitlab::Checks::ProjectMoved.new(project, user, 'http', 'foo/baz')
         project_moved.add_message
 
-        post api("/internal/post_receive"), params: valid_params
+        post api('/internal/post_receive'), params: valid_params
 
         expect(response).to have_gitlab_http_status(200)
         expect(json_response["redirected_message"]).to be_present
@@ -998,7 +998,7 @@ describe API::Internal do
         project_created = Gitlab::Checks::ProjectCreated.new(project, user, 'http')
         project_created.add_message
 
-        post api("/internal/post_receive"), params: valid_params
+        post api('/internal/post_receive'), params: valid_params
 
         expect(response).to have_gitlab_http_status(200)
         expect(json_response["project_created_message"]).to be_present
@@ -1010,7 +1010,7 @@ describe API::Internal do
       it 'does not try to notify that project moved' do
         allow_any_instance_of(Gitlab::Identifier).to receive(:identify).and_return(nil)
 
-        post api("/internal/post_receive"), params: valid_params
+        post api('/internal/post_receive'), params: valid_params
 
         expect(response).to have_gitlab_http_status(200)
       end
