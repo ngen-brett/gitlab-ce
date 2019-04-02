@@ -383,7 +383,7 @@ To avoid installation errors:
 between your GitLab server and your Kubernetes cluster. 
 
 1. Certificates can become out of sync, it is expectated that it is a new cluster with no previous installation of Tiller.  
-You can confirm that the certificates match via
+You can confirm that the certificates match via `kubectl`:
 
 ```sh
 kubectl get configmaps/values-content-configuration-ingress -n gitlab-managed-apps -o "jsonpath={.data['cert\.pem']}" | base64 -d > a.pem
