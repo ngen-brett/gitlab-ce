@@ -261,7 +261,7 @@ module API
         push_options = Gitlab::PushOptions.new(params[:push_options]).to_h
 
         PostReceive.perform_async(params[:gl_repository], params[:identifier],
-          params[:changes], params[:push_options].to_a)
+          params[:changes], push_options)
 
         if push_options[:merge_request]
           begin

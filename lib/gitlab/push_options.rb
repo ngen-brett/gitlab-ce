@@ -4,6 +4,9 @@ class Gitlab::PushOptions
   VALID_OPTIONS = {
     merge_request: {
       keys: [:create, :target]
+    },
+    ci: {
+      keys: [:skip]
     }
   }.freeze
 
