@@ -26,7 +26,7 @@ module Users
         end
       end
 
-      identity_attrs = params.slice(:extern_uid, :provider)
+      identity_attrs = params.slice(:extern_uid, :provider, :saml_provider_id)
 
       unless identity_attrs.empty?
         user.identities.build(identity_attrs)

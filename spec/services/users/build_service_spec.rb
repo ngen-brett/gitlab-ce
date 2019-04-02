@@ -55,6 +55,23 @@ describe Users::BuildService do
 
           service.execute
         end
+
+        context 'with identity' do
+          let(:provider) { create(:saml_provider) }
+          let(:identity_params) { { extern_uid: 'uid', provider: 'group_saml', saml_provider_id: provider.id } }
+
+          before do
+            params.merge!(identity_params)
+          end
+
+          it 'sets all allowed attributes' do
+            admin_user # call first so the admin gets created before setting `expect`
+
+            expect(Identity).to receive(:new).with(hash_including(identity_params)).and_call_original
+
+            service.execute
+          end
+        end
       end
 
       context 'with "user_default_external" application setting' do
