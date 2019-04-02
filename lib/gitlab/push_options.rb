@@ -3,7 +3,7 @@
 class Gitlab::PushOptions
   VALID_OPTIONS = {
     merge_request: {
-      keys: [:create, :target]
+      keys: [:create, :merge_when_pipeline_succeeds, :target]
     },
     ci: {
       keys: [:skip]
