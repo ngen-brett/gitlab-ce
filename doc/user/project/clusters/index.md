@@ -374,6 +374,8 @@ chart plus the values set by
 
 ### Troubleshooting applications
 
+Applications can fail with the following error:
+
 ```Error: remote error: tls: bad certificate```
 
 1. Before starting the installation of applications, make sure that time is synchronized
