@@ -384,7 +384,7 @@ between your GitLab server and your Kubernetes cluster.
 1. Certificates can become out of sync, it is expectated that it is a new cluster with no previous installation of Tiller.  
 You can confirm that the certificates match via
 
-```
+```sh
 kubectl get configmaps/values-content-configuration-ingress -n gitlab-managed-apps -o "jsonpath={.data['cert\.pem']}" |base64 -d > a.pem
 kubectl get secrets/tiller-secret -n gitlab-managed-apps -o "jsonpath={.data['ca\.crt']}" | base64 -d > b.pem 
 diff a.pem b.pem
