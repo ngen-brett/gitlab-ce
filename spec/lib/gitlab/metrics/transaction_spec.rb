@@ -33,7 +33,7 @@ describe Gitlab::Metrics::Transaction do
     it 'removes the transaction from the current thread upon completion' do
       transaction.run { }
 
-      expect(Thread.current[described_class::THREAD_KEY]).to be_nil
+      expect(described_class.current).to be_nil
     end
   end
 
