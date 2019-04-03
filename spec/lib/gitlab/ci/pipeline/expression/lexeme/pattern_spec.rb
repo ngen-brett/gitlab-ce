@@ -1,4 +1,5 @@
 require 'fast_spec_helper'
+require 'support/helpers/stub_feature_flags'
 
 describe Gitlab::Ci::Pipeline::Expression::Lexeme::Pattern do
   describe '.build' do
@@ -91,6 +92,33 @@ describe Gitlab::Ci::Pipeline::Expression::Lexeme::Pattern do
 
       expect { regexp.evaluate }
         .to raise_error(Gitlab::Ci::Pipeline::Expression::RuntimeError)
+    end
+
+    context 'when using unsafe regexp' do
+      include StubFeatureFlags
+
+      let(:regexp) { described_class.new('/^(?!master).+/') }
+
+      context 'when alllow_unsafe_ruby_regexp is disabled' do
+        before do
+          stub_feature_flags(alllow_unsafe_ruby_regexp: false)
+        end
+
+        it 'raises error as regexp is not valid' do
+          expect { regexp.evaluate }
+            .to raise_error(Gitlab::Ci::Pipeline::Expression::Lexer::SyntaxError)
+        end
+      end
+
+      context 'when alllow_unsafe_ruby_regexp is enabled' do
+        before do
+          stub_feature_flags(alllow_unsafe_ruby_regexp: true)
+        end
+
+        it 'validates regexp' do
+          expect(regexp.evaluate).to be_a(Regexp)
+        end
+      end
     end
   end
 end

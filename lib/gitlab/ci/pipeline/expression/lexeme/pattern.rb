@@ -13,13 +13,13 @@ module Gitlab
             def initialize(regexp)
               @value = regexp
 
-              unless Gitlab::UntrustedRegexp::RubySyntax.valid?(@value)
+              unless Gitlab::UntrustedRegexp::RubySyntax.valid?(@value, allow_fallback: true)
                 raise Lexer::SyntaxError, 'Invalid regular expression!'
               end
             end
 
             def evaluate(variables = {})
-              Gitlab::UntrustedRegexp::RubySyntax.fabricate!(@value)
+              Gitlab::UntrustedRegexp::RubySyntax.fabricate!(@value, allow_fallback: true)
             rescue RegexpError
               raise Expression::RuntimeError, 'Invalid regular expression!'
             end

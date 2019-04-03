@@ -16,27 +16,38 @@ module Gitlab
 
       # The regexp can match the pattern `/.../`, but may not be fabricatable:
       # it can be invalid or incomplete: `/match ( string/`
-      def self.valid?(pattern)
-        !!self.fabricate(pattern)
+      def self.valid?(pattern, allow_fallback: false)
+        !!self.fabricate(pattern, allow_fallback: allow_fallback)
       end
 
-      def self.fabricate(pattern)
-        self.fabricate!(pattern)
+      def self.fabricate(pattern, allow_fallback: false)
+        self.fabricate!(pattern, allow_fallback: allow_fallback)
       rescue RegexpError
         nil
       end
 
-      def self.fabricate!(pattern)
+      def self.fabricate!(pattern, allow_fallback: false)
         raise RegexpError, 'Pattern is not string!' unless pattern.is_a?(String)
 
         matches = pattern.match(PATTERN)
         raise RegexpError, 'Invalid regular expression!' if matches.nil?
 
-        expression = matches[:regexp]
-        flags = matches[:flags]
-        expression.prepend("(?#{flags})") if flags.present?
+        begin
+          expression = matches[:regexp]
+          flags = matches[:flags]
+          expression.prepend("(?#{flags})") if flags.present?
 
-        UntrustedRegexp.new(expression, multiline: false)
+          UntrustedRegexp.new(expression, multiline: false)
+        rescue RegexpError
+          raise unless allow_fallback &&
+            Feature.enabled?(:alllow_unsafe_ruby_regexp, default_enabled: false)
+
+          options = 0
+          options += Regexp::IGNORECASE if matches[:flags]&.include?('i')
+          options += Regexp::MULTILINE if matches[:flags]&.include?('m')
+
+          Regexp.new(matches[:regexp], options)
+        end
       end
     end
   end
