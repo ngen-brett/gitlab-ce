@@ -379,6 +379,7 @@ Applications can fail with the following error:
 ```Error: remote error: tls: bad certificate```
 
 To avoid installation errors:
+
 1. Before starting the installation of applications, make sure that time is synchronized
 between your GitLab server and your Kubernetes cluster. 
 1. Ensure certificates are not out of sync.  It is expectated that it is a new cluster with no previous installation of Tiller.  
