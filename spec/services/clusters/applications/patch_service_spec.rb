@@ -50,7 +50,7 @@ describe Clusters::Applications::PatchService do
 
       it 'logs errors' do
         expect(service.send(:logger)).to receive(:error).with(
-          {
+          hash_including(
             exception: 'Kubeclient::HttpError',
             message: 'system failure',
             service: 'Clusters::Applications::PatchService',
@@ -58,12 +58,12 @@ describe Clusters::Applications::PatchService do
             project_ids: application.cluster.project_ids,
             group_ids: [],
             error_code: 500
-          }
+          )
         )
 
         expect(Gitlab::Sentry).to receive(:track_acceptable_exception).with(
           error,
-          extra: {
+          extra: hash_including(
             exception: 'Kubeclient::HttpError',
             message: 'system failure',
             service: 'Clusters::Applications::PatchService',
@@ -71,7 +71,7 @@ describe Clusters::Applications::PatchService do
             project_ids: application.cluster.project_ids,
             group_ids: [],
             error_code: 500
-          }
+          )
         )
 
         service.execute
@@ -97,7 +97,7 @@ describe Clusters::Applications::PatchService do
 
       it 'logs errors' do
         expect(service.send(:logger)).to receive(:error).with(
-          {
+          hash_including(
             exception: 'StandardError',
             error_code: nil,
             message: 'something bad happened',
@@ -105,12 +105,12 @@ describe Clusters::Applications::PatchService do
             app_id: application.id,
             project_ids: application.cluster.projects.pluck(:id),
             group_ids: []
-          }
+          )
         )
 
         expect(Gitlab::Sentry).to receive(:track_acceptable_exception).with(
           error,
-          extra: {
+          extra: hash_including(
             exception: 'StandardError',
             error_code: nil,
             message: 'something bad happened',
@@ -118,7 +118,7 @@ describe Clusters::Applications::PatchService do
             app_id: application.id,
             project_ids: application.cluster.projects.pluck(:id),
             group_ids: []
-          }
+          )
         )
 
         service.execute
