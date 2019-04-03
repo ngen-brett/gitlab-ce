@@ -1,0 +1,5 @@
+@each $variant, $range in $color-ranges {
+  @each $suffix, $color in $range {
+    @include bg-variant(".bg-#{$variant}-#{$suffix}", $color);
+  }
+}
