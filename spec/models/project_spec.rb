@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Project do
@@ -2140,6 +2142,15 @@ describe Project do
         expect(RepositoryForkWorker).to receive(:perform_async).with(project.id).and_return(import_jid)
 
         expect(project.add_import_job).to eq(import_jid)
+      end
+
+      context 'without repository' do
+        it 'schedules RepositoryImportWorker' do
+          project = create(:project, import_url: generate(:url))
+
+          expect(RepositoryImportWorker).to receive(:perform_async).with(project.id).and_return(import_jid)
+          expect(project.add_import_job).to eq(import_jid)
+        end
       end
     end
 

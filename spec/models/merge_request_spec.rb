@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe MergeRequest do
@@ -474,7 +476,6 @@ describe MergeRequest do
       it 'does not cache issues from external trackers' do
         issue  = ExternalIssue.new('JIRA-123', subject.project)
         commit = double('commit1', safe_message: "Fixes #{issue.to_reference}")
-
         allow(subject).to receive(:commits).and_return([commit])
 
         expect { subject.cache_merge_request_closes_issues!(subject.author) }.not_to raise_error
@@ -1063,31 +1064,17 @@ describe MergeRequest do
     end
   end
 
-  describe '#commit_authors' do
-    it 'returns all the authors of every commit in the merge request' do
-      users = subject.commits.without_merge_commits.map(&:author_email).uniq.map do |email|
+  describe '#committers' do
+    it 'returns all the committers of every commit in the merge request' do
+      users = subject.commits.without_merge_commits.map(&:committer_email).uniq.map do |email|
         create(:user, email: email)
       end
 
-      expect(subject.commit_authors).to match_array(users)
+      expect(subject.committers).to match_array(users)
     end
 
-    it 'returns an empty array if no author is associated with a user' do
-      expect(subject.commit_authors).to be_empty
-    end
-  end
-
-  describe '#authors' do
-    it 'returns a list with all the commit authors in the merge request and author' do
-      users = subject.commits.without_merge_commits.map(&:author_email).uniq.map do |email|
-        create(:user, email: email)
-      end
-
-      expect(subject.authors).to match_array([subject.author, *users])
-    end
-
-    it 'returns only the author if no committer is associated with a user' do
-      expect(subject.authors).to contain_exactly(subject.author)
+    it 'returns an empty array if no committer is associated with a user' do
+      expect(subject.committers).to be_empty
     end
   end
 
@@ -2712,13 +2699,20 @@ describe MergeRequest do
   end
 
   describe '#has_commits?' do
-    before do
+    it 'returns true when merge request diff has commits' do
       allow(subject.merge_request_diff).to receive(:commits_count)
         .and_return(2)
+
+      expect(subject.has_commits?).to be_truthy
     end
 
-    it 'returns true when merge request diff has commits' do
-      expect(subject.has_commits?).to be_truthy
+    context 'when commits_count is nil' do
+      it 'returns false' do
+        allow(subject.merge_request_diff).to receive(:commits_count)
+        .and_return(nil)
+
+        expect(subject.has_commits?).to be_falsey
+      end
     end
   end
 
@@ -3081,6 +3075,38 @@ describe MergeRequest do
     end
   end
 
+  describe '#mergeable_to_ref?' do
+    it 'returns true when merge request is mergeable' do
+      subject = create(:merge_request)
+
+      expect(subject.mergeable_to_ref?).to be(true)
+    end
+
+    it 'returns false when merge request is already merged' do
+      subject = create(:merge_request, :merged)
+
+      expect(subject.mergeable_to_ref?).to be(false)
+    end
+
+    it 'returns false when merge request is closed' do
+      subject = create(:merge_request, :closed)
+
+      expect(subject.mergeable_to_ref?).to be(false)
+    end
+
+    it 'returns false when merge request is work in progress' do
+      subject = create(:merge_request, title: 'WIP: The feature')
+
+      expect(subject.mergeable_to_ref?).to be(false)
+    end
+
+    it 'returns false when merge request has no commits' do
+      subject = create(:merge_request, source_branch: 'empty-branch', target_branch: 'master')
+
+      expect(subject.mergeable_to_ref?).to be(false)
+    end
+  end
+
   describe '#merge_participants' do
     it 'contains author' do
       expect(subject.merge_participants).to eq([subject.author])
@@ -3113,6 +3139,34 @@ describe MergeRequest do
           expect(subject.merge_participants).to eq([subject.author, merge_user])
         end
       end
+    end
+  end
+
+  describe '.merge_request_ref?' do
+    subject { described_class.merge_request_ref?(ref) }
+
+    context 'when ref is ref name of a branch' do
+      let(:ref) { 'feature' }
+
+      it { is_expected.to be_falsey }
+    end
+
+    context 'when ref is HEAD ref path of a branch' do
+      let(:ref) { 'refs/heads/feature' }
+
+      it { is_expected.to be_falsey }
+    end
+
+    context 'when ref is HEAD ref path of a merge request' do
+      let(:ref) { 'refs/merge-requests/1/head' }
+
+      it { is_expected.to be_truthy }
+    end
+
+    context 'when ref is merge ref path of a merge request' do
+      let(:ref) { 'refs/merge-requests/1/merge' }
+
+      it { is_expected.to be_truthy }
     end
   end
 end

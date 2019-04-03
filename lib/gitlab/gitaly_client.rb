@@ -232,7 +232,7 @@ module Gitlab
       result
     end
 
-    SERVER_FEATURE_FLAGS = %w[go-find-all-tags].freeze
+    SERVER_FEATURE_FLAGS = %w[].freeze
 
     def self.server_feature_flags
       SERVER_FEATURE_FLAGS.map do |f|
@@ -300,6 +300,26 @@ module Gitlab
       ensure
         decrement_call_count(:gitaly_call_count_exception_block_depth)
       end
+    end
+
+    # Normally a FindCommit RPC will cache the commit with its SHA
+    # instead of a ref name, since it's possible the branch is mutated
+    # afterwards. However, for read-only requests that never mutate the
+    # branch, this method allows caching of the ref name directly.
+    def self.allow_ref_name_caching
+      return yield unless Gitlab::SafeRequestStore.active?
+      return yield if ref_name_caching_allowed?
+
+      begin
+        Gitlab::SafeRequestStore[:allow_ref_name_caching] = true
+        yield
+      ensure
+        Gitlab::SafeRequestStore[:allow_ref_name_caching] = false
+      end
+    end
+
+    def self.ref_name_caching_allowed?
+      Gitlab::SafeRequestStore[:allow_ref_name_caching]
     end
 
     def self.get_call_count(key)

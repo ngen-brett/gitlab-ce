@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Environment do
@@ -590,7 +592,9 @@ describe Environment do
 
       shared_examples 'same behavior between KubernetesService and Platform::Kubernetes' do
         it 'returns the terminals from the deployment service' do
-          expect(project.deployment_platform)
+          deployment_platform_target = Gitlab.ee? ? environment : project
+
+          expect(deployment_platform_target.deployment_platform)
             .to receive(:terminals).with(environment)
             .and_return(:fake_terminals)
 

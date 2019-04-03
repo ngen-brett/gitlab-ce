@@ -1,17 +1,20 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe PrometheusAdapter, :use_clean_rails_memory_store_caching do
   include PrometheusHelpers
   include ReactiveCachingHelpers
 
-  class TestClass
-    include PrometheusAdapter
-  end
-
   let(:project) { create(:prometheus_project) }
   let(:service) { project.prometheus_service }
 
-  let(:described_class) { TestClass }
+  let(:described_class) do
+    Class.new do
+      include PrometheusAdapter
+    end
+  end
+
   let(:environment_query) { Gitlab::Prometheus::Queries::EnvironmentQuery }
 
   describe '#query' do

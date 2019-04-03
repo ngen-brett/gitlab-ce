@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class MergeRequest < ActiveRecord::Base
+class MergeRequest < ApplicationRecord
   include AtomicInternalId
   include IidRoutes
   include Issuable
@@ -210,6 +210,10 @@ class MergeRequest < ActiveRecord::Base
     '!'
   end
 
+  def self.available_states
+    @available_states ||= super.merge(merged: 3, locked: 4)
+  end
+
   # Returns the top 100 target branches
   #
   # The returned value is a Array containing branch names
@@ -319,12 +323,8 @@ class MergeRequest < ActiveRecord::Base
     work_in_progress?(title) ? title : "WIP: #{title}"
   end
 
-  def commit_authors
-    @commit_authors ||= commits.authors
-  end
-
-  def authors
-    User.from_union([commit_authors, User.where(id: self.author_id)])
+  def committers
+    @committers ||= commits.committers
   end
 
   # Verifies if title has changed not taking into account WIP prefix
@@ -807,8 +807,7 @@ class MergeRequest < ActiveRecord::Base
   end
 
   def mergeable_to_ref?
-    return false if merged?
-    return false if broken?
+    return false unless mergeable_state?(skip_ci_check: true, skip_discussions_check: true)
 
     # Given the `merge_ref_path` will have the same
     # state the `target_branch` would have. Ideally
@@ -1129,6 +1128,10 @@ class MergeRequest < ActiveRecord::Base
     "refs/#{Repository::REF_MERGE_REQUEST}/#{iid}/merge"
   end
 
+  def self.merge_request_ref?(ref)
+    ref.start_with?("refs/#{Repository::REF_MERGE_REQUEST}/")
+  end
+
   def in_locked_state
     begin
       lock_mr
@@ -1339,7 +1342,7 @@ class MergeRequest < ActiveRecord::Base
   end
 
   def has_commits?
-    merge_request_diff && commits_count > 0
+    merge_request_diff && commits_count.to_i > 0
   end
 
   def has_no_commits?

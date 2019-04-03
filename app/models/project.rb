@@ -2,7 +2,7 @@
 
 require 'carrierwave/orm/activerecord'
 
-class Project < ActiveRecord::Base
+class Project < ApplicationRecord
   include Gitlab::ConfigHelper
   include Gitlab::ShellAdapter
   include Gitlab::VisibilityLevel
@@ -2128,7 +2128,7 @@ class Project < ActiveRecord::Base
   end
 
   def leave_pool_repository
-    pool_repository&.unlink_repository(repository) && update_column(:pool_repository_id, nil)
+    pool_repository&.mark_obsolete_if_last(repository) && update_column(:pool_repository_id, nil)
   end
 
   def link_pool_repository
