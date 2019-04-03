@@ -414,6 +414,28 @@ job:
   only: ['branches', 'tags']
 ```
 
+### `only`/`except` Regexp syntax
+
+CAUTION: **Warning:**
+This is a breaking change that was introduced with 11.9.4.
+
+The syntax for regexp used in `only` and `except` used by GitLab is documented
+in [Ruby Regexp](https://ruby-doc.org/core/Regexp.html), but internally GitLab
+converts the pattern to [RE2](https://github.com/google/re2/wiki/Syntax).
+
+This means that only subset of features provided by [Ruby Regexp](https://ruby-doc.org/core/Regexp.html)
+is supported. The [RE2](https://github.com/google/re2/wiki/Syntax) limits the set of features
+provided due to computational complexity, and one of missing features that was working before
+11.9.4 are negative lookaheads.
+
+Since 11.9.5 till the 12.0 release of GitLab, GitLab provides a feature flag that can be
+enabled administratively that allows to use unsafe Regexp syntax. This brings compatibility
+with previous version and allows to gracefully migrate to compatible syntax.
+
+```ruby
+Feature.enable(:alllow_unsafe_ruby_regexp)
+```
+
 ### `only`/`except` (advanced)
 
 > - `refs` and `kubernetes` policies introduced in GitLab 10.0.
