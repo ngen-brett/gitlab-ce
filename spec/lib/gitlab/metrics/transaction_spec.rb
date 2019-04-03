@@ -2,6 +2,20 @@ require 'spec_helper'
 
 describe Gitlab::Metrics::Transaction do
   let(:transaction) { described_class.new }
+  let(:metric) { transaction.metrics[0] }
+
+  let(:sensitive_tags) do
+    {
+      path: 'private',
+      branch: 'sensitive'
+    }
+  end
+
+  shared_examples 'tag filter' do |sane_tags|
+    it 'filters potentially sensitive tags' do
+      expect(metric.tags).to eq(sane_tags)
+    end
+  end
 
   describe '#duration' do
     it 'returns the duration of a transaction in seconds' do
@@ -39,11 +53,20 @@ describe Gitlab::Metrics::Transaction do
 
   describe '#add_metric' do
     it 'adds a metric to the transaction' do
-      expect(Gitlab::Metrics::Metric)
-        .to receive(:new)
-        .with('rails_foo', { number: 10 }, {})
+      transaction.add_metric('foo', value: 1)
 
-      transaction.add_metric('foo', number: 10)
+      expect(metric.series).to eq('rails_foo')
+      expect(metric.tags).to eq({})
+      expect(metric.values).to eq(value: 1)
+    end
+
+    context 'with sensitive tags' do
+      before do
+        transaction
+          .add_metric('foo', { value: 1 }, **sensitive_tags.merge(sane: 'yes'))
+      end
+
+      it_behaves_like 'tag filter', sane: 'yes'
     end
   end
 
@@ -154,8 +177,6 @@ describe Gitlab::Metrics::Transaction do
   end
 
   describe '#add_event' do
-    let(:metric) { transaction.metrics[0] }
-
     it 'adds a metric' do
       transaction.add_event(:meow)
 
@@ -186,10 +207,12 @@ describe Gitlab::Metrics::Transaction do
       expect(metric.tags).to eq(event: :meow, animal: 'cat')
     end
 
-    it 'filters potentially sensitive tags' do
-      transaction.add_event(:meow, path: 'private', branch: 'sensitive')
+    context 'with sensitive tags' do
+      before do
+        transaction.add_event(:meow, **sensitive_tags.merge(sane: 'yes'))
+      end
 
-      expect(metric.tags).to eq(event: :meow)
+      it_behaves_like 'tag filter', event: :meow, sane: 'yes'
     end
   end
 
