@@ -39,7 +39,8 @@ describe Gitlab::Metrics::Transaction do
 
   describe '#add_metric' do
     it 'adds a metric to the transaction' do
-      expect(Gitlab::Metrics::Metric).to receive(:new)
+      expect(Gitlab::Metrics::Metric)
+        .to receive(:new)
         .with('rails_foo', { number: 10 }, {})
 
       transaction.add_metric('foo', number: 10)
@@ -59,7 +60,7 @@ describe Gitlab::Metrics::Transaction do
       transaction.increment(:time, 1)
       transaction.increment(:time, 2)
 
-      values = { duration: 0.0, time: 3, allocated_memory: a_kind_of(Numeric) }
+      values = metric_values(time: 3)
 
       expect(transaction).to receive(:add_metric)
         .with('transactions', values, {})
@@ -72,11 +73,7 @@ describe Gitlab::Metrics::Transaction do
     it 'sets a value' do
       transaction.set(:number, 10)
 
-      values = {
-        duration:         0.0,
-        number:           10,
-        allocated_memory: a_kind_of(Numeric)
-      }
+      values = metric_values(number: 10)
 
       expect(transaction).to receive(:add_metric)
         .with('transactions', values, {})
@@ -96,10 +93,7 @@ describe Gitlab::Metrics::Transaction do
 
   describe '#track_self' do
     it 'adds a metric for the transaction itself' do
-      values = {
-        duration:         transaction.duration,
-        allocated_memory: a_kind_of(Numeric)
-      }
+      values = metric_values
 
       expect(transaction).to receive(:add_metric)
         .with('transactions', values, {})
@@ -119,13 +113,16 @@ describe Gitlab::Metrics::Transaction do
     end
 
     it 'adds the action as a tag for every metric' do
-      allow(transaction).to receive(:labels).and_return(controller: 'Foo', action: 'bar')
+      allow(transaction)
+        .to receive(:labels)
+        .and_return(controller: 'Foo', action: 'bar')
+
       transaction.track_self
 
       hash = {
-        series:    'rails_transactions',
-        tags:      { action: 'Foo#bar' },
-        values:    { duration: 0.0, allocated_memory: a_kind_of(Numeric) },
+        series: 'rails_transactions',
+        tags: { action: 'Foo#bar' },
+        values: metric_values,
         timestamp: a_kind_of(Integer)
       }
 
@@ -136,14 +133,16 @@ describe Gitlab::Metrics::Transaction do
     end
 
     it 'does not add an action tag for events' do
-      allow(transaction).to receive(:labels).and_return(controller: 'Foo', action: 'bar')
+      allow(transaction)
+        .to receive(:labels)
+        .and_return(controller: 'Foo', action: 'bar')
 
       transaction.add_event(:meow)
 
       hash = {
-        series:    'events',
-        tags:      { event: :meow },
-        values:    { count: 1 },
+        series: 'events',
+        tags: { event: :meow },
+        values: { count: 1 },
         timestamp: a_kind_of(Integer)
       }
 
@@ -155,16 +154,16 @@ describe Gitlab::Metrics::Transaction do
   end
 
   describe '#add_event' do
+    let(:metric) { transaction.metrics[0] }
+
     it 'adds a metric' do
       transaction.add_event(:meow)
 
-      expect(transaction.metrics[0]).to be_an_instance_of(Gitlab::Metrics::Metric)
+      expect(metric).to be_an_instance_of(Gitlab::Metrics::Metric)
     end
 
     it "does not prefix the metric's series name" do
       transaction.add_event(:meow)
-
-      metric = transaction.metrics[0]
 
       expect(metric.series).to eq(described_class::EVENT_SERIES)
     end
@@ -172,15 +171,11 @@ describe Gitlab::Metrics::Transaction do
     it 'tracks a counter for every event' do
       transaction.add_event(:meow)
 
-      metric = transaction.metrics[0]
-
       expect(metric.values).to eq(count: 1)
     end
 
     it 'tracks the event name' do
       transaction.add_event(:meow)
-
-      metric = transaction.metrics[0]
 
       expect(metric.tags).to eq(event: :meow)
     end
@@ -188,17 +183,22 @@ describe Gitlab::Metrics::Transaction do
     it 'allows tracking of custom tags' do
       transaction.add_event(:meow, animal: 'cat')
 
-      metric = transaction.metrics[0]
-
       expect(metric.tags).to eq(event: :meow, animal: 'cat')
     end
 
     it 'filters potentially sensitive tags' do
-      transaction.add_event(:meow, path: 'sensitive/information', branch: 'more_sensitive_info')
-
-      metric = transaction.metrics[0]
+      transaction.add_event(:meow, path: 'private', branch: 'sensitive')
 
       expect(metric.tags).to eq(event: :meow)
     end
+  end
+
+  private
+
+  def metric_values(opts = {})
+    {
+      duration: 0.0,
+      allocated_memory: a_kind_of(Numeric)
+    }.merge(opts)
   end
 end
