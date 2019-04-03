@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190325165127) do
+ActiveRecord::Schema.define(version: 20190402150158) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -45,6 +45,7 @@ ActiveRecord::Schema.define(version: 20190325165127) do
     t.text "message_font_color"
     t.string "favicon"
     t.boolean "email_header_and_footer_enabled", default: false, null: false
+    t.integer "updated_by"
   end
 
   create_table "application_setting_terms", force: :cascade do |t|
@@ -153,7 +154,7 @@ ActiveRecord::Schema.define(version: 20190325165127) do
     t.integer "throttle_authenticated_web_requests_per_period", default: 7200, null: false
     t.integer "throttle_authenticated_web_period_in_seconds", default: 3600, null: false
     t.boolean "password_authentication_enabled_for_web"
-    t.boolean "password_authentication_enabled_for_git", default: true
+    t.boolean "password_authentication_enabled_for_git", default: true, null: false
     t.integer "gitaly_timeout_default", default: 55, null: false
     t.integer "gitaly_timeout_medium", default: 30, null: false
     t.integer "gitaly_timeout_fast", default: 10, null: false
@@ -177,6 +178,48 @@ ActiveRecord::Schema.define(version: 20190325165127) do
     t.string "runners_registration_token_encrypted"
     t.integer "local_markdown_version", default: 0, null: false
     t.integer "first_day_of_week", default: 0, null: false
+    t.text "help_text"
+    t.boolean "elasticsearch_indexing", default: false, null: false
+    t.boolean "elasticsearch_search", default: false, null: false
+    t.integer "shared_runners_minutes", default: 0, null: false
+    t.bigint "repository_size_limit", default: 0
+    t.string "elasticsearch_url", default: "http://localhost:9200"
+    t.boolean "elasticsearch_aws", default: false, null: false
+    t.string "elasticsearch_aws_region", default: "us-east-1", null: false
+    t.string "elasticsearch_aws_access_key"
+    t.string "elasticsearch_aws_secret_access_key"
+    t.integer "geo_status_timeout", default: 10
+    t.boolean "elasticsearch_experimental_indexer"
+    t.boolean "check_namespace_plan", default: false, null: false
+    t.integer "mirror_max_delay", default: 300, null: false
+    t.integer "mirror_max_capacity", default: 100, null: false
+    t.integer "mirror_capacity_threshold", default: 50, null: false
+    t.boolean "slack_app_enabled", default: false
+    t.string "slack_app_id"
+    t.string "slack_app_secret"
+    t.string "slack_app_verification_token"
+    t.boolean "allow_group_owners_to_manage_ldap", default: true, null: false
+    t.integer "default_project_creation", default: 2, null: false
+    t.boolean "external_authorization_service_enabled", default: false, null: false
+    t.string "external_authorization_service_url"
+    t.string "external_authorization_service_default_label"
+    t.float "external_authorization_service_timeout", default: 0.5
+    t.text "external_auth_client_cert"
+    t.text "encrypted_external_auth_client_key"
+    t.string "encrypted_external_auth_client_key_iv"
+    t.string "encrypted_external_auth_client_key_pass"
+    t.string "encrypted_external_auth_client_key_pass_iv"
+    t.string "email_additional_text"
+    t.integer "file_template_project_id"
+    t.boolean "pseudonymizer_enabled", default: false, null: false
+    t.boolean "snowplow_enabled", default: false, null: false
+    t.string "snowplow_collector_uri"
+    t.string "snowplow_site_id"
+    t.string "snowplow_cookie_domain"
+    t.integer "custom_project_templates_group_id"
+    t.boolean "elasticsearch_limit_indexing", default: false, null: false
+    t.index ["custom_project_templates_group_id"], name: "index_application_settings_on_custom_project_templates_group_id", using: :btree
+    t.index ["file_template_project_id"], name: "index_application_settings_on_file_template_project_id", using: :btree
     t.index ["usage_stats_set_by_user_id"], name: "index_application_settings_on_usage_stats_set_by_user_id", using: :btree
   end
 
