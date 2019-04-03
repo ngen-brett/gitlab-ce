@@ -5,9 +5,9 @@ describe Gitlab::Metrics::Transaction do
 
   describe '#duration' do
     it 'returns the duration of a transaction in seconds' do
-      transaction.run { sleep(0.5) }
+      transaction.run { }
 
-      expect(transaction.duration).to be >= 0.5
+      expect(transaction.duration).to be > 0
     end
   end
 
