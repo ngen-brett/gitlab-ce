@@ -26,7 +26,7 @@ describe Gitlab::Metrics::Transaction do
 
     it 'stores the transaction in the current thread' do
       transaction.run do
-        expect(Thread.current[described_class::THREAD_KEY]).to eq(transaction)
+        expect(described_class.current).to eq(transaction)
       end
     end
 
