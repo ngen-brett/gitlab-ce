@@ -5,14 +5,29 @@ import {
   APPLICATION_STATUS,
   INGRESS_DOMAIN_SUFFIX,
 } from '~/clusters/constants';
-import getSetTimeoutPromise from 'spec/helpers/set_timeout_promise_helper';
+import getSetTimeoutPromise from 'helpers/set_timeout_promise_helper';
+import MockAdapter from 'axios-mock-adapter';
+import axios from '~/lib/utils/axios_utils';
 
 describe('Clusters', () => {
   let cluster;
-  preloadFixtures('clusters/show_cluster.html');
+
+  function mockGetClusterStatusRequest() {
+    const { statusPath } = document.querySelector('.js-edit-cluster-form').dataset;
+    const mock = new MockAdapter(axios);
+
+    mock.onGet(statusPath).reply(200);
+  }
 
   beforeEach(() => {
     loadFixtures('clusters/show_cluster.html');
+  });
+
+  beforeEach(() => {
+    mockGetClusterStatusRequest();
+  });
+
+  beforeEach(() => {
     cluster = new Clusters();
   });
 
@@ -31,6 +46,8 @@ describe('Clusters', () => {
 
       toggleButton.click();
 
+      jest.useFakeTimers();
+
       getSetTimeoutPromise()
         .then(() => {
           expect(toggleButton.classList).not.toContain('is-checked');
@@ -39,6 +56,8 @@ describe('Clusters', () => {
         })
         .then(done)
         .catch(done.fail);
+
+      jest.runOnlyPendingTimers();
     });
   });
 
@@ -197,7 +216,7 @@ describe('Clusters', () => {
 
   describe('installApplication', () => {
     it('tries to install helm', () => {
-      spyOn(cluster.service, 'installApplication').and.returnValue(Promise.resolve());
+      jest.spyOn(cluster.service, 'installApplication').mockReturnValue(Promise.resolve());
 
       expect(cluster.store.state.applications.helm.requestStatus).toEqual(null);
 
@@ -209,7 +228,7 @@ describe('Clusters', () => {
     });
 
     it('tries to install ingress', () => {
-      spyOn(cluster.service, 'installApplication').and.returnValue(Promise.resolve());
+      jest.spyOn(cluster.service, 'installApplication').mockReturnValue(Promise.resolve());
 
       expect(cluster.store.state.applications.ingress.requestStatus).toEqual(null);
 
@@ -221,7 +240,7 @@ describe('Clusters', () => {
     });
 
     it('tries to install runner', () => {
-      spyOn(cluster.service, 'installApplication').and.returnValue(Promise.resolve());
+      jest.spyOn(cluster.service, 'installApplication').mockReturnValue(Promise.resolve());
 
       expect(cluster.store.state.applications.runner.requestStatus).toEqual(null);
 
@@ -233,7 +252,7 @@ describe('Clusters', () => {
     });
 
     it('tries to install jupyter', () => {
-      spyOn(cluster.service, 'installApplication').and.returnValue(Promise.resolve());
+      jest.spyOn(cluster.service, 'installApplication').mockReturnValue(Promise.resolve());
 
       expect(cluster.store.state.applications.jupyter.requestStatus).toEqual(null);
       cluster.installApplication({
@@ -249,9 +268,9 @@ describe('Clusters', () => {
     });
 
     it('sets error request status when the request fails', done => {
-      spyOn(cluster.service, 'installApplication').and.returnValue(
-        Promise.reject(new Error('STUBBED ERROR')),
-      );
+      jest
+        .spyOn(cluster.service, 'installApplication')
+        .mockReturnValue(Promise.reject(new Error('STUBBED ERROR')));
 
       expect(cluster.store.state.applications.helm.requestStatus).toEqual(null);
 
@@ -261,6 +280,8 @@ describe('Clusters', () => {
       expect(cluster.store.state.applications.helm.requestReason).toEqual(null);
       expect(cluster.service.installApplication).toHaveBeenCalled();
 
+      jest.useFakeTimers();
+
       getSetTimeoutPromise()
         .then(() => {
           expect(cluster.store.state.applications.helm.requestStatus).toEqual(REQUEST_FAILURE);
@@ -268,15 +289,17 @@ describe('Clusters', () => {
         })
         .then(done)
         .catch(done.fail);
+
+      jest.runOnlyPendingTimers();
     });
   });
 
   describe('handleSuccess', () => {
     beforeEach(() => {
-      spyOn(cluster.store, 'updateStateFromServer');
-      spyOn(cluster, 'toggleIngressDomainHelpText');
-      spyOn(cluster, 'checkForNewInstalls');
-      spyOn(cluster, 'updateContainer');
+      jest.spyOn(cluster.store, 'updateStateFromServer').mockReturnThis();
+      jest.spyOn(cluster, 'toggleIngressDomainHelpText').mockReturnThis();
+      jest.spyOn(cluster, 'checkForNewInstalls').mockReturnThis();
+      jest.spyOn(cluster, 'updateContainer').mockReturnThis();
 
       cluster.handleSuccess({ data: {} });
     });
