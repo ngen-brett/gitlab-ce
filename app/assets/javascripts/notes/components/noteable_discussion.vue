@@ -5,23 +5,17 @@ import { GlTooltipDirective } from '@gitlab/ui';
 import { truncateSha } from '~/lib/utils/text_utility';
 import { s__, __, sprintf } from '~/locale';
 import { clearDraft, getDiscussionReplyKey } from '~/lib/utils/autosave';
-import systemNote from '~/vue_shared/components/notes/system_note.vue';
 import icon from '~/vue_shared/components/icon.vue';
 import diffLineNoteFormMixin from 'ee_else_ce/notes/mixins/diff_line_note_form';
 import TimelineEntryItem from '~/vue_shared/components/notes/timeline_entry_item.vue';
 import Flash from '../../flash';
-import { SYSTEM_NOTE } from '../constants';
 import userAvatarLink from '../../vue_shared/components/user_avatar/user_avatar_link.vue';
-import noteableNote from './noteable_note.vue';
 import noteHeader from './note_header.vue';
 import resolveDiscussionButton from './discussion_resolve_button.vue';
-import toggleRepliesWidget from './toggle_replies_widget.vue';
 import noteSignedOutWidget from './note_signed_out_widget.vue';
 import noteEditedText from './note_edited_text.vue';
 import noteForm from './note_form.vue';
 import diffWithNote from './diff_with_note.vue';
-import placeholderNote from '../../vue_shared/components/notes/placeholder_note.vue';
-import placeholderSystemNote from '../../vue_shared/components/notes/placeholder_system_note.vue';
 import noteable from '../mixins/noteable';
 import resolvable from '../mixins/resolvable';
 import discussionNavigation from '../mixins/discussion_navigation';
@@ -29,12 +23,12 @@ import ReplyPlaceholder from './discussion_reply_placeholder.vue';
 import ResolveWithIssueButton from './discussion_resolve_with_issue_button.vue';
 import jumpToNextDiscussionButton from './discussion_jump_to_next_button.vue';
 import eventHub from '../event_hub';
+import DiscussionNotes from './discussion_notes.vue';
 
 export default {
   name: 'NoteableDiscussion',
   components: {
     icon,
-    noteableNote,
     userAvatarLink,
     noteHeader,
     noteSignedOutWidget,
@@ -42,14 +36,11 @@ export default {
     noteForm,
     resolveDiscussionButton,
     jumpToNextDiscussionButton,
-    toggleRepliesWidget,
     ReplyPlaceholder,
-    placeholderNote,
-    placeholderSystemNote,
     ResolveWithIssueButton,
-    systemNote,
     DraftNote: () => import('ee_component/batch_comments/components/draft_note.vue'),
     TimelineEntryItem,
+    DiscussionNotes,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -258,24 +249,6 @@ export default {
       'removeConvertedDiscussion',
     ]),
     truncateSha,
-    componentName(note) {
-      if (note.isPlaceholderNote) {
-        if (note.placeholderType === SYSTEM_NOTE) {
-          return placeholderSystemNote;
-        }
-
-        return placeholderNote;
-      }
-
-      if (note.system) {
-        return systemNote;
-      }
-
-      return noteableNote;
-    },
-    componentData(note) {
-      return note.isPlaceholderNote ? note.notes[0] : note;
-    },
     toggleDiscussionHandler() {
       this.toggleDiscussion({ discussionId: this.discussion.id });
     },
@@ -406,60 +379,22 @@ Please check your network connection and try again.`;
             class="card discussion-wrapper"
           >
             <div class="discussion-notes">
-              <ul class="notes">
-                <template v-if="shouldGroupReplies">
-                  <component
-                    :is="componentName(firstNote)"
-                    :note="componentData(firstNote)"
-                    :line="line"
-                    :commit="commit"
-                    :help-page-path="helpPagePath"
-                    :show-reply-button="canReply"
-                    @handleDeleteNote="deleteNoteHandler"
-                    @startReplying="showReplyForm"
-                  >
-                    <note-edited-text
-                      v-if="discussion.resolved"
-                      slot="discussion-resolved-text"
-                      :edited-at="discussion.resolved_at"
-                      :edited-by="discussion.resolved_by"
-                      :action-text="resolvedText"
-                      class-name="discussion-headline-light js-discussion-headline discussion-resolved-text"
-                    />
-                    <slot slot="avatar-badge" name="avatar-badge"></slot>
-                  </component>
-                  <toggle-replies-widget
-                    v-if="hasReplies"
-                    :collapsed="!isExpanded"
-                    :replies="replies"
-                    @toggle="toggleDiscussionHandler"
-                  />
-                  <template v-if="isExpanded">
-                    <component
-                      :is="componentName(note)"
-                      v-for="note in replies"
-                      :key="note.id"
-                      :note="componentData(note)"
-                      :help-page-path="helpPagePath"
-                      :line="line"
-                      @handleDeleteNote="deleteNoteHandler"
-                    />
-                  </template>
-                </template>
-                <template v-else>
-                  <component
-                    :is="componentName(note)"
-                    v-for="(note, index) in discussion.notes"
-                    :key="note.id"
-                    :note="componentData(note)"
-                    :help-page-path="helpPagePath"
-                    :line="diffLine"
-                    @handleDeleteNote="deleteNoteHandler"
-                  >
-                    <slot v-if="index === 0" slot="avatar-badge" name="avatar-badge"></slot>
-                  </component>
-                </template>
-              </ul>
+              <discussion-notes
+                :can-reply="canReply"
+                :commit="commit"
+                :discussion="discussion"
+                :first-note="firstNote"
+                :has-replies="hasReplies"
+                :help-pagePath="helpPagePath"
+                :is-expanded="isExpanded"
+                :line="line"
+                :replies="replies"
+                :should-group-replies="shouldGroupReplies"
+                @handleDeleteNote="deleteNoteHandler"
+                @startReplying="showReplyForm"
+                @toggleDiscussion="toggleDiscussionHandler"
+                @deleteNote="deleteNoteHandler"
+              />
               <div
                 v-if="isExpanded || !hasReplies"
                 :class="{ 'is-replying': isReplying }"
