@@ -178,4 +178,9 @@ module GraphqlHelpers
     allow_any_instance_of(GitlabSchema).to receive(:max_complexity).and_return nil
     allow(GitlabSchema).to receive(:max_query_complexity).with(any_args).and_return nil
   end
+
+  def disable_unlimited_graphql_complexity
+    allow_any_instance_of(GitlabSchema).to receive(:max_complexity).and_call_original
+    allow(GitlabSchema).to receive(:max_query_complexity).with(any_args).and_call_original
+  end
 end
