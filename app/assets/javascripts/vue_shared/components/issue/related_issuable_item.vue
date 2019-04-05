@@ -29,9 +29,9 @@ export default {
       return sprintf(
         '<span class="bold">%{state}</span> %{timeInWords}<br/><span class="text-tertiary">%{timestamp}</span>',
         {
-          state: this.isOpen ? __('Opened') : __('Closed'),
-          timeInWords: this.isOpen ? this.createdAtInWords : this.closedAtInWords,
-          timestamp: this.isOpen ? this.createdAtTimestamp : this.closedAtTimestamp,
+          state: this.stateText,
+          timeInWords: this.stateTimeInWords,
+          timestamp: this.stateTimestamp,
         },
       );
     },

@@ -100,6 +100,7 @@ export default {
               :assignees="getAssignees(mr)"
               :created-at="mr.created_at"
               :closed-at="mr.closed_at"
+              :merged-at="mr.merged_at"
               :path="mr.web_url"
               :state="mr.state"
               :is-merge-request="true"
