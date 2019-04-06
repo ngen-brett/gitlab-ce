@@ -78,6 +78,9 @@ module Sentry
       raise_error 'Sentry returned invalid SSL data'
     rescue Errno::ECONNREFUSED
       raise_error 'Connection refused'
+    rescue => e
+      Gitlab::Sentry.track_acceptable_exception(e)
+      raise_error "Sentry request failed due to #{e.class}"
     end
 
     def handle_response(response)

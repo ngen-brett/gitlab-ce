@@ -67,7 +67,8 @@ describe Sentry::Client do
       Net::OpenTimeout => 'Connection to Sentry timed out',
       SocketError => 'Received SocketError when trying to connect to Sentry',
       OpenSSL::SSL::SSLError => 'Sentry returned invalid SSL data',
-      Errno::ECONNREFUSED => 'Connection refused'
+      Errno::ECONNREFUSED => 'Connection refused',
+      StandardError => 'Sentry request failed due to StandardError'
     }
 
     exceptions.each do |exception, message|
