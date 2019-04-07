@@ -302,8 +302,4 @@ describe Sentry::Client do
         body: body.to_json
       )
   end
-
-  def stub_sentry_request_raising(error)
-    stub_request(:any, /.*/).to_raise(error)
-  end
 end
