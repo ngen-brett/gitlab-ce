@@ -423,3 +423,9 @@ _namespaces_ that have a `project_id`.
 
 The `path` column for these rows will be renamed to their previous value followed
 by an integer. For example: `users` would turn into `users0`
+
+### Moving migrations from EE to CE
+
+In the situation when some migrations need to be moved from Enterprise Edition to Community Edition,
+a migration file should be moved from `ee/db/migrations` directory to `db/migrations` directory. This way
+schema number remains intact, there is no need of modyfing old migrations, but proper columns, tables or data are added in the Community Edition.
