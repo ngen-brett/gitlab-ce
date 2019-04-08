@@ -15,10 +15,14 @@ describe('getTimeDiff', () => {
   });
 
   it('returns a value for every defined time window', () => {
-    Object.keys(timeWindows).forEach(window => {
-      const params = getTimeDiff(timeWindows.window);
+    const nonDefaultWindows = Object.keys(timeWindows).filter(window => window !== 'eightHours');
+
+    nonDefaultWindows.forEach(window => {
+      const params = getTimeDiff(timeWindows[window]);
       const diff = params.end - params.start;
 
+      // Ensure we're not returning the default, 28800 (the # of seconds in 8 hrs)
+      expect(diff).not.toEqual(28800);
       expect(typeof diff).toEqual('number');
     });
   });
