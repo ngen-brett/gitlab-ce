@@ -83,13 +83,19 @@ module GraphqlHelpers
   end
 
   def wrap_fields(fields)
-    return unless fields.strip.present?
+    fields = fields_to_s(fields)
+    return unless fields.present?
 
     <<~FIELDS
     {
       #{fields}
     }
     FIELDS
+  end
+
+  def fields_to_s(fields)
+    fields = fields.join("\n") if fields.is_a?(Array)
+    fields.strip
   end
 
   def all_graphql_fields_for(class_name, parent_types = Set.new)
