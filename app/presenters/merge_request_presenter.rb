@@ -98,6 +98,18 @@ class MergeRequestPresenter < Gitlab::View::Presenter::Delegated
     end
   end
 
+  def target_branch_path
+    if target_branch_exists?
+      project_branch_path(project, target_branch)
+    end
+  end
+
+  def source_branch_commits_path
+    if source_branch_exists?
+      project_commits_path(source_project, source_branch)
+    end
+  end
+
   def source_branch_path
     if source_branch_exists?
       project_branch_path(source_project, source_branch)
@@ -168,6 +180,10 @@ class MergeRequestPresenter < Gitlab::View::Presenter::Delegated
 
   def can_remove_source_branch?
     source_branch_exists? && merge_request.can_remove_source_branch?(current_user)
+  end
+
+  def can_read_pipeline?
+    pipeline && can?(current_user, :read_pipeline, pipeline)
   end
 
   def mergeable_discussions_state

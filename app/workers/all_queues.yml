@@ -21,8 +21,11 @@
 - cronjob:trending_projects
 - cronjob:issue_due_scheduler
 - cronjob:prune_web_hook_logs
+- cronjob:schedule_migrate_external_diffs
 
 - gcp_cluster:cluster_install_app
+- gcp_cluster:cluster_patch_app
+- gcp_cluster:cluster_upgrade_app
 - gcp_cluster:cluster_provision
 - gcp_cluster:cluster_wait_for_app_installation
 - gcp_cluster:wait_for_cluster_creation
@@ -45,6 +48,11 @@
 - github_importer:github_import_stage_import_pull_requests
 - github_importer:github_import_stage_import_repository
 
+- hashed_storage:hashed_storage_migrator
+- hashed_storage:hashed_storage_rollbacker
+- hashed_storage:hashed_storage_project_migrate
+- hashed_storage:hashed_storage_project_rollback
+
 - mail_scheduler:mail_scheduler_issue_due
 - mail_scheduler:mail_scheduler_notification_service
 
@@ -64,6 +72,7 @@
 - pipeline_hooks:build_hooks
 - pipeline_hooks:pipeline_hooks
 - pipeline_processing:build_finished
+- pipeline_processing:ci_build_prepare
 - pipeline_processing:build_queue
 - pipeline_processing:build_success
 - pipeline_processing:pipeline_process
@@ -90,13 +99,16 @@
 - object_pool:object_pool_join
 - object_pool:object_pool_destroy
 
+- container_repository:delete_container_repository
+- container_repository:cleanup_container_repository
+
 - default
 - mailers # ActionMailer::DeliveryJob.queue_name
 
 - authorized_projects
 - background_migration
+- chat_notification
 - create_gpg_signature
-- delete_container_repository
 - delete_merged_branches
 - delete_user
 - email_receiver
@@ -108,6 +120,7 @@
 - invalid_gpg_signature_update
 - irker
 - merge
+- migrate_external_diffs
 - namespaceless_project_destroy
 - new_issue
 - new_merge_request
@@ -120,7 +133,6 @@
 - project_cache
 - project_destroy
 - project_export
-- project_migrate_hashed_storage
 - project_service
 - propagate_service_template
 - reactive_caching
@@ -129,7 +141,6 @@
 - repository_fork
 - repository_import
 - repository_remove_remote
-- storage_migrator
 - system_hook_push
 - update_merge_requests
 - upload_checksum
@@ -141,3 +152,4 @@
 - repository_cleanup
 - delete_stored_files
 - import_issues_csv
+- project_daily_statistics

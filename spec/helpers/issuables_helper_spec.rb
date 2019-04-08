@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe IssuablesHelper do
@@ -5,8 +7,8 @@ describe IssuablesHelper do
   let(:label2) { build_stubbed(:label) }
 
   describe '#users_dropdown_label' do
-    let(:user)  { build_stubbed(:user) }
-    let(:user2)  { build_stubbed(:user) }
+    let(:user) { build_stubbed(:user) }
+    let(:user2) { build_stubbed(:user) }
 
     it 'returns unassigned' do
       expect(users_dropdown_label([])).to eq('Unassigned')
@@ -22,7 +24,7 @@ describe IssuablesHelper do
   end
 
   describe '#group_dropdown_label' do
-    let(:group)  { create(:group) }
+    let(:group) { create(:group) }
     let(:default) { 'default label' }
 
     it 'returns default group label when group_id is nil' do
@@ -173,9 +175,10 @@ describe IssuablesHelper do
     before do
       allow(helper).to receive(:current_user).and_return(user)
       allow(helper).to receive(:can?).and_return(true)
+      stub_commonmark_sourcepos_disabled
     end
 
-    it 'returns the correct json for an issue' do
+    it 'returns the correct data for an issue' do
       issue = create(:issue, author: user, description: 'issue text')
       @project = issue.project
 
@@ -187,8 +190,8 @@ describe IssuablesHelper do
         issuableRef: "##{issue.iid}",
         markdownPreviewPath: "/#{@project.full_path}/preview_markdown",
         markdownDocsPath: '/help/user/markdown',
-        markdownVersion: CacheMarkdownField::CACHE_COMMONMARK_VERSION,
         issuableTemplates: [],
+        lockVersion: issue.lock_version,
         projectPath: @project.path,
         projectNamespace: @project.namespace.path,
         initialTitleHtml: issue.title,
@@ -197,7 +200,7 @@ describe IssuablesHelper do
         initialDescriptionText: 'issue text',
         initialTaskStatus: '0 of 0 tasks completed'
       }
-      expect(helper.issuable_initial_data(issue)).to eq(expected_data)
+      expect(helper.issuable_initial_data(issue)).to match(hash_including(expected_data))
     end
   end
 end

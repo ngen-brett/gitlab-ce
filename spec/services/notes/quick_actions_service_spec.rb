@@ -28,8 +28,8 @@ describe Notes::QuickActionsService do
         end
 
         it 'closes noteable, sets labels, assigns, and sets milestone to noteable, and leave no note' do
-          content, command_params = service.extract_commands(note)
-          service.execute(command_params, note)
+          content, update_params = service.execute(note)
+          service.apply_updates(update_params, note)
 
           expect(content).to eq ''
           expect(note.noteable).to be_closed
@@ -47,8 +47,8 @@ describe Notes::QuickActionsService do
         let(:note_text) { '/reopen' }
 
         it 'opens the noteable, and leave no note' do
-          content, command_params = service.extract_commands(note)
-          service.execute(command_params, note)
+          content, update_params = service.execute(note)
+          service.apply_updates(update_params, note)
 
           expect(content).to eq ''
           expect(note.noteable).to be_open
@@ -59,8 +59,8 @@ describe Notes::QuickActionsService do
         let(:note_text) { '/spend 1h' }
 
         it 'updates the spent time on the noteable' do
-          content, command_params = service.extract_commands(note)
-          service.execute(command_params, note)
+          content, update_params = service.execute(note)
+          service.apply_updates(update_params, note)
 
           expect(content).to eq ''
           expect(note.noteable.time_spent).to eq(3600)
@@ -75,8 +75,8 @@ describe Notes::QuickActionsService do
         end
 
         it 'closes noteable, sets labels, assigns, and sets milestone to noteable' do
-          content, command_params = service.extract_commands(note)
-          service.execute(command_params, note)
+          content, update_params = service.execute(note)
+          service.apply_updates(update_params, note)
 
           expect(content).to eq "HELLO\nWORLD"
           expect(note.noteable).to be_closed
@@ -94,8 +94,8 @@ describe Notes::QuickActionsService do
         let(:note_text) { "HELLO\n/reopen\nWORLD" }
 
         it 'opens the noteable' do
-          content, command_params = service.extract_commands(note)
-          service.execute(command_params, note)
+          content, update_params = service.execute(note)
+          service.apply_updates(update_params, note)
 
           expect(content).to eq "HELLO\nWORLD"
           expect(note.noteable).to be_open
@@ -185,13 +185,14 @@ describe Notes::QuickActionsService do
       end
 
       before do
+        stub_licensed_features(multiple_issue_assignees: false)
         project.add_maintainer(maintainer)
         project.add_maintainer(assignee)
       end
 
       it 'adds only one assignee from the list' do
-        _, command_params = service.extract_commands(note)
-        service.execute(command_params, note)
+        _, update_params = service.execute(note)
+        service.apply_updates(update_params, note)
 
         expect(note.noteable.assignees.count).to eq(1)
       end

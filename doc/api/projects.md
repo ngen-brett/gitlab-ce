@@ -54,6 +54,7 @@ GET /projects
 | `with_custom_attributes` | boolean | no | Include [custom attributes](custom_attributes.md) in response (admins only) |
 | `with_issues_enabled` | boolean | no | Limit by enabled issues feature |
 | `with_merge_requests_enabled` | boolean | no | Limit by enabled merge requests feature |
+| `with_programming_language` | string | no | Limit by projects which use the given programming language |
 | `wiki_checksum_failed` | boolean | no | Limit projects where the wiki checksum calculation has failed _([Introduced][ee-6137] in [GitLab Premium][eep] 11.2)_ |
 | `repository_checksum_failed` | boolean | no | Limit projects where the repository checksum calculation has failed _([Introduced][ee-6137] in [GitLab Premium][eep] 11.2)_ |
 | `min_access_level` | integer | no | Limit by current user minimal [access level](members.md) |
@@ -279,6 +280,7 @@ GET /users/:user_id/projects
 | `with_custom_attributes` | boolean | no | Include [custom attributes](custom_attributes.md) in response (admins only) |
 | `with_issues_enabled` | boolean | no | Limit by enabled issues feature |
 | `with_merge_requests_enabled` | boolean | no | Limit by enabled merge requests feature |
+| `with_programming_language` | string | no | Limit by projects which use the given programming language |
 | `min_access_level` | integer | no | Limit by current user minimal [access level](members.md) |
 
 ```json
@@ -769,6 +771,8 @@ POST /projects/:id/fork
 | --------- | ---- | -------- | ----------- |
 | `id` | integer/string | yes | The ID or [URL-encoded path of the project](README.md#namespaced-path-encoding) |
 | `namespace` | integer/string | yes | The ID or path of the namespace that the project will be forked to |
+| `path` | string | no | The path that will be assigned to the resultant project after forking |
+| `name` | string | no | The name that will be assigned to the resultant project after forking |
 
 ## List Forks of a project
 

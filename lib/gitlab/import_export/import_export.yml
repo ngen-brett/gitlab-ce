@@ -28,12 +28,12 @@ project_tree:
     - notes:
         :author
   - releases:
-    - :author
     - :links
   - project_members:
     - :user
   - merge_requests:
     - :metrics
+    - :suggestions
     - notes:
       - :author
       - events:
@@ -118,6 +118,8 @@ excluded_attributes:
     - :description_html
     - :repository_languages
     - :bfg_object_map
+    - :detected_repository_languages
+    - :tag_list
   namespaces:
     - :runners_token
     - :runners_token_encrypted
@@ -130,9 +132,13 @@ excluded_attributes:
   snippets:
     - :expired_at
   merge_request_diff:
-    - :st_diffs
+    - :external_diff
+    - :stored_externally
+    - :external_diff_store
   merge_request_diff_files:
     - :diff
+    - :external_diff_offset
+    - :external_diff_size
   issues:
     - :milestone_id
   merge_requests:
@@ -166,6 +172,7 @@ excluded_attributes:
   error_tracking_setting:
     - :encrypted_token
     - :encrypted_token_iv
+    - :enabled
 
 methods:
   labels:

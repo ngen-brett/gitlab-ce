@@ -7,15 +7,21 @@ module Suggestions
     end
 
     def execute(suggestion)
-      unless suggestion.appliable?
+      unless suggestion.appliable?(cached: false)
         return error('Suggestion is not appliable')
       end
 
-      unless latest_diff_refs?(suggestion)
+      unless latest_source_head?(suggestion)
         return error('The file has been changed')
       end
 
-      params = file_update_params(suggestion)
+      diff_file = suggestion.diff_file
+
+      unless diff_file
+        return error('The file was not found')
+      end
+
+      params = file_update_params(suggestion, diff_file)
       result = ::Files::UpdateService.new(suggestion.project, @current_user, params).execute
 
       if result[:status] == :success
@@ -29,16 +35,17 @@ module Suggestions
 
     private
 
-    # Checks whether the latest diff refs for the branch matches with
-    # the position refs we're using to update the file content. Since
-    # the persisted refs are updated async (for MergeRequest),
-    # it's more consistent to fetch this data directly from the repository.
-    def latest_diff_refs?(suggestion)
-      suggestion.position.diff_refs == suggestion.noteable.repository_diff_refs
+    # Checks whether the latest source branch HEAD matches with
+    # the position HEAD we're using to update the file content. Since
+    # the persisted HEAD is updated async (for MergeRequest),
+    # it's more consistent to fetch this data directly from the
+    # repository.
+    def latest_source_head?(suggestion)
+      suggestion.position.head_sha == suggestion.noteable.source_branch_sha
     end
 
-    def file_update_params(suggestion)
-      blob = suggestion.diff_file.new_blob
+    def file_update_params(suggestion, diff_file)
+      blob = diff_file.new_blob
       file_path = suggestion.file_path
       branch_name = suggestion.branch
       file_content = new_file_content(suggestion, blob)

@@ -4,12 +4,14 @@ describe API::Releases do
   let(:project) { create(:project, :repository, :private) }
   let(:maintainer) { create(:user) }
   let(:reporter) { create(:user) }
+  let(:guest) { create(:user) }
   let(:non_project_member) { create(:user) }
   let(:commit) { create(:commit, project: project) }
 
   before do
     project.add_maintainer(maintainer)
     project.add_reporter(reporter)
+    project.add_guest(guest)
 
     project.repository.add_tag(maintainer, 'v0.1', commit.id)
     project.repository.add_tag(maintainer, 'v0.2', commit.id)
@@ -63,6 +65,24 @@ describe API::Releases do
         expect(json_response.count).to eq(1)
         expect(json_response.first['tag_name']).to eq('v1.1.5')
         expect(release).to be_tag_missing
+      end
+    end
+
+    context 'when user is a guest' do
+      it 'responds 403 Forbidden' do
+        get api("/projects/#{project.id}/releases", guest)
+
+        expect(response).to have_gitlab_http_status(:forbidden)
+      end
+
+      context 'when project is public' do
+        let(:project) { create(:project, :repository, :public) }
+
+        it 'responds 200 OK' do
+          get api("/projects/#{project.id}/releases", guest)
+
+          expect(response).to have_gitlab_http_status(:ok)
+        end
       end
     end
 
@@ -127,6 +147,31 @@ describe API::Releases do
           .to match_array(release.sources.map(&:url))
       end
 
+      context "when release description contains confidential issue's link" do
+        let(:confidential_issue) do
+          create(:issue,
+                 :confidential,
+                 project: project,
+                 title: 'A vulnerability')
+        end
+
+        let!(:release) do
+          create(:release,
+                 project: project,
+                 tag: 'v0.1',
+                 sha: commit.id,
+                 author: maintainer,
+                 description: "This is confidential #{confidential_issue.to_reference}")
+        end
+
+        it "does not expose confidential issue's title" do
+          get api("/projects/#{project.id}/releases/v0.1", maintainer)
+
+          expect(json_response['description_html']).to include(confidential_issue.to_reference)
+          expect(json_response['description_html']).not_to include('A vulnerability')
+        end
+      end
+
       context 'when release has link asset' do
         let!(:link) do
           create(:release_link,
@@ -161,6 +206,24 @@ describe API::Releases do
 
             expect(json_response['assets']['links'].first['external'])
               .to be_falsy
+          end
+        end
+      end
+
+      context 'when user is a guest' do
+        it 'responds 403 Forbidden' do
+          get api("/projects/#{project.id}/releases/v0.1", guest)
+
+          expect(response).to have_gitlab_http_status(:forbidden)
+        end
+
+        context 'when project is public' do
+          let(:project) { create(:project, :repository, :public) }
+
+          it 'responds 200 OK' do
+            get api("/projects/#{project.id}/releases/v0.1", guest)
+
+            expect(response).to have_gitlab_http_status(:ok)
           end
         end
       end

@@ -4,19 +4,24 @@ require 'spec_helper'
 
 describe Gitlab::Ci::Config::External::Processor do
   set(:project) { create(:project, :repository) }
+  set(:another_project) { create(:project, :repository) }
   set(:user) { create(:user) }
 
-  let(:processor) { described_class.new(values, project: project, sha: '12345', user: user) }
+  let(:expandset) { Set.new }
+  let(:sha) { '12345' }
+  let(:processor) { described_class.new(values, project: project, sha: '12345', user: user, expandset: expandset) }
 
   before do
     project.add_developer(user)
   end
 
   describe "#perform" do
+    subject { processor.perform }
+
     context 'when no external files defined' do
       let(:values) { { image: 'ruby:2.2' } }
 
-      it 'should return the same values' do
+      it 'returns the same values' do
         expect(processor.perform).to eq(values)
       end
     end
@@ -24,7 +29,7 @@ describe Gitlab::Ci::Config::External::Processor do
     context 'when an invalid local file is defined' do
       let(:values) { { include: '/lib/gitlab/ci/templates/non-existent-file.yml', image: 'ruby:2.2' } }
 
-      it 'should raise an error' do
+      it 'raises an error' do
         expect { processor.perform }.to raise_error(
           described_class::IncludeError,
           "Local file `/lib/gitlab/ci/templates/non-existent-file.yml` does not exist!"
@@ -40,7 +45,7 @@ describe Gitlab::Ci::Config::External::Processor do
         WebMock.stub_request(:get, remote_file).to_raise(SocketError.new('Some HTTP error'))
       end
 
-      it 'should raise an error' do
+      it 'raises an error' do
         expect { processor.perform }.to raise_error(
           described_class::IncludeError,
           "Remote file `#{remote_file}` could not be fetched because of a socket error!"
@@ -73,12 +78,12 @@ describe Gitlab::Ci::Config::External::Processor do
         WebMock.stub_request(:get, remote_file).to_return(body: external_file_content)
       end
 
-      it 'should append the file to the values' do
+      it 'appends the file to the values' do
         output = processor.perform
         expect(output.keys).to match_array([:image, :before_script, :rspec, :rubocop])
       end
 
-      it "should remove the 'include' keyword" do
+      it "removes the 'include' keyword" do
         expect(processor.perform[:include]).to be_nil
       end
     end
@@ -100,12 +105,12 @@ describe Gitlab::Ci::Config::External::Processor do
           .to receive(:fetch_local_content).and_return(local_file_content)
       end
 
-      it 'should append the file to the values' do
+      it 'appends the file to the values' do
         output = processor.perform
         expect(output.keys).to match_array([:image, :before_script])
       end
 
-      it "should remove the 'include' keyword" do
+      it "removes the 'include' keyword" do
         expect(processor.perform[:include]).to be_nil
       end
     end
@@ -143,11 +148,11 @@ describe Gitlab::Ci::Config::External::Processor do
         WebMock.stub_request(:get, remote_file).to_return(body: remote_file_content)
       end
 
-      it 'should append the files to the values' do
+      it 'appends the files to the values' do
         expect(processor.perform.keys).to match_array([:image, :stages, :before_script, :rspec])
       end
 
-      it "should remove the 'include' keyword" do
+      it "removes the 'include' keyword" do
         expect(processor.perform[:include]).to be_nil
       end
     end
@@ -162,7 +167,7 @@ describe Gitlab::Ci::Config::External::Processor do
           .to receive(:fetch_local_content).and_return(local_file_content)
       end
 
-      it 'should raise an error' do
+      it 'raises an error' do
         expect { processor.perform }.to raise_error(
           described_class::IncludeError,
           "Included file `/lib/gitlab/ci/templates/template.yml` does not have valid YAML syntax!"
@@ -185,9 +190,84 @@ describe Gitlab::Ci::Config::External::Processor do
         HEREDOC
       end
 
-      it 'should take precedence' do
+      it 'takes precedence' do
         WebMock.stub_request(:get, remote_file).to_return(body: remote_file_content)
         expect(processor.perform[:image]).to eq('ruby:2.2')
+      end
+    end
+
+    context "when a nested includes are defined" do
+      let(:values) do
+        {
+          include: [
+            { local: '/local/file.yml' }
+          ],
+          image: 'ruby:2.2'
+        }
+      end
+
+      before do
+        allow(project.repository).to receive(:blob_data_at).with('12345', '/local/file.yml') do
+          <<~HEREDOC
+            include:
+              - template: Ruby.gitlab-ci.yml
+              - remote: http://my.domain.com/config.yml
+              - project: #{another_project.full_path}
+                file: /templates/my-workflow.yml
+          HEREDOC
+        end
+
+        allow_any_instance_of(Repository).to receive(:blob_data_at).with(another_project.commit.id, '/templates/my-workflow.yml') do
+          <<~HEREDOC
+            include:
+              - local: /templates/my-build.yml
+          HEREDOC
+        end
+
+        allow_any_instance_of(Repository).to receive(:blob_data_at).with(another_project.commit.id, '/templates/my-build.yml') do
+          <<~HEREDOC
+            my_build:
+              script: echo Hello World
+          HEREDOC
+        end
+
+        WebMock.stub_request(:get, 'http://my.domain.com/config.yml').to_return(body: 'remote_build: { script: echo Hello World }')
+      end
+
+      context 'when project is public' do
+        before do
+          another_project.update!(visibility: 'public')
+        end
+
+        it 'properly expands all includes' do
+          is_expected.to include(:my_build, :remote_build, :rspec)
+        end
+      end
+
+      context 'when user is reporter of another project' do
+        before do
+          another_project.add_reporter(user)
+        end
+
+        it 'properly expands all includes' do
+          is_expected.to include(:my_build, :remote_build, :rspec)
+        end
+      end
+
+      context 'when user is not allowed' do
+        it 'raises an error' do
+          expect { subject }.to raise_error(Gitlab::Ci::Config::External::Processor::IncludeError, /not found or access denied/)
+        end
+      end
+
+      context 'when too many includes is included' do
+        before do
+          stub_const('Gitlab::Ci::Config::External::Mapper::MAX_INCLUDES', 1)
+        end
+
+        it 'raises an error' do
+          expect { subject }.to raise_error(Gitlab::Ci::Config::External::Processor::IncludeError, /Maximum of 1 nested/)
+        end
       end
     end
   end

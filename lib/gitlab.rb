@@ -7,6 +7,14 @@ module Gitlab
     Pathname.new(File.expand_path('..', __dir__))
   end
 
+  def self.version_info
+    Gitlab::VersionInfo.parse(Gitlab::VERSION)
+  end
+
+  def self.pre_release?
+    VERSION.include?('pre')
+  end
+
   def self.config
     Settings
   end
@@ -16,7 +24,7 @@ module Gitlab
       if File.exist?(root.join("REVISION"))
         File.read(root.join("REVISION")).strip.freeze
       else
-        result = Gitlab::Popen.popen_with_detail(%W[#{config.git.bin_path} log --pretty=format:%h -n 1])
+        result = Gitlab::Popen.popen_with_detail(%W[#{config.git.bin_path} log --pretty=format:%h --abbrev=11 -n 1])
 
         if result.status.success?
           result.stdout.chomp.freeze
@@ -27,51 +35,11 @@ module Gitlab
     end
   end
 
-  def self.version_info
-    Gitlab::VersionInfo.parse(Gitlab::VERSION)
-  end
-
   COM_URL = 'https://gitlab.com'.freeze
   APP_DIRS_PATTERN = %r{^/?(app|config|ee|lib|spec|\(\w*\))}
   SUBDOMAIN_REGEX = %r{\Ahttps://[a-z0-9]+\.gitlab\.com\z}
   VERSION = File.read(root.join("VERSION")).strip.freeze
   INSTALLATION_TYPE = File.read(root.join("INSTALLATION_TYPE")).strip.freeze
-
-  def self.pre_release?
-    VERSION.include?('pre')
-  end
-
-  def self.final_release?
-    !VERSION.include?('rc') && !pre_release?
-  end
-
-  def self.minor_release
-    "#{version_info.major}.#{version_info.minor}"
-  end
-
-  def self.prev_minor_release
-    "#{version_info.major}.#{version_info.minor - 1}"
-  end
-
-  def self.prev_major_release
-    "#{version_info.major.to_i - 1}"
-  end
-
-  def self.new_major_release?
-    version_info.minor.to_i.zero?
-  end
-
-  def self.previous_release
-    if version_info.minor_version?
-      if version_info.patch_version?
-        minor_release
-      else
-        prev_minor_release
-      end
-    else
-      prev_major_release
-    end
-  end
 
   def self.com?
     # Check `gl_subdomain?` as well to keep parity with gitlab.com
@@ -88,6 +56,10 @@ module Gitlab
 
   def self.dev_env_or_com?
     Rails.env.development? || org? || com?
+  end
+
+  def self.ee?
+    Object.const_defined?(:License)
   end
 
   def self.process_name

@@ -145,7 +145,7 @@ describe 'Labels Hierarchy', :js, :nested_groups do
       visit new_project_issue_path(project_1)
     end
 
-    it 'should be able to assign ancestor group labels' do
+    it 'is able to assign ancestor group labels' do
       fill_in 'issue_title', with: 'new created issue'
       fill_in 'issue_description', with: 'new issue description'
 
@@ -179,7 +179,7 @@ describe 'Labels Hierarchy', :js, :nested_groups do
     end
 
     context 'on project board issue sidebar' do
-      let(:board)   { create(:board, project: project_1) }
+      let(:board) { create(:board, project: project_1) }
 
       before do
         project_1.add_developer(user)
@@ -195,7 +195,7 @@ describe 'Labels Hierarchy', :js, :nested_groups do
     end
 
     context 'on group board issue sidebar' do
-      let(:board)   { create(:board, group: parent) }
+      let(:board) { create(:board, group: parent) }
 
       before do
         parent.add_developer(user)

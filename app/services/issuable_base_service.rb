@@ -70,26 +70,28 @@ class IssuableBaseService < BaseService
   end
 
   def filter_labels
-    filter_labels_in_param(:add_label_ids)
-    filter_labels_in_param(:remove_label_ids)
-    filter_labels_in_param(:label_ids)
-    find_or_create_label_ids
+    params[:add_label_ids] = labels_service.filter_labels_ids_in_param(:add_label_ids) if params[:add_label_ids]
+    params[:remove_label_ids] = labels_service.filter_labels_ids_in_param(:remove_label_ids) if params[:remove_label_ids]
+
+    if params[:label_ids]
+      params[:label_ids] = labels_service.filter_labels_ids_in_param(:label_ids)
+    elsif params[:labels]
+      params[:label_ids] = labels_service.find_or_create_by_titles.map(&:id)
+    end
   end
 
-  # rubocop: disable CodeReuse/ActiveRecord
   def filter_labels_in_param(key)
     return if params[key].to_a.empty?
 
-    params[key] = available_labels.where(id: params[key]).pluck(:id)
+    params[key] = available_labels.id_in(params[key]).pluck_primary_key
   end
-  # rubocop: enable CodeReuse/ActiveRecord
 
   def find_or_create_label_ids
     labels = params.delete(:labels)
 
     return unless labels
 
-    params[:label_ids] = labels.split(",").map do |label_name|
+    params[:label_ids] = labels.map do |label_name|
       label = Labels::FindOrCreateService.new(
         current_user,
         parent,
@@ -101,12 +103,17 @@ class IssuableBaseService < BaseService
     end.compact
   end
 
-  def process_label_ids(attributes, existing_label_ids: nil)
+  def labels_service
+    @labels_service ||= ::Labels::AvailableLabelsService.new(current_user, parent, params)
+  end
+
+  def process_label_ids(attributes, existing_label_ids: nil, extra_label_ids: [])
     label_ids = attributes.delete(:label_ids)
     add_label_ids = attributes.delete(:add_label_ids)
     remove_label_ids = attributes.delete(:remove_label_ids)
 
     new_label_ids = existing_label_ids || label_ids || []
+    new_label_ids |= extra_label_ids
 
     if add_label_ids.blank? && remove_label_ids.blank?
       new_label_ids = label_ids if label_ids
@@ -115,11 +122,7 @@ class IssuableBaseService < BaseService
       new_label_ids -= remove_label_ids if remove_label_ids
     end
 
-    new_label_ids
-  end
-
-  def available_labels
-    @available_labels ||= LabelsFinder.new(current_user, project_id: @project.id, include_ancestor_groups: true).execute
+    new_label_ids.uniq
   end
 
   def handle_quick_actions_on_create(issuable)
@@ -145,7 +148,7 @@ class IssuableBaseService < BaseService
 
     params.delete(:state_event)
     params[:author] ||= current_user
-    params[:label_ids] = issuable.label_ids.to_a + process_label_ids(params)
+    params[:label_ids] = process_label_ids(params, extra_label_ids: issuable.label_ids.to_a)
 
     issuable.assign_attributes(params)
 
@@ -235,6 +238,61 @@ class IssuableBaseService < BaseService
     issuable
   end
 
+  def update_task(issuable)
+    filter_params(issuable)
+
+    if issuable.changed? || params.present?
+      issuable.assign_attributes(params.merge(updated_by: current_user,
+                                              last_edited_at: Time.now,
+                                              last_edited_by: current_user))
+
+      before_update(issuable)
+
+      if issuable.with_transaction_returning_status { issuable.save }
+        # We do not touch as it will affect a update on updated_at field
+        ActiveRecord::Base.no_touching do
+          Issuable::CommonSystemNotesService.new(project, current_user).execute(issuable, old_labels: nil)
+        end
+
+        handle_task_changes(issuable)
+        invalidate_cache_counts(issuable, users: issuable.assignees.to_a)
+        after_update(issuable)
+        execute_hooks(issuable, 'update', old_associations: nil)
+      end
+    end
+
+    issuable
+  end
+
+  # Handle the `update_task` event sent from UI.  Attempts to update a specific
+  # line in the markdown and cached html, bypassing any unnecessary updates or checks.
+  def update_task_event(issuable)
+    update_task_params = params.delete(:update_task)
+    return unless update_task_params
+
+    tasklist_toggler = TaskListToggleService.new(issuable.description, issuable.description_html,
+                                                 line_source: update_task_params[:line_source],
+                                                 line_number: update_task_params[:line_number].to_i,
+                                                 toggle_as_checked: update_task_params[:checked])
+
+    unless tasklist_toggler.execute
+      # if we make it here, the data is much newer than we thought it was - fail fast
+      raise ActiveRecord::StaleObjectError
+    end
+
+    # by updating the description_html field at the same time,
+    # the markdown cache won't be considered invalid
+    params[:description]      = tasklist_toggler.updated_markdown
+    params[:description_html] = tasklist_toggler.updated_markdown_html
+
+    # since we're updating a very specific line, we don't care whether
+    # the `lock_version` sent from the FE is the same or not.  Just
+    # make sure the data hasn't changed since we queried it
+    params[:lock_version]     = issuable.lock_version
+
+    update_task(issuable)
+  end
+
   def labels_changing?(old_label_ids, new_label_ids)
     old_label_ids.sort != new_label_ids.sort
   end
@@ -318,6 +376,10 @@ class IssuableBaseService < BaseService
   end
 
   # override if needed
+  def handle_task_changes(issuable)
+  end
+
+  # override if needed
   def execute_hooks(issuable, action = 'open', params = {})
   end
 
@@ -327,5 +389,11 @@ class IssuableBaseService < BaseService
 
   def parent
     project
+  end
+
+  # we need to check this because milestone from milestone_id param is displayed on "new" page
+  # where private project milestone could leak without this check
+  def ensure_milestone_available(issuable)
+    issuable.milestone_id = nil unless issuable.milestone_available?
   end
 end

@@ -2,10 +2,12 @@
 import { mapActions, mapGetters, mapState } from 'vuex';
 import { GlTooltipDirective, GlLink, GlButton } from '@gitlab/ui';
 import { __ } from '~/locale';
-import { getParameterValues, mergeUrlParams } from '~/lib/utils/url_utility';
 import { polyfillSticky } from '~/lib/utils/sticky';
 import Icon from '~/vue_shared/components/icon.vue';
 import CompareVersionsDropdown from './compare_versions_dropdown.vue';
+import SettingsDropdown from './settings_dropdown.vue';
+import DiffStats from './diff_stats.vue';
+import { CENTERED_LIMITED_CONTAINER_CLASSES } from '../constants';
 
 export default {
   components: {
@@ -13,6 +15,8 @@ export default {
     Icon,
     GlLink,
     GlButton,
+    SettingsDropdown,
+    DiffStats,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -32,25 +36,24 @@ export default {
       required: false,
       default: null,
     },
+    isLimitedContainer: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   computed: {
-    ...mapState('diffs', ['commit', 'showTreeList', 'startVersion', 'latestVersionPath']),
-    ...mapGetters('diffs', ['isInlineView', 'isParallelView', 'hasCollapsedFile']),
+    ...mapGetters('diffs', ['hasCollapsedFile', 'diffFilesLength']),
+    ...mapState('diffs', [
+      'commit',
+      'showTreeList',
+      'startVersion',
+      'latestVersionPath',
+      'addedLines',
+      'removedLines',
+    ]),
     comparableDiffs() {
       return this.mergeRequestDiffs.slice(1);
-    },
-    toggleWhitespaceText() {
-      if (this.isWhitespaceVisible()) {
-        return __('Hide whitespace changes');
-      }
-      return __('Show whitespace changes');
-    },
-    toggleWhitespacePath() {
-      if (this.isWhitespaceVisible()) {
-        return mergeUrlParams({ w: 1 }, window.location.href);
-      }
-
-      return mergeUrlParams({ w: 0 }, window.location.href);
     },
     showDropdowns() {
       return !this.commit && this.mergeRequestDiffs.length;
@@ -65,6 +68,9 @@ export default {
       return this.mergeRequestDiff.base_version_path;
     },
   },
+  created() {
+    this.CENTERED_LIMITED_CONTAINER_CLASSES = CENTERED_LIMITED_CONTAINER_CLASSES;
+  },
   mounted() {
     polyfillSticky(this.$el);
   },
@@ -75,16 +81,18 @@ export default {
       'expandAllFiles',
       'toggleShowTreeList',
     ]),
-    isWhitespaceVisible() {
-      return getParameterValues('w')[0] !== '1';
-    },
   },
 };
 </script>
 
 <template>
-  <div class="mr-version-controls" :class="{ 'is-fileTreeOpen': showTreeList }">
-    <div class="mr-version-menus-container content-block">
+  <div class="mr-version-controls border-top border-bottom">
+    <div
+      class="mr-version-menus-container content-block"
+      :class="{
+        [CENTERED_LIMITED_CONTAINER_CLASSES]: isLimitedContainer,
+      }"
+    >
       <button
         v-gl-tooltip.hover
         type="button"
@@ -118,7 +126,12 @@ export default {
         {{ __('Viewing commit') }}
         <gl-link :href="commit.commit_url" class="monospace">{{ commit.short_id }}</gl-link>
       </div>
-      <div class="inline-parallel-buttons d-none d-lg-flex ml-auto">
+      <div class="inline-parallel-buttons d-none d-md-flex ml-auto">
+        <diff-stats
+          :diff-files-length="diffFilesLength"
+          :added-lines="addedLines"
+          :removed-lines="removedLines"
+        />
         <gl-button
           v-if="commit || startVersion"
           :href="latestVersionPath"
@@ -126,34 +139,10 @@ export default {
         >
           {{ __('Show latest version') }}
         </gl-button>
-        <a v-show="hasCollapsedFile" class="btn btn-default append-right-8" @click="expandAllFiles">
+        <gl-button v-show="hasCollapsedFile" class="append-right-8" @click="expandAllFiles">
           {{ __('Expand all') }}
-        </a>
-        <a :href="toggleWhitespacePath" class="btn btn-default qa-toggle-whitespace">
-          {{ toggleWhitespaceText }}
-        </a>
-        <div class="btn-group prepend-left-8">
-          <button
-            id="inline-diff-btn"
-            :class="{ active: isInlineView }"
-            type="button"
-            class="btn js-inline-diff-button"
-            data-view-type="inline"
-            @click="setInlineDiffViewType"
-          >
-            {{ __('Inline') }}
-          </button>
-          <button
-            id="parallel-diff-btn"
-            :class="{ active: isParallelView }"
-            type="button"
-            class="btn js-parallel-diff-button"
-            data-view-type="parallel"
-            @click="setParallelDiffViewType"
-          >
-            {{ __('Side-by-side') }}
-          </button>
-        </div>
+        </gl-button>
+        <settings-dropdown />
       </div>
     </div>
   </div>

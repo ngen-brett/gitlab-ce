@@ -210,8 +210,8 @@ describe API::Runner, :clean_gitlab_redis_shared_state do
 
       it "sets the runner's ip_address" do
         post api('/runners'),
-          params: { token: registration_token },
-          headers: { 'REMOTE_ADDR' => '123.111.123.111' }
+             params: { token: registration_token },
+             headers: { 'X-Forwarded-For' => '123.111.123.111' }
 
         expect(response).to have_gitlab_http_status 201
         expect(Ci::Runner.first.ip_address).to eq('123.111.123.111')
@@ -417,7 +417,9 @@ describe API::Runner, :clean_gitlab_redis_shared_state do
               'ref' => job.ref,
               'sha' => job.sha,
               'before_sha' => job.before_sha,
-              'ref_type' => 'branch' }
+              'ref_type' => 'branch',
+              'refspecs' => %w[+refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*],
+              'depth' => 0 }
           end
 
           let(:expected_steps) do
@@ -434,9 +436,9 @@ describe API::Runner, :clean_gitlab_redis_shared_state do
           end
 
           let(:expected_variables) do
-            [{ 'key' => 'CI_JOB_NAME', 'value' => 'spinach', 'public' => true },
-             { 'key' => 'CI_JOB_STAGE', 'value' => 'test', 'public' => true },
-             { 'key' => 'DB_NAME', 'value' => 'postgres', 'public' => true }]
+            [{ 'key' => 'CI_JOB_NAME', 'value' => 'spinach', 'public' => true, 'masked' => false },
+             { 'key' => 'CI_JOB_STAGE', 'value' => 'test', 'public' => true, 'masked' => false },
+             { 'key' => 'DB_NAME', 'value' => 'postgres', 'public' => true, 'masked' => false }]
           end
 
           let(:expected_artifacts) do
@@ -468,11 +470,11 @@ describe API::Runner, :clean_gitlab_redis_shared_state do
             expect(json_response['token']).to eq(job.token)
             expect(json_response['job_info']).to eq(expected_job_info)
             expect(json_response['git_info']).to eq(expected_git_info)
-            expect(json_response['image']).to eq({ 'name' => 'ruby:2.1', 'entrypoint' => '/bin/sh' })
+            expect(json_response['image']).to eq({ 'name' => 'ruby:2.1', 'entrypoint' => '/bin/sh', 'ports' => [] })
             expect(json_response['services']).to eq([{ 'name' => 'postgres', 'entrypoint' => nil,
-                                                       'alias' => nil, 'command' => nil },
+                                                       'alias' => nil, 'command' => nil, 'ports' => [] },
                                                      { 'name' => 'docker:stable-dind', 'entrypoint' => '/bin/sh',
-                                                       'alias' => 'docker', 'command' => 'sleep 30' }])
+                                                       'alias' => 'docker', 'command' => 'sleep 30', 'ports' => [] }])
             expect(json_response['steps']).to eq(expected_steps)
             expect(json_response['artifacts']).to eq(expected_artifacts)
             expect(json_response['cache']).to eq(expected_cache)
@@ -489,6 +491,29 @@ describe API::Runner, :clean_gitlab_redis_shared_state do
               expect(response).to have_gitlab_http_status(201)
               expect(json_response['git_info']['ref_type']).to eq('tag')
             end
+
+            context 'when GIT_DEPTH is specified' do
+              before do
+                create(:ci_pipeline_variable, key: 'GIT_DEPTH', value: 1, pipeline: pipeline)
+              end
+
+              it 'specifies refspecs' do
+                request_job
+
+                expect(response).to have_gitlab_http_status(201)
+                expect(json_response['git_info']['refspecs']).to include("+refs/tags/#{job.ref}:refs/tags/#{job.ref}")
+              end
+            end
+
+            context 'when GIT_DEPTH is not specified' do
+              it 'specifies refspecs' do
+                request_job
+
+                expect(response).to have_gitlab_http_status(201)
+                expect(json_response['git_info']['refspecs'])
+                  .to contain_exactly('+refs/tags/*:refs/tags/*', '+refs/heads/*:refs/remotes/origin/*')
+              end
+            end
           end
 
           context 'when job is made for branch' do
@@ -497,6 +522,55 @@ describe API::Runner, :clean_gitlab_redis_shared_state do
 
               expect(response).to have_gitlab_http_status(201)
               expect(json_response['git_info']['ref_type']).to eq('branch')
+            end
+
+            context 'when GIT_DEPTH is specified' do
+              before do
+                create(:ci_pipeline_variable, key: 'GIT_DEPTH', value: 1, pipeline: pipeline)
+              end
+
+              it 'specifies refspecs' do
+                request_job
+
+                expect(response).to have_gitlab_http_status(201)
+                expect(json_response['git_info']['refspecs']).to include("+refs/heads/#{job.ref}:refs/remotes/origin/#{job.ref}")
+              end
+            end
+
+            context 'when GIT_DEPTH is not specified' do
+              it 'specifies refspecs' do
+                request_job
+
+                expect(response).to have_gitlab_http_status(201)
+                expect(json_response['git_info']['refspecs'])
+                  .to contain_exactly('+refs/tags/*:refs/tags/*', '+refs/heads/*:refs/remotes/origin/*')
+              end
+            end
+          end
+
+          context 'when job is made for merge request' do
+            let(:pipeline) { create(:ci_pipeline_without_jobs, source: :merge_request_event, project: project, ref: 'feature', merge_request: merge_request) }
+            let!(:job) { create(:ci_build, pipeline: pipeline, name: 'spinach', ref: 'feature', stage: 'test', stage_idx: 0) }
+            let(:merge_request) { create(:merge_request) }
+
+            it 'sets branch as ref_type' do
+              request_job
+
+              expect(response).to have_gitlab_http_status(201)
+              expect(json_response['git_info']['ref_type']).to eq('branch')
+            end
+
+            context 'when GIT_DEPTH is specified' do
+              before do
+                create(:ci_pipeline_variable, key: 'GIT_DEPTH', value: 1, pipeline: pipeline)
+              end
+
+              it 'returns the overwritten git depth for merge request refspecs' do
+                request_job
+
+                expect(response).to have_gitlab_http_status(201)
+                expect(json_response['git_info']['depth']).to eq(1)
+              end
             end
           end
 
@@ -520,7 +594,16 @@ describe API::Runner, :clean_gitlab_redis_shared_state do
           it "sets the runner's ip_address" do
             post api('/jobs/request'),
               params: { token: runner.token },
-              headers: { 'User-Agent' => user_agent, 'REMOTE_ADDR' => '123.222.123.222' }
+              headers: { 'User-Agent' => user_agent, 'X-Forwarded-For' => '123.222.123.222' }
+
+            expect(response).to have_gitlab_http_status 201
+            expect(runner.reload.ip_address).to eq('123.222.123.222')
+          end
+
+          it "handles multiple X-Forwarded-For addresses" do
+            post api('/jobs/request'),
+              params: { token: runner.token },
+              headers: { 'User-Agent' => user_agent, 'X-Forwarded-For' => '123.222.123.222, 127.0.0.1' }
 
             expect(response).to have_gitlab_http_status 201
             expect(runner.reload.ip_address).to eq('123.222.123.222')
@@ -657,12 +740,12 @@ describe API::Runner, :clean_gitlab_redis_shared_state do
 
           context 'when triggered job is available' do
             let(:expected_variables) do
-              [{ 'key' => 'CI_JOB_NAME', 'value' => 'spinach', 'public' => true },
-               { 'key' => 'CI_JOB_STAGE', 'value' => 'test', 'public' => true },
-               { 'key' => 'CI_PIPELINE_TRIGGERED', 'value' => 'true', 'public' => true },
-               { 'key' => 'DB_NAME', 'value' => 'postgres', 'public' => true },
-               { 'key' => 'SECRET_KEY', 'value' => 'secret_value', 'public' => false },
-               { 'key' => 'TRIGGER_KEY_1', 'value' => 'TRIGGER_VALUE_1', 'public' => false }]
+              [{ 'key' => 'CI_JOB_NAME', 'value' => 'spinach', 'public' => true, 'masked' => false },
+               { 'key' => 'CI_JOB_STAGE', 'value' => 'test', 'public' => true, 'masked' => false },
+               { 'key' => 'CI_PIPELINE_TRIGGERED', 'value' => 'true', 'public' => true, 'masked' => false },
+               { 'key' => 'DB_NAME', 'value' => 'postgres', 'public' => true, 'masked' => false },
+               { 'key' => 'SECRET_KEY', 'value' => 'secret_value', 'public' => false, 'masked' => false },
+               { 'key' => 'TRIGGER_KEY_1', 'value' => 'TRIGGER_VALUE_1', 'public' => false, 'masked' => false }]
             end
 
             let(:trigger) { create(:ci_trigger, project: project) }
@@ -770,6 +853,56 @@ describe API::Runner, :clean_gitlab_redis_shared_state do
           end
         end
 
+        describe 'port support' do
+          let(:job) { create(:ci_build, pipeline: pipeline, options: options) }
+
+          context 'when job image has ports' do
+            let(:options) do
+              {
+                image: {
+                  name: 'ruby',
+                  ports: [80]
+                },
+                services: ['mysql']
+              }
+            end
+
+            it 'returns the image ports' do
+              request_job
+
+              expect(response).to have_http_status(:created)
+              expect(json_response).to include(
+                'id' => job.id,
+                'image' => a_hash_including('name' => 'ruby', 'ports' => [{ 'number' => 80, 'protocol' => 'http', 'name' => 'default_port' }]),
+                'services' => all(a_hash_including('name' => 'mysql')))
+            end
+          end
+
+          context 'when job services settings has ports' do
+            let(:options) do
+              {
+                image: 'ruby',
+                services: [
+                  {
+                    name: 'tomcat',
+                    ports: [{ number: 8081, protocol: 'http', name: 'custom_port' }]
+                  }
+                ]
+              }
+            end
+
+            it 'returns the service ports' do
+              request_job
+
+              expect(response).to have_http_status(:created)
+              expect(json_response).to include(
+                'id' => job.id,
+                'image' => a_hash_including('name' => 'ruby'),
+                'services' => all(a_hash_including('name' => 'tomcat', 'ports' => [{ 'number' => 8081, 'protocol' => 'http', 'name' => 'custom_port' }])))
+            end
+          end
+        end
+
         def request_job(token = runner.token, **params)
           new_params = params.merge(token: token, last_update: last_update)
           post api('/jobs/request'), params: new_params, headers: { 'User-Agent' => user_agent }
@@ -834,6 +967,15 @@ describe API::Runner, :clean_gitlab_redis_shared_state do
           end
 
           it { expect(job).to be_job_execution_timeout }
+        end
+
+        context 'when failure_reason is unmet_prerequisites' do
+          before do
+            update_job(state: 'failed', failure_reason: 'unmet_prerequisites')
+            job.reload
+          end
+
+          it { expect(job).to be_unmet_prerequisites }
         end
       end
 
@@ -1584,7 +1726,7 @@ describe API::Runner, :clean_gitlab_redis_shared_state do
             context 'when artifacts are stored locally' do
               let(:download_headers) do
                 { 'Content-Transfer-Encoding' => 'binary',
-                  'Content-Disposition' => 'attachment; filename=ci_build_artifacts.zip' }
+                  'Content-Disposition' => %q(attachment; filename="ci_build_artifacts.zip"; filename*=UTF-8''ci_build_artifacts.zip) }
               end
 
               before do

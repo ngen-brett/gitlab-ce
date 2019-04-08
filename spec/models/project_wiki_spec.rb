@@ -1,4 +1,5 @@
-# coding: utf-8
+# frozen_string_literal: true
+
 require "spec_helper"
 
 describe ProjectWiki do
@@ -7,7 +8,7 @@ describe ProjectWiki do
   let(:repository) { project.repository }
   let(:gitlab_shell) { Gitlab::Shell.new }
   let(:project_wiki) { described_class.new(project, user) }
-  let(:raw_repository) { Gitlab::Git::Repository.new(project.repository_storage, subject.disk_path + '.git', 'foo') }
+  let(:raw_repository) { Gitlab::Git::Repository.new(project.repository_storage, subject.disk_path + '.git', 'foo', 'group/project.wiki') }
   let(:commit) { project_wiki.repository.head_commit }
 
   subject { project_wiki }
@@ -71,11 +72,19 @@ describe ProjectWiki do
       expect(project_wiki.create_page("index", "test content")).to be_truthy
     end
 
+    it "creates a new wiki repo with a default commit message" do
+      expect(project_wiki.create_page("index", "test content", :markdown, "")).to be_truthy
+
+      page = project_wiki.find_page('index')
+
+      expect(page.last_version.message).to eq("#{user.username} created page: index")
+    end
+
     it "raises CouldNotCreateWikiError if it can't create the wiki repository" do
       # Create a fresh project which will not have a wiki
       project_wiki = described_class.new(create(:project), user)
       gitlab_shell = double(:gitlab_shell)
-      allow(gitlab_shell).to receive(:create_repository)
+      allow(gitlab_shell).to receive(:create_wiki_repository)
       allow(project_wiki).to receive(:gitlab_shell).and_return(gitlab_shell)
 
       expect { project_wiki.send(:wiki) }.to raise_exception(ProjectWiki::CouldNotCreateWikiError)

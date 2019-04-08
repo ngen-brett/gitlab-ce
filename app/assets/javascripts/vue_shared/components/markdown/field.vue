@@ -27,11 +27,6 @@ export default {
       type: String,
       required: true,
     },
-    markdownVersion: {
-      type: Number,
-      required: false,
-      default: 0,
-    },
     addSpacingClasses: {
       type: Boolean,
       required: false,
@@ -81,6 +76,7 @@ export default {
       hasSuggestion: false,
       markdownPreviewLoading: false,
       previewMarkdown: false,
+      suggestions: this.note.suggestions || [],
     };
   },
   computed: {
@@ -113,9 +109,6 @@ export default {
         lineNumber = newLine || oldLine;
       }
       return lineNumber;
-    },
-    suggestions() {
-      return this.note.suggestions || [];
     },
     lineType() {
       return this.line ? this.line.type : '';
@@ -158,7 +151,7 @@ export default {
         this.markdownPreviewLoading = true;
         this.markdownPreview = __('Loading…');
         this.$http
-          .post(this.versionedPreviewPath(), { text })
+          .post(this.markdownPreviewPath, { text })
           .then(resp => resp.json())
           .then(data => this.renderMarkdown(data))
           .catch(() => new Flash(__('Error loading markdown preview')));
@@ -180,18 +173,12 @@ export default {
         this.referencedCommands = data.references.commands;
         this.referencedUsers = data.references.users;
         this.hasSuggestion = data.references.suggestions && data.references.suggestions.length;
+        this.suggestions = data.references.suggestions;
       }
 
       this.$nextTick()
         .then(() => $(this.$refs['markdown-preview']).renderGFM())
         .catch(() => new Flash(__('Error rendering markdown preview')));
-    },
-
-    versionedPreviewPath() {
-      const { markdownPreviewPath, markdownVersion } = this;
-      return `${markdownPreviewPath}${
-        markdownPreviewPath.indexOf('?') === -1 ? '?' : '&'
-      }markdown_version=${markdownVersion}`;
     },
   },
 };
@@ -201,7 +188,7 @@ export default {
   <div
     ref="gl-form"
     :class="{ 'prepend-top-default append-bottom-default': addSpacingClasses }"
-    class="md-area js-vue-markdown-field"
+    class="js-vue-markdown-field md-area position-relative"
   >
     <markdown-header
       :preview-markdown="previewMarkdown"
@@ -227,7 +214,7 @@ export default {
       <div
         v-show="previewMarkdown"
         ref="markdown-preview"
-        class="md-preview js-vue-md-preview md md-preview-holder"
+        class="js-vue-md-preview md-preview-holder"
       >
         <suggestions
           v-if="hasSuggestion"
@@ -245,7 +232,7 @@ export default {
       <div
         v-show="previewMarkdown"
         ref="markdown-preview"
-        class="md-preview js-vue-md-preview md md-preview-holder"
+        class="js-vue-md-preview md md-preview-holder"
         v-html="markdownPreview"
       ></div>
     </template>

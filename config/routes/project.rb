@@ -219,11 +219,14 @@ constraints(::Constraints::ProjectUrlConstrainer.new) do
           get :metrics
           get :additional_metrics
           get '/terminal.ws/authorize', to: 'environments#terminal_websocket_authorize', constraints: { format: nil }
+
+          get '/prometheus/api/v1/*proxy_path', to: 'environments/prometheus_api#proxy'
         end
 
         collection do
           get :metrics, action: :metrics_redirect
           get :folder, path: 'folders/*id', constraints: { format: /(html|json)/ }
+          get :search
         end
 
         resources :deployments, only: [:index] do
@@ -249,7 +252,11 @@ constraints(::Constraints::ProjectUrlConstrainer.new) do
       end
 
       namespace :serverless do
-        get '/functions/:environment_id/:id', to: 'functions#show'
+        scope :functions do
+          get '/:environment_id/:id', to: 'functions#show'
+          get '/:environment_id/:id/metrics', to: 'functions#metrics', as: :metrics
+        end
+
         resources :functions, only: [:index]
       end
 
@@ -393,8 +400,7 @@ constraints(::Constraints::ProjectUrlConstrainer.new) do
 
       get 'noteable/:target_type/:target_id/notes' => 'notes#index', as: 'noteable_notes'
 
-      # On CE only index and show are needed
-      resources :boards, only: [:index, :show]
+      resources :boards, only: [:index, :show], constraints: { id: /\d+/ }
 
       resources :todos, only: [:create]
 
@@ -443,7 +449,11 @@ constraints(::Constraints::ProjectUrlConstrainer.new) do
         end
       end
 
-      resources :error_tracking, only: [:index], controller: :error_tracking
+      resources :error_tracking, only: [:index], controller: :error_tracking do
+        collection do
+          post :list_projects
+        end
+      end
 
       # Since both wiki and repository routing contains wildcard characters
       # its preferable to keep it below all other project routes

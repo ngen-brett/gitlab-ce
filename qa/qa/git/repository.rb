@@ -5,14 +5,19 @@ require 'uri'
 require 'open3'
 require 'fileutils'
 require 'tmpdir'
+require 'tempfile'
+require 'securerandom'
 
 module QA
   module Git
     class Repository
       include Scenario::Actable
+      RepositoryCommandError = Class.new(StandardError)
 
-      attr_writer :password, :use_lfs
+      attr_writer :use_lfs
       attr_accessor :env_vars
+
+      InvalidCredentialsError = Class.new(RuntimeError)
 
       def initialize
         # We set HOME to the current working directory (which is a
@@ -26,6 +31,14 @@ module QA
         Dir.mktmpdir do |dir|
           Dir.chdir(dir) { super }
         end
+      end
+
+      def password=(password)
+        @password = password
+
+        raise InvalidCredentialsError, "Please provide a username when setting a password" unless username
+
+        try_add_credentials_to_netrc
       end
 
       def uri=(address)
@@ -148,16 +161,7 @@ module QA
         return unless add_credentials?
         return if netrc_already_contains_content?
 
-        # Despite libcurl supporting a custom .netrc location through the
-        # CURLOPT_NETRC_FILE environment variable, git does not support it :(
-        # Info: https://curl.haxx.se/libcurl/c/CURLOPT_NETRC_FILE.html
-        #
-        # This will create a .netrc in the correct working directory, which is
-        # a temporary directory created in .perform()
-        #
-        FileUtils.mkdir_p(tmp_home_dir)
-        File.open(netrc_file_path, 'a') { |file| file.puts(netrc_content) }
-        File.chmod(0600, netrc_file_path)
+        save_netrc_content
       end
 
       private
@@ -175,7 +179,6 @@ module QA
       def add_credentials?
         return false if !username || !password
         return true unless ssh_key_set?
-        return true if ssh_key_set? && use_lfs?
 
         false
       end
@@ -203,6 +206,10 @@ module QA
         output.chomp!
         Runtime::Logger.debug "Git: output=[#{output}], exitstatus=[#{status.exitstatus}]"
 
+        unless status.success?
+          raise RepositoryCommandError, "The command #{command} failed (#{status.exitstatus}) with the following output:\n#{output}"
+        end
+
         Result.new(status.exitstatus == 0, output)
       end
 
@@ -212,6 +219,23 @@ module QA
         else
           [Runtime::User.username, Runtime::User.password]
         end
+      end
+
+      def read_netrc_content
+        File.exist?(netrc_file_path) ? File.readlines(netrc_file_path) : []
+      end
+
+      def save_netrc_content
+        # Despite libcurl supporting a custom .netrc location through the
+        # CURLOPT_NETRC_FILE environment variable, git does not support it :(
+        # Info: https://curl.haxx.se/libcurl/c/CURLOPT_NETRC_FILE.html
+        #
+        # This will create a .netrc in the correct working directory, which is
+        # a temporary directory created in .perform()
+        #
+        FileUtils.mkdir_p(tmp_home_dir)
+        File.open(netrc_file_path, 'a') { |file| file.puts(netrc_content) }
+        File.chmod(0600, netrc_file_path)
       end
 
       def tmp_home_dir
@@ -227,8 +251,7 @@ module QA
       end
 
       def netrc_already_contains_content?
-        File.exist?(netrc_file_path) &&
-          File.readlines(netrc_file_path).grep(/^#{netrc_content}$/).any?
+        read_netrc_content.grep(/^#{netrc_content}$/).any?
       end
     end
   end

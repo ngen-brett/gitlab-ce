@@ -10,6 +10,10 @@ describe('CompareVersions', () => {
   const targetBranch = { branchName: 'tmp-wine-dev', versionIndex: -1 };
 
   beforeEach(() => {
+    store.state.diffs.addedLines = 10;
+    store.state.diffs.removedLines = 20;
+    store.state.diffs.diffFiles.push('test');
+
     vm = createComponentWithStore(Vue.extend(CompareVersionsComponent), store, {
       mergeRequestDiffs: diffsMockData,
       mergeRequestDiff: diffsMockData[0],
@@ -51,15 +55,6 @@ describe('CompareVersions', () => {
       });
     });
 
-    it('should render whitespace toggle button with correct attributes', () => {
-      const whitespaceBtn = vm.$el.querySelector('.qa-toggle-whitespace');
-      const href = vm.toggleWhitespacePath;
-
-      expect(whitespaceBtn).not.toBeNull();
-      expect(whitespaceBtn.getAttribute('href')).toEqual(href);
-      expect(whitespaceBtn.innerHTML).toContain('Hide whitespace changes');
-    });
-
     it('should render view types buttons with correct values', () => {
       const inlineBtn = vm.$el.querySelector('#inline-diff-btn');
       const parallelBtn = vm.$el.querySelector('#parallel-diff-btn');
@@ -70,6 +65,26 @@ describe('CompareVersions', () => {
       expect(parallelBtn.dataset.viewType).toEqual('parallel');
       expect(inlineBtn.innerHTML).toContain('Inline');
       expect(parallelBtn.innerHTML).toContain('Side-by-side');
+    });
+
+    it('adds container-limiting classes when showFileTree is false with inline diffs', () => {
+      vm.isLimitedContainer = true;
+
+      vm.$nextTick(() => {
+        const limitedContainer = vm.$el.querySelector('.container-limited.limit-container-width');
+
+        expect(limitedContainer).not.toBeNull();
+      });
+    });
+
+    it('does not add container-limiting classes when showFileTree is false with inline diffs', () => {
+      vm.isLimitedContainer = false;
+
+      vm.$nextTick(() => {
+        const limitedContainer = vm.$el.querySelector('.container-limited.limit-container-width');
+
+        expect(limitedContainer).toBeNull();
+      });
     });
   });
 
@@ -103,30 +118,6 @@ describe('CompareVersions', () => {
   describe('baseVersionPath', () => {
     it('should be set correctly from mergeRequestDiff', () => {
       expect(vm.baseVersionPath).toEqual(vm.mergeRequestDiff.base_version_path);
-    });
-  });
-
-  describe('isWhitespaceVisible', () => {
-    const originalHref = window.location.href;
-
-    afterEach(() => {
-      window.history.replaceState({}, null, originalHref);
-    });
-
-    it('should return "true" when no "w" flag is present in the URL (default)', () => {
-      expect(vm.isWhitespaceVisible()).toBe(true);
-    });
-
-    it('should return "false" when the flag is set to "1" in the URL', () => {
-      window.history.replaceState({}, null, '?w=1');
-
-      expect(vm.isWhitespaceVisible()).toBe(false);
-    });
-
-    it('should return "true" when the flag is set to "0" in the URL', () => {
-      window.history.replaceState({}, null, '?w=0');
-
-      expect(vm.isWhitespaceVisible()).toBe(true);
     });
   });
 

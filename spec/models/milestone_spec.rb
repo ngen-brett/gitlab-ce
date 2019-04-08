@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Milestone do
@@ -182,7 +184,7 @@ describe Milestone do
   describe '#total_items_count' do
     before do
       create :closed_issue, milestone: milestone, project: project
-      create :merge_request, milestone: milestone
+      create :merge_request, milestone: milestone, source_project: project
     end
 
     it 'returns total count of issues and merge requests assigned to milestone' do
@@ -192,10 +194,10 @@ describe Milestone do
 
   describe '#can_be_closed?' do
     before do
-      milestone = create :milestone
-      create :closed_issue, milestone: milestone
+      milestone = create :milestone, project: project
+      create :closed_issue, milestone: milestone, project: project
 
-      create :issue
+      create :issue, project: project
     end
 
     it 'returns true if milestone active and all nested issues closed' do
@@ -237,6 +239,29 @@ describe Milestone do
     it 'returns milestones with a matching description regardless of the casing' do
       expect(described_class.search(milestone.description.upcase))
         .to eq([milestone])
+    end
+  end
+
+  describe '#search_title' do
+    let(:milestone) { create(:milestone, title: 'foo', description: 'bar') }
+
+    it 'returns milestones with a matching title' do
+      expect(described_class.search_title(milestone.title)) .to eq([milestone])
+    end
+
+    it 'returns milestones with a partially matching title' do
+      expect(described_class.search_title(milestone.title[0..2])).to eq([milestone])
+    end
+
+    it 'returns milestones with a matching title regardless of the casing' do
+      expect(described_class.search_title(milestone.title.upcase))
+        .to eq([milestone])
+    end
+
+    it 'searches only on the title and ignores milestones with a matching description' do
+      create(:milestone, title: 'bar', description: 'foo')
+
+      expect(described_class.search_title(milestone.title)) .to eq([milestone])
     end
   end
 
@@ -354,6 +379,21 @@ describe Milestone do
 
       it 'returns no results' do
         expect(milestone_ids).to be_empty
+      end
+    end
+
+    context 'when there is a milestone with a date after 294276 AD', :postgresql do
+      before do
+        past_milestone_project_1.update!(due_date: Date.new(294277, 1, 1))
+      end
+
+      it 'returns the next upcoming open milestone ID for each project and group' do
+        expect(milestone_ids).to contain_exactly(
+          current_milestone_project_1.id,
+          current_milestone_project_2.id,
+          current_milestone_group_1.id,
+          current_milestone_group_2.id
+        )
       end
     end
   end

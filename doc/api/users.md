@@ -140,7 +140,8 @@ GET /users
     "can_create_project": true,
     "two_factor_enabled": true,
     "external": false,
-    "private_profile": false
+    "private_profile": false,
+    "highest_role":10
   }
 ]
 ```
@@ -1043,7 +1044,6 @@ Will return `201 OK` on success, `404 User Not Found` is user cannot be found or
 
 Please refer to the [Events API documentation](events.md#get-user-contribution-events)
 
-
 ## Get all impersonation tokens of a user
 
 > Requires admin permissions.
@@ -1212,6 +1212,7 @@ The activities that update the timestamp are:
 
   - Git HTTP/SSH activities (such as clone, push)
   - User logging in into GitLab
+  - User visiting pages related to Dashboards, Projects, Issues and Merge Requests ([introduced](https://gitlab.com/gitlab-org/gitlab-ce/issues/54947) in GitLab 11.8)
 
 By default, it shows the activity for all users in the last 6 months, but this can be
 amended by using the `from` parameter.

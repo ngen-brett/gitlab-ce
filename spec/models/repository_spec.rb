@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Repository do
@@ -48,7 +50,7 @@ describe Repository do
     it { is_expected.not_to include('fix') }
 
     describe 'when storage is broken', :broken_storage do
-      it 'should raise a storage error' do
+      it 'raises a storage error' do
         expect_to_raise_storage_error do
           broken_repository.branch_names_contains(sample_commit.id)
         end
@@ -223,7 +225,7 @@ describe Repository do
     it { is_expected.to eq('c1acaa58bbcbc3eafe538cb8274ba387047b69f8') }
 
     describe 'when storage is broken', :broken_storage do
-      it 'should raise a storage error' do
+      it 'raises a storage error' do
         expect_to_raise_storage_error do
           broken_repository.last_commit_id_for_path(sample_commit.id, '.gitignore')
         end
@@ -247,7 +249,7 @@ describe Repository do
     end
 
     describe 'when storage is broken', :broken_storage do
-      it 'should raise a storage error' do
+      it 'raises a storage error' do
         expect_to_raise_storage_error do
           broken_repository.last_commit_for_path(sample_commit.id, '.gitignore').id
         end
@@ -388,7 +390,7 @@ describe Repository do
     end
 
     describe 'when storage is broken', :broken_storage do
-      it 'should raise a storage error' do
+      it 'raises a storage error' do
         expect_to_raise_storage_error { broken_repository.find_commits_by_message('s') }
       end
     end
@@ -724,7 +726,7 @@ describe Repository do
     end
 
     describe 'when storage is broken', :broken_storage do
-      it 'should raise a storage error' do
+      it 'raises a storage error' do
         expect_to_raise_storage_error do
           broken_repository.search_files_by_content('feature', 'master')
         end
@@ -773,7 +775,7 @@ describe Repository do
     end
 
     describe 'when storage is broken', :broken_storage do
-      it 'should raise a storage error' do
+      it 'raises a storage error' do
         expect_to_raise_storage_error { broken_repository.search_files_by_name('files', 'master') }
       end
     end
@@ -815,7 +817,7 @@ describe Repository do
     let(:broken_repository) { create(:project, :broken_storage).repository }
 
     describe 'when storage is broken', :broken_storage do
-      it 'should raise a storage error' do
+      it 'raises a storage error' do
         expect_to_raise_storage_error do
           broken_repository.fetch_ref(broken_repository, source_ref: '1', target_ref: '2')
         end
@@ -1016,7 +1018,7 @@ describe Repository do
         repository.add_branch(project.creator, ref, 'master')
       end
 
-      it 'should be true' do
+      it 'is true' do
         is_expected.to eq(true)
       end
     end
@@ -1026,7 +1028,7 @@ describe Repository do
         repository.add_tag(project.creator, ref, 'master')
       end
 
-      it 'should be false' do
+      it 'is false' do
         is_expected.to eq(false)
       end
     end
@@ -1095,6 +1097,49 @@ describe Repository do
     end
   end
 
+  shared_examples 'asymmetric cached method' do |method|
+    context 'asymmetric caching', :use_clean_rails_memory_store_caching, :request_store do
+      let(:cache) { repository.send(:cache) }
+      let(:request_store_cache) { repository.send(:request_store_cache) }
+
+      context 'when it returns true' do
+        before do
+          expect(repository.raw_repository).to receive(method).once.and_return(true)
+        end
+
+        it 'caches the output in RequestStore' do
+          expect do
+            repository.send(method)
+          end.to change { request_store_cache.read(method) }.from(nil).to(true)
+        end
+
+        it 'caches the output in RepositoryCache' do
+          expect do
+            repository.send(method)
+          end.to change { cache.read(method) }.from(nil).to(true)
+        end
+      end
+
+      context 'when it returns false' do
+        before do
+          expect(repository.raw_repository).to receive(method).once.and_return(false)
+        end
+
+        it 'caches the output in RequestStore' do
+          expect do
+            repository.send(method)
+          end.to change { request_store_cache.read(method) }.from(nil).to(false)
+        end
+
+        it 'does NOT cache the output in RepositoryCache' do
+          expect do
+            repository.send(method)
+          end.not_to change { cache.read(method) }.from(nil)
+        end
+      end
+    end
+  end
+
   describe '#exists?' do
     it 'returns true when a repository exists' do
       expect(repository.exists?).to be(true)
@@ -1107,51 +1152,12 @@ describe Repository do
     end
 
     context 'with broken storage', :broken_storage do
-      it 'should raise a storage error' do
+      it 'raises a storage error' do
         expect_to_raise_storage_error { broken_repository.exists? }
       end
     end
 
-    context 'asymmetric caching', :use_clean_rails_memory_store_caching, :request_store do
-      let(:cache) { repository.send(:cache) }
-      let(:request_store_cache) { repository.send(:request_store_cache) }
-
-      context 'when it returns true' do
-        before do
-          expect(repository.raw_repository).to receive(:exists?).once.and_return(true)
-        end
-
-        it 'caches the output in RequestStore' do
-          expect do
-            repository.exists?
-          end.to change { request_store_cache.read(:exists?) }.from(nil).to(true)
-        end
-
-        it 'caches the output in RepositoryCache' do
-          expect do
-            repository.exists?
-          end.to change { cache.read(:exists?) }.from(nil).to(true)
-        end
-      end
-
-      context 'when it returns false' do
-        before do
-          expect(repository.raw_repository).to receive(:exists?).once.and_return(false)
-        end
-
-        it 'caches the output in RequestStore' do
-          expect do
-            repository.exists?
-          end.to change { request_store_cache.read(:exists?) }.from(nil).to(false)
-        end
-
-        it 'does NOT cache the output in RepositoryCache' do
-          expect do
-            repository.exists?
-          end.not_to change { cache.read(:exists?) }.from(nil)
-        end
-      end
-    end
+    it_behaves_like 'asymmetric cached method', :exists?
   end
 
   describe '#has_visible_content?' do
@@ -1237,6 +1243,27 @@ describe Repository do
     end
   end
 
+  describe '#blobs_at' do
+    let(:empty_repository) { create(:project_empty_repo).repository }
+
+    it 'returns empty array for an empty repository' do
+      # rubocop:disable Style/WordArray
+      expect(empty_repository.blobs_at(['master', 'foobar'])).to eq([])
+      # rubocop:enable Style/WordArray
+    end
+
+    it 'returns blob array for a non-empty repository' do
+      repository.create_file(User.last, 'foobar', 'CONTENT', message: 'message', branch_name: 'master')
+
+      # rubocop:disable Style/WordArray
+      blobs = repository.blobs_at([['master', 'foobar']])
+      # rubocop:enable Style/WordArray
+
+      expect(blobs.first.name).to eq('foobar')
+      expect(blobs.size).to eq(1)
+    end
+  end
+
   describe '#root_ref' do
     it 'returns a branch name' do
       expect(repository.root_ref).to be_an_instance_of(String)
@@ -1250,6 +1277,8 @@ describe Repository do
       repository.root_ref
       repository.root_ref
     end
+
+    it_behaves_like 'asymmetric cached method', :root_ref
   end
 
   describe '#expire_root_ref_cache' do
@@ -1349,6 +1378,29 @@ describe Repository do
 
     def merge(repository, user, merge_request, message)
       repository.merge(user, merge_request.diff_head_sha, merge_request, message)
+    end
+  end
+
+  describe '#merge_to_ref' do
+    let(:merge_request) do
+      create(:merge_request, source_branch: 'feature',
+                             target_branch: 'master',
+                             source_project: project)
+    end
+
+    it 'writes merge of source and target to MR merge_ref_path' do
+      merge_commit_id = repository.merge_to_ref(user,
+                                                merge_request.diff_head_sha,
+                                                merge_request,
+                                                merge_request.merge_ref_path,
+                                                'Custom message')
+
+      merge_commit = repository.commit(merge_commit_id)
+
+      expect(merge_commit.message).to eq('Custom message')
+      expect(merge_commit.author_name).to eq(user.name)
+      expect(merge_commit.author_email).to eq(user.commit_email)
+      expect(repository.blob_at(merge_commit.id, 'files/ruby/feature.rb')).to be_present
     end
   end
 
@@ -2193,15 +2245,15 @@ describe Repository do
     rugged.references.create("refs/remotes/#{remote_name}/#{branch_name}", target.id)
   end
 
-  describe '#ancestor?' do
+  shared_examples '#ancestor?' do
     let(:commit) { repository.commit }
     let(:ancestor) { commit.parents.first }
 
-    it 'it is an ancestor' do
+    it 'is an ancestor' do
       expect(repository.ancestor?(ancestor.id, commit.id)).to eq(true)
     end
 
-    it 'it is not an ancestor' do
+    it 'is not an ancestor' do
       expect(repository.ancestor?(commit.id, ancestor.id)).to eq(false)
     end
 
@@ -2215,6 +2267,20 @@ describe Repository do
       expect(repository.ancestor?(commit.id, Gitlab::Git::BLANK_SHA)).to eq(false)
       expect(repository.ancestor?( Gitlab::Git::BLANK_SHA, commit.id)).to eq(false)
     end
+  end
+
+  describe '#ancestor? with Gitaly enabled' do
+    it_behaves_like "#ancestor?"
+  end
+
+  describe '#ancestor? with Rugged enabled', :enable_rugged do
+    it 'calls out to the Rugged implementation' do
+      allow_any_instance_of(Rugged).to receive(:merge_base).with(repository.commit.id, Gitlab::Git::BLANK_SHA).and_call_original
+
+      repository.ancestor?(repository.commit.id, Gitlab::Git::BLANK_SHA)
+    end
+
+    it_behaves_like '#ancestor?'
   end
 
   describe '#archive_metadata' do
@@ -2270,6 +2336,7 @@ describe Repository do
       expect(subject).to be_a(Gitlab::Git::Repository)
       expect(subject.relative_path).to eq(project.disk_path + '.git')
       expect(subject.gl_repository).to eq("project-#{project.id}")
+      expect(subject.gl_project_path).to eq(project.full_path)
     end
 
     context 'with a wiki repository' do
@@ -2279,6 +2346,7 @@ describe Repository do
         expect(subject).to be_a(Gitlab::Git::Repository)
         expect(subject.relative_path).to eq(project.disk_path + '.wiki.git')
         expect(subject.gl_repository).to eq("wiki-#{project.id}")
+        expect(subject.gl_project_path).to eq(project.full_path)
       end
     end
   end

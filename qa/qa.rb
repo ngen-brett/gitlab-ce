@@ -17,6 +17,7 @@ module QA
     autoload :Env, 'qa/runtime/env'
     autoload :Address, 'qa/runtime/address'
     autoload :Path, 'qa/runtime/path'
+    autoload :Feature, 'qa/runtime/feature'
     autoload :Fixtures, 'qa/runtime/fixtures'
     autoload :Logger, 'qa/runtime/logger'
 
@@ -61,6 +62,12 @@ module QA
     autoload :File, 'qa/resource/file'
     autoload :Fork, 'qa/resource/fork'
     autoload :SSHKey, 'qa/resource/ssh_key'
+    autoload :Snippet, 'qa/resource/snippet'
+
+    module Events
+      autoload :Base, 'qa/resource/events/base'
+      autoload :Project, 'qa/resource/events/project'
+    end
 
     module Repository
       autoload :Push, 'qa/resource/repository/push'
@@ -83,6 +90,7 @@ module QA
     autoload :Bootable, 'qa/scenario/bootable'
     autoload :Actable, 'qa/scenario/actable'
     autoload :Template, 'qa/scenario/template'
+    autoload :SharedAttributes, 'qa/scenario/shared_attributes'
 
     ##
     # Test scenario entrypoints.
@@ -99,6 +107,7 @@ module QA
         autoload :LDAPNoTLS, 'qa/scenario/test/integration/ldap_no_tls'
         autoload :LDAPTLS, 'qa/scenario/test/integration/ldap_tls'
         autoload :InstanceSAML, 'qa/scenario/test/integration/instance_saml'
+        autoload :OAuth, 'qa/scenario/test/integration/oauth'
         autoload :Kubernetes, 'qa/scenario/test/integration/kubernetes'
         autoload :Mattermost, 'qa/scenario/test/integration/mattermost'
         autoload :ObjectStorage, 'qa/scenario/test/integration/object_storage'
@@ -136,6 +145,12 @@ module QA
     module Dashboard
       autoload :Projects, 'qa/page/dashboard/projects'
       autoload :Groups, 'qa/page/dashboard/groups'
+
+      module Snippet
+        autoload :New, 'qa/page/dashboard/snippet/new'
+        autoload :Index, 'qa/page/dashboard/snippet/index'
+        autoload :Show, 'qa/page/dashboard/snippet/show'
+      end
     end
 
     module Group
@@ -196,8 +211,12 @@ module QA
       end
 
       module SubMenus
+        autoload :CiCd, 'qa/page/project/sub_menus/ci_cd'
         autoload :Common, 'qa/page/project/sub_menus/common'
+        autoload :Issues, 'qa/page/project/sub_menus/issues'
+        autoload :Operations, 'qa/page/project/sub_menus/operations'
         autoload :Repository, 'qa/page/project/sub_menus/repository'
+        autoload :Settings, 'qa/page/project/sub_menus/settings'
       end
 
       module Issue
@@ -250,6 +269,10 @@ module QA
       autoload :Sidebar, 'qa/page/issuable/sidebar'
     end
 
+    module Alert
+      autoload :AutoDevopsAlert, 'qa/page/alert/auto_devops_alert'
+    end
+
     module Layout
       autoload :Banner, 'qa/page/layout/banner'
     end
@@ -269,9 +292,11 @@ module QA
 
       module Settings
         autoload :Repository, 'qa/page/admin/settings/repository'
+        autoload :General, 'qa/page/admin/settings/general'
 
         module Component
           autoload :RepositoryStorage, 'qa/page/admin/settings/component/repository_storage'
+          autoload :AccountAndLimit, 'qa/page/admin/settings/component/account_and_limit'
         end
       end
     end
@@ -286,6 +311,7 @@ module QA
     #
     module Component
       autoload :ClonePanel, 'qa/page/component/clone_panel'
+      autoload :LazyLoader, 'qa/page/component/lazy_loader'
       autoload :LegacyClonePanel, 'qa/page/component/legacy_clone_panel'
       autoload :Dropzone, 'qa/page/component/dropzone'
       autoload :GroupsFilter, 'qa/page/component/groups_filter'
@@ -325,6 +351,10 @@ module QA
   module Specs
     autoload :Config, 'qa/specs/config'
     autoload :Runner, 'qa/specs/runner'
+
+    module Helpers
+      autoload :Quarantine, 'qa/specs/helpers/quarantine'
+    end
   end
 
   ##
@@ -337,6 +367,13 @@ module QA
         autoload :Login, 'qa/vendor/saml_idp/page/login'
       end
     end
+
+    module Github
+      module Page
+        autoload :Base, 'qa/vendor/github/page/base'
+        autoload :Login, 'qa/vendor/github/page/login'
+      end
+    end
   end
 
   # Classes that provide support to other parts of the framework.
@@ -346,6 +383,8 @@ module QA
       autoload :Logging, 'qa/support/page/logging'
     end
     autoload :Api, 'qa/support/api'
+    autoload :Waiter, 'qa/support/waiter'
+    autoload :Retrier, 'qa/support/retrier'
   end
 end
 

@@ -21,15 +21,12 @@ module Gitlab
               stage: "test",
               stage_idx: 1,
               name: "rspec",
-              coverage_regex: nil,
-              tag_list: [],
               options: {
                 before_script: ["pwd"],
                 script: ["rspec"]
               },
               allow_failure: false,
               when: "on_success",
-              environment: nil,
               yaml_variables: []
             })
           end
@@ -154,12 +151,9 @@ module Gitlab
              builds:
                [{ stage_idx: 1,
                   stage: "test",
-                  tag_list: [],
                   name: "rspec",
                   allow_failure: false,
                   when: "on_success",
-                  environment: nil,
-                  coverage_regex: nil,
                   yaml_variables: [],
                   options: { script: ["rspec"] },
                   only: { refs: ["branches"] },
@@ -169,12 +163,9 @@ module Gitlab
              builds:
                [{ stage_idx: 2,
                   stage: "deploy",
-                  tag_list: [],
                   name: "prod",
                   allow_failure: false,
                   when: "on_success",
-                  environment: nil,
-                  coverage_regex: nil,
                   yaml_variables: [],
                   options: { script: ["cap prod"] },
                   only: { refs: ["tags"] },
@@ -344,8 +335,6 @@ module Gitlab
               stage: "test",
               stage_idx: 1,
               name: "rspec",
-              coverage_regex: nil,
-              tag_list: [],
               options: {
                 before_script: ["pwd"],
                 script: ["rspec"],
@@ -356,7 +345,6 @@ module Gitlab
               },
               allow_failure: false,
               when: "on_success",
-              environment: nil,
               yaml_variables: []
             })
           end
@@ -378,8 +366,6 @@ module Gitlab
               stage: "test",
               stage_idx: 1,
               name: "rspec",
-              coverage_regex: nil,
-              tag_list: [],
               options: {
                 before_script: ["pwd"],
                 script: ["rspec"],
@@ -390,7 +376,6 @@ module Gitlab
               },
               allow_failure: false,
               when: "on_success",
-              environment: nil,
               yaml_variables: []
             })
           end
@@ -410,8 +395,6 @@ module Gitlab
               stage: "test",
               stage_idx: 1,
               name: "rspec",
-              coverage_regex: nil,
-              tag_list: [],
               options: {
                 before_script: ["pwd"],
                 script: ["rspec"],
@@ -420,7 +403,6 @@ module Gitlab
               },
               allow_failure: false,
               when: "on_success",
-              environment: nil,
               yaml_variables: []
             })
           end
@@ -438,8 +420,6 @@ module Gitlab
               stage: "test",
               stage_idx: 1,
               name: "rspec",
-              coverage_regex: nil,
-              tag_list: [],
               options: {
                 before_script: ["pwd"],
                 script: ["rspec"],
@@ -448,7 +428,6 @@ module Gitlab
               },
               allow_failure: false,
               when: "on_success",
-              environment: nil,
               yaml_variables: []
             })
           end
@@ -623,6 +602,93 @@ module Gitlab
         end
       end
 
+      describe "Include" do
+        let(:opts) { {} }
+
+        let(:config) do
+          {
+            include: include_content,
+            rspec: { script: "test" }
+          }
+        end
+
+        subject { Gitlab::Ci::YamlProcessor.new(YAML.dump(config), opts) }
+
+        context "when validating a ci config file with no project context" do
+          context "when a single string is provided" do
+            let(:include_content) { "/local.gitlab-ci.yml" }
+
+            it "does not return any error" do
+              expect { subject }.not_to raise_error
+            end
+          end
+
+          context "when an array is provided" do
+            let(:include_content) { ["/local.gitlab-ci.yml"] }
+
+            it "does not return any error" do
+              expect { subject }.not_to raise_error
+            end
+          end
+
+          context "when an array of wrong keyed object is provided" do
+            let(:include_content) { [{ yolo: "/local.gitlab-ci.yml" }] }
+
+            it "returns a validation error" do
+              expect { subject }.to raise_error(Gitlab::Ci::YamlProcessor::ValidationError)
+            end
+          end
+
+          context "when an array of mixed typed objects is provided" do
+            let(:include_content) do
+              [
+                'https://gitlab.com/awesome-project/raw/master/.before-script-template.yml',
+                '/templates/.after-script-template.yml',
+                { template: 'Auto-DevOps.gitlab-ci.yml' }
+              ]
+            end
+
+            it "does not return any error" do
+              expect { subject }.not_to raise_error
+            end
+          end
+
+          context "when the include type is incorrect" do
+            let(:include_content) { { name: "/local.gitlab-ci.yml" } }
+
+            it "returns an invalid configuration error" do
+              expect { subject }.to raise_error(Gitlab::Ci::YamlProcessor::ValidationError)
+            end
+          end
+        end
+
+        context "when validating a ci config file within a project" do
+          let(:include_content) { "/local.gitlab-ci.yml" }
+          let(:project) { create(:project, :repository) }
+          let(:opts) { { project: project, sha: project.commit.sha } }
+
+          context "when the included internal file is present" do
+            before do
+              expect(project.repository).to receive(:blob_data_at)
+                .and_return(YAML.dump({ job1: { script: 'hello' } }))
+            end
+
+            it "does not return an error" do
+              expect { subject }.not_to raise_error
+            end
+          end
+
+          context "when the included internal file is not present" do
+            it "returns an error with missing file details" do
+              expect { subject }.to raise_error(
+                Gitlab::Ci::YamlProcessor::ValidationError,
+                "Local file `#{include_content}` does not exist!"
+              )
+            end
+          end
+        end
+      end
+
       describe "When" do
         %w(on_success on_failure always).each do |when_state|
           it "returns #{when_state} when defined" do
@@ -763,8 +829,6 @@ module Gitlab
             stage: "test",
             stage_idx: 1,
             name: "rspec",
-            coverage_regex: nil,
-            tag_list: [],
             options: {
               before_script: ["pwd"],
               script: ["rspec"],
@@ -779,7 +843,6 @@ module Gitlab
             },
             when: "on_success",
             allow_failure: false,
-            environment: nil,
             yaml_variables: []
           })
         end
@@ -888,7 +951,7 @@ module Gitlab
           end
 
           context 'without matching job' do
-            let(:close_review) { nil  }
+            let(:close_review) { nil }
 
             it 'raises error' do
               expect { builds }.to raise_error('review job: on_stop job close_review is not defined')
@@ -976,14 +1039,11 @@ module Gitlab
               stage: "test",
               stage_idx: 1,
               name: "normal_job",
-              coverage_regex: nil,
-              tag_list: [],
               options: {
                 script: ["test"]
               },
               when: "on_success",
               allow_failure: false,
-              environment: nil,
               yaml_variables: []
             })
           end
@@ -1023,28 +1083,22 @@ module Gitlab
               stage: "build",
               stage_idx: 0,
               name: "job1",
-              coverage_regex: nil,
-              tag_list: [],
               options: {
                 script: ["execute-script-for-job"]
               },
               when: "on_success",
               allow_failure: false,
-              environment: nil,
               yaml_variables: []
             })
             expect(subject.second).to eq({
               stage: "build",
               stage_idx: 0,
               name: "job2",
-              coverage_regex: nil,
-              tag_list: [],
               options: {
                 script: ["execute-script-for-job"]
               },
               when: "on_success",
               allow_failure: false,
-              environment: nil,
               yaml_variables: []
             })
           end
@@ -1187,7 +1241,7 @@ module Gitlab
           config = YAML.dump({ services: [10, "test"], rspec: { script: "test" } })
           expect do
             Gitlab::Ci::YamlProcessor.new(config)
-          end.to raise_error(Gitlab::Ci::YamlProcessor::ValidationError, "service config should be a hash or a string")
+          end.to raise_error(Gitlab::Ci::YamlProcessor::ValidationError, "services:service config should be a hash or a string")
         end
 
         it "returns errors if job services parameter is not an array" do
@@ -1201,7 +1255,7 @@ module Gitlab
           config = YAML.dump({ rspec: { script: "test", services: [10, "test"] } })
           expect do
             Gitlab::Ci::YamlProcessor.new(config)
-          end.to raise_error(Gitlab::Ci::YamlProcessor::ValidationError, "service config should be a hash or a string")
+          end.to raise_error(Gitlab::Ci::YamlProcessor::ValidationError, "jobs:rspec:services:service config should be a hash or a string")
         end
 
         it "returns error if job configuration is invalid" do

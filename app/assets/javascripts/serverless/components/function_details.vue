@@ -1,59 +1,80 @@
 <script>
+import _ from 'underscore';
+import { mapState, mapActions, mapGetters } from 'vuex';
 import PodBox from './pod_box.vue';
-import ClipboardButton from '../../vue_shared/components/clipboard_button.vue';
-import Icon from '~/vue_shared/components/icon.vue';
+import Url from './url.vue';
+import AreaChart from './area.vue';
+import MissingPrometheus from './missing_prometheus.vue';
 
 export default {
   components: {
-    Icon,
     PodBox,
-    ClipboardButton,
+    Url,
+    AreaChart,
+    MissingPrometheus,
   },
   props: {
     func: {
       type: Object,
       required: true,
     },
+    hasPrometheus: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    clustersPath: {
+      type: String,
+      required: true,
+    },
+    helpPath: {
+      type: String,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      elWidth: 0,
+    };
   },
   computed: {
     name() {
       return this.func.name;
     },
     description() {
-      return this.func.description;
+      return _.isString(this.func.description) ? this.func.description : '';
     },
     funcUrl() {
       return this.func.url;
     },
     podCount() {
-      return this.func.podcount || 0;
+      return Number(this.func.podcount) || 0;
     },
+    ...mapState(['graphData', 'hasPrometheusData']),
+    ...mapGetters(['hasPrometheusMissingData']),
+  },
+  created() {
+    this.fetchMetrics({
+      metricsPath: this.func.metricsUrl,
+      hasPrometheus: this.hasPrometheus,
+    });
+  },
+  mounted() {
+    this.elWidth = this.$el.clientWidth;
+  },
+  methods: {
+    ...mapActions(['fetchMetrics']),
   },
 };
 </script>
 
 <template>
   <section id="serverless-function-details">
-    <h3>{{ name }}</h3>
-    <div class="append-bottom-default">
-      <div v-for="line in description.split('\n')" :key="line">{{ line }}<br /></div>
+    <h3 class="serverless-function-name">{{ name }}</h3>
+    <div class="append-bottom-default serverless-function-description">
+      <div v-for="(line, index) in description.split('\n')" :key="index">{{ line }}</div>
     </div>
-    <div class="clipboard-group append-bottom-default">
-      <div class="label label-monospace">{{ funcUrl }}</div>
-      <clipboard-button
-        :text="String(funcUrl)"
-        :title="s__('ServerlessDetails|Copy URL to clipboard')"
-        class="input-group-text js-clipboard-btn"
-      />
-      <a
-        :href="funcUrl"
-        target="_blank"
-        rel="noopener noreferrer nofollow"
-        class="input-group-text btn btn-default"
-      >
-        <icon name="external-link" />
-      </a>
-    </div>
+    <url :uri="funcUrl" />
 
     <h4>{{ s__('ServerlessDetails|Kubernetes Pods') }}</h4>
     <div v-if="podCount > 0">
@@ -69,5 +90,13 @@ export default {
       </p>
     </div>
     <div v-else><p>No pods loaded at this time.</p></div>
+
+    <area-chart v-if="hasPrometheusData" :graph-data="graphData" :container-width="elWidth" />
+    <missing-prometheus
+      v-if="!hasPrometheus || hasPrometheusMissingData"
+      :help-path="helpPath"
+      :clusters-path="clustersPath"
+      :missing-data="hasPrometheusMissingData"
+    />
   </section>
 </template>

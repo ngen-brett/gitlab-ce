@@ -5,7 +5,7 @@ describe Projects::PipelinesController do
 
   set(:user) { create(:user) }
   let(:project) { create(:project, :public, :repository) }
-  let(:feature) { ProjectFeature::DISABLED }
+  let(:feature) { ProjectFeature::ENABLED }
 
   before do
     stub_not_protect_default_branch
@@ -28,6 +28,8 @@ describe Projects::PipelinesController do
       end
 
       it 'returns serialized pipelines', :request_store do
+        expect(::Gitlab::GitalyClient).to receive(:allow_ref_name_caching).and_call_original
+
         queries = ActiveRecord::QueryRecorder.new do
           get_pipelines_index_json
         end
@@ -50,7 +52,7 @@ describe Projects::PipelinesController do
       end
     end
 
-    context 'when using legacy stages', :request_store  do
+    context 'when using legacy stages', :request_store do
       before do
         stub_feature_flags(ci_pipeline_persisted_stages: false)
       end
@@ -94,6 +96,8 @@ describe Projects::PipelinesController do
         RequestStore.end!
         RequestStore.clear!
         RequestStore.begin!
+
+        expect(::Gitlab::GitalyClient).to receive(:allow_ref_name_caching).and_call_original
 
         expect { get_pipelines_index_json }
           .to change { Gitlab::GitalyClient.get_request_count }.by(2)
@@ -183,6 +187,27 @@ describe Projects::PipelinesController do
         new_count = ActiveRecord::QueryRecorder.new { get_pipeline_json }.count
 
         expect(new_count).to be_within(12).of(control_count)
+      end
+    end
+
+    context 'when builds are disabled' do
+      let(:feature) { ProjectFeature::DISABLED }
+
+      it 'users can not see internal pipelines' do
+        get_pipeline_json
+
+        expect(response).to have_gitlab_http_status(:not_found)
+      end
+
+      context 'when pipeline is external' do
+        let(:pipeline) { create(:ci_pipeline, source: :external, project: project) }
+
+        it 'users can see the external pipeline' do
+          get_pipeline_json
+
+          expect(response).to have_gitlab_http_status(:ok)
+          expect(json_response['id']).to be(pipeline.id)
+        end
       end
     end
 
@@ -326,16 +351,14 @@ describe Projects::PipelinesController do
                    format: :json
     end
 
-    context 'when builds are enabled' do
-      let(:feature) { ProjectFeature::ENABLED }
-
-      it 'retries a pipeline without returning any content' do
-        expect(response).to have_gitlab_http_status(:no_content)
-        expect(build.reload).to be_retried
-      end
+    it 'retries a pipeline without returning any content' do
+      expect(response).to have_gitlab_http_status(:no_content)
+      expect(build.reload).to be_retried
     end
 
     context 'when builds are disabled' do
+      let(:feature) { ProjectFeature::DISABLED }
+
       it 'fails to retry pipeline' do
         expect(response).to have_gitlab_http_status(:not_found)
       end
@@ -355,16 +378,14 @@ describe Projects::PipelinesController do
                     format: :json
     end
 
-    context 'when builds are enabled' do
-      let(:feature) { ProjectFeature::ENABLED }
-
-      it 'cancels a pipeline without returning any content' do
-        expect(response).to have_gitlab_http_status(:no_content)
-        expect(pipeline.reload).to be_canceled
-      end
+    it 'cancels a pipeline without returning any content' do
+      expect(response).to have_gitlab_http_status(:no_content)
+      expect(pipeline.reload).to be_canceled
     end
 
     context 'when builds are disabled' do
+      let(:feature) { ProjectFeature::DISABLED }
+
       it 'fails to retry pipeline' do
         expect(response).to have_gitlab_http_status(:not_found)
       end

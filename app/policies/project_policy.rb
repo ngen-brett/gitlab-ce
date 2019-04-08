@@ -108,6 +108,10 @@ class ProjectPolicy < BasePolicy
   condition(:has_clusters, scope: :subject) { clusterable_has_clusters? }
   condition(:can_have_multiple_clusters) { multiple_clusters_available? }
 
+  condition(:internal_builds_disabled) do
+    !@subject.builds_enabled?
+  end
+
   features = %w[
     merge_requests
     issues
@@ -148,7 +152,6 @@ class ProjectPolicy < BasePolicy
     enable :remove_fork_project
     enable :destroy_merge_request
     enable :destroy_issue
-    enable :remove_pages
 
     enable :set_issue_iid
     enable :set_issue_created_at
@@ -174,7 +177,6 @@ class ProjectPolicy < BasePolicy
     enable :read_cycle_analytics
     enable :award_emoji
     enable :read_pages_content
-    enable :read_release
   end
 
   # These abilities are not allowed to admins that are not members of the project,
@@ -184,6 +186,7 @@ class ProjectPolicy < BasePolicy
 
   rule { can?(:reporter_access) }.policy do
     enable :download_code
+    enable :read_statistics
     enable :download_wiki_code
     enable :fork_project
     enable :create_project_snippet
@@ -196,11 +199,12 @@ class ProjectPolicy < BasePolicy
     enable :read_build
     enable :read_container_image
     enable :read_pipeline
-    enable :read_pipeline_schedule
     enable :read_environment
     enable :read_deployment
     enable :read_merge_request
     enable :read_sentry_issue
+    enable :read_release
+    enable :read_prometheus
   end
 
   # We define `:public_user_access` separately because there are cases in gitlab-ee
@@ -229,12 +233,14 @@ class ProjectPolicy < BasePolicy
     enable :admin_merge_request
     enable :admin_milestone
     enable :update_merge_request
+    enable :reopen_merge_request
     enable :create_commit_status
     enable :update_commit_status
     enable :create_build
     enable :update_build
     enable :create_pipeline
     enable :update_pipeline
+    enable :read_pipeline_schedule
     enable :create_pipeline_schedule
     enable :create_merge_request_from
     enable :create_wiki
@@ -267,6 +273,7 @@ class ProjectPolicy < BasePolicy
     enable :admin_pages
     enable :read_pages
     enable :update_pages
+    enable :remove_pages
     enable :read_cluster
     enable :add_cluster
     enable :create_cluster
@@ -274,6 +281,8 @@ class ProjectPolicy < BasePolicy
     enable :admin_cluster
     enable :create_environment_terminal
     enable :destroy_release
+    enable :destroy_artifacts
+    enable :daily_statistics
   end
 
   rule { (mirror_available & can?(:admin_project)) | admin }.enable :admin_remote_mirror
@@ -295,6 +304,8 @@ class ProjectPolicy < BasePolicy
 
   rule { issues_disabled }.policy do
     prevent(*create_read_update_admin_destroy(:issue))
+    prevent(*create_read_update_admin_destroy(:board))
+    prevent(*create_read_update_admin_destroy(:list))
   end
 
   rule { merge_requests_disabled | repository_disabled }.policy do
@@ -314,13 +325,12 @@ class ProjectPolicy < BasePolicy
     prevent(*create_read_update_admin_destroy(:project_snippet))
   end
 
-  rule { wiki_disabled & ~has_external_wiki }.policy do
+  rule { wiki_disabled }.policy do
     prevent(*create_read_update_admin_destroy(:wiki))
     prevent(:download_wiki_code)
   end
 
   rule { builds_disabled | repository_disabled }.policy do
-    prevent(*create_update_admin_destroy(:pipeline))
     prevent(*create_read_update_admin_destroy(:build))
     prevent(*create_read_update_admin_destroy(:pipeline_schedule))
     prevent(*create_read_update_admin_destroy(:environment))
@@ -328,11 +338,22 @@ class ProjectPolicy < BasePolicy
     prevent(*create_read_update_admin_destroy(:deployment))
   end
 
+  # There's two separate cases when builds_disabled is true:
+  # 1. When internal CI is disabled - builds_disabled && internal_builds_disabled
+  #   - We do not prevent the user from accessing Pipelines to allow him to access external CI
+  # 2. When the user is not allowed to access CI - builds_disabled && ~internal_builds_disabled
+  #   - We prevent the user from accessing Pipelines
+  rule { (builds_disabled & ~internal_builds_disabled) | repository_disabled }.policy do
+    prevent(*create_read_update_admin_destroy(:pipeline))
+    prevent(*create_read_update_admin_destroy(:commit_status))
+  end
+
   rule { repository_disabled }.policy do
     prevent :push_code
     prevent :download_code
     prevent :fork_project
     prevent :read_commit_status
+    prevent :read_pipeline
     prevent(*create_read_update_admin_destroy(:release))
   end
 
@@ -359,7 +380,6 @@ class ProjectPolicy < BasePolicy
     enable :read_merge_request
     enable :read_note
     enable :read_pipeline
-    enable :read_pipeline_schedule
     enable :read_commit_status
     enable :read_container_image
     enable :download_code
@@ -378,7 +398,6 @@ class ProjectPolicy < BasePolicy
 
   rule { public_builds & can?(:guest_access) }.policy do
     enable :read_pipeline
-    enable :read_pipeline_schedule
   end
 
   # These rules are included to allow maintainers of projects to push to certain
@@ -393,7 +412,7 @@ class ProjectPolicy < BasePolicy
   end.enable :read_issue_iid
 
   rule do
-    (can?(:read_project_for_iids) & merge_requests_visible_to_user) | can?(:read_merge_request)
+    (~guest & can?(:read_project_for_iids) & merge_requests_visible_to_user) | can?(:read_merge_request)
   end.enable :read_merge_request_iid
 
   rule { ~can_have_multiple_clusters & has_clusters }.prevent :add_cluster
@@ -450,7 +469,7 @@ class ProjectPolicy < BasePolicy
     when ProjectFeature::DISABLED
       false
     when ProjectFeature::PRIVATE
-      guest? || admin?
+      admin? || team_access_level >= ProjectFeature.required_minimum_access_level(feature)
     else
       true
     end

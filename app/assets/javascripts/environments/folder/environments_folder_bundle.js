@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import canaryCalloutMixin from 'ee_else_ce/environments/mixins/canary_callout_mixin';
 import environmentsFolderApp from './environments_folder_view.vue';
 import { parseBoolean } from '../../lib/utils/common_utils';
 import Translate from '../../vue_shared/translate';
@@ -11,6 +12,7 @@ export default () =>
     components: {
       environmentsFolderApp,
     },
+    mixins: [canaryCalloutMixin],
     data() {
       const environmentsData = document.querySelector(this.$options.el).dataset;
 
@@ -18,7 +20,6 @@ export default () =>
         endpoint: environmentsData.environmentsDataEndpoint,
         folderName: environmentsData.environmentsDataFolderName,
         cssContainerClass: environmentsData.cssClass,
-        canCreateDeployment: parseBoolean(environmentsData.environmentsDataCanCreateDeployment),
         canReadEnvironment: parseBoolean(environmentsData.environmentsDataCanReadEnvironment),
       };
     },
@@ -28,8 +29,8 @@ export default () =>
           endpoint: this.endpoint,
           folderName: this.folderName,
           cssContainerClass: this.cssContainerClass,
-          canCreateDeployment: this.canCreateDeployment,
           canReadEnvironment: this.canReadEnvironment,
+          ...this.canaryCalloutProps,
         },
       });
     },

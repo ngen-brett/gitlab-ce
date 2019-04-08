@@ -8,6 +8,7 @@ class Projects::IssuesController < Projects::ApplicationController
   include IssuableCollections
   include IssuesCalendar
   include SpammableActions
+  include RecordUserLastActivity
 
   def self.issue_except_actions
     %i[index calendar new create bulk_update import_csv]
@@ -19,7 +20,7 @@ class Projects::IssuesController < Projects::ApplicationController
 
   prepend_before_action(only: [:index]) { authenticate_sessionless_user!(:rss) }
   prepend_before_action(only: [:calendar]) { authenticate_sessionless_user!(:ics) }
-  prepend_before_action :authenticate_new_issue!, only: [:new]
+  prepend_before_action :authenticate_user!, only: [:new]
   prepend_before_action :store_uri, only: [:new, :show]
 
   before_action :whitelist_query_limiting, only: [:create, :create_merge_request, :move, :bulk_update]
@@ -38,6 +39,7 @@ class Projects::IssuesController < Projects::ApplicationController
   before_action :authorize_create_merge_request_from!, only: [:create_merge_request]
 
   before_action :authorize_import_issues!, only: [:import_csv]
+  before_action :authorize_download_code!, only: [:related_branches]
 
   before_action :set_suggested_issues_feature_flags, only: [:new]
 
@@ -94,9 +96,9 @@ class Projects::IssuesController < Projects::ApplicationController
 
     if service.discussions_to_resolve.count(&:resolved?) > 0
       flash[:notice] = if service.discussion_to_resolve_id
-                         "Resolved 1 discussion."
+                         _("Resolved 1 discussion.")
                        else
-                         "Resolved all discussions."
+                         _("Resolved all discussions.")
                        end
     end
 
@@ -191,6 +193,10 @@ class Projects::IssuesController < Projects::ApplicationController
 
   protected
 
+  def issuable_sorting_field
+    Issue::SORTING_PREFERENCE_FIELD
+  end
+
   # rubocop: disable CodeReuse/ActiveRecord
   def issue
     return @issue if defined?(@issue)
@@ -242,15 +248,7 @@ class Projects::IssuesController < Projects::ApplicationController
       task_num
       lock_version
       discussion_locked
-    ] + [{ label_ids: [], assignee_ids: [] }]
-  end
-
-  def authenticate_new_issue!
-    return if current_user
-
-    notice = "Please sign in to create the new issue."
-
-    redirect_to new_user_session_path, notice: notice
+    ] + [{ label_ids: [], assignee_ids: [], update_task: [:index, :checked, :line_number, :line_source] }]
   end
 
   def store_uri

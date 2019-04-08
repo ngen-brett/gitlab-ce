@@ -147,9 +147,19 @@ describe Projects::ServicesController do
           params: { namespace_id: project.namespace, project_id: project, id: service.to_param, service: { namespace: 'updated_namespace' } }
       end
 
-      it 'should not update the service' do
+      it 'does not update the service' do
         service.reload
         expect(service.namespace).not_to eq('updated_namespace')
+      end
+    end
+
+    context 'when activating JIRA service from a template' do
+      let(:template_service) { create(:jira_service, project: project, template: true) }
+
+      it 'activate JIRA service from template' do
+        put :update, params: { namespace_id: project.namespace, project_id: project, id: service.to_param, service: { active: true } }
+
+        expect(flash[:notice]).to eq 'JIRA activated.'
       end
     end
   end
@@ -162,7 +172,7 @@ describe Projects::ServicesController do
     context 'with approved services' do
       let(:service_id) { 'jira' }
 
-      it 'should render edit page' do
+      it 'renders edit page' do
         expect(response).to be_success
       end
     end
@@ -170,7 +180,7 @@ describe Projects::ServicesController do
     context 'with a deprecated service' do
       let(:service_id) { 'kubernetes' }
 
-      it 'should render edit page' do
+      it 'renders edit page' do
         expect(response).to be_success
       end
     end

@@ -1,6 +1,7 @@
 <script>
 import { mapState, mapGetters, mapActions } from 'vuex';
 import { s__ } from '~/locale';
+import diffLineNoteFormMixin from 'ee_else_ce/notes/mixins/diff_line_note_form';
 import noteForm from '../../notes/components/note_form.vue';
 import autosave from '../../notes/mixins/autosave';
 import { DIFF_NOTE_TYPE } from '../constants';
@@ -9,7 +10,7 @@ export default {
   components: {
     noteForm,
   },
-  mixins: [autosave],
+  mixins: [autosave, diffLineNoteFormMixin],
   props: {
     diffFileHash: {
       type: String,
@@ -47,9 +48,12 @@ export default {
         noteableType: this.noteableType,
         noteTargetLine: this.noteTargetLine,
         diffViewType: this.diffViewType,
-        diffFile: this.getDiffFileByHash(this.diffFileHash),
+        diffFile: this.diffFile,
         linePosition: this.linePosition,
       };
+    },
+    diffFile() {
+      return this.getDiffFileByHash(this.diffFileHash);
     },
   },
   mounted() {
@@ -101,8 +105,10 @@ export default {
       :line-code="line.line_code"
       :line="line"
       :help-page-path="helpPagePath"
+      :diff-file="diffFile"
       save-button-title="Comment"
       class="diff-comment-form"
+      @handleFormUpdateAddToReview="addToReview"
       @cancelForm="handleCancelCommentForm"
       @handleFormUpdate="handleSaveNote"
     />

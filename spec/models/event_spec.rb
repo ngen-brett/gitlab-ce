@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Event do
@@ -399,10 +401,7 @@ describe Event do
           expect(event.visible_to_user?(nil)).to be_falsy
           expect(event.visible_to_user?(non_member)).to be_falsy
           expect(event.visible_to_user?(author)).to be_truthy
-
-          # It is very unexpected that a private personal snippet is not visible
-          # to an instance administrator. This should be fixed in the future.
-          expect(event.visible_to_user?(admin)).to be_falsy
+          expect(event.visible_to_user?(admin)).to be_truthy
         end
       end
     end

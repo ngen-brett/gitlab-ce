@@ -49,10 +49,12 @@ description: 'Learn how to contribute to GitLab.'
 - [Working with the GitHub importer](github_importer.md)
 - [Import/Export development documentation](import_export.md)
 - [Working with Merge Request diffs](diffs.md)
+- [Kubernetes integration guidelines](kubernetes.md)
 - [Permissions](permissions.md)
 - [Prometheus metrics](prometheus_metrics.md)
 - [Guidelines for reusing abstractions](reusing_abstractions.md)
 - [DeclarativePolicy framework](policies.md)
+- [How Git object deduplication works in GitLab](git_object_deduplication.md)
 
 ## Performance guides
 
@@ -123,3 +125,7 @@ description: 'Learn how to contribute to GitLab.'
 ## Compliance
 
 - [Licensing](licensing.md) for ensuring license compliance
+
+## Go guides
+
+- [Go Guidelines](go_guide/index.md)

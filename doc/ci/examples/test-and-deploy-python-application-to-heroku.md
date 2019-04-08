@@ -1,4 +1,4 @@
-# Test and Deploy a python application with GitLab CI/CD
+# Test and deploy a Python application with GitLab CI/CD
 
 This example will guide you how to run tests in your Python application and deploy it automatically as Heroku application.
 
@@ -47,7 +47,7 @@ This project has three jobs:
 
 ## Store API keys
 
-You'll need to create two variables in **Settings > CI/CD > Variables** in your GitLab project:
+You'll need to create two variables in **Settings > CI/CD > Environment variables** in your GitLab project:
 
 - `HEROKU_STAGING_API_KEY` - Heroku API key used to deploy staging app.
 - `HEROKU_PRODUCTION_API_KEY` - Heroku API key used to deploy production app.
@@ -65,7 +65,7 @@ First install [Docker Engine](https://docs.docker.com/installation/).
 To build this project you also need to have [GitLab Runner](https://docs.gitlab.com/runner).
 You can use public runners available on `gitlab.com`, but you can register your own:
 
-```
+```sh
 gitlab-runner register \
   --non-interactive \
   --url "https://gitlab.com/" \

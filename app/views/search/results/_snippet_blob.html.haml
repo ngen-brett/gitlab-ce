@@ -18,10 +18,10 @@
         %i.fa.fa-file
         %strong= snippet.file_name
     - if markup?(snippet.file_name)
-      .file-content.wiki
+      .file-content.md.md-file
         - snippet_chunks.each do |chunk|
           - unless chunk[:data].empty?
-            = markup(snippet.file_name, chunk[:data], legacy_render_context(params))
+            = markup(snippet.file_name, chunk[:data])
           - else
             .file-content.code
               .nothing-here-block= _("Empty file")

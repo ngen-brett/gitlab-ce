@@ -67,7 +67,7 @@ developer documentation.
 Before you begin, ensure that any GitHub users who you want to map to GitLab users have either:
 
 - A GitLab account that has logged in using the GitHub icon
-\- or -
+  \- or -
 - A GitLab account with an email address that matches the [public email address](https://help.github.com/articles/setting-your-commit-email-address-on-github/) of the GitHub user
 
 User-matching attempts occur in that order, and if a user is not identified either way, the activity is associated with
@@ -92,7 +92,7 @@ integration enabled, that should be the preferred method to import your reposito
 
 If you are not using the GitHub integration, you can still perform an authorization with GitHub to grant GitLab access your repositories:
 
-1. Go to https://github.com/settings/tokens/new
+1. Go to <https://github.com/settings/tokens/new>
 1. Enter a token description.
 1. Select the repo scope.
 1. Click **Generate token**.

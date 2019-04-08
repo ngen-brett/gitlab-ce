@@ -83,6 +83,7 @@ describe Projects::TransferService do
       subject { transfer_project(project, user, group) }
 
       before do
+        stub_feature_flags(ci_preparing_state: false)
         expect(Clusters::Gcp::Kubernetes::CreateOrUpdateServiceAccountService).to receive(:namespace_creator).and_return(service_account_creator)
         expect(Clusters::Gcp::Kubernetes::FetchKubernetesTokenService).to receive(:new).and_return(secrets_fetcher)
       end
@@ -201,7 +202,7 @@ describe Projects::TransferService do
     before do
       group.add_owner(user)
 
-      unless gitlab_shell.create_repository(repository_storage, "#{group.full_path}/#{project.path}")
+      unless gitlab_shell.create_repository(repository_storage, "#{group.full_path}/#{project.path}", project.full_path)
         raise 'failed to add repository'
       end
 

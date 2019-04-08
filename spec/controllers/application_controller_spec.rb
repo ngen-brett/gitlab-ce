@@ -423,7 +423,7 @@ describe ApplicationController do
         enforce_terms
       end
 
-      it 'redirects if the user did not accept the terms'  do
+      it 'redirects if the user did not accept the terms' do
         get :index
 
         expect(response).to have_gitlab_http_status(302)
@@ -664,6 +664,14 @@ describe ApplicationController do
         get :index
 
         expect(response.headers['Cache-Control']).to eq 'max-age=0, private, must-revalidate, no-store'
+      end
+
+      it 'does not set the "no-store" header for XHR requests' do
+        sign_in(user)
+
+        get :index, xhr: true
+
+        expect(response.headers['Cache-Control']).to eq 'max-age=0, private, must-revalidate'
       end
     end
   end

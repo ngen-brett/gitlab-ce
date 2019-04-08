@@ -56,7 +56,7 @@ class Group < Namespace
 
   validates :two_factor_grace_period, presence: true, numericality: { greater_than_or_equal_to: 0 }
 
-  add_authentication_token_field :runners_token, encrypted: true, migrating: true
+  add_authentication_token_field :runners_token, encrypted: -> { Feature.enabled?(:groups_tokens_optional_encryption, default_enabled: true) ? :optional : :required }
 
   after_create :post_create_hook
   after_destroy :post_destroy_hook
@@ -98,7 +98,7 @@ class Group < Namespace
     def select_for_project_authorization
       if current_scope.joins_values.include?(:shared_projects)
         joins('INNER JOIN namespaces project_namespace ON project_namespace.id = projects.namespace_id')
-          .where('project_namespace.share_with_group_lock = ?',  false)
+          .where('project_namespace.share_with_group_lock = ?', false)
           .select("projects.id AS project_id, LEAST(project_group_links.group_access, members.access_level) AS access_level")
       else
         super
@@ -228,22 +228,21 @@ class Group < Namespace
   def has_owner?(user)
     return false unless user
 
-    members_with_parents.owners.where(user_id: user).any?
+    members_with_parents.owners.exists?(user_id: user)
   end
 
   def has_maintainer?(user)
     return false unless user
 
-    members_with_parents.maintainers.where(user_id: user).any?
+    members_with_parents.maintainers.exists?(user_id: user)
   end
 
   # @deprecated
   alias_method :has_master?, :has_maintainer?
 
   # Check if user is a last owner of the group.
-  # Parent owners are ignored for nested groups.
   def last_owner?(user)
-    owners.include?(user) && owners.size == 1
+    has_owner?(user) && members_with_parents.owners.size == 1
   end
 
   def ldap_synced?
@@ -403,6 +402,10 @@ class Group < Namespace
 
   def group_clusters_enabled?
     Feature.enabled?(:group_clusters, root_ancestor, default_enabled: true)
+  end
+
+  def project_creation_level
+    super || ::Gitlab::CurrentSettings.default_project_creation
   end
 
   private

@@ -28,8 +28,9 @@ the milestone to the issue.
 
 ## Project milestones and group milestones
 
-- **Project milestones** can be assigned to issues or merge requests in that project only.
-- **Group milestones** can be assigned to any issue or merge request of any project in that group.
+- **Project milestones** can be assigned to issues or merge requests in that project only. Navigate to **Issues > Milestones** in a project to view the project milestone list.
+- **Group milestones** can be assigned to any issue or merge request of any project in that group. Navigate to **Issues > Milestones** in a group to view the group milestone list.
+- All milestones you have access to can also be viewed in the dashboard milestones list. Click on **Milestones** on the top navigation bar to view both project milestones and group milestones you have access to.
 
 ## Creating milestones
 
@@ -91,7 +92,7 @@ When filtering by milestone, in addition to choosing a specific project mileston
 - **None**: Show issues or merge requests with no assigned milestone.
 - **Any**: Show issues or merge requests that have an assigned milestone.
 - **Upcoming**: Show issues or merge requests that have been assigned the open milestone that has the next upcoming due date (i.e. nearest due date in the future).
-- **Started**: Show issues or merge requests that have an assigned milestone with a start date that is before today.
+- **Started**: Show issues or merge requests that have an open assigned milestone with a start date that is before today.
 
 ## Milestone view
 

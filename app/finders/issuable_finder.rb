@@ -18,6 +18,7 @@
 #     assignee_id: integer or 'None' or 'Any'
 #     assignee_username: string
 #     search: string
+#     in: 'title', 'description', or a string joining them with comma
 #     label_name: string
 #     sort: string
 #     non_archived: boolean
@@ -52,10 +53,10 @@ class IssuableFinder
       assignee_username
       author_id
       author_username
-      label_name
       milestone_title
       my_reaction_emoji
       search
+      in
     ]
   end
 
@@ -76,22 +77,24 @@ class IssuableFinder
     items = init_collection
     items = filter_items(items)
 
-    # This has to be last as we may use a CTE as an optimization fence
-    # by passing the attempt_group_search_optimizations param and
-    # enabling the use_cte_for_group_issues_search feature flag
+    # This has to be last as we use a CTE as an optimization fence
+    # for counts by passing the force_cte param and enabling the
+    # attempt_group_search_optimizations feature flag
     # https://www.postgresql.org/docs/current/static/queries-with.html
     items = by_search(items)
 
-    sort(items)
+    items = sort(items)
+
+    items
   end
 
   def filter_items(items)
     items = by_project(items)
     items = by_group(items)
-    items = by_subquery(items)
     items = by_scope(items)
     items = by_created_at(items)
     items = by_updated_at(items)
+    items = by_closed_at(items)
     items = by_state(items)
     items = by_group(items)
     items = by_assignee(items)
@@ -114,8 +117,9 @@ class IssuableFinder
   #
   # rubocop: disable CodeReuse/ActiveRecord
   def count_by_state
-    count_params = params.merge(state: nil, sort: nil)
+    count_params = params.merge(state: nil, sort: nil, force_cte: true)
     finder = self.class.new(current_user, count_params)
+
     counts = Hash.new(0)
 
     # Searching by label includes a GROUP BY in the query, but ours will be last
@@ -125,6 +129,11 @@ class IssuableFinder
     #
     # This does not apply when we are using a CTE for the search, as the labels
     # GROUP BY is inside the subquery in that case, so we set labels_count to 1.
+    #
+    # Groups and projects have separate feature flags to suggest the use
+    # of a CTE. The CTE will not be used if the sort doesn't support it,
+    # but will always be used for the counts here as we ignore sorting
+    # anyway.
     labels_count = label_names.any? ? label_names.count : 1
     labels_count = 1 if use_cte_for_search?
 
@@ -300,29 +309,35 @@ class IssuableFinder
   end
   # rubocop: enable CodeReuse/ActiveRecord
 
-  def use_subquery_for_search?
-    strong_memoize(:use_subquery_for_search) do
-      attempt_group_search_optimizations? &&
-        Feature.enabled?(:use_subquery_for_group_issues_search, default_enabled: false)
-    end
-  end
-
   def use_cte_for_search?
     strong_memoize(:use_cte_for_search) do
-      attempt_group_search_optimizations? &&
-        !use_subquery_for_search? &&
-        Feature.enabled?(:use_cte_for_group_issues_search, default_enabled: true)
+      next false unless search
+      next false unless Gitlab::Database.postgresql?
+      # Only simple unsorted & simple sorts can use CTE
+      next false if params[:sort].present? && !params[:sort].in?(klass.simple_sorts.keys)
+
+      attempt_group_search_optimizations? || attempt_project_search_optimizations?
     end
   end
 
   private
+
+  def force_cte?
+    !!params[:force_cte]
+  end
 
   def init_collection
     klass.all
   end
 
   def attempt_group_search_optimizations?
-    search && Gitlab::Database.postgresql? && params[:attempt_group_search_optimizations]
+    params[:attempt_group_search_optimizations] &&
+      Feature.enabled?(:attempt_group_search_optimizations, default_enabled: true)
+  end
+
+  def attempt_project_search_optimizations?
+    params[:attempt_project_search_optimizations] &&
+      Feature.enabled?(:attempt_project_search_optimizations)
   end
 
   def count_key(value)
@@ -347,6 +362,13 @@ class IssuableFinder
   def by_updated_at(items)
     items = items.updated_after(params[:updated_after]) if params[:updated_after].present?
     items = items.updated_before(params[:updated_before]) if params[:updated_before].present?
+
+    items
+  end
+
+  def by_closed_at(items)
+    items = items.closed_after(params[:closed_after]) if params[:closed_after].present?
+    items = items.closed_before(params[:closed_before]) if params[:closed_before].present?
 
     items
   end
@@ -388,15 +410,6 @@ class IssuableFinder
   end
   # rubocop: enable CodeReuse/ActiveRecord
 
-  # Wrap projects and groups in a subquery if the conditions are met.
-  def by_subquery(items)
-    if use_subquery_for_search?
-      klass.where(id: items.select(:id)) # rubocop: disable CodeReuse/ActiveRecord
-    else
-      items
-    end
-  end
-
   # rubocop: disable CodeReuse/ActiveRecord
   def by_search(items)
     return items unless search
@@ -408,7 +421,7 @@ class IssuableFinder
       items = klass.with(cte.to_arel).from(klass.table_name)
     end
 
-    items.full_search(search)
+    items.full_search(search, matched_columns: params[:in])
   end
   # rubocop: enable CodeReuse/ActiveRecord
 
@@ -476,7 +489,7 @@ class IssuableFinder
         upcoming_ids = Milestone.upcoming_ids(projects, related_groups)
         items = items.left_joins_milestones.where(milestone_id: upcoming_ids)
       elsif filter_by_started_milestone?
-        items = items.left_joins_milestones.where('milestones.start_date <= NOW()')
+        items = items.left_joins_milestones.merge(Milestone.started)
       else
         items = items.with_milestone(params[:milestone_title])
       end

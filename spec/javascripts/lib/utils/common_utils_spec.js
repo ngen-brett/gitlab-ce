@@ -2,6 +2,7 @@ import axios from '~/lib/utils/axios_utils';
 import * as commonUtils from '~/lib/utils/common_utils';
 import MockAdapter from 'axios-mock-adapter';
 import { faviconDataUrl, overlayDataUrl, faviconWithOverlayDataUrl } from './mock_data';
+import breakpointInstance from '~/breakpoints';
 
 const PIXEL_TOLERANCE = 0.2;
 
@@ -232,6 +233,21 @@ describe('common_utils', () => {
     });
   });
 
+  describe('debounceByAnimationFrame', () => {
+    it('debounces a function to allow a maximum of one call per animation frame', done => {
+      const spy = jasmine.createSpy('spy');
+      const debouncedSpy = commonUtils.debounceByAnimationFrame(spy);
+      window.requestAnimationFrame(() => {
+        debouncedSpy();
+        debouncedSpy();
+        window.requestAnimationFrame(() => {
+          expect(spy).toHaveBeenCalledTimes(1);
+          done();
+        });
+      });
+    });
+  });
+
   describe('getParameterByName', () => {
     beforeEach(() => {
       window.history.pushState({}, null, '?scope=all&p=2');
@@ -365,6 +381,38 @@ describe('common_utils', () => {
     });
   });
 
+  describe('contentTop', () => {
+    it('does not add height for fileTitle or compareVersionsHeader if screen is too small', () => {
+      spyOn(breakpointInstance, 'isDesktop').and.returnValue(false);
+
+      setFixtures(`
+        <div class="diff-file file-title-flex-parent">
+          blah blah blah
+        </div>
+        <div class="mr-version-controls">
+          more blah blah blah
+        </div>
+      `);
+
+      expect(commonUtils.contentTop()).toBe(0);
+    });
+
+    it('adds height for fileTitle and compareVersionsHeader screen is large enough', () => {
+      spyOn(breakpointInstance, 'isDesktop').and.returnValue(true);
+
+      setFixtures(`
+        <div class="diff-file file-title-flex-parent">
+          blah blah blah
+        </div>
+        <div class="mr-version-controls">
+          more blah blah blah
+        </div>
+      `);
+
+      expect(commonUtils.contentTop()).toBe(18);
+    });
+  });
+
   describe('parseBoolean', () => {
     const { parseBoolean } = commonUtils;
 
@@ -391,13 +439,6 @@ describe('common_utils', () => {
 
         expect(parseBoolean(result)).toBe(result);
       });
-    });
-  });
-
-  describe('convertPermissionToBoolean', () => {
-    it('should convert a boolean in a string to a boolean', () => {
-      expect(commonUtils.convertPermissionToBoolean('true')).toEqual(true);
-      expect(commonUtils.convertPermissionToBoolean('false')).toEqual(false);
     });
   });
 
@@ -680,51 +721,131 @@ describe('common_utils', () => {
       });
     });
 
-    describe('deep: true', () => {
-      it('converts object with child objects', () => {
-        const obj = {
-          snake_key: {
-            child_snake_key: 'value',
-          },
-        };
+    describe('with options', () => {
+      const objWithoutChildren = {
+        project_name: 'GitLab CE',
+        group_name: 'GitLab.org',
+        license_type: 'MIT',
+      };
 
-        expect(commonUtils.convertObjectPropsToCamelCase(obj, { deep: true })).toEqual({
-          snakeKey: {
-            childSnakeKey: 'value',
-          },
+      const objWithChildren = {
+        project_name: 'GitLab CE',
+        group_name: 'GitLab.org',
+        license_type: 'MIT',
+        tech_stack: {
+          backend: 'Ruby',
+          frontend_framework: 'Vue',
+          database: 'PostgreSQL',
+        },
+      };
+
+      describe('when options.deep is true', () => {
+        it('converts object with child objects', () => {
+          const obj = {
+            snake_key: {
+              child_snake_key: 'value',
+            },
+          };
+
+          expect(commonUtils.convertObjectPropsToCamelCase(obj, { deep: true })).toEqual({
+            snakeKey: {
+              childSnakeKey: 'value',
+            },
+          });
         });
-      });
 
-      it('converts array with child objects', () => {
-        const arr = [
-          {
-            child_snake_key: 'value',
-          },
-        ];
-
-        expect(commonUtils.convertObjectPropsToCamelCase(arr, { deep: true })).toEqual([
-          {
-            childSnakeKey: 'value',
-          },
-        ]);
-      });
-
-      it('converts array with child arrays', () => {
-        const arr = [
-          [
+        it('converts array with child objects', () => {
+          const arr = [
             {
               child_snake_key: 'value',
             },
-          ],
-        ];
+          ];
 
-        expect(commonUtils.convertObjectPropsToCamelCase(arr, { deep: true })).toEqual([
-          [
+          expect(commonUtils.convertObjectPropsToCamelCase(arr, { deep: true })).toEqual([
             {
               childSnakeKey: 'value',
             },
-          ],
-        ]);
+          ]);
+        });
+
+        it('converts array with child arrays', () => {
+          const arr = [
+            [
+              {
+                child_snake_key: 'value',
+              },
+            ],
+          ];
+
+          expect(commonUtils.convertObjectPropsToCamelCase(arr, { deep: true })).toEqual([
+            [
+              {
+                childSnakeKey: 'value',
+              },
+            ],
+          ]);
+        });
+      });
+
+      describe('when options.dropKeys is provided', () => {
+        it('discards properties mentioned in `dropKeys` array', () => {
+          expect(
+            commonUtils.convertObjectPropsToCamelCase(objWithoutChildren, {
+              dropKeys: ['group_name'],
+            }),
+          ).toEqual({
+            projectName: 'GitLab CE',
+            licenseType: 'MIT',
+          });
+        });
+
+        it('discards properties mentioned in `dropKeys` array when `deep` is true', () => {
+          expect(
+            commonUtils.convertObjectPropsToCamelCase(objWithChildren, {
+              deep: true,
+              dropKeys: ['group_name', 'database'],
+            }),
+          ).toEqual({
+            projectName: 'GitLab CE',
+            licenseType: 'MIT',
+            techStack: {
+              backend: 'Ruby',
+              frontendFramework: 'Vue',
+            },
+          });
+        });
+      });
+
+      describe('when options.ignoreKeyNames is provided', () => {
+        it('leaves properties mentioned in `ignoreKeyNames` array intact', () => {
+          expect(
+            commonUtils.convertObjectPropsToCamelCase(objWithoutChildren, {
+              ignoreKeyNames: ['group_name'],
+            }),
+          ).toEqual({
+            projectName: 'GitLab CE',
+            licenseType: 'MIT',
+            group_name: 'GitLab.org',
+          });
+        });
+
+        it('leaves properties mentioned in `ignoreKeyNames` array intact when `deep` is true', () => {
+          expect(
+            commonUtils.convertObjectPropsToCamelCase(objWithChildren, {
+              deep: true,
+              ignoreKeyNames: ['group_name', 'frontend_framework'],
+            }),
+          ).toEqual({
+            projectName: 'GitLab CE',
+            group_name: 'GitLab.org',
+            licenseType: 'MIT',
+            techStack: {
+              backend: 'Ruby',
+              frontend_framework: 'Vue',
+              database: 'PostgreSQL',
+            },
+          });
+        });
       });
     });
   });
@@ -760,6 +881,7 @@ describe('common_utils', () => {
     });
 
     it('returns true when provided `el` is in viewport', () => {
+      el.setAttribute('style', `position: absolute; right: ${window.innerWidth + 0.2};`);
       document.body.appendChild(el);
 
       expect(commonUtils.isInViewport(el)).toBe(true);

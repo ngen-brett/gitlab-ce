@@ -2,7 +2,7 @@
 
 require 'carrierwave/orm/activerecord'
 
-class Issue < ActiveRecord::Base
+class Issue < ApplicationRecord
   include AtomicInternalId
   include IidRoutes
   include Issuable
@@ -25,6 +25,8 @@ class Issue < ActiveRecord::Base
   DueThisWeek                     = DueDateStruct.new('Due This Week', 'week').freeze
   DueThisMonth                    = DueDateStruct.new('Due This Month', 'month').freeze
   DueNextMonthAndPreviousTwoWeeks = DueDateStruct.new('Due Next Month And Previous Two Weeks', 'next_month_and_previous_two_weeks').freeze
+
+  SORTING_PREFERENCE_FIELD = :issues_sort
 
   belongs_to :project
   belongs_to :moved_to, class_name: 'Issue'
@@ -62,8 +64,10 @@ class Issue < ActiveRecord::Base
   scope :order_closest_future_date, -> { reorder('CASE WHEN issues.due_date >= CURRENT_DATE THEN 0 ELSE 1 END ASC, ABS(CURRENT_DATE - issues.due_date) ASC') }
 
   scope :preload_associations, -> { preload(:labels, project: :namespace) }
+  scope :with_api_entity_associations, -> { preload(:timelogs, :assignees, :author, :notes, :labels, project: [:route, { namespace: :route }] ) }
 
   scope :public_only, -> { where(confidential: false) }
+  scope :confidential_only, -> { where(confidential: true) }
 
   after_save :expire_etag_cache
   after_save :ensure_metrics, unless: :imported?
@@ -259,6 +263,10 @@ class Issue < ActiveRecord::Base
     Projects::OpenIssuesCountService.new(project).refresh_cache
   end
   # rubocop: enable CodeReuse/ServiceClass
+
+  def merge_requests_count
+    merge_requests_closing_issues.count
+  end
 
   private
 

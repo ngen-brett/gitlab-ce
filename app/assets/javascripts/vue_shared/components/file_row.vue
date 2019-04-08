@@ -39,7 +39,7 @@ export default {
   },
   data() {
     return {
-      mouseOver: false,
+      dropdownOpen: false,
     };
   },
   computed: {
@@ -123,8 +123,8 @@ export default {
 
       return this.$router.currentRoute.path === `/project${this.file.url}`;
     },
-    toggleHover(over) {
-      this.mouseOver = over;
+    toggleDropdown(val) {
+      this.dropdownOpen = val;
     },
   },
 };
@@ -136,11 +136,11 @@ export default {
     <div
       v-else
       :class="fileClass"
+      :title="file.name"
       class="file-row"
       role="button"
       @click="clickFile"
-      @mouseover="toggleHover(true)"
-      @mouseout="toggleHover(false)"
+      @mouseleave="toggleDropdown(false)"
     >
       <div class="file-row-name-container">
         <span ref="textOutput" :style="levelIndentation" class="file-row-name str-truncated">
@@ -159,7 +159,8 @@ export default {
           :is="extraComponent"
           v-if="extraComponent && !(hideExtraOnTree && file.type === 'tree')"
           :file="file"
-          :mouse-over="mouseOver"
+          :dropdown-open="dropdownOpen"
+          @toggle="toggleDropdown($event)"
         />
       </div>
     </div>

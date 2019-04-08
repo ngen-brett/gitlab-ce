@@ -14,7 +14,11 @@ import {
   INLINE_DIFF_VIEW_TYPE,
   DIFF_VIEW_COOKIE_NAME,
   MR_TREE_SHOW_KEY,
+  TREE_LIST_STORAGE_KEY,
+  WHITESPACE_STORAGE_KEY,
+  TREE_LIST_WIDTH_STORAGE_KEY,
 } from '../constants';
+import { diffViewerModes } from '~/ide/constants';
 
 export const setBaseConfig = ({ commit }, options) => {
   const { endpoint, projectPath } = options;
@@ -33,7 +37,7 @@ export const fetchDiffFiles = ({ state, commit }) => {
   });
 
   return axios
-    .get(state.endpoint)
+    .get(state.endpoint, { params: { w: state.showWhitespace ? null : '1' } })
     .then(res => {
       commit(types.SET_LOADING, false);
       commit(types.SET_MERGE_REQUEST_DIFFS, res.data.merge_request_diffs || []);
@@ -48,7 +52,9 @@ export const fetchDiffFiles = ({ state, commit }) => {
 };
 
 export const setHighlightedRow = ({ commit }, lineCode) => {
+  const fileHash = lineCode.split('_')[0];
   commit(types.SET_HIGHLIGHTED_ROW, lineCode);
+  commit(types.UPDATE_CURRENT_DIFF_FILE_ID, fileHash);
 };
 
 // This is adding line discussions to the actual lines in the diff tree
@@ -89,7 +95,7 @@ export const renderFileForDiscussionId = ({ commit, rootState, state }, discussi
         commit(types.RENDER_FILE, file);
       }
 
-      if (file.collapsed) {
+      if (file.viewer.collapsed) {
         eventHub.$emit(`loadCollapsedDiff/${file.file_hash}`);
         scrollToElement(document.getElementById(file.file_hash));
       } else {
@@ -103,7 +109,8 @@ export const startRenderDiffsQueue = ({ state, commit }) => {
   const checkItem = () =>
     new Promise(resolve => {
       const nextFile = state.diffFiles.find(
-        file => !file.renderIt && (!file.collapsed || !file.text),
+        file =>
+          !file.renderIt && (!file.viewer.collapsed || !file.viewer.name === diffViewerModes.text),
       );
 
       if (nextFile) {
@@ -125,6 +132,8 @@ export const startRenderDiffsQueue = ({ state, commit }) => {
 
   return checkItem();
 };
+
+export const setRenderIt = ({ commit }, file) => commit(types.RENDER_FILE, file);
 
 export const setInlineDiffViewType = ({ commit }) => {
   commit(types.SET_DIFF_VIEW_TYPE, INLINE_DIFF_VIEW_TYPE);
@@ -255,13 +264,14 @@ export const scrollToFile = ({ state, commit }, path) => {
   document.location.hash = fileHash;
 
   commit(types.UPDATE_CURRENT_DIFF_FILE_ID, fileHash);
-
-  setTimeout(() => commit(types.UPDATE_CURRENT_DIFF_FILE_ID, ''), 1000);
 };
 
-export const toggleShowTreeList = ({ commit, state }) => {
+export const toggleShowTreeList = ({ commit, state }, saving = true) => {
   commit(types.TOGGLE_SHOW_TREE_LIST);
-  localStorage.setItem(MR_TREE_SHOW_KEY, state.showTreeList);
+
+  if (saving) {
+    localStorage.setItem(MR_TREE_SHOW_KEY, state.showTreeList);
+  }
 };
 
 export const openDiffFileCommentForm = ({ commit, getters }, formData) => {
@@ -277,6 +287,68 @@ export const openDiffFileCommentForm = ({ commit, getters }, formData) => {
 export const closeDiffFileCommentForm = ({ commit }, fileHash) => {
   commit(types.CLOSE_DIFF_FILE_COMMENT_FORM, fileHash);
 };
+
+export const setRenderTreeList = ({ commit }, renderTreeList) => {
+  commit(types.SET_RENDER_TREE_LIST, renderTreeList);
+
+  localStorage.setItem(TREE_LIST_STORAGE_KEY, renderTreeList);
+};
+
+export const setShowWhitespace = ({ commit }, { showWhitespace, pushState = false }) => {
+  commit(types.SET_SHOW_WHITESPACE, showWhitespace);
+
+  localStorage.setItem(WHITESPACE_STORAGE_KEY, showWhitespace);
+
+  if (pushState) {
+    historyPushState(showWhitespace ? '?w=0' : '?w=1');
+  }
+};
+
+export const toggleFileFinder = ({ commit }, visible) => {
+  commit(types.TOGGLE_FILE_FINDER_VISIBLE, visible);
+};
+
+export const cacheTreeListWidth = (_, size) => {
+  localStorage.setItem(TREE_LIST_WIDTH_STORAGE_KEY, size);
+};
+
+export const requestFullDiff = ({ commit }, filePath) => commit(types.REQUEST_FULL_DIFF, filePath);
+export const receiveFullDiffSucess = ({ commit }, { filePath, data }) =>
+  commit(types.RECEIVE_FULL_DIFF_SUCCESS, { filePath, data });
+export const receiveFullDiffError = ({ commit }, filePath) => {
+  commit(types.RECEIVE_FULL_DIFF_ERROR, filePath);
+  createFlash(s__('MergeRequest|Error loading full diff. Please try again.'));
+};
+
+export const fetchFullDiff = ({ dispatch }, file) =>
+  axios
+    .get(file.context_lines_path, {
+      params: {
+        full: true,
+        from_merge_request: true,
+      },
+    })
+    .then(({ data }) => dispatch('receiveFullDiffSucess', { filePath: file.file_path, data }))
+    .then(() => scrollToElement(`#${file.file_hash}`))
+    .catch(() => dispatch('receiveFullDiffError', file.file_path));
+
+export const toggleFullDiff = ({ dispatch, getters, state }, filePath) => {
+  const file = state.diffFiles.find(f => f.file_path === filePath);
+
+  dispatch('requestFullDiff', filePath);
+
+  if (file.isShowingFullFile) {
+    dispatch('loadCollapsedDiff', file)
+      .then(() => dispatch('assignDiscussionsToDiff', getters.getDiffFileDiscussions(file)))
+      .then(() => scrollToElement(`#${file.file_hash}`))
+      .catch(() => dispatch('receiveFullDiffError', filePath));
+  } else {
+    dispatch('fetchFullDiff', file);
+  }
+};
+
+export const setFileCollapsed = ({ commit }, { filePath, collapsed }) =>
+  commit(types.SET_FILE_COLLAPSED, { filePath, collapsed });
 
 // prevent babel-plugin-rewire from generating an invalid default during karma tests
 export default () => {};

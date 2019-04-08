@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Ci
-  class JobArtifact < ActiveRecord::Base
+  class JobArtifact < ApplicationRecord
     include AfterCommitQueue
     include ObjectStorage::BackgroundMove
     extend Gitlab::Ci::Model
@@ -72,6 +72,8 @@ module Ci
 
       where(file_type: types)
     end
+
+    scope :expired, -> (limit) { where('expire_at < ?', Time.now).limit(limit) }
 
     delegate :filename, :exists?, :open, to: :file
 

@@ -137,6 +137,7 @@ module ApplicationSettingsHelper
       :default_artifacts_expire_in,
       :default_branch_protection,
       :default_group_visibility,
+      :default_project_creation,
       :default_project_visibility,
       :default_projects_limit,
       :default_snippet_visibility,
@@ -150,6 +151,7 @@ module ApplicationSettingsHelper
       :email_author_in_body,
       :enabled_git_access_protocol,
       :enforce_terms,
+      :first_day_of_week,
       :gitaly_timeout_default,
       :gitaly_timeout_medium,
       :gitaly_timeout_fast,
@@ -231,7 +233,8 @@ module ApplicationSettingsHelper
       :web_ide_clientside_preview_enabled,
       :diff_max_patch_bytes,
       :commit_email_hostname,
-      :protected_ci_variables
+      :protected_ci_variables,
+      :local_markdown_version
     ]
   end
 
