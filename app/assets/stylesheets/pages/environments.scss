@@ -12,16 +12,6 @@
 
 .environments-container {
   .ci-table {
-    .deployment-column {
-      > span {
-        word-break: break-all;
-      }
-
-      .avatar {
-        float: none;
-      }
-    }
-
     .btn-group {
       > .btn:not(.btn-danger) {
         color: $gl-text-color-secondary;
@@ -36,10 +26,6 @@
       }
     }
 
-    .btn .text-center {
-      display: inline;
-    }
-
     .commit-title {
       margin: 0;
     }
@@ -47,13 +33,6 @@
     .external-url,
     .dropdown-new {
       color: $gl-text-color-secondary;
-    }
-
-    .dropdown-menu {
-      .fa {
-        margin-right: 6px;
-        color: $gl-text-color-secondary;
-      }
     }
 
     .build-link,
@@ -70,26 +49,11 @@
       }
     }
 
-    .deployment .build-column {
-      .build-link {
-        color: $gl-text-color;
-      }
-
-      .avatar {
-        float: none;
-        margin-right: 0;
-      }
-    }
-
     .folder-icon {
       margin-right: 3px;
       color: $gl-text-color-secondary;
       display: inline-block;
       vertical-align: text-top;
-
-      .fa:nth-child(1) {
-        margin-right: 3px;
-      }
     }
 
     .folder-name {
