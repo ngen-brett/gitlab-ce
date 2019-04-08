@@ -4,7 +4,6 @@ module Issuable
   class CommonSystemNotesService < ::BaseService
     attr_reader :issuable
 
-    # issueable must be Notable as well
     def execute(issuable, old_labels: [], is_update: true)
       @issuable = issuable
 
