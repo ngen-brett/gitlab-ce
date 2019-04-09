@@ -43,7 +43,9 @@ module Projects
         clusters_with_knative_installed.preload_knative.map do |cluster|
           next if environment_scope != cluster.environment_scope
 
-          services = cluster.application_knative.services_for(ns: cluster.platform_kubernetes&.actual_namespace)
+          services = cluster
+            .knative_services_finder
+            .services
             .select { |svc| svc["metadata"]["name"] == name }
 
           add_metadata(cluster, services).first unless services.nil?
@@ -52,7 +54,10 @@ module Projects
 
       def knative_services
         clusters_with_knative_installed.preload_knative.map do |cluster|
-          services = cluster.application_knative.services_for(ns: cluster.platform_kubernetes&.actual_namespace)
+          services = cluster
+          .knative_services_finder
+          .services
+
           add_metadata(cluster, services) unless services.nil?
         end
       end
@@ -63,9 +68,10 @@ module Projects
           s["cluster_id"] = cluster.id
 
           if services.length == 1
-            s["podcount"] = cluster.application_knative.service_pod_details(
-              cluster.platform_kubernetes&.actual_namespace,
-              s["metadata"]["name"]).length
+            s["podcount"] = cluster
+            .knative_services_finder
+            .service_pod_details(s["metadata"]["name"])
+            .length
           end
         end
       end
