@@ -49,21 +49,13 @@ module MergeRequests
       MergeRequestMetricsService.new(merge_request.metrics)
     end
 
-    def create_assignee_note(merge_request)
-      SystemNoteService.change_assignee(
-        merge_request, merge_request.project, current_user, merge_request.assignee)
+    def create_assignee_note(merge_request, old_assignees)
+      SystemNoteService.change_issuable_assignees(
+        merge_request, merge_request.project, current_user, old_assignees)
     end
 
     def create_pipeline_for(merge_request, user)
-      return unless Feature.enabled?(:ci_merge_request_pipeline,
-                                     merge_request.source_project,
-                                     default_enabled: true)
-
-      ##
-      # UpdateMergeRequestsWorker could be retried by an exception.
-      # MR pipelines should not be recreated in such case.
-      return if merge_request.merge_request_pipeline_exists?
-      return if merge_request.has_no_commits?
+      return unless can_create_pipeline_for?(merge_request)
 
       create_detached_merge_request_pipeline(merge_request, user)
     end
@@ -78,6 +70,16 @@ module MergeRequests
                                       ref: merge_request.source_branch)
           .execute(:merge_request_event, merge_request: merge_request)
       end
+    end
+
+    def can_create_pipeline_for?(merge_request)
+      ##
+      # UpdateMergeRequestsWorker could be retried by an exception.
+      # pipelines for merge request should not be recreated in such case.
+      return false if merge_request.merge_request_pipeline_exists?
+      return false if merge_request.has_no_commits?
+
+      true
     end
 
     def can_use_merge_request_ref?(merge_request)
@@ -97,19 +99,8 @@ module MergeRequests
     # rubocop: enable CodeReuse/ActiveRecord
 
     def pipeline_merge_requests(pipeline)
-      merge_requests_for(pipeline.ref).each do |merge_request|
+      pipeline.all_merge_requests.opened.each do |merge_request|
         next unless pipeline == merge_request.head_pipeline
-
-        yield merge_request
-      end
-    end
-
-    def commit_status_merge_requests(commit_status)
-      merge_requests_for(commit_status.ref).each do |merge_request|
-        pipeline = merge_request.head_pipeline
-
-        next unless pipeline
-        next unless pipeline.sha == commit_status.sha
 
         yield merge_request
       end

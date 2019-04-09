@@ -40,7 +40,8 @@ module API
       end
       optional :container_registry_token_expire_delay, type: Integer, desc: 'Authorization token duration (minutes)'
       optional :default_artifacts_expire_in, type: String, desc: "Set the default expiration time for each job's artifacts"
-      optional :default_branch_protection, type: Integer, values: Gitlab::Access.protection_values, desc: 'Determine if developers can push to master'
+      optional :default_project_creation, type: Integer, values: ::Gitlab::Access.project_creation_values, desc: 'Determine if developers can create projects in the group'
+      optional :default_branch_protection, type: Integer, values: ::Gitlab::Access.protection_values, desc: 'Determine if developers can push to master'
       optional :default_group_visibility, type: String, values: Gitlab::VisibilityLevel.string_values, desc: 'The default group visibility'
       optional :default_project_visibility, type: String, values: Gitlab::VisibilityLevel.string_values, desc: 'The default project visibility'
       optional :default_projects_limit, type: Integer, desc: 'The maximum number of personal projects'
@@ -167,7 +168,9 @@ module API
         optional :usage_ping_enabled, type: Boolean, desc: 'Every week GitLab will report license usage back to GitLab, Inc.'
       end
 
-      optional_attributes = ::ApplicationSettingsHelper.visible_attributes << :performance_bar_allowed_group_id
+      optional_attributes = [*::ApplicationSettingsHelper.visible_attributes,
+                             *::ApplicationSettingsHelper.external_authorization_service_attributes,
+                             :performance_bar_allowed_group_id]
 
       if Gitlab.ee?
         optional_attributes += EE::ApplicationSettingsHelper.possible_licensed_attributes

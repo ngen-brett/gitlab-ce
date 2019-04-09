@@ -314,13 +314,7 @@ install it manually.
 
 ## Installing applications
 
-NOTE: **Note:**
-Before starting the installation of applications, make sure that time is synchronized
-between your GitLab server and your Kubernetes cluster. Otherwise, installation could fail
-and you may get errors like `Error: remote error: tls: bad certificate`
-in the `stdout` of pods created by GitLab in your Kubernetes cluster.
-
-GitLab provides a one-click install for various applications which can
+GitLab provides **GitLab Managed Apps**, a one-click install for various applications which can
 be added directly to your configured cluster. Those applications are
 needed for [Review Apps](../../../ci/review_apps/index.md) and
 [deployments](../../../ci/environments.md). You can install them after you
@@ -377,6 +371,29 @@ NOTE: **Note:**
 Upgrades will reset values back to the values built into the `runner`
 chart plus the values set by
 [`values.yaml`](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/vendor/runner/values.yaml)
+
+### Troubleshooting applications
+
+Applications can fail with the following error:
+
+```text
+Error: remote error: tls: bad certificate
+```
+
+To avoid installation errors:
+
+- Before starting the installation of applications, make sure that time is synchronized
+  between your GitLab server and your Kubernetes cluster.
+- Ensure certificates are not out of sync.  When installing applications, GitLab expects a new cluster with no previous installation of Tiller.
+
+  You can confirm that the certificates match via `kubectl`:
+
+  ```sh
+  kubectl get configmaps/values-content-configuration-ingress -n gitlab-managed-apps -o \
+  "jsonpath={.data['cert\.pem']}" | base64 -d > a.pem
+  kubectl get secrets/tiller-secret -n gitlab-managed-apps -o "jsonpath={.data['ca\.crt']}" | base64 -d > b.pem
+  diff a.pem b.pem
+  ```
 
 ## Getting the external endpoint
 
@@ -528,7 +545,7 @@ The result will then be:
 ## Deployment variables
 
 The Kubernetes cluster integration exposes the following
-[deployment variables](../../../ci/variables/README.md#deployment-variables) in the
+[deployment variables](../../../ci/variables/README.md#deployment-environment-variables) in the
 GitLab CI/CD build environment.
 
 | Variable | Description |
@@ -553,7 +570,7 @@ deployment jobs, immediately before the jobs starts.
 However, sometimes GitLab can not create them. In such instances, your job will fail with the message:
 
 ```text
-The job failed to complete prerequisite tasks
+This job failed because the necessary resources were not successfully created.
 ```
 
 To find the cause of this error when creating a namespace and service account, check the [logs](../../../administration/logs.md#sidekiqlog).

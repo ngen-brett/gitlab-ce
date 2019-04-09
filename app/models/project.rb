@@ -674,6 +674,10 @@ class Project < ApplicationRecord
     { scope: :project, status: auto_devops&.enabled || Feature.enabled?(:force_autodevops_on_by_default, self) }
   end
 
+  def multiple_mr_assignees_enabled?
+    Feature.enabled?(:multiple_merge_request_assignees, self)
+  end
+
   def daily_statistics_enabled?
     Feature.enabled?(:project_daily_statistics, self, default_enabled: true)
   end
@@ -2060,6 +2064,11 @@ class Project < ApplicationRecord
 
   def branch_allows_collaboration?(user, branch_name)
     fetch_branch_allows_collaboration(user, branch_name)
+  end
+
+  def external_authorization_classification_label
+    super || ::Gitlab::CurrentSettings.current_application_settings
+               .external_authorization_service_default_label
   end
 
   def licensed_features
