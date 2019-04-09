@@ -138,5 +138,11 @@ export default Vue.extend({
           Flash(__('An error occurred while saving assignees'));
         });
     },
+    showScopedLabels({ title = '' }) {
+      return boardsStore.scopedLabels.enabled && title.indexOf('::') !== -1;
+    },
+    helpLink() {
+      return boardsStore.scopedLabels.helpLink;
+    },
   },
 });
