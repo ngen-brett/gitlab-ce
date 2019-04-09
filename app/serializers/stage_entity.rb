@@ -42,6 +42,15 @@ class StageEntity < Grape::Entity
       format: :json)
   end
 
+  expose :play_all_manual_path, if: ->(stage, _) { stage.builds.manual.exists? } do |stage|
+    play_all_manual_namespace_project_pipeline_path(
+      stage.pipeline.project.namespace,
+      stage.pipeline.project,
+      stage.pipeline,
+      stage: stage.name,
+      format: :json)
+  end
+
   private
 
   alias_method :stage, :object
