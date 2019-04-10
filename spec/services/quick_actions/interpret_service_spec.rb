@@ -28,7 +28,7 @@ describe QuickActions::InterpretService do
     shared_examples 'reopen command' do
       it 'returns state_event: "reopen" if content contains /reopen' do
         issuable.close!
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(state_event: 'reopen')
       end
@@ -36,7 +36,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'close command' do
       it 'returns state_event: "close" if content contains /close' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(state_event: 'close')
       end
@@ -44,7 +44,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'title command' do
       it 'populates title: "A brand new title" if content contains /title A brand new title' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(title: 'A brand new title')
       end
@@ -53,7 +53,7 @@ describe QuickActions::InterpretService do
     shared_examples 'milestone command' do
       it 'fetches milestone and populates milestone_id if content contains /milestone' do
         milestone # populate the milestone
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(milestone_id: milestone.id)
       end
@@ -62,7 +62,7 @@ describe QuickActions::InterpretService do
     shared_examples 'remove_milestone command' do
       it 'populates milestone_id: nil if content contains /remove_milestone' do
         issuable.update!(milestone_id: milestone.id)
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(milestone_id: nil)
       end
@@ -72,7 +72,7 @@ describe QuickActions::InterpretService do
       it 'fetches label ids and populates add_label_ids if content contains /label' do
         bug # populate the label
         inprogress # populate the label
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(add_label_ids: [bug.id, inprogress.id])
       end
@@ -82,7 +82,7 @@ describe QuickActions::InterpretService do
       it 'fetches label ids and populates add_label_ids if content contains multiple /label' do
         bug # populate the label
         inprogress # populate the label
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(add_label_ids: [inprogress.id, bug.id])
       end
@@ -91,7 +91,7 @@ describe QuickActions::InterpretService do
     shared_examples 'multiple label with same argument' do
       it 'prevents duplicate label ids and populates add_label_ids if content contains multiple /label' do
         inprogress # populate the label
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(add_label_ids: [inprogress.id])
       end
@@ -120,7 +120,7 @@ describe QuickActions::InterpretService do
     shared_examples 'unlabel command' do
       it 'fetches label ids and populates remove_label_ids if content contains /unlabel' do
         issuable.update!(label_ids: [inprogress.id]) # populate the label
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(remove_label_ids: [inprogress.id])
       end
@@ -129,7 +129,7 @@ describe QuickActions::InterpretService do
     shared_examples 'multiple unlabel command' do
       it 'fetches label ids and populates remove_label_ids if content contains  mutiple /unlabel' do
         issuable.update!(label_ids: [inprogress.id, bug.id]) # populate the label
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(remove_label_ids: [inprogress.id, bug.id])
       end
@@ -138,7 +138,7 @@ describe QuickActions::InterpretService do
     shared_examples 'unlabel command with no argument' do
       it 'populates label_ids: [] if content contains /unlabel with no arguments' do
         issuable.update!(label_ids: [inprogress.id]) # populate the label
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(label_ids: [])
       end
@@ -148,7 +148,7 @@ describe QuickActions::InterpretService do
       it 'populates label_ids: [] if content contains /relabel' do
         issuable.update!(label_ids: [bug.id]) # populate the label
         inprogress # populate the label
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(label_ids: [inprogress.id])
       end
@@ -156,7 +156,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'todo command' do
       it 'populates todo_event: "add" if content contains /todo' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(todo_event: 'add')
       end
@@ -165,7 +165,7 @@ describe QuickActions::InterpretService do
     shared_examples 'done command' do
       it 'populates todo_event: "done" if content contains /done' do
         TodoService.new.mark_todo(issuable, developer)
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(todo_event: 'done')
       end
@@ -173,7 +173,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'subscribe command' do
       it 'populates subscription_event: "subscribe" if content contains /subscribe' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(subscription_event: 'subscribe')
       end
@@ -182,7 +182,7 @@ describe QuickActions::InterpretService do
     shared_examples 'unsubscribe command' do
       it 'populates subscription_event: "unsubscribe" if content contains /unsubscribe' do
         issuable.subscribe(developer, project)
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(subscription_event: 'unsubscribe')
       end
@@ -190,24 +190,40 @@ describe QuickActions::InterpretService do
 
     shared_examples 'due command' do
       it 'populates due_date: Date.new(2016, 8, 28) if content contains /due 2016-08-28' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(due_date: defined?(expected_date) ? expected_date : Date.new(2016, 8, 28))
+      end
+
+      it 'returns due_date message: Date.new(2016, 8, 28) if content contains /due 2016-08-28' do
+        _,  _, message = service.execute(content, issuable)
+
+        expected_date_text = (defined?(expected_date) ? expected_date : Date.new(2016, 8, 28)).to_s(:medium)
+        expect(message).to eq("Set the due date to #{expected_date_text}.")
       end
     end
 
     shared_examples 'remove_due_date command' do
-      it 'populates due_date: nil if content contains /remove_due_date' do
+      before do
         issuable.update!(due_date: Date.today)
-        _, updates = service.execute(content, issuable)
+      end
+
+      it 'populates due_date: nil if content contains /remove_due_date' do
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(due_date: nil)
+      end
+
+      it 'returns Removed the due date' do
+        _, _, message = service.execute(content, issuable)
+
+        expect(message).to eq('Removed the due date.')
       end
     end
 
     shared_examples 'wip command' do
       it 'returns wip_event: "wip" if content contains /wip' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(wip_event: 'wip')
       end
@@ -216,7 +232,7 @@ describe QuickActions::InterpretService do
     shared_examples 'unwip command' do
       it 'returns wip_event: "unwip" if content contains /wip' do
         issuable.update!(title: issuable.wip_title)
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(wip_event: 'unwip')
       end
@@ -224,7 +240,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'estimate command' do
       it 'populates time_estimate: 3600 if content contains /estimate 1h' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(time_estimate: 3600)
       end
@@ -232,7 +248,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'spend command' do
       it 'populates spend_time: 3600 if content contains /spend 1h' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(spend_time: {
                                 duration: 3600,
@@ -244,7 +260,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'spend command with negative time' do
       it 'populates spend_time: -1800 if content contains /spend -30m' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(spend_time: {
                                 duration: -1800,
@@ -256,7 +272,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'spend command with valid date' do
       it 'populates spend time: 1800 with date in date type format' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(spend_time: {
                                 duration: 1800,
@@ -268,7 +284,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'spend command with invalid date' do
       it 'will not create any note and timelog' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq({})
       end
@@ -276,7 +292,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'spend command with future date' do
       it 'will not create any note and timelog' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq({})
       end
@@ -284,7 +300,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'remove_estimate command' do
       it 'populates time_estimate: 0 if content contains /remove_estimate' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(time_estimate: 0)
       end
@@ -292,7 +308,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'remove_time_spent command' do
       it 'populates spend_time: :reset if content contains /remove_time_spent' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(spend_time: { duration: :reset, user_id: developer.id })
       end
@@ -303,7 +319,7 @@ describe QuickActions::InterpretService do
       let(:merge_request) { create(:merge_request, source_project: project, discussion_locked: false) }
 
       it 'returns discussion_locked: true if content contains /lock' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(discussion_locked: true)
       end
@@ -314,7 +330,7 @@ describe QuickActions::InterpretService do
       let(:merge_request) { create(:merge_request, source_project: project, discussion_locked: true) }
 
       it 'returns discussion_locked: true if content contains /unlock' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(discussion_locked: false)
       end
@@ -322,7 +338,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'empty command' do
       it 'populates {} if content contains an unsupported command' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to be_empty
       end
@@ -332,7 +348,7 @@ describe QuickActions::InterpretService do
       let(:project) { create(:project, :repository) }
 
       it 'runs merge command if content contains /merge' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(merge: merge_request.diff_head_sha)
       end
@@ -340,7 +356,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'award command' do
       it 'toggle award 100 emoji if content contains /award :100:' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(emoji_award: "100")
       end
@@ -349,9 +365,15 @@ describe QuickActions::InterpretService do
     shared_examples 'duplicate command' do
       it 'fetches issue and populates canonical_issue_id if content contains /duplicate issue_reference' do
         issue_duplicate # populate the issue
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(canonical_issue_id: issue_duplicate.id)
+      end
+
+      it 'returns the duplicate message' do
+        _, _, message = service.execute(content, issuable)
+
+        expect(message).to eq("Marked this issue as a duplicate of #{content.split.last}.")
       end
     end
 
@@ -360,7 +382,7 @@ describe QuickActions::InterpretService do
         source_issuable # populate the issue
         todo_label # populate this label
         inreview_label # populate this label
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates[:add_label_ids]).to match_array([inreview_label.id, todo_label.id])
 
@@ -374,7 +396,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'confidential command' do
       it 'marks issue as confidential if content contains /confidential' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(confidential: true)
       end
@@ -398,7 +420,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'tag command' do
       it 'tags a commit' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(tag_name: tag_name, tag_message: tag_message)
       end
@@ -406,7 +428,7 @@ describe QuickActions::InterpretService do
 
     shared_examples 'assign command' do
       it 'assigns to a single user' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(assignee_ids: [developer.id])
       end
@@ -463,7 +485,7 @@ describe QuickActions::InterpretService do
         let(:service) { described_class.new(project, developer, {}) }
 
         it 'precheck passes and returns merge command' do
-          _, updates = service.execute('/merge', merge_request)
+          _, updates, _ = service.execute('/merge', merge_request)
 
           expect(updates).to eq(merge: nil)
         end
@@ -575,7 +597,7 @@ describe QuickActions::InterpretService do
       context 'Issue' do
         it 'populates assignee_ids: [] if content contains /unassign' do
           issue.update(assignee_ids: [developer.id])
-          _, updates = service.execute(content, issue)
+          _, updates, _ = service.execute(content, issue)
 
           expect(updates).to eq(assignee_ids: [])
         end
@@ -584,7 +606,7 @@ describe QuickActions::InterpretService do
       context 'Merge Request' do
         it 'populates assignee_ids: [] if content contains /unassign' do
           merge_request.update(assignee_ids: [developer.id])
-          _, updates = service.execute(content, merge_request)
+          _, updates, _ = service.execute(content, merge_request)
 
           expect(updates).to eq(assignee_ids: [])
         end
@@ -1132,13 +1154,13 @@ describe QuickActions::InterpretService do
       let(:service) { described_class.new(non_empty_project, developer)}
 
       it 'updates target_branch if /target_branch command is executed' do
-        _, updates = service.execute('/target_branch merge-test', merge_request)
+        _, updates, _ = service.execute('/target_branch merge-test', merge_request)
 
         expect(updates).to eq(target_branch: 'merge-test')
       end
 
       it 'handles blanks around param' do
-        _, updates = service.execute('/target_branch  merge-test     ', merge_request)
+        _, updates, _ = service.execute('/target_branch  merge-test     ', merge_request)
 
         expect(updates).to eq(target_branch: 'merge-test')
       end
@@ -1171,13 +1193,13 @@ describe QuickActions::InterpretService do
       it 'populates remove_label_ids for all current board columns' do
         issue.update!(label_ids: [todo.id, inprogress.id])
 
-        _, updates = service.execute(content, issue)
+        _, updates, _ = service.execute(content, issue)
 
         expect(updates[:remove_label_ids]).to match_array([todo.id, inprogress.id])
       end
 
       it 'populates add_label_ids with the id of the given label' do
-        _, updates = service.execute(content, issue)
+        _, updates, _ = service.execute(content, issue)
 
         expect(updates[:add_label_ids]).to eq([inreview.id])
       end
@@ -1185,7 +1207,7 @@ describe QuickActions::InterpretService do
       it 'does not include the given label id in remove_label_ids' do
         issue.update!(label_ids: [todo.id, inreview.id])
 
-        _, updates = service.execute(content, issue)
+        _, updates, _ = service.execute(content, issue)
 
         expect(updates[:remove_label_ids]).to match_array([todo.id])
       end
@@ -1193,9 +1215,17 @@ describe QuickActions::InterpretService do
       it 'does not remove label ids that are not lists on the board' do
         issue.update!(label_ids: [todo.id, bug.id])
 
-        _, updates = service.execute(content, issue)
+        _, updates, _ = service.execute(content, issue)
 
         expect(updates[:remove_label_ids]).to match_array([todo.id])
+      end
+
+      it 'returns board_move message' do
+        issue.update!(label_ids: [todo.id, inprogress.id])
+
+        _, _, message = service.execute(content, issue)
+
+        expect(message).to eq("Moved issue to ~#{inreview.id} column in the board.")
       end
 
       context 'if the project has multiple boards' do
@@ -1292,7 +1322,7 @@ describe QuickActions::InterpretService do
       end
 
       it 'populates create_merge_request with branch_name and issue iid' do
-        _, updates = service.execute(content, issuable)
+        _, updates, _ = service.execute(content, issuable)
 
         expect(updates).to eq(create_merge_request: { branch_name: branch_name, issue_iid: issuable.iid })
       end

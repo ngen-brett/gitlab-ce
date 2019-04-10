@@ -12,6 +12,9 @@ module Gitlab
         explanation do |due_date|
           "Sets the due date to #{due_date.to_s(:medium)}." if due_date
         end
+        execution_message do |due_date|
+          "Set the due date to #{due_date.to_s(:medium)}." if due_date
+        end
         params '<in 2 days | this Friday | December 31st>'
         types Issue
         condition do
@@ -27,6 +30,7 @@ module Gitlab
 
         desc 'Remove due date'
         explanation 'Removes the due date.'
+        execution_message 'Removed the due date.'
         types Issue
         condition do
           quick_action_target.persisted? &&
@@ -43,6 +47,11 @@ module Gitlab
           label = find_label_references(target_list_name).first
           "Moves issue to #{label} column in the board." if label
         end
+        execution_message do |target_list_name|
+          label = find_label_references(target_list_name).first
+          "Moved issue to #{label} column in the board." if label
+        end
+
         params '~"Target column"'
         types Issue
         condition do
@@ -70,6 +79,10 @@ module Gitlab
         explanation do |duplicate_reference|
           "Marks this issue as a duplicate of #{duplicate_reference}."
         end
+        execution_message do |duplicate_reference|
+          "Marked this issue as a duplicate of #{duplicate_reference}."
+        end
+
         params '#issue'
         types Issue
         condition do
@@ -87,6 +100,10 @@ module Gitlab
         desc 'Move this issue to another project.'
         explanation do |path_to_project|
           "Moves this issue to #{path_to_project}."
+        end
+        # TODO go from here add the specs because looks like we completely miss them...
+        execution_message do |path_to_project|
+          "Moved this issue to #{path_to_project}."
         end
         params 'path/to/project'
         types Issue

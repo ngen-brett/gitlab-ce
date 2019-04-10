@@ -47,6 +47,9 @@ module Gitlab
         explanation do |title_param|
           "Changes the title to \"#{title_param}\"."
         end
+        execution_message do |title_param|
+          "Changed the title to \"#{title_param}\"."
+        end
         params '<New title>'
         types Issuable
         condition do
