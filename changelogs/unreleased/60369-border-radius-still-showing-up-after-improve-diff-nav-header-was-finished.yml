@@ -1,0 +1,5 @@
+---
+title: Fix bug in isDesktop function
+merge_request: 27240
+author:
+type: fixed
