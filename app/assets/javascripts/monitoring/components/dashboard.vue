@@ -4,6 +4,8 @@ import _ from 'underscore';
 import { s__ } from '~/locale';
 import Icon from '~/vue_shared/components/icon.vue';
 import '~/vue_shared/mixins/is_ee';
+import { historyPushState } from '~/lib/utils/common_utils';
+import { mergeUrlParams } from '~/lib/utils/url_utility';
 import Flash from '../../flash';
 import MonitoringService from '../services/monitoring_service';
 import MonitorAreaChart from './charts/area.vue';
@@ -177,10 +179,11 @@ export default {
         });
     },
     getGraphsDataWithTime(timeFrame) {
+      const startEndWindow = getTimeDiff(this.timeWindows[timeFrame]);
       this.state = 'loading';
       this.showEmptyState = true;
       this.service
-        .getGraphsData(getTimeDiff(this.timeWindows[timeFrame]))
+        .getGraphsData(startEndWindow)
         .then(data => {
           this.store.storeMetrics(data);
           this.selectedTimeWindow = this.timeWindows[timeFrame];
@@ -190,6 +193,9 @@ export default {
         })
         .finally(() => {
           this.showEmptyState = false;
+          // Set url parameters without reloading the page
+          const url = mergeUrlParams(startEndWindow, window.location.href);
+          historyPushState(url);
         });
     },
     onSidebarMutation() {
