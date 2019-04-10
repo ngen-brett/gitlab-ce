@@ -69,10 +69,21 @@ describe API::Releases do
     end
 
     context 'when user is a guest' do
-      it 'responds 403 Forbidden' do
+      it 'responds 200 OK' do
         get api("/projects/#{project.id}/releases", guest)
 
-        expect(response).to have_gitlab_http_status(:forbidden)
+        expect(response).to have_gitlab_http_status(:ok)
+      end
+
+      it "does not expose tag and commit" do
+        create(:release,
+               project: project,
+               tag: 'v0.1',
+               author: maintainer,
+               created_at: 2.days.ago)
+        get api("/projects/#{project.id}/releases", guest)
+
+        expect(response).to match_response_schema('public_api/v4/releases/guest/releases')
       end
 
       context 'when project is public' do
@@ -82,6 +93,17 @@ describe API::Releases do
           get api("/projects/#{project.id}/releases", guest)
 
           expect(response).to have_gitlab_http_status(:ok)
+        end
+
+        it "exposes tag and commit" do
+          create(:release,
+                 project: project,
+                 tag: 'v0.1',
+                 author: maintainer,
+                 created_at: 2.days.ago)
+          get api("/projects/#{project.id}/releases", guest)
+
+          expect(response).to match_response_schema('public_api/v4/releases/public/releases')
         end
       end
     end
@@ -224,6 +246,17 @@ describe API::Releases do
             get api("/projects/#{project.id}/releases/v0.1", guest)
 
             expect(response).to have_gitlab_http_status(:ok)
+          end
+
+          it "exposes tag and commit" do
+            create(:release,
+                   project: project,
+                   tag: 'v0.1',
+                   author: maintainer,
+                   created_at: 2.days.ago)
+            get api("/projects/#{project.id}/releases/v0.1", guest)
+
+            expect(response).to match_response_schema('public_api/v4/releases/public/release')
           end
         end
       end
