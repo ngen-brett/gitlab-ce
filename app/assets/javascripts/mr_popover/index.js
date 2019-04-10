@@ -56,7 +56,11 @@ export default elements => {
     });
 
     mrLinks.forEach(el => {
-      el.addEventListener('mouseenter', handleMRPopoverMount(apolloProvider));
+      const listenerAddedAttr = 'data-mr-listener-added';
+      if (!el.getAttribute(listenerAddedAttr)) {
+        el.addEventListener('mouseenter', handleMRPopoverMount(apolloProvider));
+        el.setAttribute(listenerAddedAttr, true);
+      }
     });
   }
 };
