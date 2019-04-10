@@ -152,11 +152,12 @@ describe('text_utility', () => {
     });
   });
 
-<<<<<<< HEAD
   describe('slugifyWithUnderscore', () => {
     it('should replaces whitespaces with underscore and convert to lower case', () => {
       expect(textUtils.slugifyWithUnderscore('My Input String')).toEqual('my_input_string');
-=======
+    });
+  });
+
   describe('truncateNamespace', () => {
     it(`should return the root namespace if the namespace only includes one level`, () => {
       expect(textUtils.truncateNamespace('a / b')).toBe('a');
@@ -181,7 +182,6 @@ describe('text_utility', () => {
       ['', ' ', '\t', 'a', 'a \\ b'].forEach(input => {
         expect(textUtils.truncateNamespace(input)).toBe(input);
       });
->>>>>>> 9d7ff90d9a7bd9dbe9184c9588510f247877274f
     });
   });
 });
