@@ -133,8 +133,8 @@ At the end, if anything goes wrong, you can easily
 
 ### Basic CI/CD workflow
 
-This is a very simple example for how GitLab CI/CD fits in a common
-development workflow.
+Consider the following very simple example for how GitLab CI/CD
+fits in a common development workflow.
 
 Assume that you have discussed a code implementation in an issue
 and worked locally on your proposed changes. Once you push your
@@ -154,13 +154,44 @@ Once you're happy with your implementation:
   - GitLab CI/CD deploys your changes automatically to a production environment.
 -  And finally, you and your team can easily roll it back if something goes wrong.
 
-<img src="img/gitlab_workflow_example_11_9.png" alt="GitLab workflow example" class="image-noshadow">
+![GitLab workflow example](img/gitlab_workflow_example_11_9.png)
 
 GitLab CI/CD is capable of a doing a lot more, but this workflow
 exemplifies GitLab's ability to track the entire process,
 without the need of any external tool to deliver your software.
 And, most usefully, you can visualize all the steps through
 the GitLab UI.
+
+
+If we take a deeper look into the basic workflow, we can see
+the features available in GitLab at each stage of the DevOps
+lifecycle, as shown on the illustration below.
+
+![Deeper look into the basic CI/CD workflow](img/gitlab_workflow_example_extended_11_11.png)
+
+If you look at the image from the left to the right,
+you'll see some of the features available in GitLab
+according to each stage (Verify, Package, Release).
+
+1. For the **Verify** stage:
+    - Automatically build and test your application with Continuous Integration.
+    - Analyze your source code quality with [GitLab Code Quality](https://docs.gitlab.com/ee/user/project/merge_requests/code_quality.html). **[STARTER]**
+    - Determine the performance impact of code changes with [Browser Performance Testing](https://docs.gitlab.com/ee/user/project/merge_requests/browser_performance_testing.html). **[PREMIUM]**
+    - Perform a series of tests, such as [Container Scanning](https://docs.gitlab.com/ee/ci/examples/container_scanning.html) **[ULTIMATE]**, [Dependency Scanning](https://docs.gitlab.com/ee/ci/examples/dependency_scanning.html) **[ULTIMATE]**, and [JUnit tests](../junit_test_reports.md).
+    - Deploy your changes with [Review Apps](../review_apps/index.md) to preview the app changes on every branch.
+1. For the **Package** stage:
+    - Store Docker images with [Docker Container Registry](../../user/project/container_registry.md).
+    - Store NPM packages with [NPM Registry](https://docs.gitlab.com/ee/user/project/packages/npm_registry.html). **[PREMIUM]**
+    - Store Maven artifacts with [Maven repository](../../user/project/packages/maven_repository.md).
+1. For the **Release** stage:
+    - Continuous Deployment, automatically deploying your app to production.
+    - Continuous Delivery, manually click to deploy your app to production.
+    - Deploy static websites with [GitLab Pages](../../user/project/pages/index.md).
+    - Ship features to only a portion of your pods fleet and while only a percentage of your user base visits the temporarily deployed feature with [Canary Deployments](https://docs.gitlab.com/ee/user/project/canary_deployments.html). **[PREMIUM]**
+    - Deploy your features behind [Feature Flags](https://docs.gitlab.com/ee/user/project/operations/feature_flags.html). **[PREMIUM]**
+    - Add release notes to any Git tag with [GitLab Releases](../../user/project/releases/index.md).
+    - View of the current health and status of each CI environment running on Kubernetes with [Deploy Boards](https://docs.gitlab.com/ee/user/project/deploy_boards.html). **[PREMIUM]**
+    - Deploys your application to a production environment in a Kubernetes cluster with [Auto Deploy](../../topics/autodevops/index.md#auto-deploy).
 
 ### Setting up GitLab CI/CD for the first time
 
