@@ -568,6 +568,7 @@ rspec-fast-spec-helper:
 
 .rspec-quarantine: &rspec-quarantine
   <<: *only-schedules-master
+  retry: 0
   script:
     - export CACHE_CLASSES=true
     - scripts/gitaly-test-spawn
