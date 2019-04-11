@@ -1,9 +1,12 @@
 <script>
+import $ from 'jquery';
 import lockedWarning from './locked_warning.vue';
 import titleField from './fields/title.vue';
 import descriptionField from './fields/description.vue';
 import editActions from './edit_actions.vue';
 import descriptionTemplate from './fields/description_template.vue';
+import Autosave from '~/autosave';
+import eventHub from '../event_hub';
 
 export default {
   components: {
@@ -68,6 +71,34 @@ export default {
       return this.issuableTemplates.length;
     },
   },
+  created() {
+    eventHub.$on('delete.issuable', this.resetAutosave);
+    eventHub.$on('update.issuable', this.resetAutosave);
+    eventHub.$on('close.form', this.resetAutosave);
+  },
+  mounted() {
+    this.initAutosave();
+  },
+  beforeDestroy() {
+    eventHub.$off('delete.issuable', this.resetAutosave);
+    eventHub.$off('update.issuable', this.resetAutosave);
+    eventHub.$off('close.form', this.resetAutosave);
+  },
+  methods: {
+    initAutosave() {
+      const { textarea } = this.$refs.description.$refs;
+
+      this.autosave = new Autosave($(textarea), [
+        document.location.pathname,
+        document.location.search,
+        'description',
+      ]);
+    },
+    resetAutosave() {
+      this.autosave.reset();
+    }
+  },
+
 };
 </script>
 
@@ -98,6 +129,7 @@ export default {
       :markdown-docs-path="markdownDocsPath"
       :can-attach-file="canAttachFile"
       :enable-autocomplete="enableAutocomplete"
+      ref="description"
     />
     <edit-actions
       :form-state="formState"
