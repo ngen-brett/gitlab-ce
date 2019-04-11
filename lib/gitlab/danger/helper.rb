@@ -110,6 +110,8 @@ module Gitlab
         %r{\A(CONTRIBUTING|LICENSE|MAINTENANCE|PHILOSOPHY|PROCESS|README)(\.md)?\z} => :docs,
 
         %r{\A(ee/)?app/(assets|views)/} => :frontend,
+        %r{\A(ee/)?app/assets/stylesheets/pages} => :css,
+
         %r{\A(ee/)?public/} => :frontend,
         %r{\A(ee/)?spec/(javascripts|frontend)/} => :frontend,
         %r{\A(ee/)?vendor/assets/} => :frontend,
