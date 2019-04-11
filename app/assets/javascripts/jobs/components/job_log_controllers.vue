@@ -75,7 +75,7 @@ export default {
       <template v-if="isTraceSizeVisible">
         {{ jobLogSize }}
 
-        <gl-link v-if="rawPath" :href="rawPath" class="js-raw-link raw-link">
+        <gl-link v-if="rawPath" :href="rawPath" class="js-raw-link cgray text-underline prepend-left-5">
           {{ s__('Job|Complete Raw') }}
         </gl-link>
       </template>
