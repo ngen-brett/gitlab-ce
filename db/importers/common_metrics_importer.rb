@@ -38,7 +38,7 @@ module Importers
     attr_reader :content
 
     def initialize(filename = 'common_metrics.yml')
-      @content = YAML.load_file(Rails.root.join('config', 'prometheus', filename))
+      @content = YAML.load_file(Rails.root.join('config', 'prometheus', filename))[0]
     end
 
     def execute
@@ -53,7 +53,7 @@ module Importers
     private
 
     def process_content(&blk)
-      content.map do |group|
+      content['panel_groups'].map do |group|
         process_group(group, &blk)
       end
     end
@@ -63,17 +63,17 @@ module Importers
         group: find_group_title_key(group['group'])
       }
 
-      group['metrics'].map do |metric|
-        process_metric(metric, attributes, &blk)
+      group['panels'].map do |panel|
+        process_panel(panel, attributes, &blk)
       end
     end
 
-    def process_metric(metric, attributes, &blk)
+    def process_panel(panel, attributes, &blk)
       attributes = attributes.merge(
-        title: metric['title'],
-        y_label: metric['y_label'])
+        title: panel['title'],
+        y_label: panel['y_label'])
 
-      metric['queries'].map do |query|
+      panel['metrics'].map do |query|
         process_metric_query(query, attributes, &blk)
       end
     end
