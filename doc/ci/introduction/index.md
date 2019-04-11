@@ -162,6 +162,7 @@ without the need of any external tool to deliver your software.
 And, most usefully, you can visualize all the steps through
 the GitLab UI.
 
+#### A deeper look into the CI/CD basic workflow
 
 If we take a deeper look into the basic workflow, we can see
 the features available in GitLab at each stage of the DevOps
