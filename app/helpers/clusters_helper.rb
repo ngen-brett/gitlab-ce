@@ -22,7 +22,7 @@ module ClustersHelper
   end
 
   # EE overrides this
-  def show_cluster_health_graphs?(cluster)
+  def show_cluster_health_graphs?
     false
   end
 end
