@@ -1,0 +1,40 @@
+# frozen_string_literal: true
+
+def get_vue_files_with_ce_and_ee(files)
+  files.select do |file|
+    file.end_with?('.vue') &&
+      # TODO: figure out how to compare these files
+      # against the files in the EE repo. Return true
+      # if both path/to/file.vue and ee/path/to/file.vue exist.
+      true
+  end
+end
+
+vue_candidates = get_vue_files_with_ce_and_ee(helper.all_changed_files)
+
+return if vue_candidates.empty?
+
+message 'This merge request includes changes to Vue files that have both CE and EE versions.'
+
+markdown(<<~MARKDOWN)
+  ## Vue `<template>` in CE and EE
+
+  Some Vue files in CE have a counterpart in EE.
+  (For example, `path/to/file.vue` and `ee/path/to/file.vue`.)
+
+  When run in the context of CE, the `<template>` of the CE Vue file is used.
+  When run in the context of EE, the `<template>` of the EE Vue file is used.
+
+  It's easy to accidentally make a change to a CE `<template>` that _should_
+  appear in both CE and EE without making the change in both places.
+  When this happens, the change only takes effect in CE.
+
+  The following Vue files were changed as part of this merge request that
+  include both a CE and EE version of the file:
+
+  * `#{vue_candidates.map { |path| "`#{path}`" }.join("`\n* `")}
+
+  If you made a change to the `<template>` of any of these Vue files that
+  should be visible in both CE and EE, please ensure you have made your
+  change to both versions of the file.
+MARKDOWN

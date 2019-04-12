@@ -301,6 +301,8 @@ export default {
 };
 </script>
 <template>
+  <!-- Making a change to this file in order to test my new Dangerfile -->
+
   <div class="mr-state-widget prepend-top-default">
     <mr-widget-header :mr="mr" />
     <mr-widget-pipeline-container
