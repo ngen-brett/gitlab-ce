@@ -17,16 +17,20 @@
         it is enabled
         = link_to icon('question-circle'), help_page_path('user/project/pages/getting_started_part_three.md', anchor: 'dns-txt-record')
     - if Feature.enabled?(:pages_auto_ssl)
+      %h5
+        = _("Configure Let's Encrypt")
+      %p
+        = link_to("Let's Encrypt", "https://letsencrypt.org/", target: '_blank')
+        = _("is a free, automated, and open certificate authority (CA), that give digital certificates in order to enable HTTPS (SSL/TLS) for websites.")
       .form-group
-        = f.label :acme_notification_email, "SSL notification email",class: 'label-bold'
+        = f.label :acme_notification_email, "Email",class: 'label-bold'
         = f.text_field :acme_notification_email, class: 'form-control'
         .form-text.text-muted
-          You will receive notifications about expiring Let's Encrypt SSL certificates for pages domains.
-          This email is required to enable Let's Encrypt SSL certificates.
+          = _("A Let's Encrypt account will be configured for this GitLab installation using your email address. You will receive emails to warn of expiring certificates.")
       .form-group
         .form-check
           = f.check_box :acme_terms_of_service_accepted, class: 'form-check-input'
           = f.label :acme_terms_of_service_accepted, class: 'form-check-label' do
-            I accept Let's Encrypt Terms of Service
+            = _("I have read and agree to the Let's Encrypt Terms of Service")
 
   = f.submit 'Save changes', class: "btn btn-success"
