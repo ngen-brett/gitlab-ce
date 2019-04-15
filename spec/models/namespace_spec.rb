@@ -144,7 +144,8 @@ describe Namespace do
                                storage_size:         606,
                                repository_size:      101,
                                lfs_objects_size:     202,
-                               build_artifacts_size: 303))
+                               build_artifacts_size: 303,
+                               packages_size:        404))
     end
 
     let(:project2) do
@@ -154,7 +155,8 @@ describe Namespace do
                                storage_size:         60,
                                repository_size:      10,
                                lfs_objects_size:     20,
-                               build_artifacts_size: 30))
+                               build_artifacts_size: 30,
+                               packages_size:        40))
     end
 
     it "sums all project storage counters in the namespace" do
@@ -166,6 +168,7 @@ describe Namespace do
       expect(statistics.repository_size).to eq 111
       expect(statistics.lfs_objects_size).to eq 222
       expect(statistics.build_artifacts_size).to eq 333
+      expect(statistics.packages_size).to eq 444
     end
 
     it "correctly handles namespaces without projects" do
@@ -175,6 +178,7 @@ describe Namespace do
       expect(statistics.repository_size).to eq 0
       expect(statistics.lfs_objects_size).to eq 0
       expect(statistics.build_artifacts_size).to eq 0
+      expect(statistics.packages_size).to eq 0
     end
   end
 

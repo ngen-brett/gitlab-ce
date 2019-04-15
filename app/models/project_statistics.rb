@@ -7,7 +7,7 @@ class ProjectStatistics < ApplicationRecord
   before_save :update_storage_size
 
   COLUMNS_TO_REFRESH = [:repository_size, :lfs_objects_size, :commit_count].freeze
-  INCREMENTABLE_COLUMNS = { build_artifacts_size: %i[storage_size] }.freeze
+  INCREMENTABLE_COLUMNS = { build_artifacts_size: %i[storage_size], packages_size: %i[storage_size] }.freeze
 
   def total_repository_size
     repository_size + lfs_objects_size
