@@ -73,18 +73,18 @@ module Importers
         title: panel['title'],
         y_label: panel['y_label'])
 
-      panel['metrics'].map do |query|
-        process_metric_query(query, attributes, &blk)
+      panel['metrics'].map do |metric_details|
+        process_metric_details(metric_details, attributes, &blk)
       end
     end
 
-    def process_metric_query(query, attributes, &blk)
+    def process_metric_details(metric_details, attributes, &blk)
       attributes = attributes.merge(
-        legend: query['label'],
-        query: query['query_range'],
-        unit: query['unit'])
+        legend: metric_details['label'],
+        query: metric_details['query_range'],
+        unit: metric_details['unit'])
 
-      yield(query['id'], attributes)
+      yield(metric_details['id'], attributes)
     end
 
     def find_or_build_metric!(id)
