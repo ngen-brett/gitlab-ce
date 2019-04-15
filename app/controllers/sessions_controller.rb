@@ -8,7 +8,10 @@ class SessionsController < Devise::SessionsController
   include Recaptcha::Verify
 
   skip_before_action :check_two_factor_requirement, only: [:destroy]
+  # called manually in check_require_no_auth
+  skip_before_action :require_no_authentication, only: [:new, :create]
 
+  prepend_before_action :check_require_no_auth, only: [:new, :create]
   prepend_before_action :check_initial_setup, only: [:new]
   prepend_before_action :authenticate_with_two_factor,
     if: :two_factor_enabled?, only: [:create]
@@ -53,6 +56,12 @@ class SessionsController < Devise::SessionsController
   end
 
   private
+
+  def require_no_auth
+    require_no_authentication
+    # hide already signed in alert
+    flash[:alert] = nil
+  end
 
   def captcha_enabled?
     request.headers[CAPTCHA_HEADER] && Gitlab::Recaptcha.enabled?
@@ -150,7 +159,6 @@ class SessionsController < Devise::SessionsController
         URI(request.url)
       end
 
-    # Prevent a 'you are already signed in' message directly after signing:
     # we should never redirect to '/users/sign_in' after signing in successfully.
     return true if redirect_uri.path == new_user_session_path
 
