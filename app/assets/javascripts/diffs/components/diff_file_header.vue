@@ -315,7 +315,7 @@ export default {
           rel="noopener noreferrer"
           class="btn btn-file-option js-external-url"
         >
-          <icon name="external-link" />
+          <icon name="doc-text" />
         </a>
       </div>
     </div>
