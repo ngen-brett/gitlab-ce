@@ -3,7 +3,7 @@
 css_paths_to_review = helper.changes_by_category[:css]
 
 unless css_paths_to_review.empty?
-  message 'This merge request adds page specific CSS.'
+  message 'This Merge Request adds page-specific CSS.'
 
   markdown(<<~MARKDOWN)
 ## Page Specific CSS review
