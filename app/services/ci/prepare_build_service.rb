@@ -11,9 +11,12 @@ module Ci
     def execute
       prerequisites.each(&:complete!)
 
-      unless build.enqueue
-        build.drop!(:unmet_prerequisites)
-      end
+      build.enqueue!
+    rescue => e
+      # Prerequisites provide their own logging for specific error classes
+      Rails.logger.error("Unable to complete prerequisites for build #{build.id}")
+
+      build.drop(:unmet_prerequisites)
     end
 
     private

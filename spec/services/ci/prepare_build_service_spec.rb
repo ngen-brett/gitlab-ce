@@ -38,7 +38,19 @@ describe Ci::PrepareBuildService do
         end
 
         it 'drops the build' do
-          expect(build).to receive(:drop!).with(:unmet_prerequisites).once
+          expect(build).to receive(:drop).with(:unmet_prerequisites).once
+
+          subject
+        end
+      end
+
+      context 'prerequisites raise an error' do
+        before do
+          allow(prerequisite).to receive(:complete!).and_raise Kubeclient::HttpError.new(401, 'unauthorized', nil)
+        end
+
+        it 'drops the build' do
+          expect(build).to receive(:drop).with(:unmet_prerequisites).once
 
           subject
         end
