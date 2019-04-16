@@ -212,15 +212,33 @@ It is responsibility of the author of a merge request that the merge request is 
 
 Developers who have capacity can regularly check the list of [merge requests to review](https://gitlab.com/groups/gitlab-org/-/merge_requests?scope=all&utf8=%E2%9C%93&state=opened&label_name%5B%5D=ready%20for%20review) and assign any merge request they want to review.
 
-### Reviewing code
+### Review turnaround time
 
-Try to review in a timely manner; doing so allows everyone involved in the merge
-request to iterate faster as the context is fresh in memory. Further, this
-improves contributors' experiences significantly. Reviewers should aim to review
-within two working days from the date they were assigned the merge request. If
-you don't think you'll be able to review a merge request within that time, let
-the author know as soon as possible. When the author of the merge request has not
-heard anything after two days, a new reviewer should be assigned.
+Since [unblocking others is always a top priority]
+(https://about.gitlab.com/handbook/values/#global-optimization), reviewers are
+expected to review assigned merge requests in a timely manner, even when this
+may be at the expense of their own deliverables or other tasks. Doing so allows
+everyone involved in the merge request to iterate faster as the context is fresh
+in memory, improves contributors' experiences significantly, and gives authors
+more time to address feedback and iterate on their work before the [feature freeze](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/PROCESS.md#feature-freeze-on-the-7th-for-the-release-on-the-22nd).
+
+A turnaround time of two working days is usually acceptable, since engineers
+will typically have other things to work on while they're waiting for review,
+but especially as deadlines near, a shorter turnaround is strongly preferred. 
+
+If you don't think you'll be able to review a merge request within two days of
+it being assigned to you, let the author know as soon as possible and try to help
+them find another reviewer or maintainer who will be able to. This way, the author
+can be unblocked as soon as possible, and the likelihood of them finishing the
+deliverable in question within the allotted time increases significantly.
+
+When a merge request author feels that they have been blocked for longer than
+is reasonable, they are free to remind the reviewer through Slack and/or to 
+assign another reviewer. This should rarely be necessary, however, since it's a
+reviewer's responsibility to manage their own assignments and not block anyone
+for too long.
+
+### Reviewing code
 
 Understand why the change is necessary (fixes a bug, improves the user
 experience, refactors the existing code). Then:
