@@ -118,6 +118,8 @@ export default {
 </script>
 
 <template>
+  <!-- Making a change to this file, which does not have an EE counterpart -->
+
   <div class="deploy-heading">
     <div class="ci-widget media">
       <div class="media-body">
