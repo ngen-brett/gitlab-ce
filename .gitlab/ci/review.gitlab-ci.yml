@@ -228,5 +228,6 @@ danger-review:
     - git version
     - node --version
     - yarn install --frozen-lockfile --cache-folder .yarn-cache
+    - danger --version
     - danger --fail-on-errors=true
 
