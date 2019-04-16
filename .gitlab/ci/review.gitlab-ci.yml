@@ -225,9 +225,15 @@ danger-review:
       - $CI_COMMIT_REF_NAME =~ /^ce-to-ee-.*/
       - $CI_COMMIT_REF_NAME =~ /.*-stable(-ee)?-prepare-.*/
   script:
+    - date
     - git version
+    - date
     - node --version
+    - date
     - yarn install --frozen-lockfile --cache-folder .yarn-cache
+    - date
     - danger --version
+    - date
     - danger --fail-on-errors=true
+    - date
 
