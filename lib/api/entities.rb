@@ -190,7 +190,7 @@ module API
 
       expose :star_count, :forks_count
       expose :last_activity_at
-      expose :namespace, using: 'API::Entities::NamespaceBasic'
+      expose :namespace, using: 'API::Entities::DetailsNamespace'
       expose :custom_attributes, using: 'API::Entities::CustomAttribute', if: :with_custom_attributes
 
       # rubocop: disable CodeReuse/ActiveRecord
@@ -932,6 +932,15 @@ module API
 
       def expose_members_count_with_descendants?(namespace, opts)
         namespace.kind == 'group' && Ability.allowed?(opts[:current_user], :admin_group, namespace)
+      end
+    end
+
+    class DetailsNamespace < NamespaceBasic
+      expose :owners, using: Entities::UserBasic, if: -> (namespace, opts) { owners_available?(namespace, opts) }
+
+      def owners_available?(namespace, options)
+        namespace.kind == 'group' &&
+          Ability.allowed?(options[:current_user], :admin_group, namespace)
       end
     end
 

@@ -1047,7 +1047,6 @@ describe API::Projects do
         expect(json_response['http_url_to_repo']).to be_present
         expect(json_response['web_url']).to be_present
         expect(json_response['owner']).to be_a Hash
-        expect(json_response['owner']).to be_a Hash
         expect(json_response['name']).to eq(project.name)
         expect(json_response['path']).to be_present
         expect(json_response['issues_enabled']).to be_present
@@ -1275,31 +1274,74 @@ describe API::Projects do
         end
 
         context 'personal project' do
-          it 'sets project access and returns 200' do
+          before do
             project.add_maintainer(user)
-            get api("/projects/#{project.id}", user)
 
+            get api("/projects/#{project.id}", user)
+          end
+
+          it 'sets project access and returns 200' do
             expect(response).to have_gitlab_http_status(200)
             expect(json_response['permissions']['project_access']['access_level'])
             .to eq(Gitlab::Access::MAINTAINER)
             expect(json_response['permissions']['group_access']).to be_nil
           end
+
+          it 'does not return owner of namespace' do
+            expect(json_response['namespace']['owners']).not_to be_present
+          end
         end
 
         context 'group project' do
-          let(:project2) { create(:project, group: create(:group)) }
+          let(:group) { create(:group) }
+          let(:project2) { create(:project, group: group) }
 
-          before do
-            project2.group.add_owner(user)
+          context 'when user can admin group' do
+            before do
+              project2.group.add_owner(user)
+
+              get api("/projects/#{project2.id}", user)
+            end
+
+            it 'sets the owner and return 200' do
+              expect(response).to have_gitlab_http_status(200)
+              expect(json_response['permissions']['project_access']).to be_nil
+              expect(json_response['permissions']['group_access']['access_level'])
+                .to eq(Gitlab::Access::OWNER)
+            end
+
+            it 'returns group owners information' do
+              expect(json_response['namespace']['owners']).to be_present
+              expect(json_response['namespace']['owners'].count).to eq(group.owners.count)
+            end
+
+            it 'returns information group owners information' do
+              owner = json_response['namespace']['owners'].first
+
+              expect(owner).to be_present
+              expect(owner['id']).to eq(user.id)
+              expect(owner['name']).to eq(user.name)
+              expect(owner['username']).to eq(user.username)
+              expect(owner['state']).to eq(user.state)
+              expect(owner['avatar_url']).to eq(user.avatar_url)
+              expect(owner['web_url']).to eq(Gitlab::Routing.url_helpers.user_url(user))
+            end
           end
 
-          it 'sets the owner and return 200' do
-            get api("/projects/#{project2.id}", user)
+          context 'when user cannot admin group' do
+            before do
+              project2.group.add_developer(user)
 
-            expect(response).to have_gitlab_http_status(200)
-            expect(json_response['permissions']['project_access']).to be_nil
-            expect(json_response['permissions']['group_access']['access_level'])
-            .to eq(Gitlab::Access::OWNER)
+              get api("/projects/#{project2.id}", user)
+            end
+
+            it 'returns 200' do
+              expect(response).to have_gitlab_http_status(200)
+            end
+
+            it 'does not include group owners information' do
+              expect(json_response['namespace']['owners']).not_to be_present
+            end
           end
         end
 
