@@ -35,6 +35,10 @@ module HasVariable
     def key=(new_key)
       super(new_key.to_s.strip)
     end
+
+    def variable_type
+      super.presence || 'env_var'
+    end
   end
 
   def to_runner_variable
