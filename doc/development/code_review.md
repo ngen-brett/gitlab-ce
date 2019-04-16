@@ -214,13 +214,13 @@ Developers who have capacity can regularly check the list of [merge requests to 
 
 ### Review turnaround time
 
-Since [unblocking others is always a top priority]
-(https://about.gitlab.com/handbook/values/#global-optimization), reviewers are
-expected to review assigned merge requests in a timely manner, even when this
-may be at the expense of their own deliverables or other tasks. Doing so allows
-everyone involved in the merge request to iterate faster as the context is fresh
-in memory, improves contributors' experiences significantly, and gives authors
-more time to address feedback and iterate on their work before the [feature freeze](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/PROCESS.md#feature-freeze-on-the-7th-for-the-release-on-the-22nd).
+Since [unblocking others is always a top priority](https://about.gitlab.com/handbook/values/#global-optimization),
+reviewers are expected to review assigned merge requests in a timely manner,
+even when this may be at the expense of their own deliverables or other tasks.
+Doing so allows everyone involved in the merge request to iterate faster as the
+context is fresh in memory, improves contributors' experiences significantly,
+and gives authors more time to address feedback and iterate on their work before
+the [feature freeze](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/PROCESS.md#feature-freeze-on-the-7th-for-the-release-on-the-22nd).
 
 A turnaround time of two working days is usually acceptable, since engineers
 will typically have other things to work on while they're waiting for review,
