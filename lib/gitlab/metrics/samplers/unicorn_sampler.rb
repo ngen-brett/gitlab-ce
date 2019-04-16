@@ -17,19 +17,19 @@ module Gitlab
         end
 
         def process_cpu_seconds_total_gauge
-          @process_cpu_seconds_total ||= ::Gitlab::Metrics.gauge(:process_cpu_seconds_total, 'Process CPU seconds total', {}, :livesum)
+          @process_cpu_seconds_total ||= ::Gitlab::Metrics.gauge(:process_cpu_seconds_total, 'Process CPU seconds total', {})
         end
 
         def process_start_time_seconds_gauge
-          @process_start_time_seconds ||= ::Gitlab::Metrics.gauge(:process_start_time_seconds, 'Process start time seconds', {}, :max)
+          @process_start_time_seconds ||= ::Gitlab::Metrics.gauge(:process_start_time_seconds, 'Process start time seconds', {})
         end
 
         def process_max_fds_gauge
-          @process_max_fds ||= ::Gitlab::Metrics.gauge(:process_max_fds, 'Process max fds', {}, :max)
+          @process_max_fds ||= ::Gitlab::Metrics.gauge(:process_max_fds, 'Process max fds', {})
         end
 
-        def unicorn_workers_gauge
-          @unicorn_workers ||= ::Gitlab::Metrics.gauge(:unicorn_workers, 'Unicorn workers', {}, :max)
+        def unicorn_workers_count
+          @unicorn_workers ||= ::Gitlab::Metrics.count(:unicorn_workers, 'Unicorn workers', {})
         end
 
         def enabled?
@@ -52,7 +52,7 @@ module Gitlab
           process_cpu_seconds_total_gauge.set({ worker: pid }, process_cpu_seconds_total(ps))
           process_start_time_seconds_gauge.set({ worker: pid }, process_start_time_seconds(ps))
           process_max_fds_gauge.set({ worker: pid }, process_max_fds)
-          unicorn_workers_gauge.set({}, unix_listeners.count)
+          unicorn_workers_count.set({}, unix_listeners.count)
         end
 
         private
