@@ -260,12 +260,6 @@ If enabling, check that your project doesn't have a `.gitlab-ci.yml`, or if one 
 
 When the feature has been enabled, an Auto DevOps pipeline is triggered on the default branch.
 
-NOTE: **Note:**
-For GitLab versions 10.0 - 10.2, when enabling Auto DevOps, a pipeline needs to be
-manually triggered either by pushing a new commit to the repository or by visiting
-`https://example.gitlab.com/<username>/<project>/pipelines/new` and creating
-a new pipeline for your default branch, generally `master`.
-
 ### Feature flag to enable for a percentage of projects
 
 There is also a feature flag to enable Auto DevOps by default to your chosen percentage of projects.
