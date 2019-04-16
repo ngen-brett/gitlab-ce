@@ -1869,6 +1869,9 @@ msgstr ""
 msgid "ClusterIntegration|%{title} upgraded successfully."
 msgstr ""
 
+msgid "ClusterIntegration|A service account could not be created for your cluster. This may cause deployments to fail. Please ensure your token has %{privilege} privileges. %{privileges_url_start}More information%{privileges_url_end}"
+msgstr ""
+
 msgid "ClusterIntegration|API URL"
 msgstr ""
 
@@ -2254,6 +2257,9 @@ msgid "ClusterIntegration|Specifying a domain will allow you to use Auto Review 
 msgstr ""
 
 msgid "ClusterIntegration|The endpoint is in the process of being assigned. Please check your Kubernetes cluster or Quotas on Google Kubernetes Engine if it takes a long time."
+msgstr ""
+
+msgid "ClusterIntegration|There was a problem authenticating with your cluster. Please ensure your CA Certificate and Token are valid."
 msgstr ""
 
 msgid "ClusterIntegration|This account must have permissions to create a Kubernetes cluster in the %{link_to_container_project} specified below"
