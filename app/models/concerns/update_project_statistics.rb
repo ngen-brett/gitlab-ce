@@ -19,6 +19,8 @@ module UpdateProjectStatistics
   end
 
   included do
+    private
+
     def project_destroyed?
       project.pending_delete?
     end

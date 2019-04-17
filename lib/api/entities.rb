@@ -304,6 +304,7 @@ module API
       expose :repository_size
       expose :lfs_objects_size
       expose :build_artifacts_size, as: :job_artifacts_size
+      expose :packages_size
     end
 
     class ProjectDailyFetches < Grape::Entity
