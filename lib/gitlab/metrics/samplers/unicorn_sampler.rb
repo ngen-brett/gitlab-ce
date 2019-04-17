@@ -66,11 +66,11 @@ module Gitlab
         end
 
         def process_cpu_seconds_total(ps)
-          (ps.stime + ps.utime) / 100
+          (ps.stime + ps.utime) / 100.0
         end
 
         def process_start_time_seconds(ps)
-          @process_start_time_seconds ||= ps.starttime / 100
+          @process_start_time_seconds ||= ps.starttime / 100.0
         end
 
         def process_max_fds
