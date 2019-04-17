@@ -94,7 +94,7 @@ export default {
       return stateMaps.statesToShowHelpWidget.indexOf(this.mr.state) > -1;
     },
     shouldRenderPipelines() {
-      return this.mr.hasCI;
+      return this.mr.hasCI && this.mr.pipeline;
     },
     shouldRenderRelatedLinks() {
       return !!this.mr.relatedLinks && !this.mr.isNothingToMergeState;
@@ -319,7 +319,7 @@ export default {
     <mr-widget-header :mr="mr" />
     <mr-widget-pipeline-container
       v-if="shouldRenderPipelines"
-      class="mr-widget-workflow"
+      class="js-pipeline-source-branch mr-widget-workflow"
       :mr="mr"
     />
     <div class="mr-section-container mr-widget-workflow">

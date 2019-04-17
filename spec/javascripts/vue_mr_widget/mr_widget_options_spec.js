@@ -811,4 +811,18 @@ describe('mrWidgetOptions', () => {
       });
     });
   });
+
+  describe('when hasCI flag is true but no pipeline is provided', () => {
+    beforeEach(done => {
+      vm.mr.hasCI = true;
+      vm.mr.pipeline = undefined;
+
+      vm.$nextTick(done);
+    });
+
+    it('does not render pipeline block for the source branch', () => {
+      expect(vm.$el.querySelector('.js-pipeline-source-branch')).toBeNull();
+
+    })
+  });
 });
