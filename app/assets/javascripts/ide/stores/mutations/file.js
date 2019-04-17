@@ -48,14 +48,14 @@ export default {
       html: data.html,
       size: data.size,
       lastCommitSha: data.last_commit_sha,
+      richViewer: data.rich_viewer,
     });
   },
   [types.SET_FILE_RAW_DATA](state, { file, raw }) {
     const openPendingFile = state.openFiles.find(
       f => f.path === file.path && f.pending && !(f.tempFile && !f.prevPath),
     );
-
-    if (file.tempFile && file.content === '') {
+    if (file.tempFile && file.content === '' && file.richViewer !== 'image') {
       Object.assign(state.entries[file.path], {
         content: raw,
       });
