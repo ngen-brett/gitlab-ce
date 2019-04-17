@@ -7,7 +7,9 @@ import {
   CERT_MANAGER,
   RUNNER,
   APPLICATION_INSTALLED_STATUSES,
+  APPLICATION_STATUS,
 } from '../constants';
+import transitionApplicationState from '../services/application_state_machine';
 
 const isApplicationInstalled = appStatus => APPLICATION_INSTALLED_STATUSES.includes(appStatus);
 
@@ -17,6 +19,7 @@ const applicationInitialState = {
   requestReason: null,
   requestStatus: null,
   installed: false,
+  installFailed: false,
 };
 
 export default class ClusterStore {
@@ -49,6 +52,9 @@ export default class ClusterStore {
           version: null,
           chartRepo: 'https://gitlab.com/charts/gitlab-runner',
           upgradeAvailable: null,
+          updateAcknowledged: true,
+          updateSuccessful: false,
+          updateFailed: false,
         },
         prometheus: {
           ...applicationInitialState,
@@ -93,6 +99,40 @@ export default class ClusterStore {
     this.state.statusReason = reason;
   }
 
+  installApplication(appId) {
+    const currentAppState = this.state.applications[appId];
+
+    this.state.applications[appId] = transitionApplicationState(currentAppState, 'install');
+  }
+
+  notifyInstallFailure(appId) {
+    const currentAppState = this.state.applications[appId];
+
+    this.state.applications[appId] = transitionApplicationState(
+      currentAppState,
+      APPLICATION_STATUS.ERROR,
+    );
+  }
+
+  updateApplication(appId) {
+    const currentAppState = this.state.applications[appId];
+
+    this.state.applications[appId] = transitionApplicationState(currentAppState, 'update');
+  }
+
+  notifyUpdateFailure(appId) {
+    const currentAppState = this.state.applications[appId];
+
+    this.state.applications[appId] = transitionApplicationState(
+      currentAppState,
+      APPLICATION_STATUS.UPDATE_ERRORED,
+    );
+  }
+
+  acknowledgeSuccessfulUpdate(appId) {
+    this.state.applications[appId].updateAcknowledged = true;
+  }
+
   updateAppProperty(appId, prop, value) {
     this.state.applications[appId][prop] = value;
   }
@@ -109,12 +149,14 @@ export default class ClusterStore {
         version,
         update_available: upgradeAvailable,
       } = serverAppEntry;
+      const currentApplicationState = this.state.applications[appId] || {};
+      const nextApplicationState = transitionApplicationState(currentApplicationState, status);
 
       this.state.applications[appId] = {
-        ...(this.state.applications[appId] || {}),
-        status,
+        ...currentApplicationState,
+        ...nextApplicationState,
         statusReason,
-        installed: isApplicationInstalled(status),
+        installed: isApplicationInstalled(nextApplicationState.status),
       };
 
       if (appId === INGRESS) {

@@ -7,6 +7,7 @@ export const CLUSTER_TYPE = {
 
 // These need to match what is returned from the server
 export const APPLICATION_STATUS = {
+  NO_STATUS: null,
   NOT_INSTALLABLE: 'not_installable',
   INSTALLABLE: 'installable',
   SCHEDULED: 'scheduled',
