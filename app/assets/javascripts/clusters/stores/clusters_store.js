@@ -1,6 +1,7 @@
 import { s__ } from '../../locale';
 import { parseBoolean } from '../../lib/utils/common_utils';
 import { INGRESS, JUPYTER, KNATIVE, CERT_MANAGER, RUNNER } from '../constants';
+import transitionApplicationState from '../services/application_state_machine';
 
 export default class ClusterStore {
   constructor() {
@@ -44,6 +45,9 @@ export default class ClusterStore {
           version: null,
           chartRepo: 'https://gitlab.com/charts/gitlab-runner',
           upgradeAvailable: null,
+          updateAcknowledged: true,
+          updateSuccessful: false,
+          updateFailed: false,
         },
         prometheus: {
           title: s__('ClusterIntegration|Prometheus'),
@@ -97,8 +101,24 @@ export default class ClusterStore {
     this.state.statusReason = reason;
   }
 
+  installApplication(appId) {
+    const currentAppState = this.state.applications[appId];
+
+    this.state.applications[appId] = transitionApplicationState(currentAppState, 'install');
+  }
+
+  updateApplication(appId) {
+    const currentAppState = this.state.applications[appId];
+
+    this.state.applications[appId] = transitionApplicationState(currentAppState, 'update');
+  }
+
   updateAppProperty(appId, prop, value) {
     this.state.applications[appId][prop] = value;
+  }
+
+  acknowledgeSuccessfulUpdate(appId) {
+    this.state.applications[appId].updateAcknowledged = true;
   }
 
   updateStateFromServer(serverState = {}) {
@@ -113,10 +133,12 @@ export default class ClusterStore {
         version,
         update_available: upgradeAvailable,
       } = serverAppEntry;
+      const currentApplicationState = this.state.applications[appId] || {};
+      const nextApplicationState = transitionApplicationState(currentApplicationState, status);
 
       this.state.applications[appId] = {
-        ...(this.state.applications[appId] || {}),
-        status,
+        ...currentApplicationState,
+        ...nextApplicationState,
         statusReason,
       };
 

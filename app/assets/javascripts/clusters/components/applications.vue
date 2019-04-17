@@ -403,6 +403,10 @@ export default {
         :version="applications.runner.version"
         :chart-repo="applications.runner.chartRepo"
         :upgrade-available="applications.runner.upgradeAvailable"
+        :upgrade-acknowledged="applications.runner.updateAcknowledged"
+        :upgrade-successful="applications.runner.updateSuccessful"
+        :upgrade-failed="applications.runner.upgradeFailed"
+        :installed="applications.runner.installed"
         :disabled="!helmInstalled"
         title-link="https://docs.gitlab.com/runner/"
       >
