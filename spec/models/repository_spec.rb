@@ -1432,6 +1432,41 @@ describe Repository do
     end
   end
 
+  describe '#rebase' do
+    let(:merge_request) { create(:merge_request, source_branch: 'feature', target_branch: 'master', source_project: project) }
+
+    it 'returns the rebase commit sha' do
+      rebase_commit_sha = repository.rebase(user, merge_request)
+      head_sha = merge_request.source_project.repository.commit(merge_request.source_branch).sha
+
+      expect(rebase_commit_sha).to eq(head_sha)
+    end
+
+    it 'sets the `rebase_commit_sha` for the given merge request' do
+      rebase_commit_sha = repository.rebase(user, merge_request)
+
+      expect(rebase_commit_sha).not_to be_nil
+      expect(merge_request.rebase_commit_sha).to eq(rebase_commit_sha)
+    end
+
+    context 'when two_step_rebase feature is disabled' do
+      before do
+        stub_feature_flags(two_step_rebase: false)
+      end
+
+      it 'calls #rebase_deprecated' do
+        expect(repository).to receive(:rebase_deprecated)
+
+        repository.rebase(user, merge_request)
+      end
+
+      it 'does not set the `rebase_commit_sha` for the given merge request' do
+        repository.rebase(user, merge_request)
+        expect(merge_request.rebase_commit_sha).to be_nil
+      end
+    end
+  end
+
   describe '#revert' do
     let(:new_image_commit) { repository.commit('33f3729a45c02fc67d00adb1b8bca394b0e761d9') }
     let(:update_image_commit) { repository.commit('2f63565e7aac07bcdadb654e253078b727143ec4') }

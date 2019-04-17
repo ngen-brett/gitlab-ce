@@ -1029,11 +1029,27 @@ class Repository
     raw_repository.fetch_ref(source_repository.raw_repository, source_ref: source_ref, target_ref: target_ref)
   end
 
+  # DEPRECATED: https://gitlab.com/gitlab-org/gitaly/issues/1628
+  def rebase_deprecated(user, merge_request)
+    raw.rebase_deprecated(user, merge_request.id, branch: merge_request.source_branch,
+                                                  branch_sha: merge_request.source_branch_sha,
+                                                  remote_repository: merge_request.target_project.repository.raw,
+                                                  remote_branch: merge_request.target_branch)
+  end
+
   def rebase(user, merge_request)
-    raw.rebase(user, merge_request.id, branch: merge_request.source_branch,
-                                       branch_sha: merge_request.source_branch_sha,
-                                       remote_repository: merge_request.target_project.repository.raw,
-                                       remote_branch: merge_request.target_branch)
+    return rebase_deprecated(user, merge_request) if Feature.disabled?(:two_step_rebase, default_enabled: true)
+
+    raw.rebase(
+      user,
+      merge_request.id,
+      branch: merge_request.source_branch,
+      branch_sha: merge_request.source_branch_sha,
+      remote_repository: merge_request.target_project.repository.raw,
+      remote_branch: merge_request.target_branch
+    ) do |commit_id|
+      merge_request.update!(rebase_commit_sha: commit_id)
+    end
   end
 
   def squash(user, merge_request, message)

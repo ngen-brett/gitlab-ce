@@ -197,6 +197,7 @@ module Gitlab
                                    start_repository: start_repository)
       end
 
+      # DEPRECATED: https://gitlab.com/gitlab-org/gitaly/issues/1628
       def user_rebase(user, rebase_id, branch:, branch_sha:, remote_repository:, remote_branch:)
         request = Gitaly::UserRebaseRequest.new(
           repository: @gitaly_repo,
@@ -223,6 +224,47 @@ module Gitlab
         else
           response.rebase_sha
         end
+      end
+
+      def rebase(user, rebase_id, branch:, branch_sha:, remote_repository:, remote_branch:)
+        request_enum = QueueEnumerator.new
+
+        response_enum = GitalyClient.call(
+          @repository.storage,
+          :operation_service,
+          :rebase,
+          request_enum.each,
+          remote_storage: remote_repository.storage
+        )
+
+        request_enum.push(
+          Gitaly::RebaseRequest.new(
+            repository: @gitaly_repo,
+            user: Gitlab::Git::User.from_gitlab(user).to_gitaly,
+            rebase_id: rebase_id.to_s,
+            branch: encode_binary(branch),
+            branch_sha: branch_sha,
+            remote_repository: remote_repository.gitaly_repository,
+            remote_branch: encode_binary(remote_branch)
+          )
+        )
+
+        rebase_sha = response_enum.next.rebase_sha
+        yield rebase_sha
+
+        request_enum.push(Gitaly::RebaseRequest.new(apply: true))
+
+        second_response = response_enum.next
+
+        if second_response.pre_receive_error.present?
+          raise Gitlab::Git::PreReceiveError, second_response.pre_receive_error
+        elsif second_response.git_error.present?
+          raise Gitlab::Git::Repository::GitError, second_response.git_error
+        end
+
+        rebase_sha
+      ensure
+        request_enum.close
       end
 
       def user_squash(user, squash_id, branch, start_sha, end_sha, author, message)
