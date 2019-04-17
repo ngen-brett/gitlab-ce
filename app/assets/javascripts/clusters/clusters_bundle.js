@@ -262,6 +262,8 @@ export default class Clusters {
     this.store.updateAppProperty(appId, 'requestReason', null);
     this.store.updateAppProperty(appId, 'statusReason', null);
 
+    this.store.installApplication(appId);
+
     return this.service.installApplication(appId, data.params).catch(() => {
       this.store.updateAppProperty(appId, 'requestStatus', REQUEST_FAILURE);
       this.store.updateAppProperty(
@@ -275,7 +277,9 @@ export default class Clusters {
   upgradeApplication(data) {
     const appId = data.id;
     this.store.updateAppProperty(appId, 'requestStatus', UPGRADE_REQUESTED);
-    this.store.updateAppProperty(appId, 'status', APPLICATION_STATUS.UPDATING);
+
+    this.store.updateApplication(appId);
+
     this.service.installApplication(appId, data.params).catch(() => this.upgradeFailed(appId));
   }
 
@@ -284,7 +288,7 @@ export default class Clusters {
   }
 
   dismissUpgradeSuccess(appId) {
-    this.store.updateAppProperty(appId, 'requestStatus', null);
+    this.store.acknowledgeSuccessfulUpdate(appId);
   }
 
   toggleIngressDomainHelpText(ingressPreviousState, ingressNewState) {

@@ -10,7 +10,6 @@ import {
   APPLICATION_STATUS,
   REQUEST_SUBMITTED,
   REQUEST_FAILURE,
-  UPGRADE_REQUESTED,
 } from '../constants';
 
 export default {
@@ -74,6 +73,21 @@ export default {
     upgradeAvailable: {
       type: Boolean,
       required: false,
+    },
+    upgradeSuccessful: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    upgradeFailed: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    upgradeAcknowledged: {
+      type: Boolean,
+      required: false,
+      default: true,
     },
     installApplicationRequestParams: {
       type: Object,
@@ -177,19 +191,6 @@ export default {
 
       return s__('ClusterIntegration|Upgraded');
     },
-    upgradeRequested() {
-      return this.requestStatus === UPGRADE_REQUESTED;
-    },
-    upgradeSuccessful() {
-      return this.status === APPLICATION_STATUS.UPDATED;
-    },
-    upgradeFailed() {
-      if (this.isUpgrading) {
-        return false;
-      }
-
-      return this.status === APPLICATION_STATUS.UPDATE_ERRORED;
-    },
     upgradeFailureDescription() {
       return s__('ClusterIntegration|Update failed. Please check the logs and try again.');
     },
@@ -212,10 +213,7 @@ export default {
     },
     isUpgrading() {
       // Since upgrading is handled asynchronously on the backend we need this check to prevent any delay on the frontend
-      return (
-        this.status === APPLICATION_STATUS.UPDATING ||
-        (this.upgradeRequested && !this.upgradeSuccessful)
-      );
+      return this.status === APPLICATION_STATUS.UPDATING;
     },
     shouldShowUpgradeDetails() {
       // This method only returns true when;
