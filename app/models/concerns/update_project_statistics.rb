@@ -19,6 +19,7 @@ module UpdateProjectStatistics
   end
 
   included do
+    # rubocop: disable Lint/UselessAccessModifier
     private
 
     def project_destroyed?
