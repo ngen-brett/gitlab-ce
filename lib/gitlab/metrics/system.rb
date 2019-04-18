@@ -28,7 +28,7 @@ module Gitlab
           match = File.read('/proc/self/limits').match(/Max open files\s*(\d+)/)
 
           if match && match[1]
-            max_fds = match[1]
+            max_fds = match[1].to_i
           end
 
           max_fds
