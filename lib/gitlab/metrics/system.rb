@@ -64,7 +64,7 @@ module Gitlab
       if Process.const_defined?(:CLOCK_BOOTTIME)
         def self.process_start_time
           Process
-            .clock_gettime(Proces::CLOCK_BOOTTIME, :float_second)
+            .clock_gettime(Process::CLOCK_BOOTTIME, :float_second)
         end
       else
         def self.process_start_time
