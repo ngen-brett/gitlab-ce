@@ -19,7 +19,7 @@ module Gitlab
             unicorn_workers:            ::Gitlab::Metrics.gauge(:unicorn_workers, 'Unicorn workers'),
             process_cpu_seconds_total:  ::Gitlab::Metrics.gauge(:process_cpu_seconds_total, 'Process CPU seconds total'),
             process_max_fds:            ::Gitlab::Metrics.gauge(:process_max_fds, 'Process max fds'),
-            process_start_time_seconds: ::Gitlab::Metrics.gauge(:process_start_time_seconds, 'Process start time seconds'),
+            process_start_time_seconds: ::Gitlab::Metrics.gauge(:process_start_time_seconds, 'Process start time seconds')
           }
         end
 
@@ -39,10 +39,9 @@ module Gitlab
             metrics[:unicorn_queued_connections].set({ socket_type: 'unix', socket_address: addr }, stats.queued)
           end
 
-          ps = Sys::ProcTable.ps(pid: pid)
-          metrics[:process_cpu_seconds_total].set({ pid: nil }, process_cpu_seconds_total(ps)) # pid gets set later by Prometheus config pid_provider
-          metrics[:process_start_time_seconds].set({ pid: nil }, process_start_time_seconds(ps))
-          metrics[:process_max_fds].set({ pid: nil }, process_max_fds)
+          metrics[:process_cpu_seconds_total].set({ pid: nil }, ::Gitlab::Metrics::System.cpu_time)
+          metrics[:process_start_time_seconds].set({ pid: nil }, ::Gitlab::Metrics::System.process_start_time)
+          metrics[:process_max_fds].set({ pid: nil }, ::Gitlab::Metrics::System.max_open_file_descriptors)
           metrics[:unicorn_workers].set({}, unicorn_workers_count)
         end
 
@@ -54,21 +53,6 @@ module Gitlab
 
         def pid
           @pid ||= Process.pid
-        end
-
-        def process_cpu_seconds_total(ps)
-          (ps.stime + ps.utime) / 100.0
-        end
-
-        def process_max_fds
-          @process_max_fds ||= begin 
-            match = File.read('/proc/self/limits').match(/Max open files\s*(\d+)/)
-            match ? match[1].to_i : nil
-          end
-        end
-
-        def process_start_time_seconds(ps)
-          @process_start_time_seconds ||= ps.starttime / 100.0
         end
 
         def unix_listeners
