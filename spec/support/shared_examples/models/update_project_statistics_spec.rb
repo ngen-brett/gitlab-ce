@@ -8,7 +8,7 @@ shared_examples_for 'UpdateProjectStatistics' do
   let(:attribute) { described_class.update_project_statistics_attribute }
 
   def reload_stat
-    project.statistics.reload.send(stat)
+    project.statistics.reload.send(stat).to_i
   end
 
   def read_attribute
