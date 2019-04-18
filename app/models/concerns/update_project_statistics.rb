@@ -1,5 +1,17 @@
 # frozen_string_literal: true
 
+##
+# This module is providing helpers for updating `ProjectStatistics` with `after_save` and `before_destroy` hooks.
+#
+# It deals with `ProjectStatistics.increment_statistic` making sure not to update statistics on a cascade delete from the
+# project, and keeping track of value deltas on each save. It updates the DB only when a change is needed.
+#
+# How to use
+# - Invoke `update_project_statistics stat: :a_project_statistics_column, attribute: :an_attr_to_track` in a model class body.
+#
+# Expectation
+# - `attribute` must be an ActiveRecord attribute
+# - The model must implement `project` and `project_id`. i.e. direct Project relationship or delegation
 module UpdateProjectStatistics
   extend ActiveSupport::Concern
 
