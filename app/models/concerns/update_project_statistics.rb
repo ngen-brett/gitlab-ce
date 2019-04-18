@@ -7,8 +7,6 @@ module UpdateProjectStatistics
     attr_reader :update_project_statistics_attribute,
                 :update_project_statistics_stat
 
-    private
-
     def update_project_statistics(stat:, attribute: :size)
       @update_project_statistics_stat = stat
       @update_project_statistics_attribute = attribute
@@ -16,10 +14,10 @@ module UpdateProjectStatistics
       after_save(:update_project_statistics_after_save, if: :update_project_statistics_attribute_changed?)
       after_destroy(:update_project_statistics_after_destroy, unless: :project_destroyed?)
     end
+    private :update_project_statistics
   end
 
   included do
-    # rubocop: disable Lint/UselessAccessModifier
     private
 
     def project_destroyed?
