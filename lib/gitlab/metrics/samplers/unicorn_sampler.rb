@@ -13,15 +13,13 @@ module Gitlab
         end
 
         def init_metrics
-          ps = Sys::ProcTable.ps(pid: pid)
-
           {
             unicorn_active_connections: ::Gitlab::Metrics.gauge(:unicorn_active_connections, 'Unicorn active connections', {}, :max),
             unicorn_queued_connections: ::Gitlab::Metrics.gauge(:unicorn_queued_connections, 'Unicorn queued connections', {}, :max),
-            unicorn_workers_count:      ::Gitlab::Metrics.count(:unicorn_workers, 'Unicorn workers', {}),
-            process_cpu_seconds_total:  ::Gitlab::Metrics.gauge(:process_cpu_seconds_total, 'Process CPU seconds total', {}),
-            process_start_time_seconds: ::Gitlab::Metrics.gauge(:process_start_time_seconds, 'Process start time seconds', {}).set(process_start_time_seconds(ps)),
-            process_max_fds:            ::Gitlab::Metrics.gauge(:process_max_fds, 'Process max fds', {})
+            unicorn_workers:            ::Gitlab::Metrics.gauge(:unicorn_workers, 'Unicorn workers'),
+            process_cpu_seconds_total:  ::Gitlab::Metrics.gauge(:process_cpu_seconds_total, 'Process CPU seconds total'),
+            process_max_fds:            ::Gitlab::Metrics.gauge(:process_max_fds, 'Process max fds'),
+            process_start_time_seconds: ::Gitlab::Metrics.gauge(:process_start_time_seconds, 'Process start time seconds'),
           }
         end
 
@@ -42,9 +40,10 @@ module Gitlab
           end
 
           ps = Sys::ProcTable.ps(pid: pid)
-          metrics[:process_cpu_seconds_total].set({ worker: pid }, process_cpu_seconds_total(ps))
-          # metrics[:process_max_fds].set({ worker: pid }, process_max_fds)
-          metrics[:unicorn_workers_count].set({}, unix_listeners.count)
+          metrics[:process_cpu_seconds_total].set({ pid: nil }, process_cpu_seconds_total(ps)) # pid gets set later by Prometheus config pid_provider
+          metrics[:process_start_time_seconds].set({ pid: nil }, process_start_time_seconds(ps))
+          metrics[:process_max_fds].set({ pid: nil }, process_max_fds)
+          metrics[:unicorn_workers].set({}, unicorn_workers_count)
         end
 
         private
@@ -61,12 +60,15 @@ module Gitlab
           (ps.stime + ps.utime) / 100.0
         end
 
-        def process_start_time_seconds(ps)
-          @process_start_time_seconds ||= ps.starttime / 100.0
+        def process_max_fds
+          @process_max_fds ||= begin 
+            match = File.read('/proc/self/limits').match(/Max open files\s*(\d+)/)
+            match ? match[1].to_i : nil
+          end
         end
 
-        def process_max_fds
-          @process_max_fds_gauge ||= File.open('/proc/self/limits').match(/Max open files\s*(\d+)/)
+        def process_start_time_seconds(ps)
+          @process_start_time_seconds ||= ps.starttime / 100.0
         end
 
         def unix_listeners
@@ -75,6 +77,10 @@ module Gitlab
 
         def unicorn_with_listeners?
           defined?(Unicorn) && Unicorn.listener_names.any?
+        end
+
+        def unicorn_workers_count
+          Sys::ProcTable.ps.select {|p| p.cmdline.match(/unicorn_rails worker/)}.count
         end
       end
     end
