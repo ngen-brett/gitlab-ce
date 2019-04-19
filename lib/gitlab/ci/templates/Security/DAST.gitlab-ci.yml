@@ -46,7 +46,8 @@ dast:
           --auth-username $DAST_USERNAME \
           --auth-password $DAST_PASSWORD \
           --auth-username-field $DAST_USERNAME_FIELD \
-          --auth-password-field $DAST_PASSWORD_FIELD
+          --auth-password-field $DAST_PASSWORD_FIELD \
+          --auth-exclude-urls $DAST_AUTH_EXCLUDE_URLS
       else
         dast_run
       fi
