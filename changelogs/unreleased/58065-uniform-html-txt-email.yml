@@ -1,0 +1,5 @@
+---
+title: Always shows author of created issue in HTML body email
+merge_request: 27519
+author: Frank van Rest
+type: fixed
