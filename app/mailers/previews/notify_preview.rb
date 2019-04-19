@@ -149,6 +149,10 @@ class NotifyPreview < ActionMailer::Preview
     Notify.autodevops_disabled_email(pipeline, user.email).message
   end
 
+  def new_issue_email
+    Notify.new_issue_email(user.id, issue.id).message
+  end
+
   def remote_mirror_update_failed_email
     Notify.remote_mirror_update_failed_email(remote_mirror.id, user.id).message
   end
