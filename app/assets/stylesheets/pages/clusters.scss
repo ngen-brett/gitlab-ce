@@ -152,3 +152,10 @@
     }
   }
 }
+
+.uninstall-application-confirmation-modal {
+  &-content {
+    min-height: auto;
+    white-space: normal;
+  }
+}
