@@ -1,7 +1,10 @@
 import Vue from 'vue';
+import { shallowMount } from '@vue/test-utils';
 import eventHub from '~/clusters/event_hub';
 import { APPLICATION_STATUS, REQUEST_FAILURE } from '~/clusters/constants';
 import applicationRow from '~/clusters/components/application_row.vue';
+import UninstallApplicationConfirmationModal from '~/clusters/components/uninstall_application_confirmation_modal.vue';
+
 import mountComponent from 'helpers/vue_mount_component_helper';
 import { DEFAULT_APPLICATION_STATE } from '../services/mock_data';
 
@@ -195,12 +198,38 @@ describe('Application Row', () => {
         ...DEFAULT_APPLICATION_STATE,
         installed: true,
         uninstallable: true,
+        status: APPLICATION_STATUS.NOT_INSTALLABLE
       });
       const uninstallButton = vm.$el.querySelector('.js-cluster-application-uninstall-button');
 
       expect(uninstallButton).toBeTruthy();
     });
   });
+
+  describe('when confirmation modal triggers confirm event', () => {
+    let wrapper
+
+    beforeEach(() => {
+      wrapper = shallowMount(ApplicationRow, {
+        propsData: {
+          ...DEFAULT_APPLICATION_STATE
+        }
+      })
+    })
+
+    afterEach(() => {
+      wrapper.destroy();
+    })
+
+    it('triggers uninstallApplication event', () => {
+      jest.spyOn(eventHub, '$emit')
+      wrapper.find(UninstallApplicationConfirmationModal).vm.$emit('confirm')
+
+      expect(eventHub.$emit).toHaveBeenCalledWith('uninstallApplication', {
+        id: DEFAULT_APPLICATION_STATE.id
+      })
+    })
+  })
 
   describe('Upgrade button', () => {
     it('has indeterminate state on page load', () => {

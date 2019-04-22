@@ -1,12 +1,13 @@
 <script>
 /* eslint-disable vue/require-default-prop */
-import { GlLink } from '@gitlab/ui';
+import { GlLink, GlModalDirective } from '@gitlab/ui';
 import TimeagoTooltip from '../../vue_shared/components/time_ago_tooltip.vue';
 import { s__, sprintf } from '../../locale';
 import eventHub from '../event_hub';
 import identicon from '../../vue_shared/components/identicon.vue';
 import loadingButton from '../../vue_shared/components/loading_button.vue';
 import UninstallApplicationButton from './uninstall_application_button.vue';
+import UninstallApplicationConfirmationModal from './uninstall_application_confirmation_modal.vue';
 
 import { APPLICATION_STATUS } from '../constants';
 
@@ -17,6 +18,10 @@ export default {
     TimeagoTooltip,
     GlLink,
     UninstallApplicationButton,
+    UninstallApplicationConfirmationModal,
+  },
+  directives: {
+    GlModalDirective
   },
   props: {
     id: {
@@ -232,6 +237,11 @@ export default {
         params: this.installApplicationRequestParams,
       });
     },
+    uninstallConfirmed() {
+      eventHub.$emit('uninstallApplication', {
+        id: this.id,
+      });
+    },
     dismissUpgradeSuccess() {
       eventHub.$emit('dismissUpgradeSuccess', this.id);
     },
@@ -351,8 +361,14 @@ export default {
           />
           <uninstall-application-button
             v-if="displayUninstallButton"
+            v-gl-modal-directive="'uninstall-' + this.id"
+            :status="status"
             class="js-cluster-application-uninstall-button"
           />
+          <uninstall-application-confirmation-modal
+            :application="id"
+            :application-title="title"
+            @confirm="uninstallConfirmed()" />
         </div>
       </div>
     </div>
