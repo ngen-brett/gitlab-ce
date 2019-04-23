@@ -47,7 +47,17 @@ const handleMRPopoverMount = apolloProvider => ({ target }) => {
 };
 
 export default elements => {
+  console.log('**************************');
+  console.log('**************************');
+  console.log('**************************');
+  console.log('**************************');
+  console.log('**************************');
+  console.log('**************************');
+  console.log('**************************');
+  console.log('**************************');
+  console.log('**************************');
   const mrLinks = elements || [...document.querySelectorAll('.gfm-merge_request')];
+
   if (mrLinks.length > 0) {
     Vue.use(VueApollo);
 

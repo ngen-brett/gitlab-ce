@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import issueSystemNote from '~/vue_shared/components/notes/system_note.vue';
 import createStore from '~/notes/stores';
+import * as mrPopover from '~/mr_popover';
 
 describe('system note component', () => {
   let vm;
@@ -55,5 +56,11 @@ describe('system note component', () => {
   // https://gitlab.com/gitlab-org/gitlab-ce/uploads/b07a10670919254f0220d3ff5c1aa110/jqzI.png
   it('removes wrapping paragraph from note HTML', () => {
     expect(vm.$el.querySelector('.system-note-message').innerHTML).toEqual('<span>closed</span>');
+  });
+
+  it('should initMRPopovers onMount', () => {
+    const spy = spyOn(mrPopover, 'default').and.stub();
+
+    expect(spy).toHaveBeenCalled();
   });
 });
