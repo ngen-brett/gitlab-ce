@@ -17,12 +17,11 @@
 <%    if discussion.diff_discussion? || !discussion.new_discussion? -%>
 <%=     " #{target_url}" -%>
 <%    end -%>
-
-
+<%  else -%>
 <%=   "#{sanitize_name(note.author_name)} commented:" -%>
-
-
 <%  end -%>
+
+
 <%  if discussion&.diff_discussion? && discussion.on_text? -%>
 <%    discussion.truncated_diff_lines(highlight: false, diff_limit: diff_limit).each do |line| -%>
 <%=     "> #{line.text}\n" -%>

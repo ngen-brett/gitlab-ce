@@ -411,7 +411,7 @@ class Note < ApplicationRecord
     refs = [noteable]
 
     if part_of_discussion?
-      refs += discussion.notes.take_while { |n| n.id < id }
+      refs += discussion.notes.take_while { |n| n.id.presence && n.id < id }
     end
 
     refs

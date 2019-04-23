@@ -56,7 +56,7 @@ class NotifyPreview < ActionMailer::Preview
         diff_refs: merge_request.diff_refs
       )
 
-      create_note(noteable_type: 'merge_request', noteable_id: merge_request.id, type: 'DiffNote', position: position, note: note)
+      create_note(noteable_type: 'merge_request', noteable_id: merge_request.id, type: 'LegacyDiffNote', position: position, note: note)
     end
   end
 

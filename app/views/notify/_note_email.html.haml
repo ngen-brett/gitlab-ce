@@ -22,9 +22,9 @@
           started a new discussion
         - else
           commented on a #{link_to 'discussion', target_url}
-
-%p.details
-  #{link_to note.author_name, user_url(note.author)} commented:
+- else
+  %p.details
+    #{link_to note.author_name, user_url(note.author)} commented:
 
 - if discussion&.diff_discussion? && discussion.on_text?
   = content_for :head do
