@@ -49,9 +49,9 @@ class TurnNestedGroupsIntoRegularGroupsForMysql < ActiveRecord::Migration[4.2]
       # This method relies on the parent to determine the proper path.
       # Because we reset "parent_id" this method will not return the right path
       # when moving namespaces.
-      full_path_was = namespace.send(:full_path_was)
+      full_path_before_last_save = namespace.send(:full_path_before_last_save)
 
-      namespace.define_singleton_method(:full_path_was) { full_path_was }
+      namespace.define_singleton_method(:full_path_before_last_save) { full_path_before_last_save }
 
       namespace.update!(parent_id: nil, path: new_path_for(namespace))
     end

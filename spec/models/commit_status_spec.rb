@@ -438,6 +438,7 @@ describe CommitStatus do
 
   describe '#locking_enabled?' do
     before do
+      commit_status.reload
       commit_status.lock_version = 100
     end
 
