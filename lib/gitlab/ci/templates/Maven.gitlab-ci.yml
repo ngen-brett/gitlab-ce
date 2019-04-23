@@ -81,7 +81,7 @@ deploy:jdk8:
   # Archive up the built documentation site.
   artifacts:
     paths:
-    - target/staging
+      - target/staging
   image: maven:3.3.9-jdk-8
 
 pages:
@@ -95,6 +95,6 @@ pages:
     - deploy:jdk8
   artifacts:
     paths:
-    - public
+      - public
   only:
     - master
