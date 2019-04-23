@@ -285,14 +285,8 @@ shared_examples 'a note email' do
     is_expected.not_to have_body_text note.author_name
   end
 
-  context 'when enabled email_author_in_body' do
-    before do
-      stub_application_setting(email_author_in_body: true)
-    end
-
-    it 'contains a link to note author' do
-      is_expected.to have_body_text note.author_name
-    end
+  it 'contains a link to note author' do
+    is_expected.to have_body_text note.author_name
   end
 end
 

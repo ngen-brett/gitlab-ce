@@ -99,15 +99,9 @@ describe Notify do
           end
         end
 
-        context 'when enabled email_author_in_body' do
-          before do
-            stub_application_setting(email_author_in_body: true)
-          end
-
-          it 'contains a link to note author' do
-            is_expected.to have_body_text(issue.author_name)
-            is_expected.to have_body_text 'created an issue:'
-          end
+        it 'contains a link to note author' do
+          is_expected.to have_body_text(issue.author_name)
+          is_expected.to have_body_text 'created an issue:'
         end
       end
 
@@ -314,15 +308,9 @@ describe Notify do
           end
         end
 
-        context 'when enabled email_author_in_body' do
-          before do
-            stub_application_setting(email_author_in_body: true)
-          end
-
-          it 'contains a link to note author' do
-            is_expected.to have_body_text merge_request.author_name
-            is_expected.to have_body_text 'created a merge request:'
-          end
+        it 'contains a link to note author' do
+          is_expected.to have_body_text merge_request.author_name
+          is_expected.to have_body_text 'created a merge request:'
         end
       end
 

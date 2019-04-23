@@ -19,8 +19,7 @@
 <%    end -%>
 
 
-<%  elsif Gitlab::CurrentSettings.email_author_in_body -%>
-<%=     "#{sanitize_name(note.author_name)} commented:" -%>
+<%=   "#{sanitize_name(note.author_name)} commented:" -%>
 
 
 <%  end -%>

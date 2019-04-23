@@ -23,9 +23,8 @@
         - else
           commented on a #{link_to 'discussion', target_url}
 
-- elsif Gitlab::CurrentSettings.email_author_in_body
-  %p.details
-    #{link_to note.author_name, user_url(note.author)} commented:
+%p.details
+  #{link_to note.author_name, user_url(note.author)} commented:
 
 - if discussion&.diff_discussion? && discussion.on_text?
   = content_for :head do
