@@ -28,16 +28,14 @@ the development cycle, ensuring that all the code deployed to
 production complies with the code standards you established for
 your app.
 
-![GitLab CI/CD illustration]()
-
 For a complete overview of these methodologies and GitLab CI/CD,
 read the [Introduction to CI/CD with GitLab](introduction/index.md).
+
+## Getting started
 
 GitLab CI/CD is configured by a file called `.gitlab-ci.yml` placed
 at the repository's root. The scripts set in this file are executed
 by the [GitLab Runner](https://docs.gitlab.com/runner/).
-
-## Getting started
 
 To get started with GitLab CI/CD, we recommend you read through
 the following documents:
@@ -52,7 +50,7 @@ available through the UI. You can use them by creating a new file,
 choosing a template that suits your application, and adjusting it
 to your needs:
 
-![Use a .gitlab-ci.yml template]()
+![Use a .gitlab-ci.yml template](img/add_file_template_11_10.png)
 
 For a broader overview, see the [CI/CD getting started](quick_start/README.md) guide.
 
