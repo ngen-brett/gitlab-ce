@@ -45,7 +45,7 @@ Sidekiq.configure_server do |config|
     ActiveRecord::Base.clear_all_connections!
   end
 
-  # Enable Reliable Fecth in a semi_reliable mode
+  # Enable Reliable Fetch in a semi_reliable mode - https://gitlab.com/gitlab-org/sidekiq-reliable-fetch
   config.options[:semi_reliable_fetch] = true
   Sidekiq::ReliableFetch.setup_reliable_fetch!(config)
 
