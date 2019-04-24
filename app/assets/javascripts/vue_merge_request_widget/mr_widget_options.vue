@@ -119,7 +119,8 @@ export default {
     },
     showTargetBranchAdvancedError() {
       return Boolean(
-        this.mr.pipeline &&
+        this.mr.state === 'opened' &&
+          this.mr.pipeline &&
           this.mr.pipeline.target_sha &&
           this.mr.pipeline.target_sha !== this.mr.targetBranchSha,
       );
