@@ -99,7 +99,7 @@ describe Notify do
           end
         end
 
-        it 'contains a link to note author' do
+        it 'contains a link to issue author' do
           is_expected.to have_body_text(issue.author_name)
           is_expected.to have_body_text 'created an issue:'
         end
