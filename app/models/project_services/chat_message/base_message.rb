@@ -10,11 +10,13 @@ module ChatMessage
     attr_reader :user_avatar
     attr_reader :project_name
     attr_reader :project_url
+    attr_reader :project_avatar
 
     def initialize(params)
       @markdown = params[:markdown] || false
       @project_name = params.dig(:project, :path_with_namespace) || params[:project_name]
       @project_url = params.dig(:project, :web_url) || params[:project_url]
+      @project_avatar = params.dig(:project, :avatar_url) || params[:project_avatar]
       @user_full_name = params.dig(:user, :name) || params[:user_full_name]
       @user_name = params.dig(:user, :username) || params[:user_name]
       @user_avatar = params.dig(:user, :avatar_url) || params[:user_avatar]
