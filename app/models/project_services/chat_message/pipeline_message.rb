@@ -48,7 +48,7 @@ module ChatMessage
         # author_link: 'https://gitlab.com/nfriend',
 
         author_icon: user_avatar,
-        title: "Pipeline #{pipeline_id} #{humanized_status}",
+        title: "Pipeline ##{pipeline_id} #{humanized_status}",
         title_link: pipeline_url,
         fields: [
           {
