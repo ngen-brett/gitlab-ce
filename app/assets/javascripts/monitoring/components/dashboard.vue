@@ -94,6 +94,15 @@ export default {
       type: Boolean,
       required: true,
     },
+    usePrometheusEndpoint: {
+      type: Boolean,
+      required: true,
+    },
+    dashboardEndpoint: {
+      type: String,
+      required: false,
+      default: '',
+    },
   },
   data() {
     return {
@@ -106,6 +115,7 @@ export default {
   },
   created() {
     this.service = new MonitoringService({
+      dashboardEndpoint: this.dashboardEndpoint,
       metricsEndpoint: this.metricsEndpoint,
       deploymentEndpoint: this.deploymentEndpoint,
       environmentsEndpoint: this.environmentsEndpoint,
@@ -122,14 +132,65 @@ export default {
   mounted() {
     this.servicePromises = [
       this.service
-        .getGraphsData()
-        .then(data => this.store.storeMetrics(data))
-        .catch(() => Flash(s__('Metrics|There was an error while retrieving metrics'))),
-      this.service
         .getDeploymentData()
         .then(data => this.store.storeDeploymentData(data))
         .catch(() => Flash(s__('Metrics|There was an error getting deployment information.'))),
     ];
+
+    let panelGroups = [];
+
+    if (this.usePrometheusEndpoint) {
+      this.servicePromises.push(
+        this.service
+          .getDashboardData()
+          .then(data => {
+            // this.store.storeDashboard(data.panel_groups)
+            panelGroups = data.panel_groups;
+          })
+          .then(() => {
+            let promises = [];
+
+            panelGroups.forEach((group, i) => {
+              group.panels.forEach((panel, j) => {
+                panel.queries = panel.metrics;
+                panel.queries.forEach(metric => {
+                  promises.push(this.service.getPrometheusMetrics(metric).then(res => {
+                    if (res.resultType === 'matrix') {
+                      if (res.result.length > 0) {
+
+                        panel.queries[0].result = res.result;
+                        panel.queries[0].metricId = panel.queries[0].metric_id;
+                        console.log(panel.queries)
+                        // panel.queries.push({
+                        //   "metricId": "16",
+                        //   "query_range": "avg(sum(rate(container_cpu_usage_seconds_total{container_name!=\"POD\",pod_name=~\"^staging-([^c].*|c([^a]|a([^n]|n([^a]|a([^r]|r[^y])))).*|)-(.*)\",namespace=\"metrics-19\"}[15m])) by (job)) without (job) / count(sum(rate(container_cpu_usage_seconds_total{container_name!=\"POD\",pod_name=~\"^staging-([^c].*|c([^a]|a([^n]|n([^a]|a([^r]|r[^y])))).*|)-(.*)\",namespace=\"metrics-19\"}[15m])) by (pod_name))",
+                        //   "unit": "cores",
+                        //   "label": "Pod average",
+                        //   ...res
+                        // })
+                      }
+                    }
+                  }));
+                })
+              })
+            })
+
+            return Promise.all(promises);
+          })
+          .then(() => {
+            this.store.storeDashboard(panelGroups);
+          })
+          .catch(console.error),
+      );
+    } else {
+      this.servicePromises.push(
+        this.service
+          .getGraphsData()
+          .then(data => this.store.storeMetrics(data))
+          .catch(() => Flash(s__('Metrics|There was an error while retrieving metrics'))),
+      );
+    }
+
     if (!this.hasMetrics) {
       this.state = 'gettingStarted';
     } else {
