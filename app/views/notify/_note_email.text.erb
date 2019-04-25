@@ -1,10 +1,12 @@
 <% note = local_assigns.fetch(:note, @note) -%>
 <% diff_limit = local_assigns.fetch(:diff_limit, nil) -%>
 <% target_url = local_assigns.fetch(:target_url, @target_url) -%>
-
 <%  discussion = note.discussion if note.part_of_discussion? -%>
-<%  if discussion && !discussion.individual_note? -%>
-<%=   sanitize_name(note.author_name) -%>
+
+<%= sanitize_name(note.author_name) -%>
+<%  if !discussion -%>
+<%=   " commented:" -%>
+<%  else -%>
 <%    if discussion.new_discussion? -%>
 <%=     " started a new discussion" -%>
 <%    else -%>
@@ -14,11 +16,7 @@
 <%=     " on #{discussion.file_path}" -%>
 <%    end -%>
 <%=   ":" -%>
-<%    if discussion.diff_discussion? || !discussion.new_discussion? -%>
-<%=     " #{target_url}" -%>
-<%    end -%>
-<%  else -%>
-<%=   "#{sanitize_name(note.author_name)} commented:" -%>
+<%=   " #{target_url}" -%>
 <%  end -%>
 
 

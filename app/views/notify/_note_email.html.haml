@@ -5,26 +5,23 @@
 
 - discussion = note.discussion if note.part_of_discussion?
 
-- if discussion
-  %p{ style: "color: #777777;" }
-    = succeed ':' do
-      = link_to note.author_name, user_url(note.author)
-
-      - if discussion&.diff_discussion?
-        - if discussion.new_discussion?
-          started a new discussion
-        - else
-          commented on a discussion
-
-        on #{link_to discussion.file_path, target_url}
+%p{ style: "color: #777777;" }
+  = succeed ':' do
+    = link_to note.author_name, user_url(note.author)
+    - if discussion.nil?
+      commented
+    - elsif discussion&.diff_discussion?
+      - if discussion.new_discussion?
+        started a new discussion
       - else
-        - if discussion.new_discussion?
-          started a new discussion
-        - else
-          commented on a #{link_to 'discussion', target_url}
-- else
-  %p.details
-    #{link_to note.author_name, user_url(note.author)} commented:
+        commented on a discussion
+
+      on #{link_to discussion.file_path, target_url}
+    - else
+      - if discussion.new_discussion?
+        started a new discussion
+      - else
+        commented on a #{link_to 'discussion', target_url}
 
 - if discussion&.diff_discussion? && discussion.on_text?
   = content_for :head do
