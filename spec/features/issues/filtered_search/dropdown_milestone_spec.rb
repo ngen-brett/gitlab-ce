@@ -274,3 +274,4 @@ describe 'Dropdown milestone', :js do
     end
   end
 end
+
