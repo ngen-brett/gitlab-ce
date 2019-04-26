@@ -18,6 +18,7 @@ module Gitlab
       end
 
       def index
+        puts 'here'
         head :ok
       end
     end
