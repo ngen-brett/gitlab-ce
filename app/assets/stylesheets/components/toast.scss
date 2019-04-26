@@ -1,3 +1,22 @@
-.toast-close {
-  font-size: $default-icon-size !important;
+/*
+* These styles are specific to the gl-toast component.
+* Documentation:
+*/
+.toasted-container {
+
+  padding-right: $toast-padding-right;
+
+  @include media-breakpoint-down(xs) {
+    width: 100%;
+  }
+
+  .toasted.gl-toast {
+    border-radius: $border-radius-default;
+    font-size: $gl-font-size;
+    height: $toast-height;
+
+    .toast-close {
+      font-size: $default-icon-size;
+    }
+  }
 }
