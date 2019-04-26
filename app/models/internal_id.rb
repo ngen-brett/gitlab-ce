@@ -45,10 +45,38 @@ class InternalId < ApplicationRecord
   private
 
   def update_and_save(&block)
-    lock!
+    lock_record!
     yield
     save!
     last_value
+  end
+
+  def lock_record!
+    return lock! unless Gitlab::Database.skip_locked_supported?
+
+    begin
+      lock!('FOR UPDATE SKIP LOCKED')
+    rescue ActiveRecord::RecordNotFound
+      # We know the record exists but we haven't gotten the lock on it.
+      #
+      # This happens when another transaction holds the lock. Instead of blocking
+      # here, we immediately return, wait and retry until we get the lock.
+      #
+      # The benefit is that we don't risk running into a statement timeout while
+      # waiting for the lock.
+      #
+      # The drawback is a decrease in fairness: Each lock acquire request goes into a queue
+      # which guarantees a level of fairness (FIFO). Since we immediately return and re-queue
+      # our request here, we land at the end of the queue again. This may cause
+      # 'starvation' of a transaction in case other transactions manage to schedule their lock
+      # acquire first and further block our transaction. "starvation" is not systematic however
+      # and would only happen randomly (expect average wait times to be similar to just
+      # calling #lock!).
+      #
+      # In this case this is not a database error but only a rails exception
+      # It is safe to retry the transaction without rolling back to a savepoint
+      sleep(0.1)
+      retry
   end
 
   class << self
