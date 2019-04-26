@@ -2,6 +2,8 @@ const IS_EE = require('./config/helpers/is_ee_env');
 
 const reporters = ['default'];
 
+process.env.TZ = 'GMT';
+
 if (process.env.CI) {
   reporters.push([
     'jest-junit',
