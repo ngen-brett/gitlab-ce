@@ -20,7 +20,7 @@ push, run a pipeline of scripts to build, test, and validate the
 code changes before merging them into the main branch.
 
 Continuous Delivery and Deployment consist of a step further CI,
-deploying automatically your application to production at every
+deploying your application to production at every
 push to the default branch of the repository.
 
 These methodologies allow you to catch bugs and errors early in
@@ -136,7 +136,9 @@ See also:
 - [How to enable or disable GitLab CI/CD](enable_or_disable_ci.md).
 - Other [CI administration settings](../administration/index.md#continuous-integration-settings).
 
-## Why GitLab CI/CD?
+## References
+
+### Why GitLab CI/CD?
 
 The following articles explain reasons to use GitLab CI/CD
 for your CI/CD infrastructure:
@@ -146,7 +148,7 @@ for your CI/CD infrastructure:
 
 See also the [Why CI/CD?](https://docs.google.com/presentation/d/1OGgk2Tcxbpl7DJaIOzCX4Vqg3dlwfELC3u2jEeCBbDk) presentation.
 
-## Breaking changes
+### Breaking changes
 
 As GitLab CI/CD has evolved, certain breaking changes have
 been necessary. These are:
