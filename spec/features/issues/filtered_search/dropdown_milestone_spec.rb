@@ -188,6 +188,7 @@ describe 'Dropdown milestone', :js do
       expect_filtered_search_input_empty
     end
 
+
     it 'selects `no milestone`' do
       click_static_milestone('None')
 
@@ -274,4 +275,3 @@ describe 'Dropdown milestone', :js do
     end
   end
 end
-
