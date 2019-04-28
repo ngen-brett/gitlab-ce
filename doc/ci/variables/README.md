@@ -116,11 +116,19 @@ For a deeper look into them, see [`.gitlab-ci.yml` defined variables](#gitlab-ci
 #### Via the UI
 
 From the UI, navigate to your project's **Settings > CI/CD** and
-expand **Environment variables**. Create a new variable by naming
+expand **Variables**. Create a new variable by choosing its **type**, naming
 it in the field **Input variable key**, and define its value in the
 **Input variable value** field:
 
-![CI/CD settings - new variable](img/new_custom_variable_example.png)
+![CI/CD settings - new variable](img/new_custom_variables_example.png)
+
+##### Variable Types
+
+> [Introduced](https://gitlab.com/gitlab-org/gitlab-ce/issues/46806) in GitLab 11.11.
+
+Supported variable types are:
+* `env_var` - The runner will create environment variable named same as the variable key and set its value to the variable value.
+* `file` - The runner will write the variable value to a temporary file and set the path to this file as the value of an environment variable named same as the variable key.
 
 Once you've set the variables, call them from the `.gitlab-ci.yml` file:
 
@@ -129,12 +137,14 @@ test_variable:
   stage: test
   script:
     - echo $CI_JOB_STAGE # calls a predefined variable
-    - echo $TEST # calls a custom variable
+    - echo $TEST # calls a custom variable of type `env_var`
+    - echo $GREETING # calls a custom variable of type `file` that contains the path to the temp file
+    - cat $GREETING # the temp file itself contains the variable value
 ```
 
 The output will be:
 
-![Output custom variable](img/custom_variable_output.png)
+![Output custom variable](img/custom_variables_output.png)
 
 ### Masked Variables
 
@@ -297,7 +307,7 @@ use for storing things like passwords, SSH keys, and credentials.
 Group-level variables can be added by:
 
 1. Navigating to your group's **Settings > CI/CD** page.
-1. Inputing variable keys and values in the **Environment variables** section.
+1. Inputing variable types, keys, and values in the **Variables** section.
 Any variables of [subgroups](../../user/group/subgroups/index.md) will be inherited recursively.
 
 Once you set them, they will be available for all subsequent pipelines.
@@ -388,8 +398,7 @@ For instance, suppose you added a
 [custom variable `$TEST`](#creating-a-custom-environment-variable)
 as exemplified above and you want to override it in a manual pipeline.
 Navigate to your project's **CI/CD > Pipelines** and click **Run pipeline**.
-Choose the branch you want to run the pipeline for, then add a new variable
-pair through the UI:
+Choose the branch you want to run the pipeline for, then add a new variable through the UI:
 
 ![Override variable value](img/override_variable_manual_pipeline.png)
 
