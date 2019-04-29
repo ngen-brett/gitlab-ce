@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import { parseBoolean } from '~/lib/utils/common_utils';
+import { GlToast } from '@gitlab/ui'; // TODO - remove before merging
 import Translate from '../vue_shared/translate';
 import GroupFilterableList from './groups_filterable_list';
 import GroupsStore from './store/groups_store';
@@ -11,6 +12,7 @@ import groupItemComponent from './components/group_item.vue';
 import { GROUPS_LIST_HOLDER_CLASS, CONTENT_LIST_CLASS } from './constants';
 
 Vue.use(Translate);
+Vue.use(GlToast); // TODO - remove before merging
 
 export default (containerId = 'js-groups-tree', endpoint, action = '') => {
   const containerEl = document.getElementById(containerId);

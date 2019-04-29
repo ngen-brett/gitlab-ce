@@ -235,12 +235,20 @@ export default {
         this.showEmptyState();
       }
     },
+    showToast() {
+      // TODO - remove before merging
+      const options = { action: { text: 'Undo', onClick: () => {} }, duration: 60000 };
+      this.$toast.show('This is a toast with an action', options);
+    },
   },
 };
 </script>
 
 <template>
   <div>
+    <!-- TODO - remove before merging -->
+    <button @click="showToast()">Show Toast</button>
+
     <gl-loading-icon
       v-if="isLoading"
       :label="s__('GroupsTree|Loading groups')"
