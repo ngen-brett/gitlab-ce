@@ -1,6 +1,6 @@
 /*
 * These styles are specific to the gl-toast component.
-* Documentation:
+* Documentation: https://design.gitlab.com/components/toasts
 */
 .toasted-container {
 
@@ -10,13 +10,26 @@
     width: 100%;
   }
 
+  &.bottom-left {
+    bottom: $toast-margin !important;
+    left: $toast-margin !important;
+  }
+
   .toasted.gl-toast {
     border-radius: $border-radius-default;
     font-size: $gl-font-size;
     height: $toast-height;
 
+    .action {
+      color: $blue-300;
+      margin-left: $toast-margin;
+      text-transform: none;
+      font-size: $gl-font-size;
+    }
+
     .toast-close {
       font-size: $default-icon-size;
+      padding-bottom: $gl-btn-padding;
     }
   }
 }
