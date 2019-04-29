@@ -15,6 +15,10 @@ class Projects::EnvironmentsController < Projects::ApplicationController
     push_frontend_feature_flag(:environment_metrics_use_prometheus_endpoint)
   end
 
+  before_action do
+    push_frontend_feature_flag(:add_custom_metrics_from_dashboard, default_enabled: true)
+  end
+
   def index
     @environments = project.environments
       .with_state(params[:scope] || :available)
