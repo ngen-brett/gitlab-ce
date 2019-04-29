@@ -58,7 +58,8 @@ Once you're familiar with how GitLab CI/CD works, see the
 [`. gitlab-ci.yml` full reference](yaml/README.md)
 for all the attributes you can set and use.
 
-GitLab CI/CD and [shared runners](runners/README.md#shared-specific-and-group-runners) are enabled in GitLab.com and available for all users.
+NOTE: **Note:**
+GitLab CI/CD and [shared runners](runners/README.md#shared-specific-and-group-runners) are enabled in GitLab.com and available for all users, limited only to the [user's pipelines quota](../user/admin_area/settings/continuous_integration.md#extra-shared-runners-pipeline-minutes-quota).
 
 ## GitLab CI/CD configuration
 
@@ -91,32 +92,24 @@ it for specific purposes:
 
 | Feature | Description |
 |:--- |:--- |
-| [Review Apps](review_apps/index.md) | Configure GitLab CI/CD to preview code changes. |
-| [ChatOps](chatops/README.md) | Trigger CI jobs from chat, with results sent back to the channel. |
-| [Deploy Boards](https://docs.gitlab.com/ee/user/project/deploy_boards.html) **[PREMIUM]** | Check the current health and status of each CI/CD environment running on Kubernetes. |
-| [GitLab Pages](../user/project/pages/index.md) | Deploy static websites. |
-| [Interactive Web Terminals](interactive_web_terminal/index.md) | Open an interactive web terminal to debug the running jobs. |
-| [GitLab CI/CD for external repositories](https://docs.gitlab.com/ee/ci/ci_cd_for_external_repos/) **[PREMIUM]** | Get the benefits of GitLab CI/CD combined with repositories in GitHub and BitBucket Cloud. |
-|[Container Scanning](https://docs.gitlab.com/ee/ci/examples/container_scanning.html) **[ULTIMATE]**| Check your Docker containers for known vulnerabilities. |
-|[Dependency Scanning](https://docs.gitlab.com/ee/ci/examples/dependency_scanning.html) **[ULTIMATE]**| Analyze your dependencies for known vulnerabilities. |
-|[JUnit tests](junit_test_reports.md)| Identify script failures directly on merge requests. |
-
-### Advanced use of GitLab CI/CD
-
-Besides all the configuration options and features listed above,
-GitLab CI/CD also supports:
-
-| Feature | Description |
-|:--- |:--- |
-| [Auto DevOps](../topics/autodevops/index.md) | Set up your app's entire lifecycle. |
 | [Auto Deploy](../topics/autodevops/index.md#auto-deploy) | Deploy your application to a production environment in a Kubernetes cluster. |
+| [Auto DevOps](../topics/autodevops/index.md) | Set up your app's entire lifecycle. |
+| [Building Docker images](docker/using_docker_build.md) | Maintain Docker-based projects using GitLab CI/CD. |
 | [Canary Deployments](https://docs.gitlab.com/ee/user/project/canary_deployments.html) **[PREMIUM]** | Ship features to only a portion of your pods and let a percentage of your user base to visit the temporarily deployed feature. |
+| [ChatOps](chatops/README.md) | Trigger CI jobs from chat, with results sent back to the channel. |
+| [CI services](services/README.md)| Link Docker containers with your base image. |
+| [Container Scanning](https://docs.gitlab.com/ee/ci/examples/container_scanning.html) **[ULTIMATE]**| Check your Docker containers for known vulnerabilities. |
+| [Dependency Scanning](https://docs.gitlab.com/ee/ci/examples/dependency_scanning.html) **[ULTIMATE]**| Analyze your dependencies for known vulnerabilities. |
+| [Deploy Boards](https://docs.gitlab.com/ee/user/project/deploy_boards.html) **[PREMIUM]** | Check the current health and status of each CI/CD environment running on Kubernetes. |
 | [Feature Flags](https://docs.gitlab.com/ee/user/project/operations/feature_flags.html) **[PREMIUM]** | Deploy your features behind Feature Flags. |
+| [GitLab CI/CD for external repositories](https://docs.gitlab.com/ee/ci/ci_cd_for_external_repos/) **[PREMIUM]** | Get the benefits of GitLab CI/CD combined with repositories in GitHub and BitBucket Cloud. |
+| [GitLab Pages](../user/project/pages/index.md) | Deploy static websites. |
 | [GitLab Releases](../user/project/releases/index.md) | Add release notes to Git tags. |
+| [Interactive Web Terminals](interactive_web_terminal/index.md) **[CORE ONLY]** | Open an interactive web terminal to debug the running jobs. |
+| [JUnit tests](junit_test_reports.md)| Identify script failures directly on merge requests. |
+| [Review Apps](review_apps/index.md) | Configure GitLab CI/CD to preview code changes. |
 | [Security Test reports](https://docs.gitlab.com/ee/user/project/merge_requests/#security-reports-ultimate) **[ULTIMATE]** | Check for app vulnerabilities. |
 | [Using Docker images](docker/using_docker_images.md) | Use GitLab and GitLab Runner with Docker to build and test applications. |
-| [Building Docker images](docker/using_docker_build.md) | Maintain Docker-based projects using GitLab CI/CD. |
-| [CI services](services/README.md)| Link Docker containers with your base image. |
 
 ## GitLab CI/CD examples
 
