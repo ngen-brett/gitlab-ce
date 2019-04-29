@@ -91,17 +91,17 @@ describe('ReadyToMerge', () => {
   });
 
   describe('computed', () => {
-    describe('shouldShowMergeWhenPipelineSucceedsText', () => {
+    describe('shouldShowWhenPipelineSucceedsText', () => {
       it('should return true with active pipeline', () => {
         vm.mr.isPipelineActive = true;
 
-        expect(vm.shouldShowMergeWhenPipelineSucceedsText).toBeTruthy();
+        expect(vm.shouldShowWhenPipelineSucceedsText).toBeTruthy();
       });
 
       it('should return false with inactive pipeline', () => {
         vm.mr.isPipelineActive = false;
 
-        expect(vm.shouldShowMergeWhenPipelineSucceedsText).toBeFalsy();
+        expect(vm.shouldShowWhenPipelineSucceedsText).toBeFalsy();
       });
     });
 

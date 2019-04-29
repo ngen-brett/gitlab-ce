@@ -1,17 +1,17 @@
 import Vue from 'vue';
-import mwpsComponent from '~/vue_merge_request_widget/components/states/mr_widget_merge_when_pipeline_succeeds.vue';
+import wpsComponent from '~/vue_merge_request_widget/components/states/mr_widget_when_pipeline_succeeds.vue';
 import MRWidgetService from '~/vue_merge_request_widget/services/mr_widget_service';
 import eventHub from '~/vue_merge_request_widget/event_hub';
 import mountComponent from 'spec/helpers/vue_mount_component_helper';
 
-describe('MRWidgetMergeWhenPipelineSucceeds', () => {
+describe('MRWidgetWhenPipelineSucceeds', () => {
   let vm;
   const targetBranchPath = '/foo/bar';
   const targetBranch = 'foo';
   const sha = '1EA2EZ34';
 
   beforeEach(() => {
-    const Component = Vue.extend(mwpsComponent);
+    const Component = Vue.extend(wpsComponent);
     spyOn(eventHub, '$emit');
 
     vm = mountComponent(Component, {

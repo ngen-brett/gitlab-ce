@@ -13,7 +13,7 @@ const stateToComponentMap = {
   unresolvedDiscussions: 'mr-widget-unresolved-discussions',
   pipelineBlocked: 'mr-widget-pipeline-blocked',
   pipelineFailed: 'mr-widget-pipeline-failed',
-  mergeWhenPipelineSucceeds: 'mr-widget-merge-when-pipeline-succeeds',
+  mergeWhenPipelineSucceeds: 'mr-widget-when-pipeline-succeeds',
   failedToMerge: 'mr-widget-failed-to-merge',
   autoMergeFailed: 'mr-widget-auto-merge-failed',
   shaMismatch: 'sha-mismatch',

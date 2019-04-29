@@ -104,6 +104,9 @@ export default class MergeRequestStore {
     this.sourceProjectId = data.source_project_id;
     this.targetProjectId = data.target_project_id;
     this.mergePipelinesEnabled = data.merge_pipelines_enabled;
+    this.mergeTrainsEnabled = data.merge_trains_enabled;
+    this.mergeTrainsCount = data.merge_trains_count;
+    this.mergeTrainIndex = data.merge_train_index;
 
     // Cherry-pick and Revert actions related
     this.canCherryPickInCurrentMR = currentUser.can_cherry_pick_on_current_merge_request || false;

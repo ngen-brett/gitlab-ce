@@ -40,7 +40,7 @@ export default {
     };
   },
   computed: {
-    shouldShowMergeWhenPipelineSucceedsText() {
+    shouldShowWhenPipelineSucceedsText() {
       return this.mr.isPipelineActive;
     },
     status() {
@@ -82,14 +82,33 @@ export default {
       }
       return 'success';
     },
+    whenPipelineSucceedsText() {
+      if (this.mr.mergeTrainsEnabled) {
+        if (this.mr.mergeTrainsCount === 0) {
+          return __('Start merge train when pipeline succeeds');
+        }
+
+        return __('Add to merge train when pipeline succeeds');
+      }
+
+      return __('Merge when pipeline succeeds');
+    },
     mergeButtonText() {
       if (this.isMergingImmediately) {
         return __('Merge in progress');
-      } else if (this.shouldShowMergeWhenPipelineSucceedsText) {
-        return __('Merge when pipeline succeeds');
+      } else if (this.shouldShowWhenPipelineSucceedsText) {
+        return this.whenPipelineSucceedsText;
       }
 
-      return 'Merge';
+      if (this.mr.mergeTrainsEnabled) {
+        if (this.mr.mergeTrainsCount === 0) {
+          return __('Start merge train');
+        }
+
+        return __('Add to merge train');
+      }
+
+      return __('Merge');
     },
     shouldShowMergeOptionsDropdown() {
       return this.mr.isPipelineActive && !this.mr.onlyAllowMergeIfPipelineSucceeds;
@@ -111,7 +130,7 @@ export default {
       return enableSquashBeforeMerge && commitsCount > 1;
     },
     shouldShowMergeControls() {
-      return this.mr.isMergeAllowed || this.shouldShowMergeWhenPipelineSucceedsText;
+      return this.mr.isMergeAllowed || this.shouldShowWhenPipelineSucceedsText;
     },
     shouldShowSquashEdit() {
       return this.squashBeforeMerge && this.shouldShowSquashBeforeMerge;
@@ -277,9 +296,7 @@ export default {
                 >
                   <span class="media">
                     <span class="merge-opt-icon" aria-hidden="true" v-html="successSvg"></span>
-                    <span class="media-body merge-opt-title">{{
-                      __('Merge when pipeline succeeds')
-                    }}</span>
+                    <span class="media-body merge-opt-title">{{ whenPipelineSucceedsText }}</span>
                   </span>
                 </a>
               </li>
