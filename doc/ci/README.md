@@ -58,24 +58,28 @@ Once you're familiar with how GitLab CI/CD works, see the
 [`. gitlab-ci.yml` full reference](yaml/README.md)
 for all the attributes you can set and use.
 
+GitLab CI/CD and [shared runners](runners/README.md#shared-specific-and-group-runners) are enabled in GitLab.com and available for all users.
+
 ## GitLab CI/CD configuration
 
 GitLab CI/CD supports numerous configuration options:
 
-- [Pipelines](pipelines.md)
-- [Environment variables](variables/README.md)
-- [Environments](environments.md)
-- [Job artifacts](../user/project/pipelines/job_artifacts.md)
-- [Cache dependencies](caching/index.md)
-- [Schedule pipelines](../user/project/pipelines/schedules.md)
-- [Custom path for `.gitlab-ci.yml`](../user/project/pipelines/settings.md#custom-ci-config-path)
-- [Git submodules for CI/CD](git_submodules.md)
-- [SSH keys for CI/CD](ssh_keys/README.md)
-- [Trigger pipelines through the API](triggers/README.md)
-- [Integrate with Kubernetes clusters](../user/project/clusters/index.md)
-- [GitLab Runner](https://docs.gitlab.com/runner/)
-- [Optimize GitLab and Runner for large repositories](large_repositories/index.md)
-- [`.gitlab-ci.yml` full reference](yaml/README.md)
+| Configuration | Description |
+|:--- |:--- |
+| [Pipelines](pipelines.md) | Structure your CI/CD process through pipelines. |
+| [Environment variables](variables/README.md) | Reuse values based on a variable/value key pair. |
+| [Environments](environments.md) | Deploy your application to different environments (e.g., staging, production). |
+| [Job artifacts](../user/project/pipelines/job_artifacts.md) | Output, use, and reuse job artifacts. |
+| [Cache dependencies](caching/index.md) | Cache your dependencies for a faster execution. |
+| [Schedule pipelines](../user/project/pipelines/schedules.md) | Schedule pipelines to run as often as you need. |
+| [Custom path for `.gitlab-ci.yml`](../user/project/pipelines/settings.md#custom-ci-config-path) | Define a custom path for the CI/CD configuration file. |
+| [Git submodules for CI/CD](git_submodules.md) | Configure jobs for using Git submodules. |
+| [SSH keys for CI/CD](ssh_keys/README.md) | Using SSH keys in your CI pipelines. |
+| [Pipelines triggers](triggers/README.md) | Trigger pipelines through the API. |
+| [Integrate with Kubernetes clusters](../user/project/clusters/index.md) | Connect your project to Google Kubernetes Engine (GKE) or an existing Kubernetes cluster. |
+| [GitLab Runner](https://docs.gitlab.com/runner/) | Configure your own GitLab Runners to execute your scripts. |
+| [Optimize GitLab and Runner for large repositories](large_repositories/index.md) | Recommended strategies for handling large repos. |
+| [`.gitlab-ci.yml` full reference](yaml/README.md) | All the attributes you can use with GitLab CI/CD. |
 
 Note that certain operations can only be performed according to the
 [user](../user/permissions.md#gitlab-cicd-permissions) and [job](../user/permissions.md#job-permissions) permissions.
@@ -97,14 +101,14 @@ it for specific purposes:
 |[Dependency Scanning](https://docs.gitlab.com/ee/ci/examples/dependency_scanning.html) **[ULTIMATE]**| Analyze your dependencies for known vulnerabilities. |
 |[JUnit tests](junit_test_reports.md)| Identify script failures directly on merge requests. |
 
-### Advance use of GitLab CI/CD
+### Advanced use of GitLab CI/CD
 
 Besides all the configuration options and features listed above,
 GitLab CI/CD also supports:
 
 | Feature | Description |
 |:--- |:--- |
-| [Auto DevOps](../topics/autodevops/index.md) | Easily set up your app's entire lifecycle. |
+| [Auto DevOps](../topics/autodevops/index.md) | Set up your app's entire lifecycle. |
 | [Auto Deploy](../topics/autodevops/index.md#auto-deploy) | Deploy your application to a production environment in a Kubernetes cluster. |
 | [Canary Deployments](https://docs.gitlab.com/ee/user/project/canary_deployments.html) **[PREMIUM]** | Ship features to only a portion of your pods and let a percentage of your user base to visit the temporarily deployed feature. |
 | [Feature Flags](https://docs.gitlab.com/ee/user/project/operations/feature_flags.html) **[PREMIUM]** | Deploy your features behind Feature Flags. |
