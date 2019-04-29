@@ -5,6 +5,7 @@ import eventHub from '../eventhub';
 import ProjectSelect from './project_select.vue';
 import ListIssue from '../models/issue';
 import boardsStore from '../stores/boards_store';
+import { isEE } from '~/lib/utils/common_utils';
 
 export default {
   name: 'BoardNewIssue',
@@ -51,11 +52,14 @@ export default {
 
       const labels = this.list.label ? [this.list.label] : [];
       const assignees = this.list.assignee ? [this.list.assignee] : [];
+      const milestone = isEE() && this.list.milestone ? this.list.milestone : null;
+
       const issue = new ListIssue({
         title: this.title,
         labels,
         subscribed: true,
         assignees,
+        milestone,
         project_id: this.selectedProject.id,
       });
 
