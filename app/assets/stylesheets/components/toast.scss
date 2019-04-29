@@ -11,20 +11,27 @@
   }
 
   &.bottom-left {
-    bottom: $toast-margin !important;
-    left: $toast-margin !important;
+    bottom: $toast-offset !important;
+    left: $toast-offset !important;
   }
 
   .toasted.gl-toast {
     border-radius: $border-radius-default;
     font-size: $gl-font-size;
-    height: $toast-height;
+    padding: 3px $toast-padding;
 
     .action {
       color: $blue-300;
-      margin-left: $toast-margin;
+      margin-left: $toast-offset;
       text-transform: none;
       font-size: $gl-font-size;
+
+      @include media-breakpoint-down(xs) {
+        // Ensures actions buttons are right aligned on mobile
+        &:first-child {
+          margin-left: auto;
+        }
+      }
     }
 
     .toast-close {
