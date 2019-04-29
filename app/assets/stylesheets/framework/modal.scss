@@ -52,7 +52,7 @@
   display: flex;
   flex-direction: row;
 
-  .btn + .btn:not(.dropdown-toggle-split),
+  .btn + .btn:not(.dropdown-toggle-split):not(.btn-in-a-group),
   .btn + .btn-group {
     margin-left: $grid-size;
   }
@@ -60,7 +60,7 @@
   @include media-breakpoint-down(xs) {
     flex-direction: column;
 
-    .btn + .btn:not(.dropdown-toggle-split),
+    .btn + .btn:not(.dropdown-toggle-split):not(.btn-in-a-group),
     .btn + .btn-group {
       margin-left: 0;
       margin-top: $grid-size;
