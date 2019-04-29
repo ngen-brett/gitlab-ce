@@ -125,14 +125,12 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
   def sign_in_user_flow(auth_user_class)
     auth_user = build_auth_user(auth_user_class)
     user = auth_user.find_and_update!
-    puts auth_user.valid_sign_in?
-    puts user.id
 
     if auth_user.valid_sign_in?
       log_audit_event(user, with: oauth['provider'])
 
       set_remember_me(user)
-      puts user.two_factor_enabled? && !auth_user.bypass_two_factor?
+
       if user.two_factor_enabled? && !auth_user.bypass_two_factor?
         prompt_for_two_factor(user)
       else
@@ -165,7 +163,6 @@ class OmniauthCallbacksController < Devise::OmniauthCallbacksController
 
   def fail_login(user)
     error_message = user.errors.full_messages.to_sentence
-    puts error_message
     return redirect_to omniauth_error_path(oauth['provider'], error: error_message)
   end
 
