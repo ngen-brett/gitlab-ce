@@ -42,9 +42,10 @@ module QA
       attr_writer :api_resource, :api_response
 
       def resource_web_url(resource)
-        resource.fetch(:web_url) do
-          raise ResourceURLMissingError, "API resource for #{self.class.name} does not expose a `web_url` property: `#{resource}`."
-        end
+        # if the resource has no web_url; move on.
+        resource.fetch(:web_url)
+      rescue StandardError
+        # do nothing
       end
 
       def api_get

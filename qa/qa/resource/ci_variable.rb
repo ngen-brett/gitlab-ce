@@ -25,6 +25,21 @@ module QA
           end
         end
       end
+
+      def api_get_path
+        "/projects/#{project.id}/variables"
+      end
+
+      def api_post_path
+        "/projects/#{project.id}/variables"
+      end
+
+      def api_post_body
+        {
+          key: key,
+          value: value
+        }
+      end
     end
   end
 end
