@@ -117,18 +117,10 @@ For a deeper look into them, see [`.gitlab-ci.yml` defined variables](#gitlab-ci
 
 From the UI, navigate to your project's **Settings > CI/CD** and
 expand **Variables**. Create a new variable by choosing its **type**, naming
-it in the field **Input variable key**, and define its value in the
+it in the field **Input variable key**, and defining its value in the
 **Input variable value** field:
 
 ![CI/CD settings - new variable](img/new_custom_variables_example.png)
-
-##### Variable Types
-
-> [Introduced](https://gitlab.com/gitlab-org/gitlab-ce/issues/46806) in GitLab 11.11.
-
-Supported variable types are:
-* `env_var` - The runner will create environment variable named same as the variable key and set its value to the variable value.
-* `file` - The runner will write the variable value to a temporary file and set the path to this file as the value of an environment variable named same as the variable key.
 
 Once you've set the variables, call them from the `.gitlab-ci.yml` file:
 
@@ -145,22 +137,6 @@ test_variable:
 The output will be:
 
 ![Output custom variable](img/custom_variables_output.png)
-
-### Masked Variables
-
-By default, variables will be created as masked variables.
-This means that the value of the variable will be hidden in job logs,
-though it must match certain requirements to do so:
-
-- The value must be in a single line.
-- The value must not have escape characters.
-- The value must not use variables.
-- The value must not have any whitespace.
-- The value must be at least 8 characters long.
-
-If the value does not meet the requirements above, then the CI variable will fail to save.
-In order to save, either alter the value to meet the masking requirements
-or disable `Masked` for the variable.
 
 ### Syntax of environment variables in job scripts
 
