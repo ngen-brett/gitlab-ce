@@ -14,6 +14,16 @@ describe 'GitlabSchema configurations' do
     expect(graphql_errors.first['message']).to include('which exceeds max complexity of 1')
   end
 
+  context 'logging' do
+    it 'writes to the GraphQL log' do
+      expect(Gitlab::GraphqlLogger).to receive(:info).with(/Query Complexity/)
+
+      query = File.read(Rails.root.join('spec/fixtures/api/graphql/introspection.graphql'))
+
+      post_graphql(query, current_user: nil)
+    end
+  end
+
   context 'when IntrospectionQuery' do
     it 'is not too complex' do
       query = File.read(Rails.root.join('spec/fixtures/api/graphql/introspection.graphql'))
