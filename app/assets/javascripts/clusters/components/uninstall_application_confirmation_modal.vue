@@ -2,6 +2,7 @@
 import { GlModal } from '@gitlab/ui';
 import { sprintf, s__ } from '~/locale';
 import { INGRESS, CERT_MANAGER, PROMETHEUS, RUNNER, KNATIVE, JUPYTER } from '../constants';
+import trackUninstallButtonClick from 'ee_else_ce/clusters/mixins/track_uninstall_button_click';
 
 const CUSTOM_APP_WARNING_TEXT = {
   [INGRESS]: s__(
@@ -20,6 +21,7 @@ export default {
   components: {
     GlModal,
   },
+  mixins: [trackUninstallButtonClick],
   props: {
     application: {
       type: String,
@@ -54,6 +56,12 @@ export default {
       return `uninstall-${this.application}`;
     },
   },
+  methods: {
+    confirmUninstall() {
+      this.trackUninstallApplicationClick(this.application);
+      this.$emit('confirm');
+    },
+  },
 };
 </script>
 <template>
@@ -64,7 +72,6 @@ export default {
     :ok-title="okButtonLabel"
     :modal-id="modalId"
     :title="title"
-    @ok="$emit('confirm')"
-    >{{ warningText }} {{ customAppWarningText }}</gl-modal
-  >
+    @ok="confirmUninstall()"
+  >{{ warningText }} {{ customAppWarningText }}</gl-modal>
 </template>
