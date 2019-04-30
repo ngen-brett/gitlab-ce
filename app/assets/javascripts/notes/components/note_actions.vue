@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import Icon from '~/vue_shared/components/icon.vue';
 import { GlLoadingIcon, GlTooltipDirective } from '@gitlab/ui';
+import resolvedStatusMixin from 'ee_else_ce/batch_comments/mixins/resolved_status';
 import ReplyButton from './note_actions/reply_button.vue';
 
 export default {
@@ -97,15 +98,6 @@ export default {
     },
     currentUserId() {
       return this.getUserDataByProp('id');
-    },
-    resolveButtonTitle() {
-      let title = 'Mark as resolved';
-
-      if (this.resolvedBy) {
-        title = `Resolved by ${this.resolvedBy.name}`;
-      }
-
-      return title;
     },
   },
   methods: {
