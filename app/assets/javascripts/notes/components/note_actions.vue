@@ -15,6 +15,7 @@ export default {
   directives: {
     GlTooltip: GlTooltipDirective,
   },
+  mixins: [resolvedStatusMixin],
   props: {
     authorId: {
       type: Number,
