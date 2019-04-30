@@ -104,7 +104,10 @@ let's say you want to output `HELLO WORLD` for a `TEST` variable.
 You can either set the variable directly in the `.gitlab-ci.yml`
 file or through the UI.
 
-#### Via [`.gitlab-ci.yml`](../yaml/README.md#variables)
+#### Via `.gitlab-ci.yml`
+
+To create a new custom `env_var` variable via [`.gitlab-ci.yml`](../yaml/README.md#variables), define their variable/value pair under
+`variables`:
 
 ```yaml
 variables:
@@ -121,6 +124,8 @@ it in the field **Input variable key**, and defining its value in the
 **Input variable value** field:
 
 ![CI/CD settings - new variable](img/new_custom_variables_example.png)
+
+You'll also see the option to mask and/or protect your variables.
 
 Once you've set the variables, call them from the `.gitlab-ci.yml` file:
 
