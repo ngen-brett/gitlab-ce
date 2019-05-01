@@ -21,7 +21,7 @@
 }
 
 @mixin btn-default {
-  border-radius: 3px;
+  border-radius: $border-radius-default;
   font-size: $gl-font-size;
   font-weight: $gl-font-weight-normal;
   padding: $gl-vert-padding $gl-btn-padding;
@@ -51,6 +51,13 @@
   }
 
   &:hover,
+  &:focus,
+  &:active {
+    border-width: 2px;
+    padding: 5px 9px;
+  }
+
+  &:hover,
   &:focus {
     background-color: $hover-background;
     border-color: $hover-border;
@@ -59,6 +66,10 @@
     > .icon {
       color: $hover-text;
     }
+  }
+
+  &:hover {
+    box-shadow: 0 2px 2px 0 rgba($black, 0.1);
   }
 
   &:active {
@@ -164,21 +175,21 @@
 
   &.btn-inverted {
     &.btn-success {
-      @include btn-outline($white-light, $green-600, $green-500, $green-500, $white-light, $green-600, $green-600, $green-700);
+      @include btn-outline($white-light, $green-600, $green-500, $green-100, $green-700, $green-500, $green-600, $green-700);
     }
 
     &.btn-remove,
     &.btn-danger {
-      @include btn-outline($white-light, $red-500, $red-500, $red-500, $white-light, $red-600, $red-600, $red-700);
+      @include btn-outline($white-light, $red-500, $red-500, $red-100, $red-700, $red-500, $red-600, $red-700);
     }
 
     &.btn-warning {
-      @include btn-outline($white-light, $orange-500, $orange-500, $orange-500, $white-light, $orange-600, $orange-600, $orange-700);
+      @include btn-outline($white-light, $orange-500, $orange-500, $orange-100, $orange-700, $orange-500, $orange-600, $orange-700);
     }
 
     &.btn-primary,
     &.btn-info {
-      @include btn-outline($white-light, $blue-500, $blue-500, $blue-500, $white-light, $blue-600, $blue-600, $blue-700);
+      @include btn-outline($white-light, $blue-500, $blue-500, $blue-100, $blue-700, $blue-500, $blue-600, $blue-700);
     }
   }
 
@@ -193,11 +204,11 @@
 
   &.btn-close,
   &.btn-close-color {
-    @include btn-outline($white-light, $orange-600, $orange-500, $orange-500, $white-light, $orange-600, $orange-600, $orange-700);
+    @include btn-outline($white-light, $orange-600, $orange-500, $orange-100, $orange-700, $orange-500, $orange-600, $orange-700);
   }
 
   &.btn-spam {
-    @include btn-outline($white-light, $red-500, $red-500, $red-500, $white-light, $red-600, $red-600, $red-700);
+    @include btn-outline($white-light, $red-500, $red-500, $red-100, $red-700, $red-500, $red-600, $red-700);
   }
 
   &.btn-danger,
@@ -402,7 +413,7 @@
 
 .btn-inverted {
   &-secondary {
-    @include btn-outline($white-light, $blue-500, $blue-500, $blue-500, $white-light, $blue-600, $blue-600, $blue-700);
+    @include btn-outline($white-light, $blue-500, $blue-500, $blue-100, $blue-700, $blue-500, $blue-600, $blue-700);
   }
 }
 
