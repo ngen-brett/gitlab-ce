@@ -658,7 +658,7 @@ Start with a value between `25000000` (25MB) and `50000000` (50MB).
 
 1. Save the file and [restart GitLab][] for the changes to take effect.
 
-### Supporting older docker clients
+### Supporting older Docker clients
 
 As of GitLab 11.9, we began shipping version 2.7.1 of the docker container registry. This disables the schema1 manifest by default. If you are still using older docker clients (1.9 or older), you may experience an error pushing images. See [omnibus-4145][] for more detail.
 
