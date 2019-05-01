@@ -326,16 +326,32 @@ describe API::Commits do
         context 'and they have a writable fork of the project' do
           let!(:forked_project) { fork_project(project, guest, namespace: guest.namespace, repository: true) }
 
-          before do
-            valid_c_params[:start_project] = forked_project.id
+          context 'identified by Integer (id)' do
+            before do
+              valid_c_params[:start_project] = forked_project.id
+            end
+
+            it 'adds a new commit to forked_project and returns a 201' do
+              expect { post api(url, guest), params: valid_c_params }
+                .to change { forked_project.repository.commit.title }
+                .and not_change { project.repository.commit.title }
+
+              expect(response).to have_gitlab_http_status(201)
+            end
           end
 
-          it 'adds a new commit to forked_project and returns a 201' do
-            expect { post api(url, guest), params: valid_c_params }
-              .to change { forked_project.repository.commit.title }
-              .and not_change { project.repository.commit.title }
+          context 'identified by String (full_path)' do
+            before do
+              valid_c_params[:start_project] = forked_project.full_path
+            end
 
-            expect(response).to have_gitlab_http_status(201)
+            it 'adds a new commit to forked_project and returns a 201' do
+              expect { post api(url, guest), params: valid_c_params }
+                .to change { forked_project.repository.commit.title }
+                .and not_change { project.repository.commit.title }
+
+              expect(response).to have_gitlab_http_status(201)
+            end
           end
         end
 
