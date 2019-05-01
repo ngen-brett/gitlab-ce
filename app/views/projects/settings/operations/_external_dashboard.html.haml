@@ -1,0 +1,11 @@
+- return unless Feature.enabled?(:grafana_dashboard_link)
+
+%section.settings
+  .settings-header
+    %h4
+      = _('External Dashboard')
+    %p
+      = _('Add a button to the metrics dashboard linking directly to your existing external dashboards.')
+      = link_to _('Learn more'), help_page_path('user/project/operations/external_dashboard'), target: '_blank', rel: 'noopener noreferrer'
+  .settings-content
+    .js-external-dashboard-form
