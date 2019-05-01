@@ -51,13 +51,6 @@
   }
 
   &:hover,
-  &:focus,
-  &:active {
-    border-width: 2px;
-    padding: 5px 9px;
-  }
-
-  &:hover,
   &:focus {
     background-color: $hover-background;
     border-color: $hover-border;
@@ -69,7 +62,11 @@
   }
 
   &:hover {
-    box-shadow: 0 2px 2px 0 rgba($black, 0.1);
+    box-shadow: 0 2px 2px 0 rgba($black, 0.1), 0 0 1px 1px $hover-border;
+  }
+
+  &:focus {
+    box-shadow: 0 0 4px 1px $blue-300, 0 0 1px 1px $hover-border;
   }
 
   &:active {
