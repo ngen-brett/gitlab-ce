@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Gitlab
   class UserAccess
     extend Gitlab::Cache::RequestCache
@@ -65,7 +67,7 @@ module Gitlab
       return false unless can_access_git?
       return false unless project
 
-      return false if !user.can?(:push_code, project) && !project.branch_allows_maintainer_push?(user, ref)
+      return false if !user.can?(:push_code, project) && !project.branch_allows_collaboration?(user, ref)
 
       if protected?(ProtectedBranch, project, ref)
         protected_branch_accessible_to?(ref, action: :push)
@@ -116,8 +118,8 @@ module Gitlab
         protected_refs: project.protected_tags)
     end
 
-    request_cache def protected?(kind, project, ref)
-      kind.protected?(project, ref)
+    request_cache def protected?(kind, project, refs)
+      kind.protected?(project, refs)
     end
   end
 end

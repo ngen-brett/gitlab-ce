@@ -15,13 +15,21 @@ module StubObjectStorage
 
     return unless enabled
 
+    stub_object_storage(connection_params: uploader.object_store_credentials,
+                        remote_directory: remote_directory)
+  end
+
+  def stub_object_storage(connection_params:, remote_directory:)
     Fog.mock!
 
-    ::Fog::Storage.new(uploader.object_store_credentials).tap do |connection|
-      begin
-        connection.directories.create(key: remote_directory)
-      rescue Excon::Error::Conflict
+    ::Fog::Storage.new(connection_params).tap do |connection|
+      connection.directories.create(key: remote_directory)
+
+      # Cleanup remaining files
+      connection.directories.each do |directory|
+        directory.files.map(&:destroy)
       end
+    rescue Excon::Error::Conflict
     end
   end
 
@@ -29,6 +37,13 @@ module StubObjectStorage
     stub_object_storage_uploader(config: Gitlab.config.artifacts.object_store,
                                  uploader: JobArtifactUploader,
                                  remote_directory: 'artifacts',
+                                 **params)
+  end
+
+  def stub_external_diffs_object_storage(uploader = described_class, **params)
+    stub_object_storage_uploader(config: Gitlab.config.external_diffs.object_store,
+                                 uploader: uploader,
+                                 remote_directory: 'external_diffs',
                                  **params)
   end
 
@@ -45,4 +60,19 @@ module StubObjectStorage
                                  remote_directory: 'uploads',
                                  **params)
   end
+
+  def stub_object_storage_multipart_init(endpoint, upload_id = "upload_id")
+    stub_request(:post, %r{\A#{endpoint}tmp/uploads/[a-z0-9-]*\?uploads\z})
+      .to_return status: 200, body: <<-EOS.strip_heredoc
+        <?xml version="1.0" encoding="UTF-8"?>
+        <InitiateMultipartUploadResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
+          <Bucket>example-bucket</Bucket>
+          <Key>example-object</Key>
+          <UploadId>#{upload_id}</UploadId>
+        </InitiateMultipartUploadResult>
+      EOS
+  end
 end
+
+require_relative '../../../ee/spec/support/helpers/ee/stub_object_storage' if
+  Dir.exist?("#{__dir__}/../../../ee")

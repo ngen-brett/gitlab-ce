@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module API
   module Helpers
     module Runner
@@ -24,7 +26,7 @@ module API
       end
 
       def get_runner_ip
-        { ip_address: request.ip }
+        { ip_address: env["action_dispatch.remote_ip"].to_s || request.ip }
       end
 
       def current_runner
@@ -58,6 +60,11 @@ module API
 
       def max_artifacts_size
         Gitlab::CurrentSettings.max_artifacts_size.megabytes.to_i
+      end
+
+      def job_forbidden!(job, reason)
+        header 'Job-Status', job.status
+        forbidden!(reason)
       end
     end
   end

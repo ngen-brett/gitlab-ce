@@ -1,4 +1,8 @@
+# frozen_string_literal: true
+
 class NotificationRecipient
+  include Gitlab::Utils::StrongMemoize
+
   attr_reader :user, :type, :reason
   def initialize(user, type, **opts)
     unless NotificationSetting.levels.key?(type) || type == :subscription
@@ -43,14 +47,14 @@ class NotificationRecipient
 
   def suitable_notification_level?
     case notification_level
-    when :disabled, nil
-      false
-    when :custom
-      custom_enabled? || %i[participating mention].include?(@type)
-    when :watch, :participating
-      !action_excluded?
     when :mention
       @type == :mention
+    when :participating
+      !excluded_participating_action? && %i[participating mention watch].include?(@type)
+    when :custom
+      custom_enabled? || %i[participating mention].include?(@type)
+    when :watch
+      !excluded_watcher_action?
     else
       false
     end
@@ -64,7 +68,7 @@ class NotificationRecipient
     return false unless @target
     return false unless @target.respond_to?(:subscriptions)
 
-    subscription = @target.subscriptions.find_by_user_id(@user.id)
+    subscription = @target.subscriptions.find { |subscription| subscription.user_id == @user.id }
     subscription && !subscription.subscribed
   end
 
@@ -96,18 +100,14 @@ class NotificationRecipient
     end
   end
 
-  def action_excluded?
-    excluded_watcher_action? || excluded_participating_action?
-  end
-
   def excluded_watcher_action?
-    return false unless @custom_action && notification_level == :watch
+    return false unless @custom_action
 
     NotificationSetting::EXCLUDED_WATCHER_EVENTS.include?(@custom_action)
   end
 
   def excluded_participating_action?
-    return false unless @custom_action && notification_level == :participating
+    return false unless @custom_action
 
     NotificationSetting::EXCLUDED_PARTICIPATING_EVENTS.include?(@custom_action)
   end
@@ -115,24 +115,28 @@ class NotificationRecipient
   private
 
   def read_ability
-    return nil if @skip_read_ability
+    return if @skip_read_ability
     return @read_ability if instance_variable_defined?(:@read_ability)
 
     @read_ability =
-      case @target
-      when Issuable
-        :"read_#{@target.to_ability_name}"
-      when Ci::Pipeline
+      if @target.is_a?(Ci::Pipeline)
         :read_build # We have build trace in pipeline emails
-      when ActiveRecord::Base
-        :"read_#{@target.class.model_name.name.underscore}"
-      else
-        nil
+      elsif default_ability_for_target
+        :"read_#{default_ability_for_target}"
+      end
+  end
+
+  def default_ability_for_target
+    @default_ability_for_target ||=
+      if @target.respond_to?(:to_ability_name)
+        @target.to_ability_name
+      elsif @target.class.respond_to?(:model_name)
+        @target.class.model_name.name.underscore
       end
   end
 
   def default_project
-    return nil if @target.nil?
+    return if @target.nil?
     return @target if @target.is_a?(Project)
     return @target.project if @target.respond_to?(:project)
   end
@@ -142,10 +146,33 @@ class NotificationRecipient
 
     return project_setting unless project_setting.nil? || project_setting.global?
 
-    group_setting = @group && user.notification_settings_for(@group)
+    group_setting = closest_non_global_group_notification_settting
 
-    return group_setting unless group_setting.nil? || group_setting.global?
+    return group_setting unless group_setting.nil?
 
     user.global_notification_setting
+  end
+
+  # Returns the notification_setting of the lowest group in hierarchy with non global level
+  def closest_non_global_group_notification_settting
+    return unless @group
+    return if indexed_group_notification_settings.empty?
+
+    notification_setting = nil
+
+    @group.self_and_ancestors_ids.each do |id|
+      notification_setting = indexed_group_notification_settings[id]
+      break if notification_setting
+    end
+
+    notification_setting
+  end
+
+  def indexed_group_notification_settings
+    strong_memoize(:indexed_group_notification_settings) do
+      @group.notification_settings.where(user_id: user.id)
+        .where.not(level: NotificationSetting.levels[:global])
+        .index_by(&:source_id)
+    end
   end
 end

@@ -1,4 +1,6 @@
-class MergeRequestsClosingIssues < ActiveRecord::Base
+# frozen_string_literal: true
+
+class MergeRequestsClosingIssues < ApplicationRecord
   belongs_to :merge_request
   belongs_to :issue
 

@@ -1,13 +1,18 @@
+# frozen_string_literal: true
+
 module Gitlab
   module SlashCommands
     class Command < BaseCommand
-      COMMANDS = [
-        Gitlab::SlashCommands::IssueShow,
-        Gitlab::SlashCommands::IssueNew,
-        Gitlab::SlashCommands::IssueSearch,
-        Gitlab::SlashCommands::IssueMove,
-        Gitlab::SlashCommands::Deploy
-      ].freeze
+      def self.commands
+        [
+          Gitlab::SlashCommands::IssueShow,
+          Gitlab::SlashCommands::IssueNew,
+          Gitlab::SlashCommands::IssueSearch,
+          Gitlab::SlashCommands::IssueMove,
+          Gitlab::SlashCommands::Deploy,
+          Gitlab::SlashCommands::Run
+        ]
+      end
 
       def execute
         command, match = match_command
@@ -37,7 +42,7 @@ module Gitlab
       private
 
       def available_commands
-        COMMANDS.select do |klass|
+        self.class.commands.keep_if do |klass|
           klass.available?(project)
         end
       end

@@ -46,12 +46,33 @@ FactoryBot.define do
       target_branch "improve/awesome"
     end
 
+    trait :merged_last_month do
+      merged
+
+      after(:build) do |merge_request|
+        merge_request.build_metrics.merged_at = 1.month.ago
+      end
+    end
+
     trait :closed do
       state :closed
     end
 
+    trait :closed_last_month do
+      closed
+
+      after(:build) do |merge_request|
+        merge_request.build_metrics.latest_closed_at = 1.month.ago
+      end
+    end
+
     trait :opened do
       state :opened
+    end
+
+    trait :invalid do
+      source_branch "feature_one"
+      target_branch "feature_two"
     end
 
     trait :locked do
@@ -75,12 +96,79 @@ FactoryBot.define do
 
     trait :merge_when_pipeline_succeeds do
       merge_when_pipeline_succeeds true
-      merge_user author
+      merge_user { author }
     end
 
     trait :remove_source_branch do
       merge_params do
         { 'force_remove_source_branch' => '1' }
+      end
+    end
+
+    trait :with_test_reports do
+      after(:build) do |merge_request|
+        merge_request.head_pipeline = build(
+          :ci_pipeline,
+          :success,
+          :with_test_reports,
+          project: merge_request.source_project,
+          ref: merge_request.source_branch,
+          sha: merge_request.diff_head_sha)
+      end
+    end
+
+    trait :with_legacy_detached_merge_request_pipeline do
+      after(:create) do |merge_request|
+        merge_request.merge_request_pipelines << create(:ci_pipeline,
+          source: :merge_request_event,
+          merge_request: merge_request,
+          project: merge_request.source_project,
+          ref: merge_request.source_branch,
+          sha: merge_request.source_branch_sha)
+      end
+    end
+
+    trait :with_detached_merge_request_pipeline do
+      after(:create) do |merge_request|
+        merge_request.merge_request_pipelines << create(:ci_pipeline,
+          source: :merge_request_event,
+          merge_request: merge_request,
+          project: merge_request.source_project,
+          ref: merge_request.ref_path,
+          sha: merge_request.source_branch_sha)
+      end
+    end
+
+    trait :with_merge_request_pipeline do
+      transient do
+        merge_sha { 'test-merge-sha' }
+        source_sha { source_branch_sha }
+        target_sha { target_branch_sha }
+      end
+
+      after(:create) do |merge_request, evaluator|
+        merge_request.merge_request_pipelines << create(:ci_pipeline,
+          source: :merge_request_event,
+          merge_request: merge_request,
+          project: merge_request.source_project,
+          ref: merge_request.merge_ref_path,
+          sha: evaluator.merge_sha,
+          source_sha: evaluator.source_sha,
+          target_sha: evaluator.target_sha)
+      end
+    end
+
+    trait :deployed_review_app do
+      target_branch 'pages-deploy-target'
+
+      transient do
+        deployment { create(:deployment, :review_app) }
+      end
+
+      after(:build) do |merge_request, evaluator|
+        merge_request.source_branch = evaluator.deployment.ref
+        merge_request.source_project = evaluator.deployment.project
+        merge_request.target_project = evaluator.deployment.project
       end
     end
 
@@ -95,9 +183,14 @@ FactoryBot.define do
       end
     end
 
+    after(:create) do |merge_request, evaluator|
+      merge_request.cache_merge_request_closes_issues!
+    end
+
     factory :merged_merge_request, traits: [:merged]
     factory :closed_merge_request, traits: [:closed]
     factory :reopened_merge_request, traits: [:opened]
+    factory :invalid_merge_request, traits: [:invalid]
     factory :merge_request_with_diffs, traits: [:with_diffs]
     factory :merge_request_with_diff_notes do
       after(:create) do |mr|
@@ -111,7 +204,7 @@ FactoryBot.define do
       end
 
       after(:create) do |merge_request, evaluator|
-        merge_request.update_attributes(labels: evaluator.labels)
+        merge_request.update(labels: evaluator.labels)
       end
     end
   end

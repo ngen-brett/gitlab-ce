@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require 'rainbow/ext/string'
-require 'gitlab/utils/strong_memoize'
+require_dependency 'gitlab/utils/strong_memoize'
 
 # rubocop:disable Rails/Output
 module Gitlab
@@ -10,6 +12,12 @@ module Gitlab
     include Gitlab::Utils::StrongMemoize
 
     extend self
+
+    def invoke_and_time_task(task)
+      start = Time.now
+      Rake::Task[task].invoke
+      puts "`#{task}` finished in #{Time.now - start} seconds"
+    end
 
     # Ask if the user wants to continue
     #
@@ -39,7 +47,7 @@ module Gitlab
           File.read('/etc/os-release').match(/PRETTY_NAME=\"(.+)\"/)[1]
         end
 
-      os_name.try(:squish!)
+      os_name.try(:squish)
     end
 
     # Prompt the user to input something
@@ -128,17 +136,21 @@ module Gitlab
     end
 
     def all_repos
-      Gitlab.config.repositories.storages.each_value do |repository_storage|
-        IO.popen(%W(find #{repository_storage.legacy_disk_path} -mindepth 2 -type d -name *.git)) do |find|
-          find.each_line do |path|
-            yield path.chomp
+      Gitlab::GitalyClient::StorageSettings.allow_disk_access do
+        Gitlab.config.repositories.storages.each_value do |repository_storage|
+          IO.popen(%W(find #{repository_storage.legacy_disk_path} -mindepth 2 -type d -name *.git)) do |find|
+            find.each_line do |path|
+              yield path.chomp
+            end
           end
         end
       end
     end
 
     def repository_storage_paths_args
-      Gitlab.config.repositories.storages.values.map { |rs| rs.legacy_disk_path }
+      Gitlab::GitalyClient::StorageSettings.allow_disk_access do
+        Gitlab.config.repositories.storages.values.map { |rs| rs.legacy_disk_path }
+      end
     end
 
     def user_home

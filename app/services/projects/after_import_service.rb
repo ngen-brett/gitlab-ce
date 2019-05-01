@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Projects
   class AfterImportService
     RESERVED_REF_PREFIXES = Repository::RESERVED_REFS_NAMES.map { |n| File.join('refs', n, '/') }
@@ -7,7 +9,7 @@ module Projects
     end
 
     def execute
-      Projects::HousekeepingService.new(@project).execute do
+      Projects::HousekeepingService.new(@project, :gc).execute do
         repository.delete_all_refs_except(RESERVED_REF_PREFIXES)
       end
     rescue Projects::HousekeepingService::LeaseTaken => e

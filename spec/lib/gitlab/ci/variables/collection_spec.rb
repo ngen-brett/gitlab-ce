@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Gitlab::Ci::Variables::Collection do
   describe '.new' do
     it 'can be initialized with an array' do
-      variable = { key: 'VAR', value: 'value', public: true }
+      variable = { key: 'VAR', value: 'value', public: true, masked: false }
 
       collection = described_class.new([variable])
 
@@ -29,7 +29,7 @@ describe Gitlab::Ci::Variables::Collection do
     end
 
     it 'appends an internal resource' do
-      collection = described_class.new([{ key: 'TEST', value: 1 }])
+      collection = described_class.new([{ key: 'TEST', value: '1' }])
 
       subject.append(collection.first)
 
@@ -66,6 +66,14 @@ describe Gitlab::Ci::Variables::Collection do
       expect(collection).to include(key: 'VAR_3', value: '3', public: true)
     end
 
+    it 'does not concatenate resource if it undefined' do
+      collection = described_class.new([{ key: 'VAR_1', value: '1' }])
+
+      collection.concat(nil)
+
+      expect(collection).to be_one
+    end
+
     it 'returns self' do
       expect(subject.concat([key: 'VAR', value: 'test']))
         .to eq subject
@@ -74,15 +82,15 @@ describe Gitlab::Ci::Variables::Collection do
 
   describe '#+' do
     it 'makes it possible to combine with an array' do
-      collection = described_class.new([{ key: 'TEST', value: 1 }])
+      collection = described_class.new([{ key: 'TEST', value: '1' }])
       variables = [{ key: 'TEST', value: 'something' }]
 
       expect((collection + variables).count).to eq 2
     end
 
     it 'makes it possible to combine with another collection' do
-      collection = described_class.new([{ key: 'TEST', value: 1 }])
-      other = described_class.new([{ key: 'TEST', value: 2 }])
+      collection = described_class.new([{ key: 'TEST', value: '1' }])
+      other = described_class.new([{ key: 'TEST', value: '2' }])
 
       expect((collection + other).count).to eq 2
     end
@@ -90,10 +98,10 @@ describe Gitlab::Ci::Variables::Collection do
 
   describe '#to_runner_variables' do
     it 'creates an array of hashes in a runner-compatible format' do
-      collection = described_class.new([{ key: 'TEST', value: 1 }])
+      collection = described_class.new([{ key: 'TEST', value: '1' }])
 
       expect(collection.to_runner_variables)
-        .to eq [{ key: 'TEST', value: 1, public: true }]
+        .to eq [{ key: 'TEST', value: '1', public: true, masked: false }]
     end
   end
 

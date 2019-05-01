@@ -4,7 +4,7 @@ module Gitlab
     module PopulateUntrackedUploadsDependencies
       # This class is responsible for producing the attributes necessary to
       # track an uploaded file in the `uploads` table.
-      class UntrackedFile < ActiveRecord::Base # rubocop:disable Metrics/ClassLength, Metrics/LineLength
+      class UntrackedFile < ActiveRecord::Base # rubocop:disable Metrics/ClassLength
         self.table_name = 'untracked_files_for_uploads'
 
         # Ends with /:random_hex/:filename
@@ -127,14 +127,14 @@ module Gitlab
 
           full_path = matchd[1]
           project = Gitlab::BackgroundMigration::PopulateUntrackedUploadsDependencies::Project.find_by_full_path(full_path)
-          return nil unless project
+          return unless project
 
           project.id
         end
 
         # Not including a leading slash
         def path_relative_to_upload_dir
-          upload_dir = Gitlab::BackgroundMigration::PrepareUntrackedUploads::RELATIVE_UPLOAD_DIR # rubocop:disable Metrics/LineLength
+          upload_dir = Gitlab::BackgroundMigration::PrepareUntrackedUploads::RELATIVE_UPLOAD_DIR
           base = %r{\A#{Regexp.escape(upload_dir)}/}
           @path_relative_to_upload_dir ||= path.sub(base, '')
         end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 
 describe ProjectStatistics do
@@ -126,6 +128,12 @@ describe ProjectStatistics do
       expect { described_class.increment_statistic(project.id, :build_artifacts_size, 13) }
         .to change { statistics.reload.build_artifacts_size }
         .by(13)
+    end
+
+    it 'increases also storage size by that amount' do
+      expect { described_class.increment_statistic(project.id, :build_artifacts_size, 20) }
+        .to change { statistics.reload.storage_size }
+        .by(20)
     end
 
     context 'when the amount is 0' do

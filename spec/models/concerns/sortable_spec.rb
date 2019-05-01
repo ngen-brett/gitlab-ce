@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Sortable do
@@ -40,15 +42,25 @@ describe Sortable do
 
     describe 'ordering by name' do
       it 'ascending' do
-        expect(relation).to receive(:reorder).with("lower(name) asc")
+        expect(relation).to receive(:reorder).once.and_call_original
 
-        relation.order_by('name_asc')
+        table = Regexp.escape(ActiveRecord::Base.connection.quote_table_name(:namespaces))
+        column = Regexp.escape(ActiveRecord::Base.connection.quote_column_name(:name))
+
+        sql = relation.order_by('name_asc').to_sql
+
+        expect(sql).to match /.+ORDER BY LOWER\(#{table}.#{column}\) ASC\z/
       end
 
       it 'descending' do
-        expect(relation).to receive(:reorder).with("lower(name) desc")
+        expect(relation).to receive(:reorder).once.and_call_original
 
-        relation.order_by('name_desc')
+        table = Regexp.escape(ActiveRecord::Base.connection.quote_table_name(:namespaces))
+        column = Regexp.escape(ActiveRecord::Base.connection.quote_column_name(:name))
+
+        sql = relation.order_by('name_desc').to_sql
+
+        expect(sql).to match /.+ORDER BY LOWER\(#{table}.#{column}\) DESC\z/
       end
     end
 
@@ -89,7 +101,7 @@ describe Sortable do
       expect(ordered_group_names('id_desc')).to eq(%w(bbb BB AAA aa))
     end
 
-    it 'sorts groups by name via case-insentitive comparision' do
+    it 'sorts groups by name via case-insensitive comparision' do
       expect(ordered_group_names('name_asc')).to eq(%w(aa AAA BB bbb))
       expect(ordered_group_names('name_desc')).to eq(%w(bbb BB AAA aa))
     end

@@ -17,7 +17,10 @@ describe Gitlab::LegacyGithubImport::ProjectCreator do
 
   before do
     namespace.add_owner(user)
-    allow_any_instance_of(Project).to receive(:add_import_job)
+
+    expect_next_instance_of(Project) do |project|
+      expect(project).to receive(:add_import_job)
+    end
   end
 
   describe '#execute' do
@@ -44,16 +47,54 @@ describe Gitlab::LegacyGithubImport::ProjectCreator do
     end
 
     context 'when GitHub project is public' do
-      before do
-        allow_any_instance_of(ApplicationSetting).to receive(:default_project_visibility).and_return(Gitlab::VisibilityLevel::INTERNAL)
-      end
-
-      it 'sets project visibility to the default project visibility' do
+      it 'sets project visibility to namespace visibility level' do
         repo.private = false
-
         project = service.execute
 
-        expect(project.visibility_level).to eq(Gitlab::VisibilityLevel::INTERNAL)
+        expect(project.visibility_level).to eq(namespace.visibility_level)
+      end
+
+      context 'when importing into a user namespace' do
+        subject(:service) { described_class.new(repo, repo.name, user.namespace, user, github_access_token: 'asdffg') }
+
+        it 'sets project visibility to user namespace visibility level' do
+          repo.private = false
+          project = service.execute
+
+          expect(project.visibility_level).to eq(user.namespace.visibility_level)
+        end
+      end
+    end
+
+    context 'when visibility level is restricted' do
+      context 'when GitHub project is private' do
+        before do
+          stub_application_setting(restricted_visibility_levels: [Gitlab::VisibilityLevel::PRIVATE])
+          allow_any_instance_of(ApplicationSetting).to receive(:default_project_visibility).and_return(Gitlab::VisibilityLevel::INTERNAL)
+        end
+
+        it 'sets project visibility to the default project visibility' do
+          repo.private = true
+
+          project = service.execute
+
+          expect(project.visibility_level).to eq(Gitlab::VisibilityLevel::INTERNAL)
+        end
+      end
+
+      context 'when GitHub project is public' do
+        before do
+          stub_application_setting(restricted_visibility_levels: [Gitlab::VisibilityLevel::PUBLIC])
+          allow_any_instance_of(ApplicationSetting).to receive(:default_project_visibility).and_return(Gitlab::VisibilityLevel::INTERNAL)
+        end
+
+        it 'sets project visibility to the default project visibility' do
+          repo.private = false
+
+          project = service.execute
+
+          expect(project.visibility_level).to eq(Gitlab::VisibilityLevel::INTERNAL)
+        end
       end
     end
 

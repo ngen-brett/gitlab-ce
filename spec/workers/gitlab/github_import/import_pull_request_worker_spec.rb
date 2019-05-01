@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Gitlab::GithubImport::ImportPullRequestWorker do
@@ -42,7 +44,6 @@ describe Gitlab::GithubImport::ImportPullRequestWorker do
 
       expect(worker.counter)
         .to receive(:increment)
-        .with(project: 'foo/bar')
         .and_call_original
 
       worker.import(project, client, hash)

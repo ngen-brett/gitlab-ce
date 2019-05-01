@@ -14,17 +14,19 @@ describe 'a maintainer edits files on a source-branch of an MR from a fork', :js
            source_branch: 'fix',
            target_branch: 'master',
            author: author,
-           allow_maintainer_to_push: true)
+           allow_collaboration: true)
   end
 
   before do
-    target_project.add_master(user)
+    stub_feature_flags(web_ide_default: false)
+
+    target_project.add_maintainer(user)
     sign_in(user)
 
     visit project_merge_request_path(target_project, merge_request)
     click_link 'Changes'
     wait_for_requests
-    first('.js-file-title').click_link 'Edit'
+    first('.js-file-title').find('.js-edit-blob').click
     wait_for_requests
   end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe ControllerWithCrossProjectAccessCheck do
@@ -27,11 +29,11 @@ describe ControllerWithCrossProjectAccessCheck do
                                               if: -> { if_condition }
 
         def index
-          render nothing: true
+          head :ok
         end
 
         def show
-          render nothing: true
+          head :ok
         end
 
         def unless_condition
@@ -43,13 +45,13 @@ describe ControllerWithCrossProjectAccessCheck do
         end
       end
 
-      it 'renders a 404 with trying to access a cross project page' do
+      it 'renders a 403 with trying to access a cross project page' do
         message = "This page is unavailable because you are not allowed to read "\
                   "information across multiple projects."
 
         get :index
 
-        expect(response).to have_gitlab_http_status(404)
+        expect(response).to have_gitlab_http_status(403)
         expect(response.body).to match(/#{message}/)
       end
 
@@ -70,7 +72,7 @@ describe ControllerWithCrossProjectAccessCheck do
       end
 
       it 'correctly renders an action that does not require cross project access' do
-        get :show, id: 'nothing'
+        get :show, params: { id: 'nothing' }
 
         expect(response).to have_gitlab_http_status(200)
       end
@@ -88,15 +90,15 @@ describe ControllerWithCrossProjectAccessCheck do
                                         if: -> { if_condition }
 
         def index
-          render nothing: true
+          head :ok
         end
 
         def show
-          render nothing: true
+          head :ok
         end
 
         def edit
-          render nothing: true
+          head :ok
         end
 
         def unless_condition
@@ -119,7 +121,7 @@ describe ControllerWithCrossProjectAccessCheck do
 
         get :index
 
-        expect(response).to have_gitlab_http_status(404)
+        expect(response).to have_gitlab_http_status(403)
       end
 
       it 'is executed when the `unless` condition returns true' do
@@ -127,19 +129,19 @@ describe ControllerWithCrossProjectAccessCheck do
 
         get :index
 
-        expect(response).to have_gitlab_http_status(404)
+        expect(response).to have_gitlab_http_status(403)
       end
 
       it 'does not skip the check on an action that is not skipped' do
-        get :show, id: 'hello'
+        get :show, params: { id: 'hello' }
 
-        expect(response).to have_gitlab_http_status(404)
+        expect(response).to have_gitlab_http_status(403)
       end
 
       it 'does not skip the check on an action that was not defined to skip' do
-        get :edit, id: 'hello'
+        get :edit, params: { id: 'hello' }
 
-        expect(response).to have_gitlab_http_status(404)
+        expect(response).to have_gitlab_http_status(403)
       end
     end
   end

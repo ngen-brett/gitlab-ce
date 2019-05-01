@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 require 'securerandom'
 
 module QA
   module Service
     class Runner
-      include Scenario::Actable
       include Service::Shellout
 
       attr_accessor :token, :address, :tags, :image

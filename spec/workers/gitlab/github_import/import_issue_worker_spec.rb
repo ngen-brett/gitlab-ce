@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Gitlab::GithubImport::ImportIssueWorker do
@@ -36,7 +38,6 @@ describe Gitlab::GithubImport::ImportIssueWorker do
 
       expect(worker.counter)
         .to receive(:increment)
-        .with(project: 'foo/bar')
         .and_call_original
 
       worker.import(project, client, hash)
