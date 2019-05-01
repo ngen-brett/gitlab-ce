@@ -688,7 +688,7 @@ You can add a configuration option for backwards compatibility.
 
 1. Restart the registry for the changes to take affect.
 
-[omnibus-4145]: https://gitlab.com/gitlab-org/omnibus-gitlab/issues/4145
+
 [ce-18239]: https://gitlab.com/gitlab-org/gitlab-ce/issues/18239
 [docker-insecure-self-signed]: https://docs.docker.com/registry/insecure/#use-self-signed-certificates
 [reconfigure gitlab]: restart_gitlab.md#omnibus-gitlab-reconfigure
