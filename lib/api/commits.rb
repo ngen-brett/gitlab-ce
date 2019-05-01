@@ -96,22 +96,36 @@ module API
           end
         end
         optional :start_branch, type: String, desc: 'Name of the branch to start the new commit from'
+        optional :start_project, types: [Integer, String], desc: 'Name of the project which will contain the new commit'
         optional :author_email, type: String, desc: 'Author email for commit'
         optional :author_name, type: String, desc: 'Author name for commit'
         optional :stats, type: Boolean, default: true, desc: 'Include commit stats'
         optional :force, type: Boolean, default: false, desc: 'When `true` overwrites the target branch with a new commit based on the `start_branch`'
       end
       post ':id/repository/commits' do
-        authorize_push_to_branch!(params[:branch])
+        target_project = user_project
+
+        if !user_access.can_push_to_branch?(params[:branch]) && params[:start_project]
+          start_project = find_project!(params[:start_project])
+
+          if start_project&.forked_from?(user_project)
+            target_project = start_project
+          else
+            forbidden!("You are not allowed to push into this branch or project")
+          end
+        else
+          authorize_push_to_branch!(params[:branch])
+        end
 
         attrs = declared_params
         attrs[:branch_name] = attrs.delete(:branch)
         attrs[:start_branch] ||= attrs[:branch_name]
+        attrs[:start_project] = target_project
 
-        result = ::Files::MultiService.new(user_project, current_user, attrs).execute
+        result = ::Files::MultiService.new(target_project, current_user, attrs).execute
 
         if result[:status] == :success
-          commit_detail = user_project.repository.commit(result[:result])
+          commit_detail = target_project.repository.commit(result[:result])
 
           Gitlab::WebIdeCommitsCounter.increment if find_user_from_warden
 

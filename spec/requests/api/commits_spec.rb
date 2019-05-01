@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'mime/types'
 
 describe API::Commits do
+  include ProjectForksHelper
+
   let(:user) { create(:user) }
   let(:guest) { create(:user).tap { |u| project.add_guest(u) } }
   let(:project) { create(:project, :repository, creator: user, path: 'my.project') }
@@ -315,6 +317,35 @@ describe API::Commits do
           post api(url, user), params: valid_c_params
 
           expect(response).to have_gitlab_http_status(201)
+        end
+      end
+
+      context 'when a guest only has read access' do
+        let(:project) { create(:project, :public, :repository) }
+
+        context 'and they have a writable fork of the project' do
+          let!(:forked_project) { fork_project(project, guest, namespace: guest.namespace, repository: true) }
+
+          before do
+            valid_c_params[:start_project] = forked_project.id
+          end
+
+          it 'adds a new commit to forked_project and returns a 201' do
+            expect { post api(url, guest), params: valid_c_params }
+              .to change { forked_project.repository.commit.title }
+              .and not_change { project.repository.commit.title }
+
+            expect(response).to have_gitlab_http_status(201)
+          end
+        end
+
+        context 'and they do not have a writable fork of the project' do
+          it 'adds a new commit to forked_project and returns a 201' do
+            expect { post api(url, guest), params: valid_c_params }
+              .to not_change { project.repository.commit.title }
+
+            expect(response).to have_gitlab_http_status(403)
+          end
         end
       end
     end
