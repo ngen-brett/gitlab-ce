@@ -222,6 +222,28 @@ describe Gitlab::BitbucketImport::Importer do
                   body: {}.to_json)
     end
 
+    context 'creating labels on project' do
+      before do
+        allow(importer).to receive(:import_wiki)
+      end
+
+      it 'creates labels as expected' do
+        importer.execute
+
+        Gitlab::BitbucketImport::Importer::LABELS.each do |label|
+          project_label = project.labels.find_by_title(label[:title])
+          expect(project_label).not_to be(nil)
+        end
+      end
+
+      it 'does not fail if label is already existing' do
+        bug_label = { title: 'bug', color: '#FF0000' }
+        ::Labels::CreateService.new(bug_label).execute(project: project)
+
+        expect { importer.execute }.not_to raise_error
+      end
+    end
+
     it 'maps statuses to open or closed' do
       allow(importer).to receive(:import_wiki)
 
