@@ -348,6 +348,7 @@ module API
         end
       end
 
+      # rubocop: disable Style/AndOr
       desc 'Merge a merge request' do
         success Entities::MergeRequest
       end
@@ -366,6 +367,13 @@ module API
 
         merge_request = find_project_merge_request(params[:merge_request_iid])
         merge_when_pipeline_succeeds = to_boolean(params[:merge_when_pipeline_succeeds])
+
+        retries = 3
+        begin
+          raise PipelineNotFound unless merge_request.head_pipeline
+        rescue PipelineNotFound
+          (retries -= 1).zero? ? nil : sleep(1) and retry
+        end
 
         # Merge request can not be merged
         # because user dont have permissions to push into target branch
@@ -397,6 +405,7 @@ module API
 
         present merge_request, with: Entities::MergeRequest, current_user: current_user, project: user_project
       end
+      # rubocop: enable Style/AndOr
 
       desc 'Merge a merge request to its default temporary merge ref path'
       params do
@@ -468,5 +477,7 @@ module API
         data.as_json
       end
     end
+
+    PipelineNotFound = Class.new(StandardError)
   end
 end
