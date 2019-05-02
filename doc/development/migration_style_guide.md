@@ -186,7 +186,10 @@ end
 When adding a foreign-key constraint to either an existing or new
 column remember to also add a index on the column.
 
-This is _required_ for all foreign-keys.
+This is _required_ for all foreign-keys that cascading deletion becomes more
+efficient. Imagine the system deletes a lot of rows in a table and cascadingly deletes
+the other table's rows, the system has to look up the corresponding records in the other table,
+and database index will help this situation.
 
 Here's an example where we add a new column with a foreign key
 constraint. Note it includes `index: true` to create an index for it.
