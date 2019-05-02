@@ -7,6 +7,7 @@ import dirtySubmitFactory from '~/dirty_submit/dirty_submit_factory';
 import initAvatarPicker from '~/avatar_picker';
 import initProjectLoadingSpinner from '../shared/save_project_loader';
 import initProjectPermissionsSettings from '../shared/permissions';
+import initMergeOptionsCheckboxSync from './init_merge_options_checkbox_sync';
 
 document.addEventListener('DOMContentLoaded', () => {
   initAvatarPicker();
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initProjectLoadingSpinner();
   initProjectPermissionsSettings();
   setupProjectEdit();
+  initMergeOptionsCheckboxSync();
 
   dirtySubmitFactory(
     document.querySelectorAll(
