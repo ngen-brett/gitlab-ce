@@ -96,7 +96,7 @@ module API
           end
         end
         optional :start_branch, type: String, desc: 'Name of the branch to start the new commit from'
-        optional :start_project, types: [Integer, String], desc: 'Name of the project which will contain the new commit'
+        optional :start_project, types: [Integer, String], desc: 'Name of the project where the commit will be performed'
         optional :author_email, type: String, desc: 'Author email for commit'
         optional :author_name, type: String, desc: 'Author name for commit'
         optional :stats, type: Boolean, default: true, desc: 'Include commit stats'
