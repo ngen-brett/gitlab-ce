@@ -105,16 +105,18 @@ module API
       post ':id/repository/commits' do
         target_project = user_project
 
-        if !user_access.can_push_to_branch?(params[:branch]) && params[:start_project]
+        if params[:start_project]
           start_project = find_project!(params[:start_project])
 
           if start_project&.forked_from?(user_project)
             target_project = start_project
           else
-            forbidden!("You are not allowed to push into this branch or project")
+            forbidden!("You are not allowed to push into this project")
           end
-        else
-          authorize_push_to_branch!(params[:branch])
+        end
+
+        if !user_access.can_push_to_branch?(params[:branch]) && !params[:start_project]
+          forbidden!("You are not allowed to push into this branch")
         end
 
         attrs = declared_params
