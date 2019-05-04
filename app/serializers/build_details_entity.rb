@@ -8,7 +8,11 @@ class BuildDetailsEntity < JobEntity
   expose :stuck?, as: :stuck
   expose :user, using: UserEntity
   expose :runner, using: RunnerEntity
-  expose :pipeline, using: PipelineEntity
+
+  # expose :pipeline, using: PipelineEntity
+  expose :pipeline_path do
+    project_pipeline_path(project, pipeline)
+  end
 
   expose :deployment_status, if: -> (*) { build.starts_environment? } do
     expose :deployment_status, as: :status
@@ -103,6 +107,10 @@ class BuildDetailsEntity < JobEntity
 
   def project
     build.project
+  end
+
+  def pipeline
+    build.pipeline
   end
 
   def can_create_build_terminal?
