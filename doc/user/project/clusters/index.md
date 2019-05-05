@@ -376,6 +376,21 @@ Upgrades will reset values back to the values built into the `runner`
 chart plus the values set by
 [`values.yaml`](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/vendor/runner/values.yaml)
 
+### Uninstalling applications
+
+> [Introduced](https://gitlab.com/gitlab-org/gitlab-ce/issues/60665) in
+> GitLab 11.11.
+
+The applications below can now be uninstalled.
+
+| Application | GitLab version | Notes |
+| ----------- | -------------- | ----- |
+| Prometheus  | 11.11+         | All data will be deleted and cannot be restored. |
+
+Support for uninstalling all applications will be progressively
+introduced (see [related
+epic](https://gitlab.com/groups/gitlab-org/-/epics/1201)).
+
 ### Troubleshooting applications
 
 Applications can fail with the following error:
