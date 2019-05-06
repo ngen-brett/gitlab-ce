@@ -581,10 +581,15 @@
 
   .emoji-menu-toggle-button {
     @include emoji-menu-toggle-button;
+    padding: 6px 10px;
   }
 
   .input-group {
-    height: 34px;
+    &,
+    .input-group-prepend,
+    .input-group-append {
+      height: 34px;
+    }
   }
 }
 
