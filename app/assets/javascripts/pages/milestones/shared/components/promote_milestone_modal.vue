@@ -2,7 +2,9 @@
 import axios from '~/lib/utils/axios_utils';
 import createFlash from '~/flash';
 import GlModal from '~/vue_shared/components/gl_modal.vue';
+import promoteMilestoneModalMixin from 'ee_else_ce/pages/milestones/shared/mixins/promote_milestone_modal';
 import { s__, sprintf } from '~/locale';
+import { isEE } from '~/lib/utils/common_utils';
 import { visitUrl } from '~/lib/utils/url_utility';
 import eventHub from '../event_hub';
 
@@ -10,6 +12,7 @@ export default {
   components: {
     GlModal,
   },
+  mixins: [promoteMilestoneModalMixin],
   props: {
     milestoneTitle: {
       type: String,
@@ -30,13 +33,8 @@ export default {
         milestoneTitle: this.milestoneTitle,
       });
     },
-    text() {
-      return sprintf(
-        s__(`Milestones|Promoting %{milestoneTitle} will make it available for all projects inside %{groupName}.
-        Existing project milestones with the same title will be merged.
-        This action cannot be reversed.`),
-        { milestoneTitle: this.milestoneTitle, groupName: this.groupName },
-      );
+    isEE() {
+      return isEE();
     },
   },
   methods: {
@@ -72,6 +70,9 @@ export default {
     <template slot="title">
       {{ title }}
     </template>
-    {{ text }}
+    <div v-if="isEE" v-html="text"></div>
+    <template v-else>
+      {{ text }}
+    </template>
   </gl-modal>
 </template>
