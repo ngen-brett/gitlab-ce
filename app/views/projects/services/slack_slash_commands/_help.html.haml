@@ -28,7 +28,7 @@
       .help-form
         .form-group
           = label_tag nil, 'Command', class: 'col-sm-2 col-12 col-form-label'
-          .col-sm-10.col-12.text-block
+          .col-sm-10.col-12
             %p Fill in the word that works best for your team.
             %p
               Suggestions:
@@ -57,7 +57,7 @@
         .form-group
           = label_tag nil, 'Customize icon', class: 'col-sm-2 col-12 col-form-label'
           .col-sm-10.col-12.text-block
-            = image_tag(asset_url('slash-command-logo.png'), width: 36, height: 36)
+            = image_tag(asset_url('slash-command-logo.png'), width: 36, height: 36, class: 'append-right-default')
             = link_to('Download image', asset_url('gitlab_logo.png'), class: 'btn btn-sm', target: '_blank', rel: 'noopener noreferrer')
 
         .form-group
