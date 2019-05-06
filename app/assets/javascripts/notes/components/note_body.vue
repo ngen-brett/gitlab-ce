@@ -86,7 +86,11 @@ export default {
     applySuggestion({ suggestionId, flashContainer, callback }) {
       const { discussion_id: discussionId, id: noteId } = this.note;
 
-      this.submitSuggestion({ discussionId, noteId, suggestionId, flashContainer, callback });
+      const result = this.submitSuggestion({ discussionId, noteId, suggestionId, flashContainer });
+
+      if (callback) {
+        result.then(callback);
+      }
     },
   },
 };
