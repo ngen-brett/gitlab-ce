@@ -49,9 +49,14 @@ build-qa-image:
   <<: *review-docker
   stage: prepare
   script:
+    - mkdir -p ./qa/vendor/ruby/
     - time docker build --cache-from ${LATEST_QA_IMAGE} --tag ${QA_IMAGE} ./qa/
     - echo "${CI_JOB_TOKEN}" | docker login --username gitlab-ci-token --password-stdin ${CI_REGISTRY}
     - time docker push ${QA_IMAGE}
+  cache:
+    key: "qa-stretch-ruby-2.5"
+    paths:
+      - qa/vendor/ruby
 
 .review-build-cng-base: &review-build-cng-base
   image: ruby:2.5-alpine

@@ -1,5 +1,5 @@
 FROM ruby:2.5-stretch
-LABEL maintainer "Grzegorz Bizon <grzegorz@gitlab.com>"
+LABEL maintainer "GitLab Quality Department <quality@gitlab.com>"
 ENV DEBIAN_FRONTEND noninteractive
 
 ##
@@ -21,9 +21,9 @@ RUN apt-get -y -t stretch-backports install git git-lfs
 ##
 # Install Docker
 #
-RUN wget -q https://download.docker.com/linux/static/stable/x86_64/docker-17.09.0-ce.tgz && \
-    tar -zxf docker-17.09.0-ce.tgz && mv docker/docker /usr/local/bin/docker && \
-    rm docker-17.09.0-ce.tgz
+RUN wget -q https://download.docker.com/linux/static/stable/x86_64/docker-18.09.5.tgz && \
+    tar -zxf docker-18.09.5.tgz && mv docker/docker /usr/local/bin/docker && \
+    rm docker-18.09.5.tgz
 
 ##
 # Install Google Chrome version with headless support
@@ -49,7 +49,8 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
 
 WORKDIR /home/qa
 COPY ./Gemfile* ./
-RUN bundle install
+COPY ./vendor/ruby/ ./
+RUN bundle install --jobs=$(nproc) --path=vendor --retry=3 --quiet
 COPY ./ ./
 
 ENTRYPOINT ["bin/test"]
