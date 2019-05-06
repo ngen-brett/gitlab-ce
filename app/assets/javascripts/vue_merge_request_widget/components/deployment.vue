@@ -11,6 +11,7 @@ import createFlash from '../../flash';
 import MemoryUsage from './memory_usage.vue';
 import StatusIcon from './mr_widget_status_icon.vue';
 import ReviewAppLink from './review_app_link.vue';
+import VisualReviewAppLink from 'ee/vue_merge_request_widget/components/visual_review_app_link.vue';
 import MRWidgetService from '../services/mr_widget_service';
 
 export default {
@@ -23,6 +24,7 @@ export default {
     TooltipOnTruncate,
     FilteredSearchDropdown,
     ReviewAppLink,
+    VisualReviewAppLink,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -33,9 +35,25 @@ export default {
       type: Object,
       required: true,
     },
+    issueIds: {
+      type: Object,
+      required: false,
+      default: () => {
+        return {
+          sourceProjectId: '',
+          issueId: '',
+          appUrl: '',
+        };
+      },
+    },
     showMetrics: {
       type: Boolean,
       required: true,
+    },
+    showVisualReviewApp: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
   },
   deployedTextMap: {
@@ -123,7 +141,7 @@ export default {
       <div class="media-body">
         <div class="deploy-body">
           <div class="js-deployment-info deployment-info">
-            <template v-if="hasDeploymentMeta">
+            <template>
               <span> {{ deployedText }} </span>
               <tooltip-on-truncate
                 :title="deployment.name"
@@ -155,7 +173,7 @@ export default {
             />
           </div>
           <div>
-            <template v-if="hasExternalUrls">
+            <template>
               <filtered-search-dropdown
                 v-if="shouldRenderDropdown"
                 class="js-mr-wigdet-deployment-dropdown inline"
@@ -167,6 +185,11 @@ export default {
                   <review-app-link
                     :link="deploymentExternalUrl"
                     :css-class="`deploy-link js-deploy-url inline ${slotProps.className}`"
+                  />
+                  <visual-review-app-link
+                    v-if="showVisualReviewApp"
+                    :link="deploymentExternalUrl"
+                    :issue-ids="issueIds"
                   />
                 </template>
 
@@ -190,7 +213,12 @@ export default {
               <review-app-link
                 v-else
                 :link="deploymentExternalUrl"
-                css-class="js-deploy-url js-deploy-url-feature-flag deploy-link btn btn-default btn-sm inlin"
+                css-class="js-deploy-url js-deploy-url-feature-flag deploy-link btn btn-default btn-sm inline"
+              />
+              <visual-review-app-link
+                v-if="showVisualReviewApp"
+                :link="deploymentExternalUrl"
+                :issue-ids="issueIds"
               />
             </template>
             <span

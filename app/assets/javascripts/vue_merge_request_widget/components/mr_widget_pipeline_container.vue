@@ -30,9 +30,6 @@ export default {
     },
   },
   computed: {
-    pipeline() {
-      return this.isPostMerge ? this.mr.mergePipeline : this.mr.pipeline;
-    },
     branch() {
       return this.isPostMerge ? this.mr.targetBranch : this.mr.sourceBranch;
     },
@@ -40,13 +37,37 @@ export default {
       return this.isPostMerge ? this.mr.targetBranch : this.mr.sourceBranchLink;
     },
     deployments() {
-      return this.isPostMerge ? this.mr.postMergeDeployments : this.mr.deployments;
+      return [
+        {
+          id: 56789,
+          name: 'What a cool mocked deployment',
+          url: 'https://sarahghp.gitlab.io/review-app-tester/',
+          external_url: 'https://sarahghp.gitlab.io/review-app-tester/',
+          deployed_at_formatted: '',
+          metrics_url: '',
+          metrics_monitoring_url: '',
+        },
+      ];
+      // return this.isPostMerge ? this.mr.postMergeDeployments : this.mr.deployments;
     },
     deploymentClass() {
       return this.isPostMerge ? 'js-post-deployment' : 'js-pre-deployment';
     },
     hasDeploymentMetrics() {
       return this.isPostMerge;
+    },
+    issueIds() {
+      return {
+        appUrl: this.mr.appUrl,
+        issueId: this.mr.iid,
+        sourceProjectId: this.mr.sourceProjectId,
+      };
+    },
+    pipeline() {
+      return this.isPostMerge ? this.mr.mergePipeline : this.mr.pipeline;
+    },
+    showVisualReviewAppLink() {
+      return !!this.mr.visualReviewAppAvailable;
     },
   },
 };
@@ -61,14 +82,18 @@ export default {
       :source-branch-link="branchLink"
       :troubleshooting-docs-path="mr.troubleshootingDocsPath"
     />
-    <div v-if="deployments.length" slot="footer" class="mr-widget-extension">
-      <deployment
-        v-for="deployment in deployments"
-        :key="deployment.id"
-        :class="deploymentClass"
-        :deployment="deployment"
-        :show-metrics="hasDeploymentMetrics"
-      />
-    </div>
+    <template v-slot:footer>
+      <div class="mr-widget-extension">
+        <deployment
+          v-for="deployment in deployments"
+          :key="deployment.id"
+          :class="deploymentClass"
+          :deployment="deployment"
+          :show-metrics="hasDeploymentMetrics"
+          :show-visual-review-app="showVisualReviewAppLink"
+          :issue-ids="issueIds"
+        />
+      </div>
+    </template>
   </mr-widget-container>
 </template>

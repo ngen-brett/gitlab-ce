@@ -1,5 +1,6 @@
 <script>
 import Icon from '~/vue_shared/components/icon.vue';
+import { __ } from '~/locale';
 
 export default {
   components: {
@@ -19,6 +20,6 @@ export default {
 </script>
 <template>
   <a :href="link" target="_blank" rel="noopener noreferrer nofollow" :class="cssClass">
-    {{ __('View app') }} <icon name="external-link" />
+    {{ __('View app') }} <icon css-classes="fgray" name="external-link" />
   </a>
 </template>
