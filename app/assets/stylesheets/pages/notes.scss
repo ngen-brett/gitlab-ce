@@ -468,6 +468,7 @@ $note-form-margin-left: 72px;
       &.notes-content {
         border-width: 1px 0;
         padding: 0;
+        padding-bottom: 1px; // Fixes subpixel rounding issue https://gitlab.com/gitlab-org/gitlab-ce/issues/53973
         vertical-align: top;
         white-space: normal;
 
