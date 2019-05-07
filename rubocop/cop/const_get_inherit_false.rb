@@ -1,0 +1,28 @@
+# frozen_string_literal: true
+
+module RuboCop
+  module Cop
+    # Cop that encourages usage of inherit=false for 2nd argument when using const_get.
+    # See https://gitlab.com/gitlab-org/gitlab-ce/issues/59719
+    class ConstGetInheritFalse < RuboCop::Cop::Cop
+      MSG = 'Use inherit=false when using const_get.'
+
+      def_node_matcher :const_get?, <<~PATTERN
+        (send _ :const_get ...)
+      PATTERN
+
+      def on_send(node)
+        return unless const_get?(node)
+        return if second_argument(node)&.false_type?
+
+        add_offense(node, location: :selector)
+      end
+
+      private
+
+      def second_argument(node)
+        node.arguments[1]
+      end
+    end
+  end
+end
