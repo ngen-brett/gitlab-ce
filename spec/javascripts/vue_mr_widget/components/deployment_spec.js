@@ -198,34 +198,6 @@ describe('Deployment component', () => {
     });
   });
 
-  describe('with showVisualReviewApp enabled', () => {
-    beforeEach(() => {
-      vm = mountComponent(Component, {
-        deployment: { ...deploymentMockData },
-        showVisualReviewApp: true,
-        showMetrics: true,
-      });
-    });
-
-    it('shows the visual review app button', () => {
-      expect(vm.$el).toContainElement('.js-mr-visual-review-app');
-    });
-  });
-
-  describe('with showVisualReviewApp disabled', () => {
-    beforeEach(() => {
-      vm = mountComponent(Component, {
-        deployment: { ...deploymentMockData },
-        showVisualReviewApp: false,
-        showMetrics: true,
-      });
-    });
-
-    it('hides the visual review app button', () => {
-      expect(vm.$el).not.toContainElement('.js-mr-visual-review-app');
-    });
-  });
-
   describe('without changes', () => {
     beforeEach(() => {
       delete deploymentMockData.changes;

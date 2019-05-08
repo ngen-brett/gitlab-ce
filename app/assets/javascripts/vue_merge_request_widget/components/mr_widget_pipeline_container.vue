@@ -37,18 +37,18 @@ export default {
       return this.isPostMerge ? this.mr.targetBranch : this.mr.sourceBranchLink;
     },
     deployments() {
-      return [
-        {
-          id: 56789,
-          name: 'What a cool mocked deployment',
-          url: 'https://sarahghp.gitlab.io/review-app-tester/',
-          external_url: 'https://sarahghp.gitlab.io/review-app-tester/',
-          deployed_at_formatted: '',
-          metrics_url: '',
-          metrics_monitoring_url: '',
-        },
-      ];
-      // return this.isPostMerge ? this.mr.postMergeDeployments : this.mr.deployments;
+      // return [
+      //   {
+      //     id: 56789,
+      //     name: 'What a cool mocked deployment',
+      //     url: 'https://sarahghp.gitlab.io/review-app-tester/',
+      //     external_url: 'https://sarahghp.gitlab.io/review-app-tester/',
+      //     deployed_at_formatted: '',
+      //     metrics_url: '',
+      //     metrics_monitoring_url: '',
+      //   },
+      // ];
+      return this.isPostMerge ? this.mr.postMergeDeployments : this.mr.deployments;
     },
     deploymentClass() {
       return this.isPostMerge ? 'js-post-deployment' : 'js-pre-deployment';
@@ -83,7 +83,7 @@ export default {
       :troubleshooting-docs-path="mr.troubleshootingDocsPath"
     />
     <template v-slot:footer>
-      <div class="mr-widget-extension">
+      <div v-if="deployments.length" class="mr-widget-extension">
         <deployment
           v-for="deployment in deployments"
           :key="deployment.id"

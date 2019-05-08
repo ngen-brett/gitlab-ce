@@ -11,7 +11,6 @@ import createFlash from '../../flash';
 import MemoryUsage from './memory_usage.vue';
 import StatusIcon from './mr_widget_status_icon.vue';
 import ReviewAppLink from './review_app_link.vue';
-import VisualReviewAppLink from 'ee/vue_merge_request_widget/components/visual_review_app_link.vue';
 import MRWidgetService from '../services/mr_widget_service';
 
 export default {
@@ -24,7 +23,8 @@ export default {
     TooltipOnTruncate,
     FilteredSearchDropdown,
     ReviewAppLink,
-    VisualReviewAppLink,
+    VisualReviewAppLink: () =>
+      import('ee_component/vue_merge_request_widget/components/visual_review_app_link.vue'),
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -141,7 +141,7 @@ export default {
       <div class="media-body">
         <div class="deploy-body">
           <div class="js-deployment-info deployment-info">
-            <template>
+            <template v-if="hasDeploymentMeta">
               <span> {{ deployedText }} </span>
               <tooltip-on-truncate
                 :title="deployment.name"
@@ -173,7 +173,7 @@ export default {
             />
           </div>
           <div>
-            <template>
+            <template v-if="hasExternalUrls">
               <filtered-search-dropdown
                 v-if="shouldRenderDropdown"
                 class="js-mr-wigdet-deployment-dropdown inline"
@@ -210,16 +210,17 @@ export default {
                   </a>
                 </template>
               </filtered-search-dropdown>
-              <review-app-link
-                v-else
-                :link="deploymentExternalUrl"
-                css-class="js-deploy-url js-deploy-url-feature-flag deploy-link btn btn-default btn-sm inline"
-              />
-              <visual-review-app-link
-                v-if="showVisualReviewApp"
-                :link="deploymentExternalUrl"
-                :issue-ids="issueIds"
-              />
+              <template v-else>
+                <review-app-link
+                  :link="deploymentExternalUrl"
+                  css-class="js-deploy-url js-deploy-url-feature-flag deploy-link btn btn-default btn-sm inline"
+                />
+                <visual-review-app-link
+                  v-if="showVisualReviewApp"
+                  :link="deploymentExternalUrl"
+                  :issue-ids="issueIds"
+                />
+              </template>
             </template>
             <span
               v-if="deployment.stop_url"
