@@ -43,6 +43,7 @@ gem 'omniauth_crowd', '~> 2.2.0'
 gem 'omniauth-authentiq', '~> 0.3.3'
 gem 'omniauth_openid_connect', '~> 0.3.0'
 gem "omniauth-ultraauth", '~> 0.0.2'
+gem 'omniauth-salesforce', '~> 1.0.5'
 gem 'rack-oauth2', '~> 1.9.3'
 gem 'jwt', '~> 2.1.0'
 
@@ -406,6 +407,7 @@ gem 'health_check', '~> 2.6.0'
 # System information
 gem 'vmstat', '~> 2.3.0'
 gem 'sys-filesystem', '~> 1.1.6'
+gem 'sys-proctable', '~> 1.2'
 
 # SSH host key support
 gem 'net-ssh', '~> 5.0'
