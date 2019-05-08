@@ -38,13 +38,11 @@ export default {
     issueIds: {
       type: Object,
       required: false,
-      default: () => {
-        return {
-          sourceProjectId: '',
-          issueId: '',
-          appUrl: '',
-        };
-      },
+      default: () => ({
+        sourceProjectId: '',
+        issueId: '',
+        appUrl: '',
+      }),
     },
     showMetrics: {
       type: Boolean,
