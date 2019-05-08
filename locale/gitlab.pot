@@ -1894,7 +1894,22 @@ msgstr ""
 msgid "CiVariables|Input variable value"
 msgstr ""
 
+msgid "CiVariables|Key"
+msgstr ""
+
+msgid "CiVariables|Masked"
+msgstr ""
+
 msgid "CiVariables|Remove variable row"
+msgstr ""
+
+msgid "CiVariables|State"
+msgstr ""
+
+msgid "CiVariables|Type"
+msgstr ""
+
+msgid "CiVariables|Value"
 msgstr ""
 
 msgid "CiVariable|* (All environments)"
@@ -4194,6 +4209,9 @@ msgid "Failed to remove user identity."
 msgstr ""
 
 msgid "Failed to remove user key."
+msgstr ""
+
+msgid "Failed to save comment!"
 msgstr ""
 
 msgid "Failed to save merge conflicts resolutions. Please try again!"
