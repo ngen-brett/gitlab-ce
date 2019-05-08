@@ -67,7 +67,7 @@ export default {
       return this.isPostMerge ? this.mr.mergePipeline : this.mr.pipeline;
     },
     showVisualReviewAppLink() {
-      return !!this.mr.visualReviewAppAvailable;
+      return !!(this.mr.visualReviewFF && this.mr.visualReviewAppAvailable);
     },
   },
 };

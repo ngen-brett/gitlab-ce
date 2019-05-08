@@ -1,6 +1,5 @@
 <script>
 import Icon from '~/vue_shared/components/icon.vue';
-import { __ } from '~/locale';
 
 export default {
   components: {
