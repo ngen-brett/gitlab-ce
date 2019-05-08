@@ -315,6 +315,14 @@ production: &base
     # path: shared/registry
     # issuer: gitlab-issuer
 
+
+  ## Error Reporting and Logging with Sentry
+  sentry:
+    # enabled: false
+    # dsn: https://<key>@sentry.io/<project>
+    # clientside_dsn: https://<key>@sentry.io/<project>
+    # environment: 'production' # e.g. development, staging, production
+
   #
   # 2. GitLab CI settings
   # ==========================
@@ -932,6 +940,10 @@ test:
           app_id: 'YOUR_CLIENT_ID',
           app_secret: 'YOUR_CLIENT_SECRET',
           args: { scope: 'aq:name email~rs address aq:push' } }
+      - { name: 'salesforce',
+          app_id: 'YOUR_CLIENT_ID',
+          app_secret: 'YOUR_CLIENT_SECRET'
+        }
   ldap:
     enabled: false
     servers:

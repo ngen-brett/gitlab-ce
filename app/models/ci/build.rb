@@ -6,6 +6,7 @@ module Ci
     include Ci::Processable
     include Ci::Metadatable
     include Ci::Contextable
+    include Ci::PipelineDelegator
     include TokenAuthenticatable
     include AfterCommitQueue
     include ObjectStorage::BackgroundMove
@@ -15,6 +16,7 @@ module Ci
     include Gitlab::Utils::StrongMemoize
     include Deployable
     include HasRef
+    include UpdateProjectStatistics
 
     BuildArchivedError = Class.new(StandardError)
 
@@ -48,8 +50,6 @@ module Ci
     delegate :terminal_specification, to: :runner_session, allow_nil: true
     delegate :gitlab_deploy_token, to: :project
     delegate :trigger_short_token, to: :trigger_request, allow_nil: true
-    delegate :merge_request_event?, :merge_request_ref?,
-             :legacy_detached_merge_request_pipeline?, to: :pipeline
 
     ##
     # Since Gitlab 11.5, deployments records started being created right after
@@ -104,8 +104,8 @@ module Ci
       where('NOT EXISTS (?)', Ci::JobArtifact.select(1).where('ci_builds.id = ci_job_artifacts.job_id').trace)
     end
 
-    scope :with_test_reports, ->() do
-      with_existing_job_artifacts(Ci::JobArtifact.test_reports)
+    scope :with_reports, ->(reports_scope) do
+      with_existing_job_artifacts(reports_scope)
         .eager_load_job_artifacts
     end
 
@@ -157,8 +157,7 @@ module Ci
       run_after_commit { BuildHooksWorker.perform_async(build.id) }
     end
 
-    after_save :update_project_statistics_after_save, if: :artifacts_size_changed?
-    after_destroy :update_project_statistics_after_destroy, unless: :project_destroyed?
+    update_project_statistics stat: :build_artifacts_size, attribute: :artifacts_size
 
     class << self
       # This is needed for url_for to work,
@@ -353,7 +352,7 @@ module Ci
     end
 
     def retryable?
-      !archived? && (success? || failed? || canceled?)
+      !archived? && (success? || failed?)
     end
 
     def retries_count
@@ -846,22 +845,6 @@ module Ci
       return {} unless pipeline.config_processor
 
       pipeline.config_processor.build_attributes(name)
-    end
-
-    def update_project_statistics_after_save
-      update_project_statistics(read_attribute(:artifacts_size).to_i - artifacts_size_was.to_i)
-    end
-
-    def update_project_statistics_after_destroy
-      update_project_statistics(-artifacts_size)
-    end
-
-    def update_project_statistics(difference)
-      ProjectStatistics.increment_statistic(project_id, :build_artifacts_size, difference)
-    end
-
-    def project_destroyed?
-      project.pending_delete?
     end
   end
 end

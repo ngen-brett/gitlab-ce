@@ -66,7 +66,7 @@ class MergeRequest < ApplicationRecord
     dependent: :delete_all # rubocop:disable Cop/ActiveRecordDependent
 
   has_many :cached_closes_issues, through: :merge_requests_closing_issues, source: :issue
-  has_many :merge_request_pipelines, foreign_key: 'merge_request_id', class_name: 'Ci::Pipeline'
+  has_many :pipelines_for_merge_request, foreign_key: 'merge_request_id', class_name: 'Ci::Pipeline'
   has_many :suggestions, through: :notes
 
   has_many :merge_request_assignees
@@ -698,7 +698,7 @@ class MergeRequest < ApplicationRecord
   end
 
   def reload_diff_if_branch_changed
-    if (source_branch_changed? || target_branch_changed?) &&
+    if (saved_change_to_source_branch? || saved_change_to_target_branch?) &&
         (source_branch_head && target_branch_head)
       reload_diff
     end
@@ -1054,6 +1054,16 @@ class MergeRequest < ApplicationRecord
     @environments[current_user]
   end
 
+  ##
+  # This method is for looking for active environments which created via pipelines for merge requests.
+  # Since deployments run on a merge request ref (e.g. `refs/merge-requests/:iid/head`),
+  # we cannot look up environments with source branch name.
+  def environments
+    return Environment.none unless actual_head_pipeline&.triggered_by_merge_request?
+
+    actual_head_pipeline.environments
+  end
+
   def state_human_name
     if merged?
       "Merged"
@@ -1147,12 +1157,8 @@ class MergeRequest < ApplicationRecord
     end
   end
 
-  def merge_request_pipeline_exists?
-    merge_request_pipelines.exists?(sha: diff_head_sha)
-  end
-
   def has_test_reports?
-    actual_head_pipeline&.has_test_reports?
+    actual_head_pipeline&.has_reports?(Ci::JobArtifact.test_reports)
   end
 
   def predefined_variables
@@ -1369,11 +1375,11 @@ class MergeRequest < ApplicationRecord
     source_project.repository.squash_in_progress?(id)
   end
 
-  private
-
   def find_actual_head_pipeline
     all_pipelines.for_sha_or_source_sha(diff_head_sha).first
   end
+
+  private
 
   def source_project_variables
     Gitlab::Ci::Variables::Collection.new.tap do |variables|

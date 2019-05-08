@@ -51,6 +51,8 @@ module Git
     end
 
     def create_pipelines
+      return unless params.fetch(:create_pipelines, true)
+
       Ci::CreatePipelineService
         .new(project, current_user, push_data)
         .execute(:push, pipeline_options)
@@ -71,13 +73,13 @@ module Git
 
     def push_data
       @push_data ||= Gitlab::DataBuilder::Push.build(
-        project,
-        current_user,
-        params[:oldrev],
-        params[:newrev],
-        params[:ref],
-        limited_commits,
-        event_message,
+        project: project,
+        user: current_user,
+        oldrev: params[:oldrev],
+        newrev: params[:newrev],
+        ref: params[:ref],
+        commits: limited_commits,
+        message: event_message,
         commits_count: commits_count,
         push_options: params[:push_options] || {}
       )

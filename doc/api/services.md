@@ -449,6 +449,45 @@ Get Hangouts Chat service settings for a project.
 GET /projects/:id/services/hangouts-chat
 ```
 
+## HipChat
+
+Private group chat and IM
+
+### Create/Edit HipChat service
+
+Set HipChat service for a project.
+
+```
+PUT /projects/:id/services/hipchat
+```
+
+Parameters:
+
+| Parameter | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `token` | string | true | Room token |
+| `color` | string | false | The room color |
+| `notify` | boolean | false | Enable notifications |
+| `room` | string | false |Room name or ID |
+| `api_version` | string | false | Leave blank for default (v2) |
+| `server` | string | false | Leave blank for default. For example, `https://hipchat.example.com`. |
+
+### Delete HipChat service
+
+Delete HipChat service for a project.
+
+```
+DELETE /projects/:id/services/hipchat
+```
+
+### Get HipChat service settings
+
+Get HipChat service settings for a project.
+
+```
+GET /projects/:id/services/hipchat
+```
+
 ## Irker (IRC gateway)
 
 Send IRC messages, on update, to a list of recipients through an Irker gateway.
@@ -506,7 +545,7 @@ GET /projects/:id/services/jira
 Set JIRA service for a project.
 
 > Starting with GitLab 8.14, `api_url`, `issues_url`, `new_issue_url` and
-> `project_url` are replaced by `project_key`, `url`. If you are using an
+> `project_url` are replaced by `url`. If you are using an
 > older version, [follow this documentation][old-jira-api].
 
 ```
@@ -518,7 +557,7 @@ Parameters:
 | Parameter | Type | Required | Description |
 | --------- | ---- | -------- | ----------- |
 | `url`           | string | yes | The URL to the JIRA project which is being linked to this GitLab project. For example, `https://jira.example.com`. |
-| `project_key`   | string | yes | The short identifier for your JIRA project, all uppercase, e.g., `PROJ`. |
+| `api_url`   | string | no | The base URL to the JIRA instance API. Web URL value will be used if not set. For example, `https://jira-api.example.com`. |
 | `username`      | string | yes  | The username of the user created to be used with GitLab/JIRA. |
 | `password`      | string | yes  | The password of the user created to be used with GitLab/JIRA. |
 | `active`        | boolean | no  | Activates or deactivates the service. Defaults to false (deactivated). |

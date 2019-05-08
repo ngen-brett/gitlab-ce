@@ -118,6 +118,12 @@ module Gitlab
         gitaly_repository_client.exists?
       end
 
+      def create_repository
+        wrapped_gitaly_errors do
+          gitaly_repository_client.create_repository
+        end
+      end
+
       # Returns an Array of branch names
       # sorted by name ASC
       def branch_names
@@ -466,7 +472,7 @@ module Gitlab
         @refs_hash = Hash.new { |h, k| h[k] = [] }
 
         (tags + branches).each do |ref|
-          next unless ref.target && ref.name
+          next unless ref.target && ref.name && ref.dereferenced_target&.id
 
           @refs_hash[ref.dereferenced_target.id] << ref.name
         end
@@ -732,18 +738,29 @@ module Gitlab
       end
 
       def compare_source_branch(target_branch_name, source_repository, source_branch_name, straight:)
+        reachable_ref =
+          if source_repository == self
+            source_branch_name
+          else
+            # If a tmp ref was created before for a separate repo comparison (forks),
+            # we're able to short-circuit the tmp ref re-creation:
+            # 1. Take the SHA from the source repo
+            # 2. Read that in the current "target" repo
+            # 3. If that SHA is still known (readable), it means GC hasn't
+            # cleaned it up yet, so we can use it instead re-writing the tmp ref.
+            source_commit_id = source_repository.commit(source_branch_name)&.sha
+            commit(source_commit_id)&.sha if source_commit_id
+          end
+
+        return compare(target_branch_name, reachable_ref, straight: straight) if reachable_ref
+
         tmp_ref = "refs/tmp/#{SecureRandom.hex}"
 
         return unless fetch_source_branch!(source_repository, source_branch_name, tmp_ref)
 
-        Gitlab::Git::Compare.new(
-          self,
-          target_branch_name,
-          tmp_ref,
-          straight: straight
-        )
+        compare(target_branch_name, tmp_ref, straight: straight)
       ensure
-        delete_refs(tmp_ref)
+        delete_refs(tmp_ref) if tmp_ref
       end
 
       def write_ref(ref_path, ref, old_ref: nil)
@@ -817,13 +834,28 @@ module Gitlab
         gitaly_repository_client.create_from_snapshot(url, auth)
       end
 
-      def rebase(user, rebase_id, branch:, branch_sha:, remote_repository:, remote_branch:)
+      # DEPRECATED: https://gitlab.com/gitlab-org/gitaly/issues/1628
+      def rebase_deprecated(user, rebase_id, branch:, branch_sha:, remote_repository:, remote_branch:)
         wrapped_gitaly_errors do
           gitaly_operation_client.user_rebase(user, rebase_id,
                                             branch: branch,
                                             branch_sha: branch_sha,
                                             remote_repository: remote_repository,
                                             remote_branch: remote_branch)
+        end
+      end
+
+      def rebase(user, rebase_id, branch:, branch_sha:, remote_repository:, remote_branch:, &block)
+        wrapped_gitaly_errors do
+          gitaly_operation_client.rebase(
+            user,
+            rebase_id,
+            branch: branch,
+            branch_sha: branch_sha,
+            remote_repository: remote_repository,
+            remote_branch: remote_branch,
+            &block
+          )
         end
       end
 
@@ -887,6 +919,12 @@ module Gitlab
       def delete_config(*keys)
         wrapped_gitaly_errors do
           gitaly_repository_client.delete_config(keys)
+        end
+      end
+
+      def disconnect_alternates
+        wrapped_gitaly_errors do
+          gitaly_repository_client.disconnect_alternates
         end
       end
 
@@ -998,6 +1036,13 @@ module Gitlab
       end
 
       private
+
+      def compare(base_ref, head_ref, straight:)
+        Gitlab::Git::Compare.new(self,
+                                 base_ref,
+                                 head_ref,
+                                 straight: straight)
+      end
 
       def empty_diff_stats
         Gitlab::Git::DiffStatsCollection.new([])

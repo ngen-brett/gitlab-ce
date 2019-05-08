@@ -40,8 +40,8 @@ describe MergeRequestPresenter do
           allow(pipeline).to receive(:has_warnings?) { true }
         end
 
-        it 'returns "success_with_warnings"' do
-          is_expected.to eq('success_with_warnings')
+        it 'returns "success-with-warnings"' do
+          is_expected.to eq('success-with-warnings')
         end
       end
 
@@ -435,6 +435,52 @@ describe MergeRequestPresenter do
         allow(resource).to receive(:target_branch_exists?) { false }
 
         is_expected.to be_nil
+      end
+    end
+  end
+
+  describe '#source_branch_link' do
+    subject { presenter.source_branch_link }
+
+    let(:presenter) { described_class.new(resource, current_user: user) }
+
+    context 'when source branch exists' do
+      it 'returns link' do
+        allow(resource).to receive(:source_branch_exists?) { true }
+
+        is_expected
+          .to eq("<a class=\"ref-name\" href=\"#{presenter.source_branch_commits_path}\">#{presenter.source_branch}</a>")
+      end
+    end
+
+    context 'when source branch does not exist' do
+      it 'returns text' do
+        allow(resource).to receive(:source_branch_exists?) { false }
+
+        is_expected.to eq("<span class=\"ref-name\">#{presenter.source_branch}</span>")
+      end
+    end
+  end
+
+  describe '#target_branch_link' do
+    subject { presenter.target_branch_link }
+
+    let(:presenter) { described_class.new(resource, current_user: user) }
+
+    context 'when target branch exists' do
+      it 'returns link' do
+        allow(resource).to receive(:target_branch_exists?) { true }
+
+        is_expected
+          .to eq("<a class=\"ref-name\" href=\"#{presenter.target_branch_commits_path}\">#{presenter.target_branch}</a>")
+      end
+    end
+
+    context 'when target branch does not exist' do
+      it 'returns text' do
+        allow(resource).to receive(:target_branch_exists?) { false }
+
+        is_expected.to eq("<span class=\"ref-name\">#{presenter.target_branch}</span>")
       end
     end
   end
