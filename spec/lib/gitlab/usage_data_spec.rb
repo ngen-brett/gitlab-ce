@@ -238,7 +238,7 @@ describe Gitlab::UsageData do
       create(:label)
 
       expect(Gitlab::Database::Count).to receive(:approximate_counts)
-                                           .with(described_class::APPROXIMATE_COUNT_MODELS).once.and_call_original
+        .with(described_class::APPROXIMATE_COUNT_MODELS).once.and_call_original
 
       counts = described_class.approximate_counts.values
 
@@ -252,7 +252,7 @@ describe Gitlab::UsageData do
       end
 
       expect(Gitlab::Database::Count).to receive(:approximate_counts)
-                                           .and_return({})
+        .and_return({})
 
       expect(described_class.approximate_counts.values.uniq).to eq([-1])
     end
