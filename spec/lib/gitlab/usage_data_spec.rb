@@ -35,7 +35,7 @@ describe Gitlab::UsageData do
     subject { described_class.data }
 
     it "gathers usage data" do
-      expect(subject.keys).to match_array(%i(
+      expect(subject.keys).to include(*%i(
         active_user_count
         counts
         recorded_at
@@ -68,7 +68,7 @@ describe Gitlab::UsageData do
       expect(count_data[:boards]).to eq(1)
       expect(count_data[:projects]).to eq(3)
 
-      expect(count_data.keys).to match_array(%i(
+      expect(count_data.keys).to include(*%i(
         assignee_lists
         boards
         ci_builds
@@ -238,7 +238,7 @@ describe Gitlab::UsageData do
       create(:label)
 
       expect(Gitlab::Database::Count).to receive(:approximate_counts)
-        .with(described_class::APPROXIMATE_COUNT_MODELS).once.and_call_original
+                                           .with(described_class::APPROXIMATE_COUNT_MODELS).once.and_call_original
 
       counts = described_class.approximate_counts.values
 
@@ -252,7 +252,7 @@ describe Gitlab::UsageData do
       end
 
       expect(Gitlab::Database::Count).to receive(:approximate_counts)
-        .and_return({})
+                                           .and_return({})
 
       expect(described_class.approximate_counts.values.uniq).to eq([-1])
     end
