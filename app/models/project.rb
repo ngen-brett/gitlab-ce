@@ -30,7 +30,6 @@ class Project < ApplicationRecord
   include FeatureGate
   include OptionallySearch
   include FromUnion
-  include IgnorableColumn
   extend Gitlab::Cache::RequestCache
 
   extend Gitlab::ConfigHelper
@@ -54,9 +53,6 @@ class Project < ApplicationRecord
 
   VALID_MIRROR_PORTS = [22, 80, 443].freeze
   VALID_MIRROR_PROTOCOLS = %w(http https ssh git).freeze
-
-  ignore_column :import_status, :import_jid, :import_error
-  ignore_column :ci_id
 
   cache_markdown_field :description, pipeline: :description
 
