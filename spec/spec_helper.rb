@@ -138,9 +138,11 @@ RSpec.configure do |config|
       .and_return(false)
   end
 
-  config.before(:example, :quarantine) do
+  config.around(:example, :quarantine) do |example|
     # Skip tests in quarantine unless we explicitly focus on them.
     skip('In quarantine') unless config.inclusion_filter[:quarantine]
+
+    example.run
   end
 
   config.before(:example, :request_store) do
