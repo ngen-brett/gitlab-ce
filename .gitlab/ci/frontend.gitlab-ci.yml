@@ -79,6 +79,8 @@ compile-assets:
   except:
     refs:
       - /(^docs[\/-].*|.*-docs$)/
+    changes:
+      - "doc/**/*.md"
 
 gitlab:ui:visual:
   extends: .dedicated-runner
@@ -105,6 +107,8 @@ gitlab:ui:visual:
       - master
     variables:
       - $CI_COMMIT_MESSAGE =~ /\[skip visual\]/i
+    changes:
+      - "*/**.md"
   artifacts:
     paths:
       - gitlab-ui/tests/__image_snapshots__/

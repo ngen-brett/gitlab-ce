@@ -8,6 +8,8 @@
     refs:
       - master
       - /(^docs[\/-].*|.*-docs$)/
+    changes:
+      - "*/**.md"
 
 .review-schedules-only: &review-schedules-only
   only:
@@ -21,6 +23,8 @@
     refs:
       - tags
       - /(^docs[\/-].*|.*-docs$)/
+    changes:
+      - "*/**.md"
 
 .review-base: &review-base
   extends: .dedicated-runner

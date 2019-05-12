@@ -22,8 +22,11 @@ review-docs-deploy-manual:
     - branches@gitlab-org/gitlab-ce
     - branches@gitlab-org/gitlab-ee
   except:
-    - /(^docs[\/-].*|.*-docs$)/
-    - /(^qa[\/-].*|.*-qa$)/
+    refs:
+      - /(^docs[\/-].*|.*-docs$)/
+      - /(^qa[\/-].*|.*-qa$)/
+    changes:
+      - "doc/**/*.md"
 
 # Always trigger a docs build in gitlab-docs only on docs-only branches.
 # Useful to preview the docs changes live.
@@ -36,6 +39,8 @@ review-docs-deploy:
   only:
     - /(^docs[\/-].*|.*-docs$)/@gitlab-org/gitlab-ce
     - /(^docs[\/-].*|.*-docs$)/@gitlab-org/gitlab-ee
+    changes:
+      - "*/**.md"
   except:
     - /(^qa[\/-].*|.*-qa$)/
 
