@@ -177,9 +177,8 @@ If the **primary** and **secondary** nodes have a checksum verification mismatch
 
 1. Run the following command on the **primary** node, redirecting the output to a file:
 
-```sh
-git show-ref --head | grep -E "HEAD|(refs/(heads|tags|keep-around|merge-requests|environments|notes)/)" > primary-node-refs
-```
+   ```sh
+   git show-ref --head | grep -E "HEAD|(refs/(heads|tags|keep-around|merge-requests|environments|notes)/)" > primary-node-refs
 
 5. Run the following command on the **secondary** node redirecting the output to a file:
 
