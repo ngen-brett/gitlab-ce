@@ -161,11 +161,10 @@ For wikis:
 
 If the **primary** and **secondary** nodes have a checksum verification mismatch, the cause may not be apparent. To find the cause of a checksum mismatch:
 
-1. Navigate to the **Admin Area > Projects** dashboard the **primary** node, find the
-project that you want to check the checksum differences annd click on the
-**Edit** button:
-
-![Projects dashboard](img/checksum-differences-admin-projects.png)
+1. Navigate to the **Admin Area > Projects** dashboard on the **primary** node, find the
+   project that you want to check the checksum differences and click on the
+   **Edit** button:
+   ![Projects dashboard](img/checksum-differences-admin-projects.png)
 
 2. On the project admin page get the *Gitaly storage name*, and **Gitaly relative path**:
 
