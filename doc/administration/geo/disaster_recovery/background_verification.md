@@ -187,9 +187,8 @@ If the **primary** and **secondary** nodes have a checksum verification mismatch
 
 1. Copy the files from the previous steps on the same system, and do a diff between the contents:
 
-```sh
-diff primary-node-refs secondary-node-refs
-```
+   ```sh
+   diff primary-node-refs secondary-node-refs
 
 ## Current limitations
 
