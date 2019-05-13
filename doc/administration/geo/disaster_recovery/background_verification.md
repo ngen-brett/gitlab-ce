@@ -179,16 +179,19 @@ If the **primary** and **secondary** nodes have a checksum verification mismatch
 
    ```sh
    git show-ref --head | grep -E "HEAD|(refs/(heads|tags|keep-around|merge-requests|environments|notes)/)" > primary-node-refs
+   ```
 
 1. Run the following command on the **secondary** node, redirecting the output to a file:
 
    ```sh
    git show-ref --head | grep -E "HEAD|(refs/(heads|tags|keep-around|merge-requests|environments|notes)/)" > secondary-node-refs
+   ```
 
 1. Copy the files from the previous steps on the same system, and do a diff between the contents:
 
    ```sh
    diff primary-node-refs secondary-node-refs
+   ```
 
 ## Current limitations
 
