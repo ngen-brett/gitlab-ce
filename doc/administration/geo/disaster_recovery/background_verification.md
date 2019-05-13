@@ -157,7 +157,7 @@ For wikis:
     sudo -u git -H bundle exec rake geo:verification:wiki:reset RAILS_ENV=production
     ```
 
-## How to reconcile differences with checksum mismatches
+## Reconcile differences with checksum mismatches
 
 Right now if the primary and secondary node has a checksum verification mismatch, it's not apparent what exactly is the problem, and we don't have an automatic way to show the difference in the **Admin Area > Geo** dashboard yet. To get the differences with checksum mismatches you can follow these steps:
 
