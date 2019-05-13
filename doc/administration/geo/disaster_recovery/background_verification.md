@@ -175,7 +175,7 @@ If the **primary** and **secondary** nodes have a checksum verification mismatch
     cd /var/opt/gitlab/git-data/repositories
     ```
 
-4. Run the following command on the **primary** node redirecting the output to a file:
+1. Run the following command on the **primary** node, redirecting the output to a file:
 
 ```sh
 git show-ref --head | grep -E "HEAD|(refs/(heads|tags|keep-around|merge-requests|environments|notes)/)" > primary-node-refs
