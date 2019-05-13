@@ -159,7 +159,7 @@ For wikis:
 
 ## Reconcile differences with checksum mismatches
 
-Right now if the primary and secondary node has a checksum verification mismatch, it's not apparent what exactly is the problem, and we don't have an automatic way to show the difference in the **Admin Area > Geo** dashboard yet. To get the differences with checksum mismatches you can follow these steps:
+If the **primary** and **secondary** nodes have a checksum verification mismatch, the cause may not be apparent. To find the cause of a checksum mismatch:
 
 1. Navigate to the **Admin Area > Projects** dashboard the **primary** node, find the
 project that you want to check the checksum differences annd click on the
