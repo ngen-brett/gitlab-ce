@@ -171,9 +171,9 @@ If the **primary** and **secondary** nodes have a checksum verification mismatch
 
 1. Navigate to the project's repository directory on both **primary** and **secondary** nodes. For an installation from source, the path is usually `/home/git/repositories`. For Omnibus installs, the path is usually `/var/opt/gitlab/git-data/repositories`. Note that if `git_data_dirs` is customized, check the directory layout on your server to be sure.
 
-```sh
-cd /var/opt/gitlab/git-data/repositories
-```
+    ```sh
+    cd /var/opt/gitlab/git-data/repositories
+    ```
 
 4. Run the following command on the **primary** node redirecting the output to a file:
 
