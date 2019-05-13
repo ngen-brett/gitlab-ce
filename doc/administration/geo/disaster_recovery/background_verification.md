@@ -182,9 +182,8 @@ If the **primary** and **secondary** nodes have a checksum verification mismatch
 
 1. Run the following command on the **secondary** node, redirecting the output to a file:
 
-```sh
-git show-ref --head | grep -E "HEAD|(refs/(heads|tags|keep-around|merge-requests|environments|notes)/)" > secondary-node-refs
-```
+   ```sh
+   git show-ref --head | grep -E "HEAD|(refs/(heads|tags|keep-around|merge-requests|environments|notes)/)" > secondary-node-refs
 
 6. Copy the files from the previous steps on the same system, and then do do a diff between the contents:
 
