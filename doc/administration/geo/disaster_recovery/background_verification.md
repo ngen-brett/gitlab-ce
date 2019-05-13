@@ -166,9 +166,8 @@ If the **primary** and **secondary** nodes have a checksum verification mismatch
    **Edit** button:
    ![Projects dashboard](img/checksum-differences-admin-projects.png)
 
-2. On the project admin page get the *Gitaly storage name*, and **Gitaly relative path**:
-
-![Project admin page](img/checksum-differences-admin-project-page.png)
+1. On the project admin page get the **Gitaly storage name**, and **Gitaly relative path**:
+   ![Project admin page](img/checksum-differences-admin-project-page.png)
 
 1. Navigate to the project's repository directory on both **primary** and **secondary** nodes. For an installation from source, the path is usually `/home/git/repositories`. For Omnibus installs, the path is usually `/var/opt/gitlab/git-data/repositories`. Note that if `git_data_dirs` is customized, check the directory layout on your server to be sure.
 
