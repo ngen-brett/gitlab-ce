@@ -78,7 +78,6 @@ schedule:review-build-cng:
   <<: *review-base
   stage: review
   retry: 2
-  allow_failure: true
   variables:
     HOST_SUFFIX: "${CI_ENVIRONMENT_SLUG}"
     DOMAIN: "-${CI_ENVIRONMENT_SLUG}.${REVIEW_APPS_DOMAIN}"
