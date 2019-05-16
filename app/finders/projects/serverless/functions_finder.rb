@@ -27,7 +27,7 @@ module Projects
           environment_scope == c.environment_scope
         end
 
-        func = ::Serverless::Function.new(@project, name, cluster.platform_kubernetes&.actual_namespace)
+        func = ::Serverless::Function.new(@project, name, cluster.platform_kubernetes&.namespace_for(@project))
         prometheus_adapter.query(:knative_invocation, func)
       end
 
@@ -43,7 +43,7 @@ module Projects
         clusters_with_knative_installed.preload_knative.map do |cluster|
           next if environment_scope != cluster.environment_scope
 
-          services = cluster.application_knative.services_for(ns: cluster.platform_kubernetes&.actual_namespace)
+          services = cluster.application_knative.services_for(ns: cluster.platform_kubernetes&.namespace_for(@project))
             .select { |svc| svc["metadata"]["name"] == name }
 
           add_metadata(cluster, services).first unless services.nil?
@@ -52,7 +52,7 @@ module Projects
 
       def knative_services
         clusters_with_knative_installed.preload_knative.map do |cluster|
-          services = cluster.application_knative.services_for(ns: cluster.platform_kubernetes&.actual_namespace)
+          services = cluster.application_knative.services_for(ns: cluster.platform_kubernetes&.namespace_for(@project))
           add_metadata(cluster, services) unless services.nil?
         end
       end
@@ -64,7 +64,7 @@ module Projects
 
           if services.length == 1
             s["podcount"] = cluster.application_knative.service_pod_details(
-              cluster.platform_kubernetes&.actual_namespace,
+              cluster.platform_kubernetes&.namespace_for(@project),
               s["metadata"]["name"]).length
           end
         end
