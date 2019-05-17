@@ -52,7 +52,7 @@ class User < ApplicationRecord
          otp_secret_encryption_key: Gitlab::Application.secrets.otp_key_base
 
   devise :two_factor_backupable, otp_number_of_backup_codes: 10
-  serialize :otp_backup_codes, JSON # rubocop:disable Cop/ActiveRecordSerialize
+  serialize :otp_backup_codes, JSON
 
   devise :lockable, :recoverable, :rememberable, :trackable,
          :validatable, :omniauthable, :confirmable, :registerable
