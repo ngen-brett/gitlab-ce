@@ -74,11 +74,11 @@ class Namespace < ApplicationRecord
       .group('namespaces.id')
       .select(
         'namespaces.*',
-        'COALESCE(SUM(ps.storage_size), 0) AS storage_size',
-        'COALESCE(SUM(ps.repository_size), 0) AS repository_size',
-        'COALESCE(SUM(ps.lfs_objects_size), 0) AS lfs_objects_size',
-        'COALESCE(SUM(ps.build_artifacts_size), 0) AS build_artifacts_size',
-        'COALESCE(SUM(ps.packages_size), 0) AS packages_size'
+        'SUM(ps.storage_size) AS storage_size',
+        'SUM(ps.repository_size) AS repository_size',
+        'SUM(ps.lfs_objects_size) AS lfs_objects_size',
+        'SUM(ps.build_artifacts_size) AS build_artifacts_size',
+        'SUM(ps.packages_size) AS packages_size'
       )
   end
 
