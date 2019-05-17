@@ -192,15 +192,17 @@ Runner.
 
 We recommend using a separate machine for each GitLab Runner, if you plan to
 use the CI features.
+The GitLab Runner server requirements depend on:
 
-The server requirements for your GitLab runner depends on resources required to 
-run the build jobs as well as the number of job concurrency and the executors you configured on 
-GitLab runner. Since the nature of the jobs varies for each use case, you will 
-need to experiment by adjusting the job concurrency to get the optimum number. 
+- Resources required to run build jobs.
+- Job concurrency settings. Since the nature of the jobs varies for each use case, you will 
+  need to experiment by adjusting the job concurrency to get the optimum setting. 
+- Executors you configured on GitLab Runner.
 
-As a point of reference, gitlab.com 
-[auto-scaling shared runner](https://gitlab.com/gitlab-org/gitlab-ce/blob/master/doc/user/gitlab_com/index.md#shared-runners) 
-is configured so that a single job will run in a single instance with 1vCPU & 3.75GB of RAM.
+For reference, GitLab.com's [auto-scaling shared runner](../user/gitlab_com/index.md#shared-runners) is configured so that a single job will run in a single instance with:
+
+- 1vCPU.
+- 3.75GB of RAM.
 
 [security reasons]: https://gitlab.com/gitlab-org/gitlab-runner/blob/master/docs/security/index.md
 
