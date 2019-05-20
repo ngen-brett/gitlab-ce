@@ -17,6 +17,7 @@ class Projects::CommitController < Projects::ApplicationController
   before_action :define_commit_vars, only: [:show, :diff_for_path, :pipelines, :merge_requests]
   before_action :define_note_vars, only: [:show, :diff_for_path]
   before_action :authorize_edit_tree!, only: [:revert, :cherry_pick]
+  before_action :deltas, only: [:diff_for_paths]
 
   BRANCH_SEARCH_LIMIT = 1000
 
@@ -38,6 +39,12 @@ class Projects::CommitController < Projects::ApplicationController
 
   def diff_for_path
     render_diff_for_path(@commit.diffs(diff_options))
+  end
+
+  def diff_for_paths
+    batch_number = params[:batch_number]
+
+    render_diff_for_paths(commit, deltas, batch_number: batch_number.to_i)
   end
 
   # rubocop: disable CodeReuse/ActiveRecord
@@ -191,5 +198,9 @@ class Projects::CommitController < Projects::ApplicationController
   def assign_change_commit_vars
     @start_branch = params[:start_branch]
     @commit_params = { commit: @commit }
+  end
+
+  def deltas
+    @deltas ||= @commit.deltas
   end
 end

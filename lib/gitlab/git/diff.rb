@@ -129,6 +129,7 @@ module Gitlab
         # Patches surpassing this limit shouldn't be persisted in the database
         # and will be presented as 'too large' for end-users.
         def patch_hard_limit_bytes
+         # 10_240
           Gitlab::CurrentSettings.diff_max_patch_bytes
         end
       end
@@ -195,6 +196,7 @@ module Gitlab
         return @collapsed if defined?(@collapsed)
 
         @collapsed = !expanded && @diff.bytesize >= self.class.patch_safe_limit_bytes
+      # @collapsed = true
       end
 
       def collapse!
