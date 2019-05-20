@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190506135400) do
+ActiveRecord::Schema.define(version: 20190519094008) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -2258,6 +2258,7 @@ ActiveRecord::Schema.define(version: 20190506135400) do
     t.string "timezone"
     t.boolean "time_display_relative"
     t.boolean "time_format_in_24h"
+    t.string "timezone_name"
     t.index ["user_id"], name: "index_user_preferences_on_user_id", unique: true, using: :btree
   end
 
