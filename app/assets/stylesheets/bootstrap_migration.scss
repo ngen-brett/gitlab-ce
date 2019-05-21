@@ -18,11 +18,9 @@ $input-border: $border-color;
 $padding-base-vertical: $gl-vert-padding;
 $padding-base-horizontal: $gl-padding;
 
-body,
-.form-control,
-.search form {
-  // Override default font size used in non-csslab UI
-  font-size: 14px;
+
+html {
+  font-size: .875rem;
 }
 
 legend {
