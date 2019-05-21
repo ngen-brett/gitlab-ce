@@ -78,7 +78,7 @@ we can call them from the `.gitlab-ci.yml` file like this:
 kubectl config set-cluster e2e --server="$KUBE_URL" --certificate-authority="$KUBE_CA_PEM"
 ```
 
-At the moment vairable types can be set via the [UI](#via-the-ui) and the [API](../../api/project_level_variables.md#create-variable) but not with `.gitlab-ci.yml`.
+At the moment variable types can be set via the [UI](#via-the-ui) and the [API](../../api/project_level_variables.md#create-variable) but not with `.gitlab-ci.yml`.
 
 #### Masked variables
 
