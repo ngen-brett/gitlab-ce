@@ -8,7 +8,7 @@ In this tutorial, you will find different examples, and the steps involved, in t
 
 It's important to understand that end-to-end tests of isolated features, such as the ones described in the above note, doesn't mean that everything needs to happen through the GUI.
 
-If you don't exactly understand what we mean by **not everything needs to happen through the GUI,** please make sure you've read the [best practices](./BEST_PRACTICES.md) before moving on.
+If you don't exactly understand what we mean by **not everything needs to happen through the GUI,** please make sure you've read the [best practices](best_practices.md) before moving on.
 
 ## This document covers the following items:
 
@@ -279,7 +279,7 @@ In the `before :all` block we create all the application state needed for the te
 
 ### 6. Optimization
 
-As already mentioned in the [best practices](./BEST_PRACTICES.md) document, end-to-end tests are very costly in terms of execution time, and it's our responsibility as software engineers to ensure that we optimize them as max as possible.
+As already mentioned in the [best practices](best_practices.md) document, end-to-end tests are very costly in terms of execution time, and it's our responsibility as software engineers to ensure that we optimize them as max as possible.
 
 > Differently than unit tests, that exercise every little piece of the application in isolation, usually having only one assertion per test, and being very fast to run, end-to-end tests can have more actions and assertions in a single test to help on speeding up the test's feedback since they are much slower when comparing to unit tests.
 
