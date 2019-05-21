@@ -365,10 +365,8 @@ span.idiff {
     color: $gl-text-color;
   }
 
-  small {
-    & + .btn-clipboard {
-      position: relative;
-    }
+  small + .btn-clipboard {
+    position: relative;
   }
 
   .file-actions .btn {
