@@ -57,7 +57,7 @@ export default {
   computed: {
     cssClass() {
       const status = this.status.group;
-      return `ci-status-icon ci-status-icon-${status} js-ci-status-icon-${status}`;
+      return `ci-status-icon ci-status-icon-${status} js-ci-status-icon-${status} append-right-default`;
     },
     icon() {
       return this.borderless ? `${this.status.icon}_borderless` : this.status.icon;
