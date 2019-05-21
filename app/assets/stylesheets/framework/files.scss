@@ -366,7 +366,9 @@ span.idiff {
   }
 
   small {
-    margin: 0 10px 0 0;
+    & + .btn-clipboard {
+      position: relative;
+    }
   }
 
   .file-actions .btn {
