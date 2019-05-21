@@ -18,6 +18,7 @@ sast:
   variables:
     SAST_CONFIDENCE_LEVEL: 2
     DOCKER_DRIVER: overlay2
+    SAST_ANALYZER_IMAGES: secrets:60879-add-logging-for-timeout-test
   allow_failure: true
   tags: []
   before_script: []
