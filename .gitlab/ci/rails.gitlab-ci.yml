@@ -200,12 +200,12 @@ rspec-fast-spec-helper:
     - scripts/gitaly-test-spawn
     - bin/rspec --color --format documentation --tag quarantine -- spec/
 
-rspec-pg-quarantine:
+rspec quarantine pg:
   <<: *rspec-metadata-pg
   <<: *rspec-quarantine
   allow_failure: true
 
-rspec-mysql-quarantine:
+rspec quarantine mysql:
   <<: *rspec-metadata-mysql
   <<: *rspec-quarantine
   allow_failure: true

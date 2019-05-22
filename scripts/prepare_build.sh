@@ -17,8 +17,8 @@ cp config/gitlab.yml.example config/gitlab.yml
 sed -i 's/bin_path: \/usr\/bin\/git/bin_path: \/usr\/local\/bin\/git/' config/gitlab.yml
 
 # Determine the database by looking at the job name.
-# For example, we'll get pg if the job is `rspec-pg 19 20`
-export GITLAB_DATABASE=$(echo $CI_JOB_NAME | cut -f1 -d' ' | cut -f2 -d-)
+# For example, we'll get pg if the job is `rspec unit mysql`
+export GITLAB_DATABASE=$(echo $CI_JOB_NAME | cut -f3 -d' ')
 
 # This would make the default database postgresql, and we could also use
 # pg to mean postgresql.
