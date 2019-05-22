@@ -182,8 +182,8 @@ class MergeRequestWidgetEntity < IssuableEntity
     presenter(merge_request).remove_wip_path
   end
 
-  expose :cancel_merge_when_pipeline_succeeds_path do |merge_request|
-    presenter(merge_request).cancel_merge_when_pipeline_succeeds_path
+  expose :cancel_auto_merge_path do |merge_request|
+    presenter(merge_request).cancel_auto_merge_path
   end
 
   expose :create_issue_to_resolve_discussions_path do |merge_request|

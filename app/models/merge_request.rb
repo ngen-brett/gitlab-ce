@@ -165,7 +165,7 @@ class MergeRequest < ApplicationRecord
   validates :source_branch, presence: true
   validates :target_project, presence: true
   validates :target_branch, presence: true
-  validates :merge_user, presence: true, if: :merge_when_pipeline_succeeds?, unless: :importing?
+  validates :merge_user, presence: true, if: :auto_merge_enabled?, unless: :importing?
   validate :validate_branches, unless: [:allow_broken, :importing?, :closed_without_fork?]
   validate :validate_fork, unless: :closed_without_fork?
   validate :validate_target_project, on: :create
@@ -196,6 +196,7 @@ class MergeRequest < ApplicationRecord
 
   alias_attribute :project, :target_project
   alias_attribute :project_id, :target_project_id
+  alias_attribute :auto_merge_enabled, :merge_when_pipeline_succeeds
 
   def self.reference_prefix
     '!'
@@ -780,10 +781,6 @@ class MergeRequest < ApplicationRecord
     project.ff_merge_must_be_possible? && !ff_merge_possible?
   end
 
-  def can_cancel_merge_when_pipeline_succeeds?(current_user)
-    can_be_merged_by?(current_user) || self.author == current_user
-  end
-
   def can_remove_source_branch?(current_user)
     !ProtectedBranch.protected?(source_project, source_branch) &&
       !source_project.root_ref?(source_branch) &&
@@ -969,20 +966,6 @@ class MergeRequest < ApplicationRecord
     strong_memoize(:default_squash_commit_message) do
       commits.without_merge_commits.reverse.find(&:description?)&.safe_message || title
     end
-  end
-
-  def reset_merge_when_pipeline_succeeds
-    return unless merge_when_pipeline_succeeds?
-
-    self.merge_when_pipeline_succeeds = false
-    self.merge_user = nil
-    if merge_params
-      merge_params.delete('should_remove_source_branch')
-      merge_params.delete('commit_message')
-      merge_params.delete('squash_commit_message')
-    end
-
-    self.save
   end
 
   # Return array of possible target branches

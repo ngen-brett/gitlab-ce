@@ -358,6 +358,9 @@ module API
                                                desc: 'When true, the source branch will be deleted if possible'
         optional :merge_when_pipeline_succeeds, type: Boolean,
                                                 desc: 'When true, this merge request will be merged when the pipeline succeeds'
+        optional :auto_merge_strategy,          type: String,
+                                                desc: 'The auto merge strategy',
+                                                values: GitLab::AutoMergeProcessor.available_strategies
         optional :sha, type: String, desc: 'When present, must have the HEAD SHA of the source branch'
         optional :squash, type: Grape::API::Boolean, desc: 'When true, the commits will be squashed into a single commit on merge'
       end
@@ -365,15 +368,15 @@ module API
         Gitlab::QueryLimiting.whitelist('https://gitlab.com/gitlab-org/gitlab-ce/issues/42317')
 
         merge_request = find_project_merge_request(params[:merge_request_iid])
-        merge_when_pipeline_succeeds = to_boolean(params[:merge_when_pipeline_succeeds])
+        auto_merge_required = to_boolean(params[:merge_when_pipeline_succeeds]) || params[:auto_merge_strategy].present?
 
         # Merge request can not be merged
         # because user dont have permissions to push into target branch
         unauthorized! unless merge_request.can_be_merged_by?(current_user)
 
-        not_allowed! unless merge_request.mergeable_state?(skip_ci_check: merge_when_pipeline_succeeds)
+        not_allowed! unless merge_request.mergeable_state?(skip_ci_check: auto_merge_required)
 
-        render_api_error!('Branch cannot be merged', 406) unless merge_request.mergeable?(skip_ci_check: merge_when_pipeline_succeeds)
+        render_api_error!('Branch cannot be merged', 406) unless merge_request.mergeable?(skip_ci_check: auto_merge_required)
 
         check_sha_param!(params, merge_request)
 
@@ -385,7 +388,9 @@ module API
           should_remove_source_branch: params[:should_remove_source_branch]
         )
 
-        if merge_when_pipeline_succeeds && merge_request.head_pipeline && merge_request.head_pipeline.active?
+        if params[:auto_merge_strategy]
+          GitLab::AutoMergeProcessor.new(project, current_user).execute(merge_requst, params[:auto_merge_strategy])
+        elsif merge_when_pipeline_succeeds && merge_request.head_pipeline && merge_request.head_pipeline.active?
           ::MergeRequests::MergeWhenPipelineSucceedsService
             .new(merge_request.target_project, current_user, merge_params)
             .execute(merge_request)
@@ -429,11 +434,11 @@ module API
       post ':id/merge_requests/:merge_request_iid/cancel_merge_when_pipeline_succeeds' do
         merge_request = find_project_merge_request(params[:merge_request_iid])
 
-        unauthorized! unless merge_request.can_cancel_merge_when_pipeline_succeeds?(current_user)
+        auto_merge_processor = GitLab::AutoMergeProcessor.new(project, current_user)
 
-        ::MergeRequests::MergeWhenPipelineSucceedsService
-          .new(merge_request.target_project, current_user)
-          .cancel(merge_request)
+        unauthorized! unless auto_merge_processor.cancellable?(merge_request, current_user)
+
+        auto_merge_processor.cancel(merge_request, current_user)
       end
 
       desc 'Rebase the merge request against its target branch' do

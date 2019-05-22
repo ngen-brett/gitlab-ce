@@ -221,14 +221,14 @@ module SystemNoteService
   end
 
   # Called when 'merge when pipeline succeeds' is executed
-  def merge_when_pipeline_succeeds(noteable, project, author, last_commit)
+  def auto_merge(noteable, project, author, last_commit)
     body = "enabled an automatic merge when the pipeline for #{last_commit.to_reference(project)} succeeds"
 
     create_note(NoteSummary.new(noteable, project, author, body, action: 'merge'))
   end
 
   # Called when 'merge when pipeline succeeds' is canceled
-  def cancel_merge_when_pipeline_succeeds(noteable, project, author)
+  def cancel_auto_merge(noteable, project, author)
     body = 'canceled the automatic merge'
 
     create_note(NoteSummary.new(noteable, project, author, body, action: 'merge'))

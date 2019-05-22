@@ -145,8 +145,8 @@ class Projects::MergeRequestsController < Projects::MergeRequests::ApplicationCo
     render partial: 'projects/merge_requests/widget/commit_change_content', layout: false
   end
 
-  def cancel_merge_when_pipeline_succeeds
-    unless @merge_request.can_cancel_merge_when_pipeline_succeeds?(current_user)
+  def cancel_auto_merge
+    unless @merge_request.can_cancel_auto_merge?(current_user)
       return access_denied!
     end
 
@@ -232,11 +232,6 @@ class Projects::MergeRequestsController < Projects::MergeRequests::ApplicationCo
     [:should_remove_source_branch, :commit_message, :squash_commit_message, :squash]
   end
 
-  def merge_when_pipeline_succeeds_active?
-    params[:merge_when_pipeline_succeeds].present? &&
-      @merge_request.head_pipeline && @merge_request.head_pipeline.active?
-  end
-
   def close_merge_request_if_no_source_project
     if !@merge_request.source_project && @merge_request.open?
       @merge_request.close
@@ -257,10 +252,15 @@ class Projects::MergeRequestsController < Projects::MergeRequests::ApplicationCo
     @merge_request.check_if_can_be_merged
   end
 
+  def auto_merge_active?
+    params[:merge_when_pipeline_succeeds].present? &&
+      @merge_request.head_pipeline && @merge_request.head_pipeline.active?
+  end
+
   def merge!
     # Disable the CI check if merge_when_pipeline_succeeds is enabled since we have
     # to wait until CI completes to know
-    unless @merge_request.mergeable?(skip_ci_check: merge_when_pipeline_succeeds_active?)
+    unless @merge_request.mergeable?(skip_ci_check: auto_merge_active?)
       return :failed
     end
 
@@ -274,7 +274,10 @@ class Projects::MergeRequestsController < Projects::MergeRequests::ApplicationCo
 
     @merge_request.update(merge_error: nil, squash: merge_params.fetch(:squash, false))
 
-    if params[:merge_when_pipeline_succeeds].present?
+    if params[:auto_merge_strategy].present?
+      GitLab::AutoMergeProcessor.new(project, current_user)
+        .exeucte(merge_request, params[:auto_merge_strategy])
+    elsif params[:merge_when_pipeline_succeeds].present? # To be removed
       return :failed unless @merge_request.actual_head_pipeline
 
       if @merge_request.actual_head_pipeline.active?

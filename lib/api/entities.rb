@@ -689,7 +689,7 @@ module API
       end
       expose :work_in_progress?, as: :work_in_progress
       expose :milestone, using: Entities::Milestone
-      expose :merge_when_pipeline_succeeds
+      expose :auto_merge_enabled
 
       # Ideally we should deprecate `MergeRequest#merge_status` exposure and
       # use `MergeRequest#mergeable?` instead (boolean).
