@@ -19,6 +19,7 @@ class Route < ApplicationRecord
   after_update :rename_descendants
 
   scope :inside_path, -> (path) { where('routes.path LIKE ?', "#{sanitize_sql_like(path)}/%") }
+  scope :for_path, -> (path) { where(path: path) }
 
   def rename_descendants
     return unless saved_change_to_path? || saved_change_to_name?
