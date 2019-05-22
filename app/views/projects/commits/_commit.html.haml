@@ -10,7 +10,7 @@
 
 - link = commit_path(project, commit, merge_request: merge_request)
 
-= render_if_exists 'projects/commits/show_project_name'
+- show_project_name = local_assigns.fetch(:show_project_name, false)
 
 %li.commit.flex-row.js-toggle-container{ id: "commit-#{commit.short_id}" }
 
