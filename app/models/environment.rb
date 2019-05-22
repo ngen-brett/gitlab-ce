@@ -2,10 +2,14 @@
 
 class Environment < ApplicationRecord
   include Gitlab::Utils::StrongMemoize
+  include ReactiveCaching
+
   # Used to generate random suffixes for the slug
   LETTERS = ('a'..'z').freeze
   NUMBERS = ('0'..'9').freeze
   SUFFIX_CHARS = LETTERS.to_a + NUMBERS.to_a
+
+  self.reactive_cache_key = ->(environment) { [environment.class.model_name.singular, environment.id] }
 
   belongs_to :project, required: true
 
@@ -17,6 +21,7 @@ class Environment < ApplicationRecord
   before_validation :generate_slug, if: ->(env) { env.slug.blank? }
 
   before_save :set_environment_type
+  after_save :clear_reactive_cache!
 
   validates :name,
             presence: true,
@@ -158,8 +163,29 @@ class Environment < ApplicationRecord
     deployment_platform.present? && available? && last_deployment.present?
   end
 
+  # Constructs a list of terminals from the reactive cache
+  #
+  # Returns nil if the cache is empty, in which case you should try again a
+  # short time later
   def terminals
-    deployment_platform.terminals(self) if has_terminals?
+    with_reactive_cache do |data|
+      deployment_platform.terminals(self, data[:pods])
+    end
+  end
+
+  # Caches resources in the namespace so other calls don't need to block on
+  # network access
+  def calculate_reactive_cache
+    return unless has_terminals? && !project.pending_delete?
+
+    # We may want to cache extra things in the future
+    { pods: deployment_platform.read_pods(deployment_namespace) }
+  end
+
+  def deployment_namespace
+    strong_memoize(:kubernetes_namespace) do
+      deployment_platform&.kubernetes_namespace_for(project)
+    end
   end
 
   def has_metrics?

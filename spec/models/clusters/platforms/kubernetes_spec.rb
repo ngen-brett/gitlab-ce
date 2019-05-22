@@ -2,13 +2,11 @@
 
 require 'spec_helper'
 
-describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching do
+describe Clusters::Platforms::Kubernetes do
   include KubernetesHelpers
-  include ReactiveCachingHelpers
 
   it { is_expected.to belong_to(:cluster) }
   it { is_expected.to be_kind_of(Gitlab::Kubernetes) }
-  it { is_expected.to be_kind_of(ReactiveCaching) }
   it { is_expected.to respond_to :ca_pem }
 
   it { is_expected.to validate_exclusion_of(:namespace).in_array(%w(gitlab-managed-apps)) }
@@ -369,17 +367,16 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
   end
 
   describe '#terminals' do
-    subject { service.terminals(environment) }
+    subject { service.terminals(environment, pods) }
 
     let!(:cluster) { create(:cluster, :project, platform_kubernetes: service) }
     let(:project) { cluster.project }
     let(:service) { create(:cluster_platform_kubernetes, :configured) }
     let(:environment) { build(:environment, project: project, name: "env", slug: "env-000000") }
+    let(:pods) { [{ "bad" => "pod" }] }
 
     context 'with invalid pods' do
       it 'returns no terminals' do
-        stub_reactive_cache(service, pods: [{ "bad" => "pod" }])
-
         is_expected.to be_empty
       end
     end
@@ -388,13 +385,7 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
       let(:pod) { kube_pod(environment_slug: environment.slug, namespace: cluster.kubernetes_namespace_for(project), project_slug: project.full_path_slug) }
       let(:pod_with_no_terminal) { kube_pod(environment_slug: environment.slug, project_slug: project.full_path_slug, status: "Pending") }
       let(:terminals) { kube_terminals(service, pod) }
-
-      before do
-        stub_reactive_cache(
-          service,
-          pods: [pod, pod, pod_with_no_terminal, kube_pod(environment_slug: "should-be-filtered-out")]
-        )
-      end
+      let(:pods) { [pod, pod, pod_with_no_terminal, kube_pod(environment_slug: "should-be-filtered-out")] }
 
       it 'returns terminals' do
         is_expected.to eq(terminals + terminals)
@@ -409,19 +400,12 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
     end
   end
 
-  describe '#calculate_reactive_cache' do
-    subject { service.calculate_reactive_cache }
-
-    let!(:cluster) { create(:cluster, :project, enabled: enabled, platform_kubernetes: service) }
+  describe '#read_pods' do
     let(:service) { create(:cluster_platform_kubernetes, :configured) }
-    let(:enabled) { true }
-    let(:namespace) { cluster.kubernetes_namespace_for(cluster.project) }
+    let(:pod) { kube_pod }
+    let(:namespace) { pod["metadata"]["namespace"] }
 
-    context 'when cluster is disabled' do
-      let(:enabled) { false }
-
-      it { is_expected.to be_nil }
-    end
+    subject { service.read_pods(namespace) }
 
     context 'when kubernetes responds with valid pods and deployments' do
       before do
@@ -429,7 +413,7 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
         stub_kubeclient_deployments(namespace)
       end
 
-      it { is_expected.to include(pods: [kube_pod]) }
+      it { is_expected.to eq [pod] }
     end
 
     context 'when kubernetes responds with 500s' do
@@ -447,13 +431,7 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
         stub_kubeclient_deployments(namespace, status: 404)
       end
 
-      it { is_expected.to include(pods: []) }
-    end
-
-    context 'when the cluster is not project level' do
-      let(:cluster) { create(:cluster, :group, platform_kubernetes: service) }
-
-      it { is_expected.to include(pods: []) }
+      it { is_expected.to eq [] }
     end
   end
 
