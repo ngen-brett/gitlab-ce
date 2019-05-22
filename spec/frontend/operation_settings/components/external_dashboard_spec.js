@@ -21,6 +21,14 @@ describe('operation settings external dashboard component', () => {
     expect(wrapper.find('.js-section-header').text()).toBe('External Dashboard');
   });
 
+  describe('expand/collapse button', () => {
+    it('defaults to collapsed state', () => {
+      const button = wrapper.find(GlButton);
+
+      expect(button.text()).toBe('Expand');
+    });
+  });
+
   describe('sub-header', () => {
     let subHeader;
 
