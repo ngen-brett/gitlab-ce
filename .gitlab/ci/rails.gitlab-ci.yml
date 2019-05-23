@@ -151,7 +151,6 @@ rspec-pg-10:
 
 rspec-mysql:
   <<: *rspec-metadata-mysql
-  <<: *only-schedules-master
   parallel: 50
 
 rspec-fast-spec-helper:
