@@ -8,7 +8,7 @@ module Gitlab
   module Danger
     module Helper
       RELEASE_TOOLS_BOT = 'gitlab-release-tools-bot'
-      ROULETTE_DATA_URL = URI.parse('https://about.gitlab.com/roulette.json').freeze
+      ROULETTE_DATA_URL = URI.parse('https://exposing-role-for-roulette.about-src.gitlab.com/roulette.json').freeze
 
       # Returns a list of all files that have been added, modified or renamed.
       # `git.modified_files` might contain paths that already have been renamed,
@@ -95,6 +95,21 @@ module Gitlab
       #
       # @return[String]
       def label_for_category(category)
+        case category
+        when Symbol
+          label_for_one_category(category)
+        when Array
+          labels = category.map do |one_cat|
+            label_for_one_category(one_cat)
+          end
+
+          labels.join(' ')
+        else
+          raise "Unknown category: #{category}"
+        end
+      end
+
+      def label_for_one_category(category)
         CATEGORY_LABELS.fetch(category, "~#{category}")
       end
 
@@ -133,6 +148,7 @@ module Gitlab
 
         %r{\A(ee/)?app/(?!assets|views)[^/]+} => :backend,
         %r{\A(ee/)?(bin|config|danger|generator_templates|lib|rubocop|scripts)/} => :backend,
+        %r{\A(ee/)?spec/features/admin/} => %i[test Manage],
         %r{\A(ee/)?spec/(?!javascripts|frontend)[^/]+} => :backend,
         %r{\A(ee/)?vendor/(?!assets)[^/]+} => :backend,
         %r{\A(ee/)?vendor/(languages\.yml|licenses\.csv)\z} => :backend,
