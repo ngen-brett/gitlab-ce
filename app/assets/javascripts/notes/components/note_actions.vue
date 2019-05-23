@@ -135,7 +135,8 @@ export default {
         @click="onResolve"
       >
         <template v-if="!isResolving">
-          <icon name="check-circle" />
+          <icon v-if="isResolved" name="check-circle-filled" />
+          <icon v-else name="check-circle" />
         </template>
         <gl-loading-icon v-else inline />
       </button>
