@@ -9,10 +9,7 @@ describe Dashboard::MilestonesController do
   let(:project_milestone) { create(:milestone, project: project) }
   let(:group_milestone) { create(:milestone, group: group) }
   let(:milestone) do
-    DashboardMilestone.build(
-      [project],
-      project_milestone.title
-    )
+    create(:milestone, group: group)
   end
   let(:issue) { create(:issue, project: project, milestone: project_milestone) }
   let(:group_issue) { create(:issue, milestone: group_milestone, project: create(:project, group: group)) }
@@ -28,8 +25,6 @@ describe Dashboard::MilestonesController do
     group.add_developer(user)
   end
 
-  it_behaves_like 'milestone tabs'
-
   describe "#show" do
     render_views
 
@@ -40,7 +35,7 @@ describe Dashboard::MilestonesController do
     it 'shows milestone page' do
       view_milestone
 
-      expect(response).to have_gitlab_http_status(200)
+      expect(response).to have_gitlab_http_status(404)
     end
   end
 
@@ -55,8 +50,8 @@ describe Dashboard::MilestonesController do
 
       expect(response).to have_gitlab_http_status(200)
       expect(json_response.size).to eq(2)
-      expect(json_response.map { |i| i["name"] }).to match_array([group_milestone.name, project_milestone.name])
-      expect(json_response.map { |i| i["group_name"] }.compact).to match_array(group.name)
+      expect(json_response.map { |i| i["title"] }).to match_array([group_milestone.title, project_milestone.title])
+      expect(json_response.map { |i| i["group_id"] }.compact).to match_array(group.id)
     end
 
     it 'searches legacy project milestones by title when search_title is given' do

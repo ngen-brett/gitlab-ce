@@ -101,10 +101,8 @@ describe 'Group milestones' do
       end
 
       it 'lists legacy group milestones and group milestones' do
-        legacy_milestone = GroupMilestone.build_collection(group, group.projects, { state: 'active' }).first
-
         expect(page).to have_selector("#milestone_#{active_group_milestone.id}", count: 1)
-        expect(page).to have_selector("#milestone_#{legacy_milestone.milestone.id}", count: 1)
+        expect(page).to have_selector("#milestone_#{active_project_milestone2.id}", count: 1)
       end
 
       it 'shows milestone detail and supports its edit' do
@@ -133,12 +131,12 @@ describe 'Group milestones' do
         )
       end
 
-      it 'renders group milestone details' do
+      it 'renders project milestone details' do
         click_link 'v1.0'
 
         expect(page).to have_content('expires on Aug 20, 2114')
         expect(page).to have_content('v1.0')
-        expect(page).to have_content('Issues 1 Open: 1 Closed: 0')
+        expect(page).to have_content('Issues 1 New issue Open: 1 Closed: 0')
         expect(page).to have_link(issue.title, href: project_issue_path(issue.project, issue))
       end
 

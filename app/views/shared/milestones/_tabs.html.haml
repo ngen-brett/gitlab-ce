@@ -1,4 +1,4 @@
-- issues_accessible = milestone.is_a?(GlobalMilestone) || can?(current_user, :read_issue, @project)
+- issues_accessible = can?(current_user, :read_issue, @project)
 
 .scrolling-tabs-container.inner-page-scroll-tabs.is-smaller
   .fade-left= icon('angle-left')

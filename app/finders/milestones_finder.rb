@@ -25,7 +25,7 @@ class MilestonesFinder
     items = by_search_title(items)
     items = by_state(items)
 
-    order(items)
+    params[:sort] ? items.sort_by_attribute(params[:sort]) : order(items)
   end
 
   private

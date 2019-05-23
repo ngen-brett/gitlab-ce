@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
 class Groups::MilestonesController < Groups::ApplicationController
-  include MilestoneActions
-
   before_action :group_projects
-  before_action :milestone, only: [:edit, :show, :update, :merge_requests, :participants, :labels, :destroy]
+  before_action :milestone, only: [:edit, :show, :update, :destroy]
   before_action :authorize_admin_milestones!, only: [:edit, :new, :create, :update, :destroy]
 
   def index
@@ -41,8 +39,6 @@ class Groups::MilestonesController < Groups::ApplicationController
   end
 
   def update
-    # Keep this compatible with legacy group milestones where we have to update
-    # all projects milestones states at once.
     milestones, update_params = get_milestones_for_update
     milestones.each do |milestone|
       Milestones::UpdateService.new(milestone.parent, current_user, update_params).execute(milestone)
@@ -65,11 +61,7 @@ class Groups::MilestonesController < Groups::ApplicationController
   private
 
   def get_milestones_for_update
-    if @milestone.legacy_group_milestone?
-      [@milestone.milestones, legacy_milestone_params]
-    else
-      [[@milestone], milestone_params]
-    end
+    [[@milestone], milestone_params]
   end
 
   def authorize_admin_milestones!
@@ -80,41 +72,21 @@ class Groups::MilestonesController < Groups::ApplicationController
     params.require(:milestone).permit(:title, :description, :start_date, :due_date, :state_event)
   end
 
-  def legacy_milestone_params
-    params.require(:milestone).permit(:state_event)
-  end
-
   def milestone_path
-    if @milestone.legacy_group_milestone?
-      group_milestone_path(group, @milestone.safe_title, title: @milestone.title)
-    else
-      group_milestone_path(group, @milestone.iid)
-    end
+    group_milestone_path(group, @milestone.iid)
   end
 
   def milestones
-    milestones = MilestonesFinder.new(search_params).execute
-
-    @sort = params[:sort] || 'due_date_asc'
-    MilestoneArray.sort(milestones + legacy_milestones, @sort)
-  end
-
-  def legacy_milestones
-    GroupMilestone.build_collection(group, group_projects, params)
+    MilestonesFinder.new(search_params).execute
   end
 
   def milestone
-    @milestone =
-      if params[:title]
-        GroupMilestone.build(group, group_projects, params[:title])
-      else
-        group.milestones.find_by_iid(params[:id])
-      end
+    @milestone = group.milestones.find_by_iid(params[:id])
 
     render_404 unless @milestone
   end
 
   def search_params
-    params.permit(:state, :search_title).merge(group_ids: group.id)
+    params.permit(:state, :search_title).merge(sort: params[:sort] || 'due_date_asc', group_ids: group.id, project_ids: group_projects.map(&:id))
   end
 end

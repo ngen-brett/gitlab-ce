@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 class Dashboard::MilestonesController < Dashboard::ApplicationController
-  include MilestoneActions
-
   before_action :projects
   before_action :groups, only: :index
-  before_action :milestone, only: [:show, :merge_requests, :participants, :labels]
 
   def index
     respond_to do |format|
@@ -20,29 +17,20 @@ class Dashboard::MilestonesController < Dashboard::ApplicationController
   end
 
   def show
+    render_404
   end
 
   private
 
-  def group_milestones
-    DashboardGroupMilestone.build_collection(groups, params)
-  end
-
-  # See [#39545](https://gitlab.com/gitlab-org/gitlab-ce/issues/39545) for info about the deprecation of dynamic milestones
-  def dynamic_milestones
-    DashboardMilestone.build_collection(@projects, params)
-  end
-
   def milestones
-    @milestones = group_milestones + dynamic_milestones
-  end
-
-  def milestone
-    @milestone = DashboardMilestone.build(@projects, params[:title])
-    render_404 unless @milestone
+    MilestonesFinder.new(search_params).execute
   end
 
   def groups
     @groups ||= GroupsFinder.new(current_user, all_available: false).execute
+  end
+
+  def search_params
+    params.permit(:state, :search_title).merge(group_ids: groups.map(&:id), project_ids: projects.map(&:id))
   end
 end

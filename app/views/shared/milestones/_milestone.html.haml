@@ -10,23 +10,22 @@
         - if @group
           = " - #{milestone_type}"
 
-      - if @project || milestone.is_a?(GlobalMilestone) || milestone.group_milestone?
-        - if milestone.due_date || milestone.start_date
-          .milestone-range.append-bottom-5
-            = milestone_date_range(milestone)
-        %div
-          = render('shared/milestone_expired', milestone: milestone)
-          - if milestone.group_milestone?
-            .label-badge.label-badge-blue.d-inline-block
-              = milestone.group.full_name
-          - if milestone.legacy_group_milestone?
-            .projects
-              - link_to milestone_path(milestone.milestone) do
-                %span.label-badge.label-badge-blue.d-inline-block.append-bottom-5
-                  = dashboard ? milestone.project.full_name : milestone.project.name
-          - if milestone.project
-            .label-badge.label-badge-gray.d-inline-block
-              = milestone.project.full_name
+      - if milestone.due_date || milestone.start_date
+        .milestone-range.append-bottom-5
+          = milestone_date_range(milestone)
+      %div
+        = render('shared/milestone_expired', milestone: milestone)
+        - if milestone.group_milestone?
+          .label-badge.label-badge-blue.d-inline-block
+            = milestone.group.full_name
+        - if milestone.legacy_group_milestone?
+          .projects
+            - link_to milestone_path(milestone.milestone) do
+              %span.label-badge.label-badge-blue.d-inline-block.append-bottom-5
+                = dashboard ? milestone.project.full_name : milestone.project.name
+        - if milestone.project
+          .label-badge.label-badge-gray.d-inline-block
+            = milestone.project.full_name
 
     .col-sm-4.milestone-progress
       = milestone_progress_bar(milestone)

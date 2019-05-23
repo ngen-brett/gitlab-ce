@@ -9,13 +9,7 @@ describe Groups::MilestonesController do
   let(:user)    { create(:user) }
   let(:title) { '肯定不是中文的问题' }
   let(:milestone) do
-    project_milestone = create(:milestone, project: project)
-
-    GroupMilestone.build(
-      group,
-      [project],
-      project_milestone.title
-    )
+    create(:milestone, project: project)
   end
   let(:milestone_path) { group_milestone_path(group, milestone.safe_title, title: milestone.title) }
 
@@ -75,9 +69,8 @@ describe Groups::MilestonesController do
 
         milestones = JSON.parse(response.body)
 
-        expect(milestones.count).to eq(2)
-        expect(milestones.first["title"]).to eq("group milestone")
-        expect(milestones.second["title"]).to eq("legacy")
+        expect(milestones.count).to eq(3)
+        expect(milestones.collect { |m| m['title'] }).to match_array(['legacy', 'legacy', 'group milestone'])
         expect(response).to have_gitlab_http_status(200)
         expect(response.content_type).to eq 'application/json'
       end
@@ -97,8 +90,7 @@ describe Groups::MilestonesController do
 
     context 'when there is a title parameter' do
       it 'searches for a legacy group milestone' do
-        expect(GroupMilestone).to receive(:build)
-        expect(Milestone).not_to receive(:find_by_iid)
+        expect(Milestone).to receive(:find_by_iid)
 
         get :show, params: { group_id: group.to_param, id: title, title: milestone1.safe_title }
       end
@@ -106,15 +98,12 @@ describe Groups::MilestonesController do
 
     context 'when there is not a title parameter' do
       it 'searches for a group milestone' do
-        expect(GlobalMilestone).not_to receive(:build)
         expect(Milestone).to receive(:find_by_iid)
 
         get :show, params: { group_id: group.to_param, id: group_milestone.id }
       end
     end
   end
-
-  it_behaves_like 'milestone tabs'
 
   describe "#create" do
     it "creates group milestone with Chinese title" do
@@ -155,26 +144,26 @@ describe Groups::MilestonesController do
       let!(:milestone1) { create(:milestone, project: project, title: 'legacy milestone', description: "old description") }
       let!(:milestone2) { create(:milestone, project: project2, title: 'legacy milestone', description: "old description") }
 
-      it "updates only group milestones state" do
+      it "updates only group milestones" do
         milestone_params[:title] = "title changed"
         milestone_params[:description] = "description changed"
         milestone_params[:state_event] = "close"
 
         put :update,
              params: {
-               id: milestone1.title.to_slug.to_s,
+               id: milestone1.iid,
                group_id: group.to_param,
                milestone: milestone_params,
                title: milestone1.title
              }
 
-        expect(response).to redirect_to(group_milestone_path(group, milestone1.safe_title, title: milestone1.title))
+        expect(response).to have_gitlab_http_status(404)
 
         [milestone1, milestone2].each do |milestone|
           milestone.reload
           expect(milestone.title).to eq("legacy milestone")
           expect(milestone.description).to eq("old description")
-          expect(milestone.state).to eq("closed")
+          expect(milestone.state).to eq("active")
         end
       end
     end
@@ -233,52 +222,6 @@ describe Groups::MilestonesController do
               expect(response).to redirect_to(group_milestone_path(group.to_param, title))
               expect(controller).not_to set_flash[:notice]
             end
-          end
-        end
-      end
-
-      context 'when requesting a redirected path' do
-        let(:redirect_route) { group.redirect_routes.create(path: 'old-path') }
-
-        it 'redirects to the canonical path' do
-          get :merge_requests, params: { group_id: redirect_route.path, id: title }
-
-          expect(response).to redirect_to(merge_requests_group_milestone_path(group.to_param, title))
-          expect(controller).to set_flash[:notice].to(group_moved_message(redirect_route, group))
-        end
-
-        context 'when the old group path is a substring of the scheme or host' do
-          let(:redirect_route) { group.redirect_routes.create(path: 'http') }
-
-          it 'does not modify the requested host' do
-            get :merge_requests, params: { group_id: redirect_route.path, id: title }
-
-            expect(response).to redirect_to(merge_requests_group_milestone_path(group.to_param, title))
-            expect(controller).to set_flash[:notice].to(group_moved_message(redirect_route, group))
-          end
-        end
-
-        context 'when the old group path is substring of groups' do
-          # I.e. /groups/oups should not become /grfoo/oups
-          let(:redirect_route) { group.redirect_routes.create(path: 'oups') }
-
-          it 'does not modify the /groups part of the path' do
-            get :merge_requests, params: { group_id: redirect_route.path, id: title }
-
-            expect(response).to redirect_to(merge_requests_group_milestone_path(group.to_param, title))
-            expect(controller).to set_flash[:notice].to(group_moved_message(redirect_route, group))
-          end
-        end
-
-        context 'when the old group path is substring of groups plus the new path' do
-          # I.e. /groups/oups/oup should not become /grfoos
-          let(:redirect_route) { group.redirect_routes.create(path: 'oups/oup') }
-
-          it 'does not modify the /groups part of the path' do
-            get :merge_requests, params: { group_id: redirect_route.path, id: title }
-
-            expect(response).to redirect_to(merge_requests_group_milestone_path(group.to_param, title))
-            expect(controller).to set_flash[:notice].to(group_moved_message(redirect_route, group))
           end
         end
       end
