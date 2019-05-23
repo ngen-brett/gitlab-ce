@@ -76,7 +76,6 @@ export default {
       issuesAccessLevel: 20,
       repositoryAccessLevel: 20,
       mergeRequestsAccessLevel: 20,
-      buildsAccessLevel: 20,
       wikiAccessLevel: 20,
       snippetsAccessLevel: 20,
       pagesAccessLevel: 20,
@@ -127,7 +126,6 @@ export default {
         this.issuesAccessLevel = Math.min(10, this.issuesAccessLevel);
         this.repositoryAccessLevel = Math.min(10, this.repositoryAccessLevel);
         this.mergeRequestsAccessLevel = Math.min(10, this.mergeRequestsAccessLevel);
-        this.buildsAccessLevel = Math.min(10, this.buildsAccessLevel);
         this.wikiAccessLevel = Math.min(10, this.wikiAccessLevel);
         this.snippetsAccessLevel = Math.min(10, this.snippetsAccessLevel);
         if (this.pagesAccessLevel === 20) {
@@ -140,7 +138,6 @@ export default {
         if (this.issuesAccessLevel > 0) this.issuesAccessLevel = 20;
         if (this.repositoryAccessLevel > 0) this.repositoryAccessLevel = 20;
         if (this.mergeRequestsAccessLevel > 0) this.mergeRequestsAccessLevel = 20;
-        if (this.buildsAccessLevel > 0) this.buildsAccessLevel = 20;
         if (this.wikiAccessLevel > 0) this.wikiAccessLevel = 20;
         if (this.snippetsAccessLevel > 0) this.snippetsAccessLevel = 20;
         if (this.pagesAccessLevel === 10) this.pagesAccessLevel = 20;
@@ -152,7 +149,6 @@ export default {
       if (value < oldValue) {
         // sub-features cannot have more premissive access level
         this.mergeRequestsAccessLevel = Math.min(this.mergeRequestsAccessLevel, value);
-        this.buildsAccessLevel = Math.min(this.buildsAccessLevel, value);
 
         if (value === 0) {
           this.containerRegistryEnabled = false;
@@ -160,7 +156,6 @@ export default {
         }
       } else if (oldValue === 0) {
         this.mergeRequestsAccessLevel = value;
-        this.buildsAccessLevel = value;
         this.containerRegistryEnabled = true;
         this.lfsEnabled = true;
       }
@@ -174,12 +169,7 @@ export default {
     mergeRequestsAccessLevel(value, oldValue) {
       if (value === 0) toggleHiddenClassBySelector('.merge-requests-feature', true);
       else if (oldValue === 0) toggleHiddenClassBySelector('.merge-requests-feature', false);
-    },
-
-    buildsAccessLevel(value, oldValue) {
-      if (value === 0) toggleHiddenClassBySelector('.builds-feature', true);
-      else if (oldValue === 0) toggleHiddenClassBySelector('.builds-feature', false);
-    },
+    }
   },
 
   methods: {
