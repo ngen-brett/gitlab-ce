@@ -356,17 +356,17 @@ span.idiff {
     }
   }
 
-  .btn-clipboard {
-    position: absolute;
-    right: 0;
-  }
-
   a {
     color: $gl-text-color;
   }
 
-  small + .btn-clipboard {
-    position: relative;
+  small {
+    margin-right: 5px;
+
+    + .btn-clipboard {
+      line-height: 1;
+    }
+
   }
 
   .file-actions .btn {
