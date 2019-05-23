@@ -57,7 +57,7 @@ describe('Dashboard', () => {
     it('shows a getting started empty state when no metrics are present', () => {
       const component = new DashboardComponent({
         el: document.querySelector('.prometheus-graphs'),
-        propsData: { ...propsData, showTimeWindowDropdown: false },
+        propsData: { ...propsData },
       });
 
       expect(component.$el.querySelector('.prometheus-graphs')).toBe(null);
@@ -73,7 +73,7 @@ describe('Dashboard', () => {
     it('shows up a loading state', done => {
       const component = new DashboardComponent({
         el: document.querySelector('.prometheus-graphs'),
-        propsData: { ...propsData, hasMetrics: true, showTimeWindowDropdown: false },
+        propsData: { ...propsData, hasMetrics: true },
       });
 
       Vue.nextTick(() => {
@@ -89,7 +89,6 @@ describe('Dashboard', () => {
           ...propsData,
           hasMetrics: true,
           showLegend: false,
-          showTimeWindowDropdown: false,
         },
       });
 
@@ -108,7 +107,6 @@ describe('Dashboard', () => {
           ...propsData,
           hasMetrics: true,
           showPanels: false,
-          showTimeWindowDropdown: false,
         },
       });
 
@@ -127,7 +125,6 @@ describe('Dashboard', () => {
           ...propsData,
           hasMetrics: true,
           showPanels: false,
-          showTimeWindowDropdown: false,
         },
       });
 
@@ -150,7 +147,6 @@ describe('Dashboard', () => {
           ...propsData,
           hasMetrics: true,
           showPanels: false,
-          showTimeWindowDropdown: false,
         },
       });
 
@@ -173,7 +169,6 @@ describe('Dashboard', () => {
           ...propsData,
           hasMetrics: true,
           showPanels: false,
-          showTimeWindowDropdown: false,
         },
       });
 
@@ -198,7 +193,6 @@ describe('Dashboard', () => {
           hasMetrics: true,
           showPanels: false,
           environmentsEndpoint: '',
-          showTimeWindowDropdown: false,
         },
       });
 
@@ -210,26 +204,6 @@ describe('Dashboard', () => {
       });
     });
 
-    it('does not show the time window dropdown when the feature flag is not set', done => {
-      const component = new DashboardComponent({
-        el: document.querySelector('.prometheus-graphs'),
-        propsData: {
-          ...propsData,
-          hasMetrics: true,
-          showPanels: false,
-          showTimeWindowDropdown: false,
-        },
-      });
-
-      setTimeout(() => {
-        const timeWindowDropdown = component.$el.querySelector('.js-time-window-dropdown');
-
-        expect(timeWindowDropdown).toBeNull();
-
-        done();
-      });
-    });
-
     it('renders the time window dropdown with a set of options', done => {
       const component = new DashboardComponent({
         el: document.querySelector('.prometheus-graphs'),
@@ -237,7 +211,6 @@ describe('Dashboard', () => {
           ...propsData,
           hasMetrics: true,
           showPanels: false,
-          showTimeWindowDropdown: true,
         },
       });
       const numberOfTimeWindows = Object.keys(timeWindows).length;
@@ -260,7 +233,7 @@ describe('Dashboard', () => {
 
       const component = new DashboardComponent({
         el: document.querySelector('.prometheus-graphs'),
-        propsData: { ...propsData, hasMetrics: true, showTimeWindowDropdown: true },
+        propsData: { ...propsData, hasMetrics: true },
       });
 
       setTimeout(() => {
@@ -280,7 +253,7 @@ describe('Dashboard', () => {
 
       const component = new DashboardComponent({
         el: document.querySelector('.prometheus-graphs'),
-        propsData: { ...propsData, hasMetrics: true, showTimeWindowDropdown: true },
+        propsData: { ...propsData, hasMetrics: true },
       });
 
       Vue.nextTick(() => {
@@ -308,7 +281,6 @@ describe('Dashboard', () => {
           ...propsData,
           hasMetrics: true,
           showPanels: false,
-          showTimeWindowDropdown: false,
         },
       });
 
@@ -349,7 +321,6 @@ describe('Dashboard', () => {
             ...propsData,
             hasMetrics: true,
             showPanels: false,
-            showTimeWindowDropdown: false,
             externalDashboardPath: '/mockPath',
           },
         });
@@ -374,7 +345,6 @@ describe('Dashboard', () => {
             ...propsData,
             hasMetrics: true,
             showPanels: false,
-            showTimeWindowDropdown: false,
             externalDashboardPath: '',
           },
         });

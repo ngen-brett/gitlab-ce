@@ -14,7 +14,6 @@ export default (props = {}) => {
           props: {
             ...el.dataset,
             hasMetrics: parseBoolean(el.dataset.hasMetrics),
-            showTimeWindowDropdown: gon.features.metricsTimeWindow,
             ...props,
           },
         });
