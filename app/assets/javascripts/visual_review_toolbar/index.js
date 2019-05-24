@@ -1,260 +1,13 @@
+import './styles/toolbar.css'
+
 ///////////////////////////////////////////////
 /////////////////// STYLES ////////////////////
 ///////////////////////////////////////////////
 
+// this style must be applied inline
 const buttonClearStyles = `
   -webkit-appearance: none;
 `;
-
-const buttonBaseStyles = `
-  cursor: pointer;
-  transition: background-color 100ms linear, border-color 100ms linear, color 100ms linear, box-shadow 100ms linear;
-`;
-
-const buttonSuccessActiveStyles = `
-  background-color: #168f48;
-  border-color: #12753a;
-  color: #fff;
-`;
-
-const buttonSuccessHoverStyles = `
-  color: #fff;
-  background-color: #137e3f;
-  border-color: #127339;
-`;
-
-const buttonSuccessStyles = `
-  ${buttonBaseStyles}
-  background-color: #1aaa55;
-  border: 1px solid #168f48;
-  color: #fff;
-`;
-
-const buttonSecondaryStyles = `
-  ${buttonBaseStyles}
-  background: none #fff;
-  margin: 0 .5rem;
-  border: 1px solid #e3e3e3;
-`;
-
-const buttonSecondaryActiveStyles = `
-  color: #2e2e2e;
-  background-color: #e1e1e1;
-  border-color: #dadada;
-`;
-
-const buttonSecondaryHoverStyles = `
-  background-color: #f0f0f0;
-  border-color: #e3e3e3;
-  color: #2e2e2e;
-`;
-
-const buttonWideStyles = `
-  width: 100%;
-`;
-
-const buttonWrapperStyles = `
-  margin-top: 1rem;
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-end;
-`;
-
-const collapseStyles = `
-  ${buttonBaseStyles}
-  width: 2.4rem;
-  height: 2.2rem;
-  margin-left: 1rem;
-  padding: .5rem;
-`;
-
-const collapseClosedStyles = `
-  ${collapseStyles}
-  align-self: center;
-`;
-
-const collapseOpenStyles = `
-  ${collapseStyles}
-`;
-
-const checkboxLabelStyles = `
-  padding: 0 .2rem;
-`;
-
-const checkboxWrapperStyles = `
-  display: flex;
-  align-items: baseline;
-`;
-
-const formStyles = `
-  display: flex;
-  flex-direction: column;
-  width: 100%
-`;
-
-const labelStyles = `
-  font-weight: 600;
-  display: inline-block;
-  width: 100%;
-`;
-
-const linkStyles = `
-  color: #1b69b6;
-  text-decoration: none;
-  background-color: transparent;
-  background-image: none;
-`;
-
-const messageStyles =  `
-  padding: .25rem 0;
-  margin: 0;
-  line-height: 1.2rem;
-`;
-
-const metadataNoteStyles = `
-  font-size: .7rem;
-  line-height: 1rem;
-  color: #666;
-  margin-bottom: 0;
-`;
-
-const inputStyles = `
-  width: 100%;
-  border: 1px solid #dfdfdf;
-  border-radius: 4px;
-  padding: .1rem .2rem;
-  min-height: 2rem;
-  max-width: 17rem;
-`;
-
-const svgInnerStyles = `
-  pointer-events: none;
-`;
-
-const wrapperClosedStyles = `
-  max-width: 3.4rem;
-  max-height: 3.4rem;
-`;
-
-const wrapperOpenStyles = `
-  max-width: 22rem;
-  max-height: 22rem;
-`;
-
-const wrapperStyles = `
-  max-width: 22rem;
-  max-height: 22rem;
-  overflow: scroll;
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  display: flex;
-  flex-direction: row-reverse;
-  padding: 1rem;
-  background-color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
-  'Helvetica Neue', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-  'Noto Color Emoji';
-  font-size: .8rem;
-  font-weight: 400;
-  color: #2e2e2e;
-`;
-
-const gitlabStyles = `
-  #gitlab-collapse > * {
-    ${svgInnerStyles}
-  }
-
-  #gitlab-form-wrapper {
-    ${formStyles}
-  }
-
-  #gitlab-review-container {
-    ${wrapperStyles}
-  }
-
-  .gitlab-open-wrapper {
-    ${wrapperOpenStyles}
-  }
-
-  .gitlab-closed-wrapper {
-    ${wrapperClosedStyles}
-  }
-
-  .gitlab-button-secondary {
-    ${buttonSecondaryStyles}
-  }
-
-  .gitlab-button-secondary:hover {
-    ${buttonSecondaryHoverStyles}
-  }
-
-  .gitlab-button-secondary:active {
-    ${buttonSecondaryActiveStyles}
-  }
-
-  .gitlab-button-success:hover {
-    ${buttonSuccessHoverStyles}
-  }
-
-  .gitlab-button-success:active {
-    ${buttonSuccessActiveStyles}
-  }
-
-  .gitlab-button-success {
-    ${buttonSuccessStyles}
-  }
-
-  .gitlab-button-wide {
-    ${buttonWideStyles}
-  }
-
-  .gitlab-button-wrapper {
-    ${buttonWrapperStyles}
-  }
-
-  .gitlab-collapse-closed {
-    ${collapseClosedStyles}
-  }
-
-  .gitlab-collapse-open {
-    ${collapseOpenStyles}
-  }
-
-  .gitlab-checkbox-label {
-    ${checkboxLabelStyles}
-  }
-
-  .gitlab-checkbox-wrapper {
-    ${checkboxWrapperStyles}
-  }
-
-  .gitlab-label {
-    ${labelStyles}
-  }
-
-  .gitlab-link {
-    ${linkStyles}
-  }
-
-  .gitlab-message {
-    ${messageStyles}
-  }
-
-  .gitlab-metadata-note {
-    ${metadataNoteStyles}
-  }
-
-  .gitlab-input {
-    ${inputStyles}
-  }
-`;
-
-function addStylesheet() {
-  const styleEl = document.createElement('style');
-  styleEl.insertAdjacentHTML('beforeend', gitlabStyles);
-  document.head.appendChild(styleEl);
-}
 
 ///////////////////////////////////////////////
 /////////////////// STATE ////////////////////
@@ -275,8 +28,8 @@ const comment = `
     <p class='gitlab-metadata-note'>Additional metadata will be included: browser, OS, current page, user agent, and viewport dimensions.</p>
   </div>
   <div class='gitlab-button-wrapper''>
-    <button class='gitlab-button-secondary' style='${buttonClearStyles}' type='button' id='gitlab-logout-button'> Logout </button>
-    <button class='gitlab-button-success' style='${buttonClearStyles}' type='button' id='gitlab-comment-button'> Send feedback </button>
+    <button class='gitlab-button gitlab-button-secondary' style='${buttonClearStyles}' type='button' id='gitlab-logout-button'> Logout </button>
+    <button class='gitlab-button gitlab-button-success' style='${buttonClearStyles}' type='button' id='gitlab-comment-button'> Send feedback </button>
   </div>
 `;
 
@@ -289,7 +42,7 @@ const compressIcon = `
 `;
 
 const collapseButton = `
-  <button id='gitlab-collapse' style='${buttonClearStyles}' class='gitlab-collapse-open gitlab-button-secondary'>${compressIcon}</button>
+  <button id='gitlab-collapse' style='${buttonClearStyles}' class='gitlab-button gitlab-button-secondary gitlab-collapse gitlab-collapse-open'>${compressIcon}</button>
 `;
 
 const form = (content) => `
@@ -309,7 +62,7 @@ const login = `
     <label for="remember_token" class='gitlab-checkbox-label'>Remember me</label>
   </div>
   <div class='gitlab-button-wrapper'>
-    <button class='gitlab-button-wide gitlab-button-success' style='${buttonClearStyles}' type='button' id='gitlab-login'> Submit </button>
+    <button class='gitlab-button-wide gitlab-button gitlab-button-success' style='${buttonClearStyles}' type='button' id='gitlab-login'> Submit </button>
   </div>
 `;
 
@@ -618,7 +371,6 @@ window.addEventListener('load', () => {
   container.insertAdjacentHTML('beforeend', form(content));
 
   document.body.insertBefore(container, document.body.firstChild);
-  addStylesheet();
 
   document.getElementById('gitlab-review-container').addEventListener('click', (event) => {
     eventLookup(event)();

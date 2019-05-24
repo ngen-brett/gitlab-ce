@@ -7,6 +7,9 @@ const CompressionPlugin = require('compression-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
+const baseConfig = require('./webpack.config.base.js');
+const visualReviewToolbarConfig = require('./webpack.config.vrt.js');
+
 const ROOT_PATH = path.resolve(__dirname, '..');
 const CACHE_PATH = process.env.WEBPACK_CACHE_PATH || path.join(ROOT_PATH, 'tmp/cache');
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -101,23 +104,6 @@ if (IS_EE) {
     ee_else_ce: path.join(ROOT_PATH, 'ee/app/assets/javascripts'),
   });
 }
-
-const baseConfig = {
-  mode: IS_PRODUCTION ? 'production' : 'development',
-
-  context: path.join(ROOT_PATH, 'app/assets/javascripts'),
-
-  output: {
-    path: path.join(ROOT_PATH, 'public/assets/webpack'),
-  },
-
-  plugins: [
-    // compression can require a lot of compute time and is disabled in CI
-    new CompressionPlugin(),
-  ].filter(Boolean),
-
-  devtool: NO_SOURCEMAPS ? false : devtool,
-};
 
 const mainConfig = {
   ...baseConfig,
@@ -358,33 +344,5 @@ const mainConfig = {
   node: { fs: 'empty' },
 };
 
-const visualReviewToolbarConfig = {
-  ...baseConfig,
-
-  name: 'visual_review_toolbar',
-
-  entry: './visual_review_toolbar',
-
-  output: {
-    ...baseConfig.output,
-    filename: 'visual_review_toolbar.js',
-    library: 'VisualReviewToolbar',
-    libraryTarget: 'var',
-  },
-
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        loader: 'babel-loader',
-        options: {
-          cacheDirectory: path.join(CACHE_PATH, 'babel-loader'),
-        },
-      },
-    ],
-  },
-
-  plugins: [...baseConfig.plugins],
-};
 
 module.exports = [mainConfig, visualReviewToolbarConfig];
