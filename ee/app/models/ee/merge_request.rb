@@ -43,6 +43,14 @@ module EE
       participant :participant_approvers
 
       accepts_nested_attributes_for :approval_rules, allow_destroy: true
+
+      state_machine :state do
+        after_transition any => [:merged, :closed] do |merge_request|
+          next unless merge_request.auto_merge_enabled?
+
+          merge_request.run_after_commit { AutoMergeProcessWorker.perform_async(merge_request.id) }
+        end
+      end
     end
 
     class_methods do
@@ -76,18 +84,6 @@ module EE
       return false unless validate_merge_request_pipelines
 
       super
-    end
-
-    def get_on_train!(user)
-      create_merge_train!(user: user)
-    end
-
-    def get_off_train!
-      merge_train.destroy!
-    end
-
-    def on_train?
-      merge_train.present?
     end
 
     def allows_multiple_assignees?

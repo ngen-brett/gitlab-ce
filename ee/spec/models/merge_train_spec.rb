@@ -11,6 +11,32 @@ describe MergeTrain do
   it { is_expected.to belong_to(:user) }
   it { is_expected.to belong_to(:pipeline) }
 
+  before do
+    allow(AutoMergeProcessWorker).to receive(:perform_async)
+  end
+
+  describe 'after_create' do
+    let(:merge_request) { create(:merge_request) }
+
+    it 'calls AutoMergeProcessWorker' do
+      expect(AutoMergeProcessWorker).to receive(:perform_async).with(merge_request.id)
+
+      create(:merge_train, merge_request: merge_request)
+    end
+  end
+
+  describe 'after_destroy' do
+    let(:merge_request) { create(:merge_request) }
+
+    it 'calls AutoMergeProcessWorker' do
+      merge_train = create(:merge_train, merge_request: merge_request)
+
+      expect(AutoMergeProcessWorker).to receive(:perform_async).with(merge_request.id)
+
+      merge_train.destroy
+    end
+  end
+
   describe '.all_in_train' do
     subject { described_class.all_in_train(merge_request) }
 
