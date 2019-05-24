@@ -105,7 +105,7 @@ const linkStyles = `
   background-image: none;
 `;
 
-const messageStyles = `
+const messageStyles =  `
   padding: .25rem 0;
   margin: 0;
   line-height: 1.2rem;
@@ -281,13 +281,8 @@ const comment = `
 `;
 
 const commentIcon = `
-<<<<<<< HEAD:public/visual-review-toolbar.js
   <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title>icn/comment</title><path d="M4 11.132l1.446-.964A1 1 0 0 1 6 10h5a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v6.132zM6.303 12l-2.748 1.832A1 1 0 0 1 2 13V5a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3H6.303z" id="gitlab-comment-icon"/></svg>
-`
-=======
-  <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title>icn/comment</title><path d="M4 11.132l1.446-.964A1 1 0 0 1 6 10h5a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v6.132zM6.303 12l-2.748 1.832A1 1 0 0 1 2 13V5a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3v4a3 3 0 0 1-3 3H6.303z" id="a"/></svg>
 `;
->>>>>>> a67608fd8b1... Build visual_review_toolbar with webpack:app/assets/javascripts/visual_review_toolbar/index.js
 
 const compressIcon = `
   <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><title>icn/compress</title><path d="M5.27 12.182l-1.562 1.561a1 1 0 0 1-1.414 0h-.001a1 1 0 0 1 0-1.415l1.56-1.56L2.44 9.353a.5.5 0 0 1 .353-.854H7.09a.5.5 0 0 1 .5.5v4.294a.5.5 0 0 1-.853.353l-1.467-1.465zm6.911-6.914l1.464 1.464a.5.5 0 0 1-.353.854H8.999a.5.5 0 0 1-.5-.5V2.793a.5.5 0 0 1 .854-.354l1.414 1.415 1.56-1.561a1 1 0 1 1 1.415 1.414l-1.561 1.56z" id="gitlab-compress-icon"/></svg>
@@ -297,7 +292,7 @@ const collapseButton = `
   <button id='gitlab-collapse' style='${buttonClearStyles}' class='gitlab-collapse-open gitlab-button-secondary'>${compressIcon}</button>
 `;
 
-const form = content => `
+const form = (content) => `
   <div id='gitlab-form-wrapper'>
     ${content}
   </div>
@@ -323,94 +318,25 @@ const login = `
 ///////////////////////////////////////////////
 
 // from https://developer.mozilla.org/en-US/docs/Web/API/Window/navigator
-function getBrowserId(sUsrAg) {
-  var aKeys = ['MSIE', 'Edge', 'Firefox', 'Safari', 'Chrome', 'Opera'],
-    nIdx = aKeys.length - 1;
+function getBrowserId (sUsrAg) {
+  var aKeys = ["MSIE", "Edge", "Firefox", "Safari", "Chrome", "Opera"],
+      nIdx = aKeys.length - 1;
 
   for (nIdx; nIdx > -1 && sUsrAg.indexOf(aKeys[nIdx]) === -1; nIdx--);
   return aKeys[nIdx];
 }
 
-<<<<<<< HEAD:public/visual-review-toolbar.js
 function addCommentForm () {
   const formWrapper = document.getElementById('gitlab-form-wrapper');
   formWrapper.innerHTML = comment;
-=======
-function addCommentButtonEvent() {
-  // get user agent data
-  const {
-    innerWidth,
-    innerHeight,
-    location: { href },
-    navigator: { platform, userAgent },
-  } = window;
-  const browser = getBrowserId(userAgent);
-
-  const scriptName = 'ReviewAppToolbar';
-  const projectId = document
-    .querySelector(`script[data-name='${scriptName}']`)
-    .getAttribute('data-project');
-  const discussionId = document
-    .querySelector(`script[data-name='${scriptName}']`)
-    .getAttribute('data-discussion');
-  const mrUrl = document
-    .querySelector(`script[data-name='${scriptName}']`)
-    .getAttribute('data-mr-url');
-  const commentButton = document.getElementById('gitlab-comment-button');
-
-  const details = {
-    href,
-    platform,
-    browser,
-    userAgent,
-    innerWidth,
-    innerHeight,
-    projectId,
-    discussionId,
-    mrUrl,
-  };
-
-  commentButton.onclick = postComment.bind(null, details);
 }
 
-function addCollapseEvent() {
-  const collapseButton = document.getElementById('gitlab-collapse');
-  collapseButton.onclick = collapseForm;
-}
-
-function addCommentForm() {
-  const formWrapper = document.getElementById('gitlab-form-wrapper');
-  formWrapper.innerHTML = comment;
-  removeButtonAndClickEvent('gitlab-login', authorizeUser);
-  addCommentButtonEvent();
-  addLogoutButtonEvent();
-}
-
-function addLoginButtonEvent() {
-  const loginButton = document.getElementById('gitlab-login');
-  if (loginButton) {
-    loginButton.onclick = authorizeUser;
-  }
-}
-
-function addLogoutButtonEvent() {
-  const logoutButton = document.getElementById('gitlab-logout-button');
-  if (logoutButton) {
-    logoutButton.onclick = logoutUser;
-  }
->>>>>>> a67608fd8b1... Build visual_review_toolbar with webpack:app/assets/javascripts/visual_review_toolbar/index.js
-}
-
-function addLoginForm() {
+function addLoginForm () {
   const formWrapper = document.getElementById('gitlab-form-wrapper');
   formWrapper.innerHTML = login;
 }
 
-<<<<<<< HEAD:public/visual-review-toolbar.js
 function authorizeUser () {
-=======
-function authorizeUser() {
->>>>>>> a67608fd8b1... Build visual_review_toolbar with webpack:app/assets/javascripts/visual_review_toolbar/index.js
   // Clear any old errors
   clearNote('gitlab-token');
 
@@ -430,12 +356,12 @@ function authorizeUser() {
   return;
 }
 
-function authSuccess(token) {
+function authSuccess (token) {
   data.token = token;
   addCommentForm();
 }
 
-function clearNote(inputId) {
+function clearNote (inputId) {
   const note = document.getElementById('gitlab-validation-note');
   note.innerText = '';
   note.style.color = '';
@@ -446,11 +372,7 @@ function clearNote(inputId) {
   }
 }
 
-<<<<<<< HEAD:public/visual-review-toolbar.js
 function confirmAndClear (mergeRequestId) {
-=======
-function confirmAndClear(discussionId) {
->>>>>>> a67608fd8b1... Build visual_review_toolbar with webpack:app/assets/javascripts/visual_review_toolbar/index.js
   const commentButton = document.getElementById('gitlab-comment-button');
   const note = document.getElementById('gitlab-validation-note');
 
@@ -460,7 +382,6 @@ function confirmAndClear(discussionId) {
   setTimeout(resetCommentButton, 1000);
 }
 
-<<<<<<< HEAD:public/visual-review-toolbar.js
 function getInitialState () {
   const { localStorage } = window;
 
@@ -487,51 +408,11 @@ function getProjectDetails () {
             platform, userAgent
           } } = window;
   const browser = getBrowserId(userAgent);
-=======
-function collapseForm() {
-  const container = document.getElementById('gitlab-review-container');
-  const collapseButton = document.getElementById('gitlab-collapse');
-  const form = document.getElementById('gitlab-form-wrapper');
-
-  container.classList.replace('gitlab-open-wrapper', 'gitlab-closed-wrapper');
-  container.style.backgroundColor = 'rgba(255, 255, 255, 0)';
-  form.style.display = 'none';
-
-  collapseButton.classList.replace('gitlab-collapse-open', 'gitlab-collapse-closed');
-  collapseButton.innerHTML = commentIcon;
-  collapseButton.onclick = expandForm;
-}
-
-function expandForm() {
-  const container = document.getElementById('gitlab-review-container');
-  const collapseButton = document.getElementById('gitlab-collapse');
-  const form = document.getElementById('gitlab-form-wrapper');
-
-  container.classList.replace('gitlab-closed-wrapper', 'gitlab-open-wrapper');
-  container.style.backgroundColor = 'rgba(255, 255, 255, 1)';
-  form.style.display = 'flex';
-
-  collapseButton.classList.replace('gitlab-collapse-closed', 'gitlab-collapse-open');
-  collapseButton.innerHTML = compressIcon;
-  collapseButton.onclick = collapseForm;
-}
-
-function getInitialState() {
-  const { localStorage } = window;
-
-  if (!localStorage || !localStorage.getItem('token')) {
-    return {
-      content: login,
-      addEvent: addLoginButtonEvent,
-    };
-  }
->>>>>>> a67608fd8b1... Build visual_review_toolbar with webpack:app/assets/javascripts/visual_review_toolbar/index.js
 
   const scriptEl = document.getElementById('review-app-toolbar-script')
   const { projectId, mergeRequestId, mrUrl } = scriptEl.dataset;
 
   return {
-<<<<<<< HEAD:public/visual-review-toolbar.js
     href,
     platform,
     browser,
@@ -541,17 +422,10 @@ function getInitialState() {
     projectId,
     mergeRequestId,
     mrUrl,
-=======
-    content: comment,
-    addEvent: () => {
-      addCommentButtonEvent();
-      addLogoutButtonEvent();
-    },
->>>>>>> a67608fd8b1... Build visual_review_toolbar with webpack:app/assets/javascripts/visual_review_toolbar/index.js
   };
 }
 
-function logoutUser() {
+function logoutUser () {
   const { localStorage } = window;
 
   // All the browsers we support have localStorage, so let's silently fail
@@ -565,7 +439,7 @@ function logoutUser() {
   addLoginForm();
 }
 
-function postComment({
+function postComment ({
   href,
   platform,
   browser,
@@ -590,7 +464,6 @@ function postComment({
   }
 
   const detailText = `
-<<<<<<< HEAD:public/visual-review-toolbar.js
  \n
 <details>
   <summary>Metadata</summary>
@@ -598,14 +471,6 @@ function postComment({
   <br /><br />
   <em>User agent: ${userAgent}</em>
 </details>
-=======
-    <details>
-      <summary>Metadata</summary>
-      Posted from ${href} | ${platform} | ${browser} | ${innerWidth} x ${innerHeight}.
-      <br /><br />
-      *User agent: ${userAgent}*
-    </details>
->>>>>>> a67608fd8b1... Build visual_review_toolbar with webpack:app/assets/javascripts/visual_review_toolbar/index.js
   `;
 
   const url = `
@@ -615,14 +480,13 @@ function postComment({
   const body = `${commentText} ${detailText}`;
 
   fetch(url, {
-    method: 'POST',
-    headers: {
+     method: 'POST',
+     headers: {
       'PRIVATE-TOKEN': data.token,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ body }),
   })
-<<<<<<< HEAD:public/visual-review-toolbar.js
   .then((response) => {
     if (response.ok) {
       confirmAndClear(mergeRequestId);
@@ -635,26 +499,9 @@ function postComment({
     postError(`The feedback was not sent successfully. Please try again. Error: ${err.message}`, 'gitlab-comment');
     resetCommentBox();
   });
-=======
-    .then(response => {
-      if (response.ok) {
-        confirmAndClear(discussionId);
-        return;
-      }
-
-      throw new Error(`${response.status}: ${response.statusText}`);
-    })
-    .catch(err => {
-      postError(
-        `The feedback was not sent successfully. Please try again. Error: ${err.message}`,
-        'gitlab-comment',
-      );
-      resetCommentBox();
-    });
->>>>>>> a67608fd8b1... Build visual_review_toolbar with webpack:app/assets/javascripts/visual_review_toolbar/index.js
 }
 
-function postError(message, inputId) {
+function postError (message, inputId) {
   const note = document.getElementById('gitlab-validation-note');
   const field = document.getElementById(inputId);
   field.style.borderColor = '#db3b21';
@@ -662,16 +509,6 @@ function postError(message, inputId) {
   note.innerText = message;
 }
 
-<<<<<<< HEAD:public/visual-review-toolbar.js
-=======
-function removeButtonAndClickEvent(buttonId, eventListener) {
-  const button = document.getElementById(buttonId);
-  if (button) {
-    button.removeEventListener(eventListener);
-  }
-}
-
->>>>>>> a67608fd8b1... Build visual_review_toolbar with webpack:app/assets/javascripts/visual_review_toolbar/index.js
 function resetCommentBox() {
   const commentBox = document.getElementById('gitlab-comment');
   const commentButton = document.getElementById('gitlab-comment-button');
@@ -704,7 +541,8 @@ function setInProgressState() {
   commentBox.style.pointerEvents = 'none';
 }
 
-function storeToken(token) {
+function storeToken (token) {
+
   const { localStorage } = window;
 
   // All the browsers we support have localStorage, so let's silently fail
@@ -740,7 +578,6 @@ function toggleForm () {
     },
   }
 
-<<<<<<< HEAD:public/visual-review-toolbar.js
   const nextState = collapseButton.classList.contains('gitlab-collapse-open') ? CLOSED : OPEN;
 
   container.classList.replace(...stateVals[nextState].containerClasses);
@@ -748,9 +585,6 @@ function toggleForm () {
   form.style.display = stateVals[nextState].display;
   collapseButton.classList.replace(...stateVals[nextState].buttonClasses);
   collapseButton.innerHTML = stateVals[nextState].icon;
-=======
-  localStorage.setItem('token', token);
->>>>>>> a67608fd8b1... Build visual_review_toolbar with webpack:app/assets/javascripts/visual_review_toolbar/index.js
 }
 
 ///////////////////////////////////////////////
