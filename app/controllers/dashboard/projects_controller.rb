@@ -14,10 +14,7 @@ class Dashboard::ProjectsController < Dashboard::ApplicationController
 
     respond_to do |format|
       format.html do
-        # n+1: https://gitlab.com/gitlab-org/gitlab-ce/issues/40260
-        Gitlab::GitalyClient.allow_n_plus_1_calls do
-          render
-        end
+        render_projects
       end
       format.atom do
         load_events
@@ -51,6 +48,13 @@ class Dashboard::ProjectsController < Dashboard::ApplicationController
 
   private
 
+  def render_projects
+    # n+1: https://gitlab.com/gitlab-org/gitlab-ce/issues/40260
+    Gitlab::GitalyClient.allow_n_plus_1_calls do
+      render
+    end
+  end
+
   def default_sorting
     params[:sort] ||= 'latest_activity_desc'
     @sort = params[:sort]
@@ -81,3 +85,5 @@ class Dashboard::ProjectsController < Dashboard::ApplicationController
     Events::RenderService.new(current_user).execute(@events, atom_request: request.format.atom?)
   end
 end
+
+Dashboard::ProjectsController.prepend(EE::Dashboard::ProjectsController)
