@@ -1122,7 +1122,7 @@ DEPENDENCIES
   lograge (~> 0.5)
   loofah (~> 2.2)
   mail_room (~> 0.9.1)
-  memory_profiler
+  memory_profiler (~> 0.9)
   method_source (~> 0.8)
   mimemagic (~> 0.3.2)
   mini_magick
