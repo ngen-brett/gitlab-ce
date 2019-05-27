@@ -425,7 +425,7 @@ group :ed25519 do
 end
 
 # Gitaly GRPC client
-gem 'gitaly-proto', '~> 1.27.0', require: 'gitaly'
+gem 'gitaly-proto', git: 'https://gitlab.com/gitlab-org/gitaly-proto.git', branch: 'pb-get-objects-directory-size', require: 'gitaly'
 
 gem 'grpc', '~> 1.19.0'
 
