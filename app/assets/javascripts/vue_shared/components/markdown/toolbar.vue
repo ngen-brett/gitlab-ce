@@ -63,7 +63,7 @@ export default {
         <button class="attach-new-file markdown-selector" type="button">attach a new file</button>
       </span>
       <button class="markdown-selector button-attach-file" tabindex="-1" type="button">
-        <i class="fa fa-file-image-o toolbar-button-icon" aria-hidden="true"> </i> Attach a file
+        <i class="fa fa-file-image-o toolbar-button-icon" aria-hidden="true"> </i><span class="text-attach-file">Attach a file</span>
       </button>
       <button class="btn btn-default btn-sm hide button-cancel-uploading-files" type="button">
         Cancel
