@@ -261,27 +261,39 @@ describe Milestone, 'Milestoneish' do
 
   describe '#percent_complete' do
     it 'does not count confidential issues for non project members' do
-      expect(milestone.percent_complete(non_member)).to eq 50
+      expect(milestone.count_issues_by_state(non_member)['closed']).to eq 2
+      expect(milestone.total_issues_count(non_member)).to eq 3
+      expect(milestone.percent_complete(non_member)).to eq 66
     end
 
     it 'does not count confidential issues for project members with guest role' do
-      expect(milestone.percent_complete(guest)).to eq 50
+      expect(milestone.count_issues_by_state(guest)['closed']).to eq 2
+      expect(milestone.total_issues_count(guest)).to eq 3
+      expect(milestone.percent_complete(guest)).to eq 66
     end
 
     it 'counts confidential issues for author' do
-      expect(milestone.percent_complete(author)).to eq 57
+      expect(milestone.count_issues_by_state(author)['closed']).to eq 4
+      expect(milestone.total_issues_count(author)).to eq 6
+      expect(milestone.percent_complete(author)).to eq 66
     end
 
     it 'counts confidential issues for assignee' do
-      expect(milestone.percent_complete(assignee)).to eq 57
+      expect(milestone.count_issues_by_state(assignee)['closed']).to eq 4
+      expect(milestone.total_issues_count(assignee)).to eq 6
+      expect(milestone.percent_complete(assignee)).to eq 66
     end
 
     it 'counts confidential issues for project members' do
-      expect(milestone.percent_complete(member)).to eq 60
+      expect(milestone.count_issues_by_state(member)['closed']).to eq 6
+      expect(milestone.total_issues_count(member)).to eq 9
+      expect(milestone.percent_complete(member)).to eq 66
     end
 
     it 'counts confidential issues for admin' do
-      expect(milestone.percent_complete(admin)).to eq 60
+      expect(milestone.count_issues_by_state(admin)['closed']).to eq 6
+      expect(milestone.total_issues_count(admin)).to eq 9
+      expect(milestone.percent_complete(admin)).to eq 66
     end
   end
 

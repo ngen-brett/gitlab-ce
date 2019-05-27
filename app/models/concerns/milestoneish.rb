@@ -22,7 +22,7 @@ module Milestoneish
   end
 
   def percent_complete(user)
-    ((closed_items_count(user) * 100) / total_items_count(user)).abs
+    ((count_issues_by_state(user)['closed'].to_i * 100) / total_issues_count(user)).abs
   rescue ZeroDivisionError
     0
   end

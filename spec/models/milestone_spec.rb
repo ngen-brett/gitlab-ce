@@ -169,8 +169,8 @@ describe Milestone do
   describe '#percent_complete' do
     before do
       allow(milestone).to receive_messages(
-        closed_items_count: 3,
-        total_items_count: 4
+        count_issues_by_state: { 'closed' => 3 },
+        total_issues_count: 4
       )
     end
 
