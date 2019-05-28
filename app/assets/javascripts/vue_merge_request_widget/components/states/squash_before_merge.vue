@@ -29,7 +29,7 @@ export default {
 </script>
 
 <template>
-  <div class="accept-control inline">
+  <div class="inline">
     <label class="merge-param-checkbox">
       <input
         :checked="value"
