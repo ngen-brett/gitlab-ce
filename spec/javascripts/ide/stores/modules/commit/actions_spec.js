@@ -464,4 +464,18 @@ describe('IDE commit module actions', () => {
       });
     });
   });
+
+  describe('setShouldCreateMR', () => {
+    const state = it('changes to false when the current branch already has an MR', () => {
+      console.log('TODO');
+    });
+
+    it('changes to false when current branch is the default branch', () => {
+      console.log('TODO');
+    });
+
+    it('changes to true when "create new branch" is selected', () => {
+      console.log('TODO');
+    });
+  });
 });

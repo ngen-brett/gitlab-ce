@@ -18,15 +18,23 @@ export const discardDraft = ({ commit }) => {
   commit(types.UPDATE_COMMIT_MESSAGE, '');
 };
 
-export const updateCommitAction = ({ commit, rootGetters }, commitAction) => {
+export const updateCommitAction = ({ commit, dispatch }, commitAction) => {
   commit(types.UPDATE_COMMIT_ACTION, {
     commitAction,
-    currentMergeRequest: rootGetters.currentMergeRequest,
   });
+  dispatch('setShouldCreateMR');
 };
 
 export const toggleShouldCreateMR = ({ commit }) => {
   commit(types.TOGGLE_SHOULD_CREATE_MR);
+};
+
+export const setShouldCreateMR = ({ commit, rootGetters }) => {
+  if (rootGetters.isCommittingToDefaultBranch || rootGetters.hasMergeRequest) {
+    commit(types.TOGGLE_SHOULD_CREATE_MR, false);
+  } else {
+    commit(types.TOGGLE_SHOULD_CREATE_MR, true);
+  }
 };
 
 export const updateBranchName = ({ commit }, branchName) => {

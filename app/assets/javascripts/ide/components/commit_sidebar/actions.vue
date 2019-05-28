@@ -15,8 +15,12 @@ export default {
   },
   computed: {
     ...mapState(['currentBranchId', 'changedFiles', 'stagedFiles']),
-    ...mapCommitState(['commitAction', 'shouldCreateMR', 'shouldDisableNewMrOption']),
-    ...mapGetters(['currentProject', 'currentBranch', 'currentMergeRequest']),
+    ...mapCommitState(['commitAction', 'shouldCreateMR']),
+    ...mapGetters([
+      'currentBranch',
+      'currentProject',
+      'hasMergeRequest',
+    ]),
     ...mapCommitGetters(['shouldDisableNewMrOption']),
     commitToCurrentBranchText() {
       return sprintf(
@@ -25,24 +29,25 @@ export default {
         false,
       );
     },
-    disableMergeRequestRadio() {
+    containsStagedChanges() {
       return this.changedFiles.length > 0 && this.stagedFiles.length > 0;
     },
   },
   watch: {
-    disableMergeRequestRadio() {
+    containsStagedChanges() {
       this.updateSelectedCommitAction();
     },
   },
   mounted() {
     this.updateSelectedCommitAction();
+    this.setShouldCreateMR();
   },
   methods: {
-    ...mapActions('commit', ['updateCommitAction', 'toggleShouldCreateMR']),
+    ...mapActions('commit', ['updateCommitAction', 'toggleShouldCreateMR', 'setShouldCreateMR']),
     updateSelectedCommitAction() {
       if (this.currentBranch && !this.currentBranch.can_push) {
         this.updateCommitAction(consts.COMMIT_TO_NEW_BRANCH);
-      } else if (this.disableMergeRequestRadio) {
+      } else if (this.containsStagedChanges) {
         this.updateCommitAction(consts.COMMIT_TO_CURRENT_BRANCH);
       }
     },

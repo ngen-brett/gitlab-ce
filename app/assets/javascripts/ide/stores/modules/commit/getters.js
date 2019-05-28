@@ -48,8 +48,12 @@ export const preBuiltCommitMessage = (state, _, rootState) => {
 
 export const isCreatingNewBranch = state => state.commitAction === consts.COMMIT_TO_NEW_BRANCH;
 
-export const shouldDisableNewMrOption = (state, _getters, _rootState, rootGetters) =>
-  rootGetters.currentMergeRequest && state.commitAction === consts.COMMIT_TO_CURRENT_BRANCH;
+export const isCommittingToCurrentBranch = state =>
+  state.commitAction === consts.COMMIT_TO_CURRENT_BRANCH;
+
+export const shouldDisableNewMrOption = (state, getters, _rootState, rootGetters) =>
+  (rootGetters.hasMergeRequest && getters.isCommittingToCurrentBranch) ||
+  (rootGetters.isOnDefaultBranch && getters.isCommittingToCurrentBranch);
 
 // prevent babel-plugin-rewire from generating an invalid default during karma tests
 export default () => {};
