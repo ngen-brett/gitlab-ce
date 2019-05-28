@@ -1,14 +1,16 @@
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import diffDiscussions from './diff_discussions.vue';
 import diffLineNoteForm from './diff_line_note_form.vue';
 import ReplyPlaceholder from '../../notes/components/discussion_reply_placeholder.vue';
+import UserAvatarLink from '../../vue_shared/components/user_avatar/user_avatar_link.vue';
 
 export default {
   components: {
     diffDiscussions,
     diffLineNoteForm,
     ReplyPlaceholder,
+    UserAvatarLink,
   },
   props: {
     line: {
@@ -26,6 +28,7 @@ export default {
     },
   },
   computed: {
+    ...mapGetters(['getUserData']),
     className() {
       return this.line.discussions.length ? '' : 'js-temp-notes-holder';
     },
@@ -36,6 +39,9 @@ export default {
         return false;
       }
       return this.line.discussions.every(discussion => discussion.expanded);
+    },
+    currentUser() {
+      return this.getUserData;
     },
   },
   methods: {
@@ -64,7 +70,14 @@ export default {
           :note-target-line="line"
           :help-page-path="helpPagePath"
         />
-        <div v-if="line.discussions.length && !line.hasForm" class="discussion-reply-holder">
+        <div v-if="line.discussions.length && !line.hasForm" class="discussion-reply-holder d-flex">
+          <user-avatar-link
+            :link-href="currentUser.path"
+            :img-src="currentUser.avatar_url"
+            :img-alt="currentUser.name"
+            :img-size="40"
+            class="d-none d-sm-block"
+          />
           <reply-placeholder
             class="qa-discussion-reply"
             buttonText="Start a new discussion..."

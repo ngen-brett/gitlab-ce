@@ -138,18 +138,36 @@ export default {
       </template>
       <template v-else>
         <component
-          :is="componentName(note)"
-          v-for="(note, index) in discussion.notes"
-          :key="note.id"
-          :note="componentData(note)"
+          :is="componentName(firstNote)"
+          :key="firstNote.id"
+          :note="componentData(firstNote)"
           :help-page-path="helpPagePath"
           :line="diffLine"
           @handle-delete-note="$emit('deleteNote')"
         >
-          <slot v-if="index === 0" slot="avatar-badge" name="avatar-badge"></slot>
+          <slot slot="avatar-badge" name="avatar-badge"></slot>
         </component>
+        <div class="red">
+          <component
+            :is="componentName(note)"
+            v-for="(note, index) in replies"
+            :key="note.id"
+            :note="componentData(note)"
+            :help-page-path="helpPagePath"
+            :line="diffLine"
+            @handle-delete-note="$emit('deleteNote')"
+          >
+            <slot v-if="index === 0" slot="avatar-badge" name="avatar-badge"></slot>
+          </component>
+          <slot :show-replies="isExpanded || !hasReplies" name="footer"></slot>
+        </div>
       </template>
     </ul>
-    <slot :show-replies="isExpanded || !hasReplies" name="footer"></slot>
   </div>
 </template>
+
+<style>
+.red {
+  border: 1px solid red;
+}
+</style>
