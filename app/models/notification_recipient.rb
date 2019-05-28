@@ -54,7 +54,7 @@ class NotificationRecipient
     when :custom
       custom_enabled? || %i[participating mention].include?(@type)
     when :watch
-      !excluded_watcher_action?
+      !(@type == :watch && excluded_watcher_action?)
     else
       false
     end
