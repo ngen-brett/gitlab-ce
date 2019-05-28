@@ -8,7 +8,7 @@ import createStore from '~/notes/stores';
 import '~/behaviors/markdown/render_gfm';
 import * as mockData from '../mock_data';
 
-describe('note_app', () => {
+fdescribe('note_app', () => {
   let mountComponent;
   let wrapper;
   let store;
@@ -167,7 +167,7 @@ describe('note_app', () => {
     describe('individual note', () => {
       beforeEach(done => {
         Vue.http.interceptors.push(mockData.individualNoteInterceptor);
-        spyOn(service, 'updateNote').and.callThrough();
+        spyOn(service, 'updateNote').and.returnValue(Promise.resolve());
         wrapper = mountComponent();
         setTimeout(() => {
           wrapper.find('.js-note-edit').trigger('click');
@@ -186,7 +186,7 @@ describe('note_app', () => {
         expect(wrapper.find('.js-vue-issue-note-form').exists()).toBe(true);
       });
 
-      it('calls the service to update the note', done => {
+      fit('calls the service to update the note', done => {
         wrapper.find('.js-vue-issue-note-form').value = 'this is a note';
         wrapper.find('.js-vue-issue-save').trigger('click');
 
@@ -201,7 +201,7 @@ describe('note_app', () => {
     describe('discussion note', () => {
       beforeEach(done => {
         Vue.http.interceptors.push(mockData.discussionNoteInterceptor);
-        spyOn(service, 'updateNote').and.callThrough();
+        spyOn(service, 'updateNote').and.returnValue(Promise.resolve());
         wrapper = mountComponent();
 
         setTimeout(() => {
@@ -221,7 +221,7 @@ describe('note_app', () => {
         expect(wrapper.find('.js-vue-issue-note-form').exists()).toBe(true);
       });
 
-      it('updates the note and resets the edit form', done => {
+      fit('updates the note and resets the edit form', done => {
         wrapper.find('.js-vue-issue-note-form').value = 'this is a note';
         wrapper.find('.js-vue-issue-save').trigger('click');
 
