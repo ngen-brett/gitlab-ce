@@ -91,7 +91,6 @@ class GroupPolicy < BasePolicy
     enable :admin_group
     enable :admin_namespace
     enable :admin_group_member
-    enable :read_statistics
     enable :change_visibility_level
 
     enable :set_note_created_at
