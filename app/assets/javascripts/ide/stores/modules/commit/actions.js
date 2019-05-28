@@ -27,12 +27,16 @@ export const updateCommitAction = ({ commit, dispatch }, commitAction) => {
 
 export const toggleShouldCreateMR = ({ commit }) => {
   commit(types.TOGGLE_SHOULD_CREATE_MR);
+  commit(types.INTERACT_WITH_NEW_MR);
 };
 
-export const setShouldCreateMR = ({ commit, rootGetters }) => {
-  if (rootGetters.isCommittingToDefaultBranch || rootGetters.hasMergeRequest) {
+export const setShouldCreateMR = ({ commit, getters, rootGetters, state }) => {
+  if (
+    (getters.isCommittingToCurrentBranch && rootGetters.isOnDefaultBranch) ||
+    (getters.isCommittingToCurrentBranch && rootGetters.hasMergeRequest)
+  ) {
     commit(types.TOGGLE_SHOULD_CREATE_MR, false);
-  } else {
+  } else if (!state.interactedWithNewMR) {
     commit(types.TOGGLE_SHOULD_CREATE_MR, true);
   }
 };

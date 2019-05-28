@@ -21,7 +21,10 @@ export default {
   },
   [types.TOGGLE_SHOULD_CREATE_MR](state, shouldCreateMR) {
     Object.assign(state, {
-      shouldCreateMR: shouldCreateMR || !state.shouldCreateMR,
+      shouldCreateMR: shouldCreateMR === undefined ? !state.shouldCreateMR : shouldCreateMR,
     });
+  },
+  [types.INTERACT_WITH_NEW_MR](state) {
+    Object.assign(state, { interactedWithNewMR: true });
   },
 };

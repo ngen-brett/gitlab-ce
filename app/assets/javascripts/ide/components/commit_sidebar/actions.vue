@@ -1,11 +1,11 @@
 <script>
 import _ from 'underscore';
-import { mapActions, mapState, mapGetters, createNamespacedHelpers } from 'vuex';
+import { mapState, mapGetters, createNamespacedHelpers } from 'vuex';
 import { sprintf, __ } from '~/locale';
 import consts from '../../stores/modules/commit/constants';
 import RadioGroup from './radio_group.vue';
 
-const { mapState: mapCommitState, mapGetters: mapCommitGetters } = createNamespacedHelpers(
+const { mapState: mapCommitState, mapGetters: mapCommitGetters, mapActions: mapCommitActions } = createNamespacedHelpers(
   'commit',
 );
 
@@ -16,11 +16,7 @@ export default {
   computed: {
     ...mapState(['currentBranchId', 'changedFiles', 'stagedFiles']),
     ...mapCommitState(['commitAction', 'shouldCreateMR']),
-    ...mapGetters([
-      'currentBranch',
-      'currentProject',
-      'hasMergeRequest',
-    ]),
+    ...mapGetters(['currentBranch', 'currentProject', 'hasMergeRequest']),
     ...mapCommitGetters(['shouldDisableNewMrOption']),
     commitToCurrentBranchText() {
       return sprintf(
@@ -43,7 +39,7 @@ export default {
     this.setShouldCreateMR();
   },
   methods: {
-    ...mapActions('commit', ['updateCommitAction', 'toggleShouldCreateMR', 'setShouldCreateMR']),
+    ...mapCommitActions(['updateCommitAction', 'toggleShouldCreateMR', 'setShouldCreateMR']),
     updateSelectedCommitAction() {
       if (this.currentBranch && !this.currentBranch.can_push) {
         this.updateCommitAction(consts.COMMIT_TO_NEW_BRANCH);
