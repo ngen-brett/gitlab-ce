@@ -109,11 +109,6 @@ export default {
       required: false,
       default: false,
     },
-    updateAcknowledged: {
-      type: Boolean,
-      required: false,
-      default: true,
-    },
     installApplicationRequestParams: {
       type: Object,
       required: false,

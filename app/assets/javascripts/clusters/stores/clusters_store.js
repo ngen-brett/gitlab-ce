@@ -57,7 +57,6 @@ export default class ClusterStore {
           version: null,
           chartRepo: 'https://gitlab.com/charts/gitlab-runner',
           upgradeAvailable: null,
-          updateAcknowledged: true,
           updateSuccessful: false,
           updateFailed: false,
         },
@@ -132,10 +131,6 @@ export default class ClusterStore {
     const currentAppState = this.state.applications[appId];
 
     this.state.applications[appId] = transitionApplicationState(currentAppState, event);
-  }
-
-  acknowledgeSuccessfulUpdate(appId) {
-    this.state.applications[appId].updateAcknowledged = true;
   }
 
   updateAppProperty(appId, prop, value) {
