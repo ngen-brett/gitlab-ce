@@ -576,6 +576,10 @@ module API
       expose :time_stats, using: 'API::Entities::IssuableTimeStats' do |issue|
         issue
       end
+
+      expose :task_completion_status, using: 'API::Entities::TaskableTaskCompletionStatus' do |issue|
+        issue
+      end
     end
 
     class Issue < IssueBasic
@@ -609,6 +613,20 @@ module API
 
       expose :subscribed do |issue, options|
         issue.subscribed?(options[:current_user], options[:project] || issue.project)
+      end
+    end
+
+    class TaskableTaskCompletionStatus < Grape::Entity
+      expose :count do |taskable|
+        tasks_summary(taskable).item_count
+      end
+
+      expose :completed_count do |taskable|
+        tasks_summary(taskable).complete_count
+      end
+
+      def tasks_summary(taskable)
+        taskable.tasks.summary
       end
     end
 
@@ -724,6 +742,10 @@ module API
       end
 
       expose :squash
+
+      expose :task_completion_status, using: 'API::Entities::TaskableTaskCompletionStatus' do |merge_request|
+        merge_request
+      end
     end
 
     class MergeRequest < MergeRequestBasic
