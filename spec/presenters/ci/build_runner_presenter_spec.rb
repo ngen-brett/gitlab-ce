@@ -119,40 +119,20 @@ describe Ci::BuildRunnerPresenter do
   end
 
   describe '#git_depth' do
-    subject { presenter.git_depth }
-
     let(:build) { create(:ci_build) }
 
-    it 'returns the correct git depth' do
-      is_expected.to eq(0)
-    end
+    subject(:git_depth) { presenter.git_depth }
 
     context 'when GIT_DEPTH variable is specified' do
-      before do
-        create(:ci_pipeline_variable, key: 'GIT_DEPTH', value: 1, pipeline: build.pipeline)
-      end
+      before { create(:ci_pipeline_variable, key: 'GIT_DEPTH', value: 1, pipeline: build.pipeline) }
 
-      it 'returns the correct git depth' do
-        is_expected.to eq(1)
+      it 'returns its value' do
+        expect(git_depth).to eq(1)
       end
     end
 
-    context 'when pipeline is detached merge request pipeline' do
-      let(:merge_request) { create(:merge_request, :with_detached_merge_request_pipeline) }
-      let(:pipeline) { merge_request.all_pipelines.first }
-      let(:build) { create(:ci_build, ref: pipeline.ref, pipeline: pipeline) }
-
-      it 'returns the default git depth for pipelines for merge requests' do
-        is_expected.to eq(described_class::DEFAULT_GIT_DEPTH_MERGE_REQUEST)
-      end
-
-      context 'when pipeline is legacy detached merge request pipeline' do
-        let(:merge_request) { create(:merge_request, :with_legacy_detached_merge_request_pipeline) }
-
-        it 'behaves as branch pipeline' do
-          is_expected.to eq(0)
-        end
-      end
+    it 'defaults to git depth setting for the project' do
+      expect(git_depth).to eq(build.project.default_git_depth)
     end
   end
 

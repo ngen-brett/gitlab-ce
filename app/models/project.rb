@@ -310,6 +310,7 @@ class Project < ApplicationRecord
   delegate :root_ancestor, to: :namespace, allow_nil: true
   delegate :last_pipeline, to: :commit, allow_nil: true
   delegate :external_dashboard_url, to: :metrics_setting, allow_nil: true, prefix: true
+  delegate :default_git_depth, :default_git_depth=, to: :ci_cd_settings
 
   # Validations
   validates :creator, presence: true, on: :create

@@ -6,6 +6,10 @@ class ProjectCiCdSetting < ApplicationRecord
   # The version of the schema that first introduced this model/table.
   MINIMUM_SCHEMA_VERSION = 20180403035759
 
+  DEFAULT_GIT_DEPTH = 50
+
+  before_create :set_default_git_depth, unless: :default_git_depth?
+
   def self.available?
     @available ||=
       ActiveRecord::Migrator.current_version >= MINIMUM_SCHEMA_VERSION
@@ -14,5 +18,11 @@ class ProjectCiCdSetting < ApplicationRecord
   def self.reset_column_information
     @available = nil
     super
+  end
+
+  private
+
+  def set_default_git_depth
+    self.default_git_depth = DEFAULT_GIT_DEPTH
   end
 end
