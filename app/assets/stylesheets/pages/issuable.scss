@@ -218,7 +218,7 @@
 
   .title {
     color: $gl-text-color;
-    margin-bottom: 10px;
+    margin-bottom: $gl-padding-8;
     line-height: 1;
 
     .avatar {
@@ -604,7 +604,6 @@
 .participants-list {
   display: flex;
   flex-wrap: wrap;
-  margin: -7px;
 }
 
 .user-list {
@@ -614,7 +613,11 @@
 
 .participants-author {
   display: inline-block;
-  padding: $gl-padding-4;
+  padding: 0 $gl-padding-4;
+
+  &:first-child {
+    padding-left: 0;
+  }
 
   &:nth-of-type(7n) {
     padding-right: 0;
