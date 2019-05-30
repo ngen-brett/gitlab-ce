@@ -14,6 +14,10 @@ export default {
       type: Boolean,
       required: true,
     },
+    collapseText: {
+      type: String,
+      required: true,
+    },
   },
   computed: {
     collapseIcon() {
@@ -33,11 +37,11 @@ export default {
         :aria-label="ariaLabel"
         variant="blank"
         class="collapsible-toggle square s24 mr-2"
-        @click.stop="toggle()"
+        @click.stop="$emit('toggle')"
       >
         <icon :name="collapseIcon" :size="16" />
       </gl-button>
-      <span v-if="expanded">{{ __('Collapse') }}</span>
+      <span v-if="expanded">{{ collapseText }}</span>
       <span v-else>
         <slot name="header"></slot>
       </span>
