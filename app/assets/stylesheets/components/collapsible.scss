@@ -1,5 +1,6 @@
 .collapsible {
   background-color: $gray-light;
+  border-radius: $border-radius-default $border-radius-default 0 0;
 
   &.clickable:hover {
     background-color: $gl-gray-200;
