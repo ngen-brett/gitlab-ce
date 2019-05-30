@@ -613,11 +613,7 @@
 
 .participants-author {
   display: inline-block;
-  padding: 0 $gl-padding-4;
-
-  &:first-child {
-    padding-left: 0;
-  }
+  padding: 0 $gl-padding-8 $gl-padding-8 0;
 
   &:nth-of-type(7n) {
     padding-right: 0;
