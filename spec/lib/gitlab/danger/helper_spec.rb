@@ -12,10 +12,11 @@ describe Gitlab::Danger::Helper do
   class FakeDanger
     include Gitlab::Danger::Helper
 
-    attr_reader :git
+    attr_reader :git, :gitlab
 
-    def initialize(git:)
+    def initialize(git:, gitlab:)
       @git = git
+      @gitlab = gitlab
     end
   end
 
@@ -53,8 +54,9 @@ describe Gitlab::Danger::Helper do
   end
 
   let(:fake_git) { double('fake-git') }
+  let(:fake_gitlab) { double('fake-gitlab') }
 
-  subject(:helper) { FakeDanger.new(git: fake_git) }
+  subject(:helper) { FakeDanger.new(git: fake_git, gitlab: fake_gitlab) }
 
   describe '#all_changed_files' do
     subject { helper.all_changed_files }
@@ -297,6 +299,24 @@ describe Gitlab::Danger::Helper do
       subject { helper.label_for_category(category) }
 
       it { is_expected.to eq(expected_label) }
+    end
+  end
+
+  describe 'exclude_mr_author' do
+    before do
+      allow(fake_gitlab).to receive(:mr_author).and_return('filipa')
+    end
+
+    it 'excludes the mr.author from the users list not starting with @' do
+      users = %w[@filipa @iamphill]
+
+      expect(subject.exclude_mr_author(users)).to eq(%w[@iamphill])
+    end
+
+    it 'excludes the mr.author from the users list starting with @' do
+      users = %w[filipa iamphill]
+
+      expect(subject.exclude_mr_author(users)).to eq(%w[iamphill])
     end
   end
 end

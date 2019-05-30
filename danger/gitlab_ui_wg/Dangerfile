@@ -1,6 +1,6 @@
 def mention_single_codebase_approvers
-  frontend_maintainers = %w(@filipa @iamphill @psimyn @sarahghp @mishunov)
-  ux_maintainers = %w(@tauriedavis @rverissimo)
+  frontend_maintainers = exclude_mr_author(%w(@filipa @iamphill @psimyn @sarahghp @mishunov))
+  ux_maintainers = exclude_mr_author(%w(@jacopo-beschi @rverissimo))
 
   rows = []
   users = []

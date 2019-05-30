@@ -151,6 +151,11 @@ module Gitlab
         %r{\.(md|txt)\z} => :none, # To reinstate roulette for documentation, set to `:docs`.
         %r{\.js\z} => :frontend
       }.freeze
+
+      # Excludes MR Author from a users Array<String> which includes either "username" or "@username"
+      def exclude_mr_author(users)
+        users.delete_if { |user| user =~ /\A@?#{gitlab.mr_author}\z/ }
+      end
     end
   end
 end

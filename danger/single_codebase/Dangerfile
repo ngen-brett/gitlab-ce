@@ -1,6 +1,6 @@
 def mention_single_codebase_approvers
-  frontend_maintainers = %w(@filipa @iamphill)
-  backend_maintainers = %w(@rspeicher @rymai @yorickpeterse @godfat)
+  frontend_maintainers = exclude_mr_author(%w(@filipa @iamphill))
+  backend_maintainers = exclude_mr_author(%w(@rspeicher @rymai @yorickpeterse @godfat))
 
   rows = []
   users = []
