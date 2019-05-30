@@ -4,12 +4,6 @@ $avatar-sizes: (
     line-height: 16px,
     border-radius: $border-radius-small
   ),
-  18: (
-    border-radius: $border-radius-small
-  ),
-  19: (
-    border-radius: $border-radius-small
-  ),
   20: (
     border-radius: $border-radius-small
   ),
@@ -28,15 +22,9 @@ $avatar-sizes: (
     line-height: 32px,
     border-radius: $border-radius-default
   ),
-  36: (
-    border-radius: $border-radius-default
-  ),
   40: (
     font-size: 16px,
     line-height: 38px,
-    border-radius: $border-radius-default
-  ),
-  46: (
     border-radius: $border-radius-default
   ),
   48: (
@@ -54,35 +42,14 @@ $avatar-sizes: (
     line-height: 64px,
     border-radius: $border-radius-large
   ),
-  70: (
-    font-size: 34px,
-    line-height: 70px,
-    border-radius: $border-radius-large
-  ),
   90: (
     font-size: 36px,
     line-height: 88px,
     border-radius: $border-radius-large
   ),
-  96: (
-    font-size: 48px,
-    line-height: 96px,
-    border-radius: $border-radius-large
-  ),
   100: (
     font-size: 36px,
     line-height: 98px,
-    border-radius: $border-radius-large
-  ),
-  110: (
-    font-size: 40px,
-    line-height: 108px,
-    font-weight: $gl-font-weight-normal,
-    border-radius: $border-radius-large
-  ),
-  140: (
-    font-size: 72px,
-    line-height: 138px,
     border-radius: $border-radius-large
   ),
   160: (
