@@ -157,11 +157,11 @@ export default {
         >
           <slot slot="avatar-badge" name="avatar-badge"></slot>
         </component>
-        <div class="discussion-collapsible bordered-box">
+        <div class="discussion-collapsible bordered-box clearfix">
           <collapsible
             v-if="hasReplies"
             :expanded="repliesExpanded"
-            :collapseText="__('Collapse replies')"
+            :collapseText="__('Collapse replies ')"
             @toggle="toggleReplies"
           >
             <template #header>

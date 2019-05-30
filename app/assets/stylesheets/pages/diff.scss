@@ -1105,6 +1105,11 @@ table.code {
       padding-right: 0;
     }
   }
+
+  .discussion-collapsible {
+    margin: $gl-padding;
+    margin-top: 0;
+  }
 }
 
 .image-diff-overlay,

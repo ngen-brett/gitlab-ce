@@ -379,7 +379,7 @@ Please check your network connection and try again.`;
                 <div
                   v-else-if="showReplies"
                   :class="{ 'is-replying': isReplying }"
-                  class="discussion-reply-holder"
+                  class="discussion-reply-holder clearfix"
                 >
                   <user-avatar-link
                     v-if="!isReplying && currentUser"
