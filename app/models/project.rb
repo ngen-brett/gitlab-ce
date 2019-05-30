@@ -292,6 +292,7 @@ class Project < ApplicationRecord
   accepts_nested_attributes_for :project_feature, update_only: true
   accepts_nested_attributes_for :import_data
   accepts_nested_attributes_for :auto_devops, update_only: true
+  accepts_nested_attributes_for :ci_cd_settings, update_only: true
 
   accepts_nested_attributes_for :remote_mirrors,
                                 allow_destroy: true,
