@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { SYSTEM_NOTE } from '../constants';
-import { __ } from '~/locale';
+import { __, n__ } from '~/locale';
 import NoteableNote from './noteable_note.vue';
 import PlaceholderNote from '../../vue_shared/components/notes/placeholder_note.vue';
 import PlaceholderSystemNote from '../../vue_shared/components/notes/placeholder_system_note.vue';
@@ -76,6 +76,9 @@ export default {
         id: this.discussion.commit_id,
         url: this.discussion.discussion_path,
       };
+    },
+    repliesLength() {
+      return n__(__('%d reply'), __('%d replies'), this.replies.length);
     },
   },
   methods: {
@@ -164,8 +167,8 @@ export default {
             :collapseText="__('Collapse replies ')"
             @toggle="toggleReplies"
           >
-            <template #header>
-              Test header
+            <template #header
+              >{{ repliesLength }}
             </template>
             <template #content>
               <component
