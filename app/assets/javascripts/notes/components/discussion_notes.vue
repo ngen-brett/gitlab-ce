@@ -149,25 +149,27 @@ export default {
         >
           <slot slot="avatar-badge" name="avatar-badge"></slot>
         </component>
-        <collapsible class="discussion-collapsible">
-          <template #header>
-            Test header
-          </template>
-          <template #content>
-            <component
-              :is="componentName(note)"
-              v-for="(note, index) in replies"
-              :key="note.id"
-              :note="componentData(note)"
-              :help-page-path="helpPagePath"
-              :line="diffLine"
-              @handle-delete-note="$emit('deleteNote')"
-            >
-              <slot v-if="index === 0" slot="avatar-badge" name="avatar-badge"></slot>
-            </component>
-            <slot :show-replies="isExpanded || !hasReplies" name="footer"></slot>
-          </template>
-        </collapsible>
+        <div class="discussion-collapsible">
+          <collapsible v-if="replies.length">
+            <template #header>
+              Test header
+            </template>
+            <template #content>
+              <component
+                :is="componentName(note)"
+                v-for="(note, index) in replies"
+                :key="note.id"
+                :note="componentData(note)"
+                :help-page-path="helpPagePath"
+                :line="diffLine"
+                @handle-delete-note="$emit('deleteNote')"
+              >
+                <slot v-if="index === 0" slot="avatar-badge" name="avatar-badge"></slot>
+              </component>
+            </template>
+          </collapsible>
+          <slot :show-replies="isExpanded || !hasReplies" name="footer"></slot>
+        </div>
       </template>
     </ul>
   </div>
