@@ -19,9 +19,6 @@ msgstr ""
 msgid " Please sign in."
 msgstr ""
 
-msgid " Status"
-msgstr ""
-
 msgid " Try to %{action} this file again."
 msgstr ""
 
@@ -110,7 +107,7 @@ msgstr ""
 msgid "%{commit_author_link} authored %{commit_timeago}"
 msgstr ""
 
-msgid "%{counter_repositories} repositories, %{counter_build_artifacts} build artifacts, %{counter_lfs_objects} LFS"
+msgid "%{counter_repositories} repositories, %{counter_wikis} wikis, %{counter_build_artifacts} build artifacts, %{counter_lfs_objects} LFS"
 msgstr ""
 
 msgid "%{count} more"
@@ -955,6 +952,9 @@ msgstr ""
 msgid "An error occurred whilst fetching the latest pipeline."
 msgstr ""
 
+msgid "An error occurred whilst getting files for - %{branchId}"
+msgstr ""
+
 msgid "An error occurred whilst loading all the files."
 msgstr ""
 
@@ -1124,6 +1124,9 @@ msgid "Are you sure you want to reset registration token?"
 msgstr ""
 
 msgid "Are you sure you want to reset the health check token?"
+msgstr ""
+
+msgid "Are you sure you want to revoke this nickname?"
 msgstr ""
 
 msgid "Are you sure you want to stop this environment?"
@@ -1482,6 +1485,9 @@ msgstr ""
 msgid "Branch name"
 msgstr ""
 
+msgid "Branch not loaded - %{branchId}"
+msgstr ""
+
 msgid "BranchSwitcherPlaceholder|Search branches"
 msgstr ""
 
@@ -1627,6 +1633,9 @@ msgid "By %{user_name}"
 msgstr ""
 
 msgid "By default GitLab sends emails in HTML and plain text formats so mail clients can choose what format to use. Disable this option if you only want to send emails in plain text format."
+msgstr ""
+
+msgid "By default, all projects and groups will use the global notifications setting."
 msgstr ""
 
 msgid "ByAuthor|by"
@@ -2988,6 +2997,9 @@ msgid "Create a merge request."
 msgstr ""
 
 msgid "Create a new branch"
+msgstr ""
+
+msgid "Create a new file as there are no files yet. Afterwards, you'll be able to commit your changes."
 msgstr ""
 
 msgid "Create a new issue"
@@ -4383,6 +4395,9 @@ msgstr ""
 msgid "Files"
 msgstr ""
 
+msgid "Files breadcrumb"
+msgstr ""
+
 msgid "Files, directories, and submodules in the path %{path} for commit reference %{ref}"
 msgstr ""
 
@@ -4653,6 +4668,9 @@ msgstr ""
 msgid "Given access %{time_ago}"
 msgstr ""
 
+msgid "Global notification settings"
+msgstr ""
+
 msgid "Go Back"
 msgstr ""
 
@@ -4807,6 +4825,9 @@ msgid "GroupSettings|remove the share with group lock from %{ancestor_group_name
 msgstr ""
 
 msgid "Groups"
+msgstr ""
+
+msgid "Groups (%{count})"
 msgstr ""
 
 msgid "Groups can also be nested by creating %{subgroup_docs_link_start}subgroups%{subgroup_docs_link_end}."
@@ -5614,6 +5635,9 @@ msgstr[1] ""
 msgid "Last Pipeline"
 msgstr ""
 
+msgid "Last accessed on"
+msgstr ""
+
 msgid "Last activity"
 msgstr ""
 
@@ -5639,6 +5663,9 @@ msgid "Last update"
 msgstr ""
 
 msgid "Last updated"
+msgstr ""
+
+msgid "Last used"
 msgstr ""
 
 msgid "LastPushEvent|You pushed to"
@@ -5779,6 +5806,9 @@ msgid "MRDiff|Show changes only"
 msgstr ""
 
 msgid "MRDiff|Show full file"
+msgstr ""
+
+msgid "Make and review changes in the browser with the Web IDE"
 msgstr ""
 
 msgid "Make issue confidential."
@@ -6377,6 +6407,9 @@ msgstr ""
 msgid "Next"
 msgstr ""
 
+msgid "Nickname"
+msgstr ""
+
 msgid "No"
 msgstr ""
 
@@ -6432,6 +6465,9 @@ msgid "No file chosen"
 msgstr ""
 
 msgid "No file selected"
+msgstr ""
+
+msgid "No files"
 msgstr ""
 
 msgid "No files found."
@@ -6557,6 +6593,9 @@ msgstr ""
 msgid "Notification setting - %{notification_title}"
 msgstr ""
 
+msgid "Notification settings saved"
+msgstr ""
+
 msgid "NotificationEvent|Close issue"
 msgstr ""
 
@@ -6606,6 +6645,9 @@ msgid "NotificationLevel|Participate"
 msgstr ""
 
 msgid "NotificationLevel|Watch"
+msgstr ""
+
+msgid "NotificationSetting|Custom"
 msgstr ""
 
 msgid "Notifications"
@@ -6845,6 +6887,9 @@ msgid "Pick a name"
 msgstr ""
 
 msgid "Pipeline"
+msgstr ""
+
+msgid "Pipeline ID (IID)"
 msgstr ""
 
 msgid "Pipeline Schedule"
@@ -7220,6 +7265,9 @@ msgid "Profile"
 msgstr ""
 
 msgid "Profile Settings"
+msgstr ""
+
+msgid "ProfileSession|on"
 msgstr ""
 
 msgid "Profiles| You are about to permanently delete %{yourAccount}, and all of the issues, merge requests, and groups linked to your account. Once you confirm %{deleteAccount}, it cannot be undone or recovered."
@@ -7771,6 +7819,9 @@ msgstr ""
 msgid "Projects"
 msgstr ""
 
+msgid "Projects (%{count})"
+msgstr ""
+
 msgid "Projects Successfully Retrieved"
 msgstr ""
 
@@ -7997,6 +8048,9 @@ msgid "Read more about project permissions <strong>%{link_to_help}</strong>"
 msgstr ""
 
 msgid "Real-time features"
+msgstr ""
+
+msgid "Receive notifications about your own activity"
 msgstr ""
 
 msgid "Recent Project Activity"
@@ -8585,6 +8639,9 @@ msgstr ""
 msgid "Select Archive Format"
 msgstr ""
 
+msgid "Select a file from the left sidebar to begin editing. Afterwards, you'll be able to commit your changes."
+msgstr ""
+
 msgid "Select a group to invite"
 msgstr ""
 
@@ -8712,6 +8769,9 @@ msgid "Serverless|No functions available"
 msgstr ""
 
 msgid "Serverless|There is currently no function data available from Knative. This could be for a variety of reasons including:"
+msgstr ""
+
+msgid "Service"
 msgstr ""
 
 msgid "Service Templates"
@@ -8890,6 +8950,9 @@ msgstr ""
 msgid "Sign-up restrictions"
 msgstr ""
 
+msgid "Signed in"
+msgstr ""
+
 msgid "Signed in with %{authentication} authentication"
 msgstr ""
 
@@ -9059,6 +9122,9 @@ msgid "SortOptions|Last updated"
 msgstr ""
 
 msgid "SortOptions|Least popular"
+msgstr ""
+
+msgid "SortOptions|Manual"
 msgstr ""
 
 msgid "SortOptions|Milestone due date"
@@ -9349,6 +9415,69 @@ msgstr ""
 msgid "Suggested change"
 msgstr ""
 
+msgid "SuggestedColors|Bright green"
+msgstr ""
+
+msgid "SuggestedColors|Dark grayish cyan"
+msgstr ""
+
+msgid "SuggestedColors|Dark moderate blue"
+msgstr ""
+
+msgid "SuggestedColors|Dark moderate orange"
+msgstr ""
+
+msgid "SuggestedColors|Dark moderate pink"
+msgstr ""
+
+msgid "SuggestedColors|Dark moderate violet"
+msgstr ""
+
+msgid "SuggestedColors|Feijoa"
+msgstr ""
+
+msgid "SuggestedColors|Lime green"
+msgstr ""
+
+msgid "SuggestedColors|Moderate blue"
+msgstr ""
+
+msgid "SuggestedColors|Pure red"
+msgstr ""
+
+msgid "SuggestedColors|Slightly desaturated blue"
+msgstr ""
+
+msgid "SuggestedColors|Slightly desaturated green"
+msgstr ""
+
+msgid "SuggestedColors|Soft orange"
+msgstr ""
+
+msgid "SuggestedColors|Soft red"
+msgstr ""
+
+msgid "SuggestedColors|Strong pink"
+msgstr ""
+
+msgid "SuggestedColors|Strong red"
+msgstr ""
+
+msgid "SuggestedColors|Strong yellow"
+msgstr ""
+
+msgid "SuggestedColors|UA blue"
+msgstr ""
+
+msgid "SuggestedColors|Very dark desaturated blue"
+msgstr ""
+
+msgid "SuggestedColors|Very dark lime green"
+msgstr ""
+
+msgid "SuggestedColors|Very pale orange"
+msgstr ""
+
 msgid "Sunday"
 msgstr ""
 
@@ -9497,6 +9626,9 @@ msgid "Target branch"
 msgstr ""
 
 msgid "Team"
+msgstr ""
+
+msgid "Team domain"
 msgstr ""
 
 msgid "Template"
@@ -9930,10 +10062,16 @@ msgstr ""
 msgid "This is a delayed job to run in %{remainingTime}"
 msgstr ""
 
+msgid "This is a list of devices that have logged into your account. Revoke any sessions that you do not recognize."
+msgstr ""
+
 msgid "This is a security log of important events involving your account."
 msgstr ""
 
 msgid "This is the author's first Merge Request to this project."
+msgstr ""
+
+msgid "This is your current session"
 msgstr ""
 
 msgid "This issue is confidential"
@@ -10322,6 +10460,9 @@ msgid "To move or copy an entire GitLab project from another GitLab installation
 msgstr ""
 
 msgid "To preserve performance only <strong>%{display_size} of %{real_size}</strong> files are displayed."
+msgstr ""
+
+msgid "To specify the notification level per project of a group you belong to, you need to visit project page and change notification level there."
 msgstr ""
 
 msgid "To start serving your jobs you can add Runners to your group"
@@ -11310,7 +11451,13 @@ msgstr ""
 msgid "You can resolve the merge conflict using either the Interactive mode, by choosing %{use_ours} or %{use_theirs} buttons, or by editing the files directly. Commit these changes into %{branch_name}"
 msgstr ""
 
+msgid "You can see your chat accounts."
+msgstr ""
+
 msgid "You can set up jobs to only use Runners with specific tags. Separate tags with commas."
+msgstr ""
+
+msgid "You can specify notification level per group or per project."
 msgstr ""
 
 msgid "You can test your .gitlab-ci.yml in %{linkStart}CI Lint%{linkEnd}."
@@ -11341,6 +11488,9 @@ msgid "You do not have any subscriptions yet"
 msgstr ""
 
 msgid "You do not have permission to leave this %{namespaceType}."
+msgstr ""
+
+msgid "You don't have any active chat names."
 msgstr ""
 
 msgid "You don't have any applications"
