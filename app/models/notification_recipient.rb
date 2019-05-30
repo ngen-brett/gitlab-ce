@@ -50,7 +50,8 @@ class NotificationRecipient
     when :mention
       @type == :mention
     when :participating
-      !excluded_participating_action? && %i[participating mention watch].include?(@type)
+      !(@type == :participating && excluded_participating_action?) &&
+        %i[participating mention watch].include?(@type)
     when :custom
       custom_enabled? || %i[participating mention].include?(@type)
     when :watch
@@ -146,7 +147,7 @@ class NotificationRecipient
 
     return project_setting unless project_setting.nil? || project_setting.global?
 
-    group_setting = closest_non_global_group_notification_settting
+    group_setting = closest_non_global_group_notification_setting
 
     return group_setting unless group_setting.nil?
 
@@ -154,7 +155,7 @@ class NotificationRecipient
   end
 
   # Returns the notification_setting of the lowest group in hierarchy with non global level
-  def closest_non_global_group_notification_settting
+  def closest_non_global_group_notification_setting
     return unless @group
     return if indexed_group_notification_settings.empty?
 
