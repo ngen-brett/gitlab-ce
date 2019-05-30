@@ -91,4 +91,247 @@ describe NotificationRecipient do
       end
     end
   end
+
+  describe '#suitable_notification_level?' do
+    context 'when notification level is mention' do
+      before do
+        user.notification_settings_for(project).mention!
+      end
+
+      context 'when type is mention' do
+        let(:recipient) { described_class.new(user, :mention, target: target, project: project) }
+
+        it 'returns true' do
+          expect(recipient.suitable_notification_level?).to eq true
+        end
+      end
+
+      context 'when type is not mention' do
+        it 'returns false' do
+          expect(recipient.suitable_notification_level?).to eq false
+        end
+      end
+    end
+
+    context 'when notification level is participating' do
+      context 'when type is participating' do
+        context 'without excluded participating events' do
+          let(:recipient) { described_class.new(user, :participating, target: target, project: project) }
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+
+        context 'with excluded participating events' do
+          let(:recipient) do
+            described_class.new(
+              user,
+              :participating,
+              custom_action: :success_pipeline,
+              target: target,
+              project: project
+            )
+          end
+
+          it 'returns false' do
+            expect(recipient.suitable_notification_level?).to eq false
+          end
+        end
+      end
+
+      context 'when type is mention' do
+        context 'without excluded participating events' do
+          let(:recipient) { described_class.new(user, :mention, target: target, project: project) }
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+
+        context 'with excluded participating events' do
+          let(:recipient) do
+            described_class.new(
+              user,
+              :mention,
+              custom_action: :success_pipeline,
+              target: target,
+              project: project
+            )
+          end
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+      end
+
+      context 'when type is watch' do
+        context 'without excluded participating events' do
+          let(:recipient) { described_class.new(user, :watch, target: target, project: project) }
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+
+        context 'with excluded participating events' do
+          let(:recipient) do
+            described_class.new(
+              user,
+              :watch,
+              custom_action: :success_pipeline,
+              target: target,
+              project: project
+            )
+          end
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+      end
+    end
+
+    context 'when notification level is custom' do
+      before do
+        user.notification_settings_for(project).custom!
+      end
+
+      context 'when type is participating' do
+        context 'with custom event enabled' do
+          let(:notification_setting) { user.notification_settings_for(project) }
+          let(:recipient) do
+            described_class.new(
+              user,
+              :participating,
+              custom_action: :success_pipeline,
+              target: target,
+              project: project
+            )
+          end
+
+          before do
+            notification_setting.update!(success_pipeline: true)
+          end
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+
+        context 'without custom event enabled' do
+          let(:recipient) { described_class.new(user, :participating, target: target, project: project) }
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+      end
+
+      context 'when type is mention' do
+        context 'with custom event enabled' do
+          let(:notification_setting) { user.notification_settings_for(project) }
+          let(:recipient) do
+            described_class.new(
+              user,
+              :mention,
+              custom_action: :issue_due,
+              target: target,
+              project: project
+            )
+          end
+
+          before do
+            notification_setting.update!(issue_due: true)
+          end
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+
+        context 'without custom event enabled' do
+          let(:recipient) { described_class.new(user, :mention, target: target, project: project) }
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+      end
+
+      context 'when type is watch' do
+        context 'with custom event enabled' do
+          let(:notification_setting) { user.notification_settings_for(project) }
+          let(:recipient) do
+            described_class.new(
+              user,
+              :watch,
+              custom_action: :issue_due,
+              target: target,
+              project: project
+            )
+          end
+
+          before do
+            notification_setting.update!(issue_due: true)
+          end
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+
+        context 'without custom event enabled' do
+          it 'returns false' do
+            expect(recipient.suitable_notification_level?).to eq false
+          end
+        end
+      end
+    end
+
+    context 'when notification level is watch' do
+      before do
+        user.notification_settings_for(project).watch!
+      end
+
+      context 'when type is watch' do
+        context 'without excluded watcher events' do
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+
+        context 'with excluded watcher events' do
+          let(:recipient) do
+            described_class.new(user, :watch, custom_action: :issue_due, target: target, project: project)
+          end
+
+          it 'returns false' do
+            expect(recipient.suitable_notification_level?).to eq false
+          end
+        end
+      end
+
+      context 'when type is not watch' do
+        context 'without excluded watcher events' do
+          let(:recipient) { described_class.new(user, :participating, target: target, project: project) }
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+
+        context 'with excluded watcher events' do
+          let(:recipient) do
+            described_class.new(user, :participating, custom_action: :issue_due, target: target, project: project)
+          end
+
+          it 'returns true' do
+            expect(recipient.suitable_notification_level?).to eq true
+          end
+        end
+      end
+    end
+  end
 end
