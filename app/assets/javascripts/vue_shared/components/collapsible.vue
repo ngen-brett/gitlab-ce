@@ -9,14 +9,10 @@ export default {
     Icon,
     GlButton,
   },
-  data() {
-    return {
-      expanded: true,
-    };
-  },
-  methods: {
-    toggle() {
-      this.expanded = !this.expanded;
+  props: {
+    expanded: {
+      type: Boolean,
+      required: true,
     },
   },
   computed: {
@@ -32,7 +28,7 @@ export default {
 
 <template>
   <div>
-    <div class="collapsible clickable d-flex align-items-center px-3 py-2" @click="toggle()">
+    <div class="collapsible clickable d-flex align-items-center px-3 py-2" @click="$emit('toggle')">
       <gl-button
         :aria-label="ariaLabel"
         variant="blank"

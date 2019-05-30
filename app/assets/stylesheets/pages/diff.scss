@@ -1084,6 +1084,11 @@ table.code {
   line-height: 0;
 }
 
+.discussion-collapsible {
+  margin: $gl-padding;
+  margin-left: 60px;
+}
+
 @media (max-width: map-get($grid-breakpoints, md)-1) {
   .diffs .files {
     @include fixed-width-container;

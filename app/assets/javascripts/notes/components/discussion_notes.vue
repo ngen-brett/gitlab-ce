@@ -48,6 +48,11 @@ export default {
       default: '',
     },
   },
+  data() {
+    return {
+      repliesExpanded: true,
+    };
+  },
   computed: {
     ...mapGetters(['userCanReply']),
     hasReplies() {
@@ -91,6 +96,9 @@ export default {
     },
     componentData(note) {
       return note.isPlaceholderNote ? note.notes[0] : note;
+    },
+    toggleReplies() {
+      this.repliesExpanded = !this.repliesExpanded;
     },
   },
 };
@@ -149,8 +157,8 @@ export default {
         >
           <slot slot="avatar-badge" name="avatar-badge"></slot>
         </component>
-        <div class="discussion-collapsible">
-          <collapsible v-if="replies.length">
+        <div class="discussion-collapsible bordered-box">
+          <collapsible v-if="hasReplies" :expanded="repliesExpanded" @toggle="toggleReplies">
             <template #header>
               Test header
             </template>
@@ -168,7 +176,11 @@ export default {
               </component>
             </template>
           </collapsible>
-          <slot :show-replies="isExpanded || !hasReplies" name="footer"></slot>
+          <slot
+            v-if="repliesExpanded || !hasReplies"
+            :show-replies="isExpanded || !hasReplies"
+            name="footer"
+          ></slot>
         </div>
       </template>
     </ul>
