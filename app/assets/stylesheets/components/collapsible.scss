@@ -1,0 +1,9 @@
+.collapsible {
+  border-top: 1px solid $border-color;
+  background-color: $gray-light;
+
+  &.clickable:hover {
+    background-color: $gl-gray-200;
+    cursor: pointer;
+  }
+}

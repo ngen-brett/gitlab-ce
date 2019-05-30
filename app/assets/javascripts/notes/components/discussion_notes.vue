@@ -6,6 +6,7 @@ import NoteableNote from './noteable_note.vue';
 import PlaceholderNote from '../../vue_shared/components/notes/placeholder_note.vue';
 import PlaceholderSystemNote from '../../vue_shared/components/notes/placeholder_system_note.vue';
 import SystemNote from '~/vue_shared/components/notes/system_note.vue';
+import Collapsible from '~/vue_shared/components/collapsible.vue';
 import ToggleRepliesWidget from './toggle_replies_widget.vue';
 import NoteEditedText from './note_edited_text.vue';
 
@@ -14,6 +15,7 @@ export default {
   components: {
     ToggleRepliesWidget,
     NoteEditedText,
+    Collapsible,
   },
   props: {
     discussion: {
@@ -147,20 +149,25 @@ export default {
         >
           <slot slot="avatar-badge" name="avatar-badge"></slot>
         </component>
-        <div class="red">
-          <component
-            :is="componentName(note)"
-            v-for="(note, index) in replies"
-            :key="note.id"
-            :note="componentData(note)"
-            :help-page-path="helpPagePath"
-            :line="diffLine"
-            @handle-delete-note="$emit('deleteNote')"
-          >
-            <slot v-if="index === 0" slot="avatar-badge" name="avatar-badge"></slot>
-          </component>
-          <slot :show-replies="isExpanded || !hasReplies" name="footer"></slot>
-        </div>
+        <collapsible class="discussion-collapsible">
+          <template #header>
+            Test header
+          </template>
+          <template #content>
+            <component
+              :is="componentName(note)"
+              v-for="(note, index) in replies"
+              :key="note.id"
+              :note="componentData(note)"
+              :help-page-path="helpPagePath"
+              :line="diffLine"
+              @handle-delete-note="$emit('deleteNote')"
+            >
+              <slot v-if="index === 0" slot="avatar-badge" name="avatar-badge"></slot>
+            </component>
+            <slot :show-replies="isExpanded || !hasReplies" name="footer"></slot>
+          </template>
+        </collapsible>
       </template>
     </ul>
   </div>
