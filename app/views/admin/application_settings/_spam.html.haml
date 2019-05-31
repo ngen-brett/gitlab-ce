@@ -7,7 +7,9 @@
         = f.check_box :recaptcha_enabled, class: 'form-check-input'
         = f.label :recaptcha_enabled, class: 'form-check-label' do
           Enable reCAPTCHA
-        %span.form-text.text-muted#recaptcha_help_block Helps prevent bots from creating accounts
+        %span.form-text.text-muted#recaptcha_help_block
+          Helps prevent bots from creating accounts. We currently only support reCAPTCHA
+          %a{ href: 'https://developers.google.com/recaptcha/docs/versions', target: 'blank' } V2
 
     .form-group
       = f.label :recaptcha_site_key, 'reCAPTCHA Site Key', class: 'label-bold'
