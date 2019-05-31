@@ -9,7 +9,7 @@ module Ci
     ##
     # Variables in the environment name scope.
     #
-    def scoped_variables(environment: expanded_environment_name)
+    def scoped_variables(environment: persisted_environment)
       Gitlab::Ci::Variables::Collection.new.tap do |variables|
         variables.concat(predefined_variables)
         variables.concat(project.predefined_variables)
@@ -35,7 +35,7 @@ module Ci
     end
 
     ##
-    # Variables that do not depend on the environment name.
+    # Variables that do not depend on the environment.
     #
     def simple_variables
       strong_memoize(:simple_variables) do
@@ -101,7 +101,7 @@ module Ci
       project.group.ci_variables_for(git_ref, project)
     end
 
-    def secret_project_variables(environment: persisted_environment)
+    def secret_project_variables(environment:)
       project.ci_variables_for(ref: git_ref, environment: environment)
     end
   end

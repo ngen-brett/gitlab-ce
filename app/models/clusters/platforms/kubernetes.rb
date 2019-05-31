@@ -71,7 +71,7 @@ module Clusters
 
       default_value_for :authorization_type, :rbac
 
-      def predefined_variables(project:)
+      def predefined_variables(environment:)
         Gitlab::Ci::Variables::Collection.new.tap do |variables|
           variables.append(key: 'KUBE_URL', value: api_url)
 
@@ -81,7 +81,7 @@ module Clusters
               .append(key: 'KUBE_CA_PEM_FILE', value: ca_pem, file: true)
           end
 
-          if kubernetes_namespace = cluster.kubernetes_namespaces.has_service_account_token.find_by(project: project)
+          if kubernetes_namespace = cluster.kubernetes_namespaces.has_service_account_token.find_by(project: environment.project)
             variables.concat(kubernetes_namespace.predefined_variables)
           elsif cluster.project_type? || !cluster.managed?
             # As of 11.11 a user can create a cluster that they manage themselves,
@@ -89,7 +89,7 @@ module Clusters
             # Once we have marked all project-level clusters that make use of this
             # behaviour as "unmanaged", we can remove the `cluster.project_type?`
             # check here.
-            project_namespace = cluster.kubernetes_namespace_for(project)
+            project_namespace = cluster.kubernetes_namespace_for(environment.project)
 
             variables
               .append(key: 'KUBE_URL', value: api_url)

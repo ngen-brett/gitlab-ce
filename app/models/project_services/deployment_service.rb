@@ -11,7 +11,7 @@ class DeploymentService < Service
     %w()
   end
 
-  def predefined_variables(project:)
+  def predefined_variables(environment:)
     []
   end
 

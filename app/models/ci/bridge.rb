@@ -44,7 +44,7 @@ module Ci
       false
     end
 
-    def expanded_environment_name
+    def persisted_environment
     end
 
     def execute_hooks
