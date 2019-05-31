@@ -22,8 +22,7 @@ in `.gitlab-ci.yml`.
 
 ## Git shallow clone
 
-NOTE: **Note**:
-As of GitLab 12.0, newly created projects will automaticallyl have a default 
+> **Note**: As of GitLab 12.0, newly created projects will automaticallyl have a default 
 `git depth` value of `50`.
 
 It is possible to limit the number of changes that GitLab CI will fetch when cloning 
