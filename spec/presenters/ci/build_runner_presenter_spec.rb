@@ -142,24 +142,24 @@ describe Ci::BuildRunnerPresenter do
     let(:build) { create(:ci_build) }
 
     it 'returns the correct refspecs' do
-      is_expected.to contain_exactly('+refs/tags/*:refs/tags/*',
-                                     '+refs/heads/*:refs/remotes/origin/*')
+      is_expected.to contain_exactly("+refs/heads/#{build.ref}:refs/remotes/origin/#{build.ref}")
     end
 
-    context 'when GIT_DEPTH variable is specified' do
-      before do
-        create(:ci_pipeline_variable, key: 'GIT_DEPTH', value: 1, pipeline: build.pipeline)
-      end
+    context 'when ref is tag' do
+      let(:build) { create(:ci_build, :tag) }
 
       it 'returns the correct refspecs' do
-        is_expected.to contain_exactly("+refs/heads/#{build.ref}:refs/remotes/origin/#{build.ref}")
+        is_expected.to contain_exactly("+refs/tags/#{build.ref}:refs/tags/#{build.ref}")
       end
 
-      context 'when ref is tag' do
-        let(:build) { create(:ci_build, :tag) }
+      context 'when GIT_DEPTH is zero' do
+        before do
+          create(:ci_pipeline_variable, key: 'GIT_DEPTH', value: 0, pipeline: build.pipeline)
+        end
 
         it 'returns the correct refspecs' do
-          is_expected.to contain_exactly("+refs/tags/#{build.ref}:refs/tags/#{build.ref}")
+          is_expected.to contain_exactly('+refs/tags/*:refs/tags/*',
+                                         '+refs/heads/*:refs/remotes/origin/*')
         end
       end
     end
@@ -174,12 +174,24 @@ describe Ci::BuildRunnerPresenter do
           .to contain_exactly('+refs/merge-requests/1/head:refs/merge-requests/1/head')
       end
 
+      context 'when GIT_DEPTH is zero' do
+        before do
+          create(:ci_pipeline_variable, key: 'GIT_DEPTH', value: 0, pipeline: build.pipeline)
+        end
+
+        it 'returns the correct refspecs' do
+          is_expected
+            .to contain_exactly('+refs/merge-requests/1/head:refs/merge-requests/1/head',
+          '+refs/heads/*:refs/remotes/origin/*',
+          '+refs/tags/*:refs/tags/*')
+        end
+      end
+
       context 'when pipeline is legacy detached merge request pipeline' do
         let(:merge_request) { create(:merge_request, :with_legacy_detached_merge_request_pipeline) }
 
         it 'returns the correct refspecs' do
-          is_expected.to contain_exactly('+refs/tags/*:refs/tags/*',
-                                         '+refs/heads/*:refs/remotes/origin/*')
+          is_expected.to contain_exactly("+refs/heads/#{build.ref}:refs/remotes/origin/#{build.ref}")
         end
       end
     end
