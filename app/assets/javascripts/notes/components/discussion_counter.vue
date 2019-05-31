@@ -49,7 +49,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="resolvableDiscussionsCount > 0" class="line-resolve-all-container prepend-top-8">
+  <div v-if="resolvableDiscussionsCount > 0" class="line-resolve-all-container">
     <div>
       <div :class="{ 'has-next-btn': hasNextButton }" class="line-resolve-all">
         <span
