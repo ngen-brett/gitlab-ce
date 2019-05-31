@@ -56,7 +56,10 @@ module Projects
 
       new_params.merge!(@project.object_pool_params)
 
-      new_project = CreateService.new(current_user, new_params).execute
+      new_project = CreateService.new(current_user, new_params).execute do |p|
+        p.build_ci_cd_settings(default_git_depth: @project.default_git_depth)
+      end
+
       return new_project unless new_project.persisted?
 
       # Set the forked_from_project relation after saving to avoid having to
