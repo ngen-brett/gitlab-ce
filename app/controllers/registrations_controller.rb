@@ -15,13 +15,7 @@ class RegistrationsController < Devise::RegistrationsController
   end
 
   def create
-    # To avoid duplicate form fields on the login page, the registration form
-    # names fields using `new_user`, but Devise still wants the params in
-    # `user`.
-    if params["new_#{resource_name}"].present? && params[resource_name].blank?
-      params[resource_name] = params.delete(:"new_#{resource_name}")
-    end
-
+    ensure_correct_params!
     accept_pending_invitations
 
     super do |new_user|
@@ -85,7 +79,18 @@ class RegistrationsController < Devise::RegistrationsController
 
   private
 
+  def ensure_correct_params!
+    # To avoid duplicate form fields on the login page, the registration form
+    # names fields using `new_user`, but Devise still wants the params in
+    # `user`.
+    if params["new_#{resource_name}"].present? && params[resource_name].blank?
+      params[resource_name] = params.delete(:"new_#{resource_name}")
+    end
+  end
+
   def check_captcha
+    ensure_correct_params!
+
     return unless Feature.enabled?(:registrations_recaptcha, default_enabled: true)
     return unless Gitlab::Recaptcha.load_configurations!
 
