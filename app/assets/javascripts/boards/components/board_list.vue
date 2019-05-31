@@ -143,7 +143,9 @@ export default {
 
         card.showDetail = false;
         boardsStore.moving.list = card.list;
-        boardsStore.moving.issue = boardsStore.moving.list.findIssue(+e.item.dataset.issueId);
+        boardsStore.moving.issue = boardsStore.moving.list.findIssue(
+          Number(e.item.dataset.issueId),
+        );
 
         sortableStart();
       },

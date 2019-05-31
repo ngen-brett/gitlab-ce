@@ -138,7 +138,7 @@ export default {
       );
     },
     hasLogo() {
-      return !!this.logoUrl;
+      return Boolean(this.logoUrl);
     },
     identiconId() {
       // generate a deterministic integer id for the identicon background
