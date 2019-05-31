@@ -174,6 +174,19 @@ describe Ci::BuildRunnerPresenter do
           .to contain_exactly('+refs/merge-requests/1/head:refs/merge-requests/1/head')
       end
 
+      context 'when GIT_DEPTH is zero' do
+        before do
+          create(:ci_pipeline_variable, key: 'GIT_DEPTH', value: 0, pipeline: build.pipeline)
+        end
+
+        it 'returns the correct refspecs' do
+          is_expected
+            .to contain_exactly('+refs/merge-requests/1/head:refs/merge-requests/1/head',
+          '+refs/heads/*:refs/remotes/origin/*',
+          '+refs/tags/*:refs/tags/*')
+        end
+      end
+
       context 'when pipeline is legacy detached merge request pipeline' do
         let(:merge_request) { create(:merge_request, :with_legacy_detached_merge_request_pipeline) }
 

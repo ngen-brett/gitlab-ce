@@ -37,11 +37,11 @@ module Ci
 
     def refspecs
       specs = []
+      specs << refspec_for_merge_request_ref if merge_request_ref?
 
       if git_depth > 0
         specs << refspec_for_branch(ref) if branch? || legacy_detached_merge_request_pipeline?
         specs << refspec_for_tag(ref) if tag?
-        specs << refspec_for_merge_request_ref if merge_request_ref?
       else
         specs << refspec_for_branch
         specs << refspec_for_tag
