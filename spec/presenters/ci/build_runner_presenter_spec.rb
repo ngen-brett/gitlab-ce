@@ -124,7 +124,9 @@ describe Ci::BuildRunnerPresenter do
     subject(:git_depth) { presenter.git_depth }
 
     context 'when GIT_DEPTH variable is specified' do
-      before { create(:ci_pipeline_variable, key: 'GIT_DEPTH', value: 1, pipeline: build.pipeline) }
+      before do
+        create(:ci_pipeline_variable, key: 'GIT_DEPTH', value: 1, pipeline: build.pipeline)
+      end
 
       it 'returns its value' do
         expect(git_depth).to eq(1)
