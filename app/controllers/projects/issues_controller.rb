@@ -132,6 +132,21 @@ class Projects::IssuesController < Projects::ApplicationController
     render_conflict_response
   end
 
+  def reorder
+    params.permit(:move_after_id, :move_before_id)
+
+    @issue = Issues::ReorderService.new(project, current_user, params).execute(issue)
+
+    respond_to do |format|
+      format.json do
+        render_issue_json
+      end
+    end
+
+  rescue ActiveRecord::StaleObjectError
+    render_conflict_response
+  end
+
   def related_branches
     @related_branches = Issues::RelatedBranchesService.new(project, current_user).execute(issue)
 
