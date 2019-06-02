@@ -10,24 +10,48 @@ describe 'task completion status response' do
 
   shared_examples 'taskable completion status provider' do |path|
     samples = [
-        ['', 0, 0],
-        ['Lorem ipsum', 0, 0],
-        [%{- [ ] task 1
-              - [x] task 2 }, 2, 1],
-        [%{- [ ] task 1
-              - [ ] task 2 }, 2, 0],
-        [%{- [x] task 1
-              - [x] task 2 }, 2, 2],
-        [%{- [ ] task 1}, 1, 0],
-        [%{- [x] task 1}, 1, 1]
+        {
+            description: '',
+            expected_count: 0,
+            expected_completed_count: 0
+        },
+        {
+            description: 'Lorem ipsum',
+            expected_count: 0,
+            expected_completed_count: 0
+        },
+        {
+            description: %{- [ ] task 1
+              - [x] task 2 },
+            expected_count: 2,
+            expected_completed_count: 1
+        },
+        {
+            description: %{- [ ] task 1
+              - [ ] task 2 },
+            expected_count: 2,
+            expected_completed_count: 0
+        },
+        {
+            description: %{- [x] task 1
+              - [x] task 2 },
+            expected_count: 2,
+            expected_completed_count: 2
+        },
+        {
+            description: %{- [ ] task 1},
+            expected_count: 1,
+            expected_completed_count: 0
+        },
+        {
+            description: %{- [x] task 1},
+            expected_count: 1,
+            expected_completed_count: 1
+        }
     ]
     samples.each do |sample_data|
       it "returns a valid task list status #{sample_data}" do
-        description = sample_data[0]
-        expected_count = sample_data[1]
-        expected_completed_count = sample_data[2]
-
-        taskable.update!(description: description)
+        taskable.update!(description: sample_data[:description])
 
         get api(path, user)
 
@@ -37,8 +61,8 @@ describe 'task completion status response' do
         expect(taskable_response).not_to be_nil
 
         task_completion_status = taskable_response['task_completion_status']
-        expect(task_completion_status['count']).to be(expected_count)
-        expect(task_completion_status['completed_count']).to be(expected_completed_count)
+        expect(task_completion_status['count']).to be(sample_data[:expected_count])
+        expect(task_completion_status['completed_count']).to be(sample_data[:expected_completed_count])
       end
     end
   end
