@@ -87,10 +87,6 @@ class DiffNote < Note
     self == discussion.first_note
   end
 
-  def banzai_render_context(field)
-    super.merge(project: project, suggestions_filter_enabled: supports_suggestion?)
-  end
-
   private
 
   def enqueue_diff_file_creation_job
