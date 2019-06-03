@@ -515,6 +515,11 @@ $note-form-margin-left: 72px;
   .discussion-reply-holder {
     border-radius: 0 0 $border-radius-default $border-radius-default;
     position: relative;
+
+    .discussion-form {
+      width: 100%;
+      background-color: $gray-light;
+    }
   }
 }
 

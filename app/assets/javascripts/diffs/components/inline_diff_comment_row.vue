@@ -63,26 +63,28 @@ export default {
           :discussions="line.discussions"
           :help-page-path="helpPagePath"
         />
-        <diff-line-note-form
-          v-if="line.hasForm"
-          :diff-file-hash="diffFileHash"
-          :line="line"
-          :note-target-line="line"
-          :help-page-path="helpPagePath"
-        />
-        <div v-if="line.discussions.length && !line.hasForm" class="discussion-reply-holder d-flex">
-          <user-avatar-link
-            :link-href="currentUser.path"
-            :img-src="currentUser.avatar_url"
-            :img-alt="currentUser.name"
-            :img-size="40"
-            class="d-none d-sm-block"
+        <div class="discussion-reply-holder d-flex clearfix">
+          <diff-line-note-form
+            v-if="line.hasForm"
+            :diff-file-hash="diffFileHash"
+            :line="line"
+            :note-target-line="line"
+            :help-page-path="helpPagePath"
           />
-          <reply-placeholder
-            class="qa-discussion-reply"
-            buttonText="Start a new discussion..."
-            @onClick="showNewDiscussionForm"
-          />
+          <template v-if="line.discussions.length && !line.hasForm">
+            <user-avatar-link
+              :link-href="currentUser.path"
+              :img-src="currentUser.avatar_url"
+              :img-alt="currentUser.name"
+              :img-size="40"
+              class="d-none d-sm-block"
+            />
+            <reply-placeholder
+              class="qa-discussion-reply"
+              buttonText="Start a new discussion..."
+              @onClick="showNewDiscussionForm"
+            />
+          </template>
         </div>
       </div>
     </td>
