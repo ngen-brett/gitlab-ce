@@ -47,4 +47,7 @@ Rails.application.configure do
   config.assets.quiet = true
 
   config.allow_concurrency = defined?(::Puma)
+
+  # BetterErrors live shell (REPL) on every stack frame
+  BetterErrors::Middleware.allow_ip!('0.0.0.0/0') if ENV['GITLAB_BETTER_ERRORS_REPL'] == 'true'
 end
