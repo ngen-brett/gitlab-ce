@@ -117,14 +117,6 @@ export default {
         this.mr.mergePipelinesEnabled && this.mr.sourceProjectId !== this.mr.targetProjectId,
       );
     },
-    showTargetBranchAdvancedError() {
-      return Boolean(
-        this.mr.isOpen &&
-          this.mr.pipeline &&
-          this.mr.pipeline.target_sha &&
-          this.mr.pipeline.target_sha !== this.mr.targetBranchSha,
-      );
-    },
   },
   watch: {
     state(newVal, oldVal) {
@@ -354,18 +346,6 @@ export default {
             {{
               s__(
                 'mrWidget|Fork merge requests do not create merge request pipelines which validate a post merge result',
-              )
-            }}
-          </mr-widget-alert-message>
-
-          <mr-widget-alert-message
-            v-if="showTargetBranchAdvancedError"
-            type="danger"
-            :help-path="mr.mergeRequestPipelinesHelpPath"
-          >
-            {{
-              s__(
-                'mrWidget|The target branch has advanced, which invalidates the merge request pipeline. Please update the source branch and retry merging',
               )
             }}
           </mr-widget-alert-message>
