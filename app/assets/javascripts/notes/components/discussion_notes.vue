@@ -148,6 +148,7 @@ export default {
             @handle-delete-note="$emit('deleteNote')"
           />
         </template>
+        <slot :show-replies="isExpanded || !hasReplies" name="footer"></slot>
       </template>
       <template v-else>
         <component
