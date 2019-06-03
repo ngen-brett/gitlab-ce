@@ -253,6 +253,11 @@ export default {
       clearDraft(this.autosaveKey);
     },
     saveReply(noteText, form, callback) {
+      if (!noteText) {
+        this.cancelReplyForm();
+        callback();
+        return;
+      }
       const postData = {
         in_reply_to_discussion_id: this.discussion.reply_id,
         target_type: this.getNoteableData.targetType,
