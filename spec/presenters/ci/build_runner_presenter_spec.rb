@@ -184,8 +184,8 @@ describe Ci::BuildRunnerPresenter do
         it 'returns the correct refspecs' do
           is_expected
             .to contain_exactly('+refs/merge-requests/1/head:refs/merge-requests/1/head',
-          '+refs/heads/*:refs/remotes/origin/*',
-          '+refs/tags/*:refs/tags/*')
+                                '+refs/heads/*:refs/remotes/origin/*',
+                                '+refs/tags/*:refs/tags/*')
         end
       end
 

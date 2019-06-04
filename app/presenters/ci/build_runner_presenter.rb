@@ -26,13 +26,11 @@ module Ci
     end
 
     def git_depth
-      strong_memoize(:git_depth) do
-        if variables_git_depth = variables&.find { |variable| variable[:key] == 'GIT_DEPTH' }
-          variables_git_depth[:value]
-        else
-          project.default_git_depth
-        end.to_i
-      end
+      if git_depth_variable
+        git_depth_variable[:value]
+      else
+        project.default_git_depth
+      end.to_i
     end
 
     def refspecs
@@ -91,6 +89,12 @@ module Ci
 
     def refspec_for_merge_request_ref
       "+#{ref}:#{ref}"
+    end
+
+    def git_depth_variable
+      strong_memoize(:git_depth_variable) do
+        variables&.find { |variable| variable[:key] == 'GIT_DEPTH' }
+      end
     end
   end
 end
