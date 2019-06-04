@@ -892,14 +892,22 @@
   display: flex;
   justify-content: space-between;
 
-  @include media-breakpoint-up(md) {
-    align-items: center;
+  @include media-breakpoint-down(xs) {
+    .discussion-filter-container,
+    .line-resolve-all-container {
+      margin-bottom: $gl-padding-8;
+    }
   }
 
   .discussion-filter-container {
     &:not(:only-child) {
-      padding-right: $gl-padding-8;
+      margin-left: $gl-padding-4;
+      margin-right: $gl-padding-4;
     }
+  }
+
+  .merge-request-tabs {
+    height: $grid-size * 6;
   }
 }
 
@@ -908,20 +916,31 @@
   .merge-request-tabs-container,
   .epic-tabs-container {
     flex-direction: column-reverse;
+    padding-top: $gl-padding-8;
   }
 }
 
-.right-sidebar-expanded {
-  .merge-request-tabs-container,
-  .epic-tabs-container {
-    @include media-breakpoint-down(lg) {
+@include media-breakpoint-down(lg) {
+  .right-sidebar-expanded {
+    .merge-request-tabs-container,
+    .epic-tabs-container {
       flex-direction: column-reverse;
       align-items: flex-start;
+      padding-top: $gl-padding-8;
+
+      // @include media-breakpoint-up(lg) {
+      //   align-items: center;
+      // }
     }
 
-    // @include media-breakpoint-up(lg) {
-    //   align-items: center;
-    // }
+    &.page-with-contextual-sidebar:not(.page-with-icon-sidebar) {
+      .merge-request-tabs-container,
+      .epic-tabs-container {
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        padding-top: $gl-padding-8;
+      }
+    }
   }
 }
 

@@ -64,7 +64,7 @@ export default {
           {{ n__('discussion resolved', 'discussions resolved', resolvableDiscussionsCount) }}
         </span>
       </div>
-      <div v-if="resolveAllDiscussionsIssuePath && !allResolved" class="btn-group" role="group">
+      <div v-if="resolveAllDiscussionsIssuePath && !allResolved" class="btn-group btn-group-sm" role="group">
         <a
           v-gl-tooltip
           :href="resolveAllDiscussionsIssuePath"
@@ -74,7 +74,7 @@ export default {
           <icon name="issue-new" />
         </a>
       </div>
-      <div v-if="isLoggedIn && !allResolved" class="btn-group" role="group">
+      <div v-if="isLoggedIn && !allResolved" class="btn-group btn-group-sm" role="group">
         <button
           v-gl-tooltip
           title="Jump to first unresolved discussion"

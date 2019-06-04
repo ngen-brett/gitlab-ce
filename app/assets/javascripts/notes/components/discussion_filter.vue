@@ -110,7 +110,7 @@ export default {
     <button
       id="discussion-filter-dropdown"
       ref="dropdownToggle"
-      class="btn btn-default qa-discussion-filter"
+      class="btn btn-sm qa-discussion-filter"
       data-toggle="dropdown"
       aria-expanded="false"
     >

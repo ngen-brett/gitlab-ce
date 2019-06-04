@@ -58,8 +58,17 @@
 }
 
 .top-area {
-  @include clearfix;
+  // @include clearfix;
   border-bottom: 1px solid $border-color;
+  display: flex;
+
+  // @include media-breakpoint-up(md) {
+    // display: flex;
+  // }
+
+  @include media-breakpoint-down(sm) {
+    flex-flow: column-reverse wrap;
+  }
 
   .nav-text {
     padding-top: 16px;
@@ -75,9 +84,10 @@
   }
 
   .nav-links {
-    margin-bottom: 0;
+    // margin-bottom: 0;
     border-bottom: 0;
-    float: left;
+    // float: left;
+    flex: 1;
 
     &.wide {
       width: 100%;
@@ -98,16 +108,21 @@
 
       &.mobile-separator {
         border-bottom: 1px solid $border-color;
+        margin-bottom: $gl-padding-8;
       }
     }
   }
 
   .nav-controls {
     display: inline-block;
-    float: right;
+    // float: right;
     text-align: right;
-    padding: $gl-padding-8 0;
-    margin-bottom: 0;
+    // padding: $gl-padding-8 0;
+
+    @include media-breakpoint-up(md) {
+      display: flex;
+      align-items: center;
+    }
 
     > .btn,
     > .btn-container,
@@ -115,8 +130,8 @@
     > input,
     > form {
       margin-right: $gl-padding-top;
-      display: inline-block;
-      vertical-align: top;
+      // display: inline-block;
+      // vertical-align: top;
 
       &:last-child {
         margin-right: 0;
@@ -143,7 +158,7 @@
       @include media-breakpoint-up(lg) { width: 250px; }
     }
 
-    @include media-breakpoint-down(xs) {
+    @include media-breakpoint-down(sm) {
       padding-bottom: 0;
       width: 100%;
 
@@ -153,7 +168,7 @@
       .dropdown-toggle,
       .dropdown-menu-toggle,
       .form-control {
-        margin: 0 0 10px;
+        margin: 0 0 $gl-padding-8;
         display: block;
         width: 100%;
       }
@@ -236,12 +251,12 @@
     width: 100%;
   }
 
-  @include media-breakpoint-down(xs) {
-    flex-flow: row wrap;
+  @include media-breakpoint-down(sm) {
 
     .nav-controls {
       $controls-margin: $btn-margin-5 - 2px;
       flex: 0 0 100%;
+      margin-top: $gl-padding-8;
 
       &.controls-flex {
         display: flex;
