@@ -901,8 +901,7 @@
 
   .discussion-filter-container {
     &:not(:only-child) {
-      margin-left: $gl-padding-4;
-      margin-right: $gl-padding-4;
+      margin: $gl-padding-4;
     }
   }
 

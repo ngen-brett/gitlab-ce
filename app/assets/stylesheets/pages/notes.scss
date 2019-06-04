@@ -768,8 +768,7 @@ $note-form-margin-left: 72px;
 }
 
 .line-resolve-all-container {
-  margin-left: $gl-padding-4;
-  margin-right: $gl-padding-4;
+  margin: $gl-padding-4;
 
   // @include notes-media('min', map-get($grid-breakpoints, sm)) {
     // margin-right: 0;
