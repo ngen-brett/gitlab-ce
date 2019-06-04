@@ -55,8 +55,6 @@ describe 'task completion status response' do
 
         get api(path, user)
 
-        expect(response).to have_gitlab_http_status(200)
-
         taskable_response = json_response.find { |item| item['id'] == taskable.id }
         expect(taskable_response).not_to be_nil
 
