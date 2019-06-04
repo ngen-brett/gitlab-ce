@@ -10,6 +10,15 @@ class ProjectCiCdSetting < ApplicationRecord
 
   before_create :set_default_git_depth, unless: :default_git_depth?
 
+  validates :default_git_depth,
+    numericality: {
+      only_integer: true,
+      greater_than_or_equal_to: 0,
+      less_than_or_equal_to: 1000
+    },
+    allow_nil: true
+
+
   def self.available?
     @available ||=
       ActiveRecord::Migrator.current_version >= MINIMUM_SCHEMA_VERSION

@@ -22,6 +22,10 @@ describe ProjectCiCdSetting do
     end
   end
 
+  describe 'validations' do
+    it { is_expected.to validate_numericality_of(:default_git_depth).only_integer.is_greater_than_or_equal_to(0).is_less_than_or_equal_to(1000).allow_nil }
+  end
+
   describe '#default_git_depth' do
     let(:default_value) { described_class::DEFAULT_GIT_DEPTH }
 
