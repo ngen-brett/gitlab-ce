@@ -1,12 +1,17 @@
 import Clusters from '~/clusters/clusters_bundle';
-import { APPLICATION_STATUS, INGRESS_DOMAIN_SUFFIX, APPLICATIONS } from '~/clusters/constants';
+import {
+  APPLICATION_STATUS,
+  INGRESS_DOMAIN_SUFFIX,
+  APPLICATIONS,
+  RUNNER,
+} from '~/clusters/constants';
 import MockAdapter from 'axios-mock-adapter';
 import axios from '~/lib/utils/axios_utils';
 import { loadHTMLFixture } from 'helpers/fixtures';
 import { setTestTimeout } from 'helpers/timeout';
 import $ from 'jquery';
 
-const { INSTALLING, INSTALLABLE, INSTALLED, UNINSTALLING } = APPLICATION_STATUS;
+const { INSTALLING, INSTALLABLE, INSTALLED, UNINSTALLING,  } = APPLICATION_STATUS;
 
 describe('Clusters', () => {
   setTestTimeout(1000);
@@ -353,4 +358,30 @@ describe('Clusters', () => {
       });
     });
   });
+
+  describe('updateApplication', () => {
+    const params = { version: '1.0.0' }
+    let storeUpdateApplication;
+    let installApplication;
+
+    beforeEach(() => {
+      storeUpdateApplication = jest.spyOn(cluster.store, 'updateApplication');
+      installApplication = jest.spyOn(cluster.service, 'installApplication');
+
+      cluster.updateApplication({ id: RUNNER, params })
+    })
+
+    afterEach(() => {
+      storeUpdateApplication.mockRestore();
+      installApplication.mockRestore();
+    })
+
+    it('calls store updateApplication method', () => {
+      expect(storeUpdateApplication).toHaveBeenCalledWith(RUNNER);
+    })
+
+    it('sends installApplication request', () => {
+      expect(installApplication).toHaveBeenCalledWith(RUNNER, params);
+    })
+  })
 });
