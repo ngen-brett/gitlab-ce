@@ -245,26 +245,26 @@ describe('Application Row', () => {
     });
   });
 
-  describe('Upgrade button', () => {
+  describe('Update button', () => {
     it('has indeterminate state on page load', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
         status: null,
       });
-      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+      const updateBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
 
-      expect(upgradeBtn).toBe(null);
+      expect(updateBtn).toBe(null);
     });
 
-    it('has enabled "Upgrade" when "upgradeAvailable" is true', () => {
+    it('has enabled "Update" when "updateAvailable" is true', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
-        upgradeAvailable: true,
+        updateAvailable: true,
       });
-      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+      const updateBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
 
-      expect(upgradeBtn).not.toBe(null);
-      expect(upgradeBtn.innerHTML).toContain('Upgrade');
+      expect(updateBtn).not.toBe(null);
+      expect(updateBtn.innerHTML).toContain('Update');
     });
 
     it('has enabled "Retry update" when update process fails', () => {
@@ -273,10 +273,10 @@ describe('Application Row', () => {
         status: APPLICATION_STATUS.INSTALLED,
         updateFailed: true,
       });
-      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+      const updateBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
 
-      expect(upgradeBtn).not.toBe(null);
-      expect(upgradeBtn.innerHTML).toContain('Retry update');
+      expect(updateBtn).not.toBe(null);
+      expect(updateBtn.innerHTML).toContain('Retry update');
     });
 
     it('has disabled "Updating" when APPLICATION_STATUS.UPDATING', () => {
@@ -284,11 +284,11 @@ describe('Application Row', () => {
         ...DEFAULT_APPLICATION_STATE,
         status: APPLICATION_STATUS.UPDATING,
       });
-      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+      const updateBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
 
-      expect(upgradeBtn).not.toBe(null);
-      expect(vm.isUpgrading).toBe(true);
-      expect(upgradeBtn.innerHTML).toContain('Updating');
+      expect(updateBtn).not.toBe(null);
+      expect(vm.isUpdating).toBe(true);
+      expect(updateBtn.innerHTML).toContain('Updating');
     });
 
     it('clicking upgrade button emits event', () => {
@@ -296,11 +296,11 @@ describe('Application Row', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
         status: APPLICATION_STATUS.INSTALLED,
-        upgradeAvailable: true,
+        updateAvailable: true,
       });
-      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+      const updateBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
 
-      upgradeBtn.click();
+      updateBtn.click();
 
       expect(eventHub.$emit).toHaveBeenCalledWith('upgradeApplication', {
         id: DEFAULT_APPLICATION_STATE.id,
@@ -308,20 +308,20 @@ describe('Application Row', () => {
       });
     });
 
-    it('clicking disabled upgrade button emits nothing', () => {
+    it('clicking disabled update button emits nothing', () => {
       jest.spyOn(eventHub, '$emit');
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
         status: APPLICATION_STATUS.UPDATING,
       });
-      const upgradeBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
+      const updateBtn = vm.$el.querySelector('.js-cluster-application-upgrade-button');
 
-      upgradeBtn.click();
+      updateBtn.click();
 
       expect(eventHub.$emit).not.toHaveBeenCalled();
     });
 
-    it('displays an error message if application upgrade failed', () => {
+    it('displays an error message if application update failed', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
         title: 'GitLab Runner',
@@ -338,7 +338,7 @@ describe('Application Row', () => {
       );
     });
 
-    it('displays a success toast message if application upgrade was successful', () => {
+    it('displays a success toast message if application update was successful', () => {
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
         title: 'GitLab Runner',
@@ -349,13 +349,13 @@ describe('Application Row', () => {
       vm.updateSuccessful = true;
 
       return vm.$nextTick(() => {
-        expect(vm.$toast.show).toHaveBeenCalledWith('GitLab Runner upgraded successfully.');
+        expect(vm.$toast.show).toHaveBeenCalledWith('GitLab Runner updated successfully.');
       });
     });
   });
 
   describe('Version', () => {
-    it('displays a version number if application has been upgraded', () => {
+    it('displays a version number if application has been updated', () => {
       const version = '0.1.45';
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
@@ -363,15 +363,15 @@ describe('Application Row', () => {
         updateSuccessful: true,
         version,
       });
-      const upgradeDetails = vm.$el.querySelector('.js-cluster-application-upgrade-details');
+      const updateDetails = vm.$el.querySelector('.js-cluster-application-upgrade-details');
       const versionEl = vm.$el.querySelector('.js-cluster-application-upgrade-version');
 
-      expect(upgradeDetails.innerHTML).toContain('Upgraded');
+      expect(updateDetails.innerHTML).toContain('Updated');
       expect(versionEl).not.toBe(null);
       expect(versionEl.innerHTML).toContain(version);
     });
 
-    it('contains a link to the chart repo if application has been upgraded', () => {
+    it('contains a link to the chart repo if application has been updated', () => {
       const version = '0.1.45';
       const chartRepo = 'https://gitlab.com/charts/gitlab-runner';
       vm = mountComponent(ApplicationRow, {
@@ -387,7 +387,7 @@ describe('Application Row', () => {
       expect(versionEl.target).toEqual('_blank');
     });
 
-    it('does not display a version number if application upgrade failed', () => {
+    it('does not display a version number if application update failed', () => {
       const version = '0.1.45';
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
@@ -395,10 +395,10 @@ describe('Application Row', () => {
         updateFailed: true,
         version,
       });
-      const upgradeDetails = vm.$el.querySelector('.js-cluster-application-upgrade-details');
+      const updateDetails = vm.$el.querySelector('.js-cluster-application-upgrade-details');
       const versionEl = vm.$el.querySelector('.js-cluster-application-upgrade-version');
 
-      expect(upgradeDetails.innerHTML).toContain('failed');
+      expect(updateDetails.innerHTML).toContain('failed');
       expect(versionEl).toBe(null);
     });
   });

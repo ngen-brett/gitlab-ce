@@ -85,7 +85,7 @@ export default {
       type: String,
       required: false,
     },
-    upgradeAvailable: {
+    updateAvailable: {
       type: Boolean,
       required: false,
     },
@@ -112,11 +112,6 @@ export default {
       type: Boolean,
       required: false,
       default: false,
-    },
-    updateAcknowledged: {
-      type: Boolean,
-      required: false,
-      default: true,
     },
     installApplicationRequestParams: {
       type: Object,
@@ -208,25 +203,25 @@ export default {
     versionLabel() {
       if (this.updateFailed) {
         return s__('ClusterIntegration|Upgrade failed');
-      } else if (this.isUpgrading) {
+      } else if (this.isUpdating) {
         return s__('ClusterIntegration|Upgrading');
       }
 
       return s__('ClusterIntegration|Upgraded');
     },
-    upgradeFailureDescription() {
+    updateFailureDescription() {
       return s__('ClusterIntegration|Update failed. Please check the logs and try again.');
     },
-    upgradeSuccessDescription() {
-      return sprintf(s__('ClusterIntegration|%{title} upgraded successfully.'), {
+    updateSuccessDescription() {
+      return sprintf(s__('ClusterIntegration|%{title} updated successfully.'), {
         title: this.title,
       });
     },
-    upgradeButtonLabel() {
+    updateButtonLabel() {
       let label;
-      if (this.upgradeAvailable && !this.updateFailed && !this.isUpgrading) {
+      if (this.updateAvailable && !this.updateFailed && !this.isUpdating) {
         label = s__('ClusterIntegration|Upgrade');
-      } else if (this.isUpgrading) {
+      } else if (this.isUpdating) {
         label = s__('ClusterIntegration|Updating');
       } else if (this.updateFailed) {
         label = s__('ClusterIntegration|Retry update');
@@ -234,15 +229,15 @@ export default {
 
       return label;
     },
-    isUpgrading() {
+    isUpdating() {
       // Since upgrading is handled asynchronously on the backend we need this check to prevent any delay on the frontend
       return this.status === APPLICATION_STATUS.UPDATING;
     },
-    shouldShowUpgradeDetails() {
+    shouldShowUpdateDetails() {
       // This method only returns true when;
       // Upgrade was successful OR Upgrade failed
       //     AND new upgrade is unavailable AND version information is present.
-      return (this.updateSuccessful || this.updateFailed) && !this.upgradeAvailable && this.version;
+      return (this.updateSuccessful || this.updateFailed) && !this.updateAvailable && this.version;
     },
     uninstallSuccessDescription() {
       return sprintf(s__('ClusterIntegration|%{title} uninstalled successfully.'), {
@@ -253,7 +248,7 @@ export default {
   watch: {
     updateSuccessful(updateSuccessful) {
       if (updateSuccessful) {
-        this.$toast.show(this.upgradeSuccessDescription);
+        this.$toast.show(this.updateSuccessDescription);
       }
     },
     uninstallSuccessful(uninstallSuccessful) {
@@ -269,8 +264,8 @@ export default {
         params: this.installApplicationRequestParams,
       });
     },
-    upgradeClicked() {
-      eventHub.$emit('upgradeApplication', {
+    updateClicked() {
+      eventHub.$emit('updateApplication', {
         id: this.id,
         params: this.installApplicationRequestParams,
       });
@@ -332,7 +327,7 @@ export default {
 
         <div v-if="updateable">
           <div
-            v-if="shouldShowUpgradeDetails"
+            v-if="shouldShowUpdateDetails"
             class="form-text text-muted label p-0 js-cluster-application-upgrade-details"
           >
             {{ versionLabel }}
@@ -348,18 +343,18 @@ export default {
           </div>
 
           <div
-            v-if="updateFailed && !isUpgrading"
+            v-if="updateFailed && !isUpdating"
             class="bs-callout bs-callout-danger cluster-application-banner mt-2 mb-0 js-cluster-application-upgrade-failure-message"
           >
-            {{ upgradeFailureDescription }}
+            {{ updateFailureDescription }}
           </div>
           <loading-button
-            v-if="upgradeAvailable || updateFailed || isUpgrading"
+            v-if="updateAvailable || updateFailed || isUpdating"
             class="btn btn-primary js-cluster-application-upgrade-button mt-2"
-            :loading="isUpgrading"
-            :disabled="isUpgrading"
-            :label="upgradeButtonLabel"
-            @click="upgradeClicked"
+            :loading="isUpdating"
+            :disabled="isUpdating"
+            :label="updateButtonLabel"
+            @click="updateClicked"
           />
         </div>
       </div>
