@@ -89,7 +89,6 @@ describe('Clusters Store', () => {
             chartRepo: 'https://gitlab.com/charts/gitlab-runner',
             installed: false,
             installFailed: false,
-            updateAcknowledged: true,
             updateFailed: false,
             updateSuccessful: false,
             uninstallable: false,

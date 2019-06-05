@@ -291,7 +291,7 @@ describe('Application Row', () => {
       expect(updateBtn.innerHTML).toContain('Updating');
     });
 
-    it('clicking upgrade button emits event', () => {
+    it('clicking update button emits event', () => {
       jest.spyOn(eventHub, '$emit');
       vm = mountComponent(ApplicationRow, {
         ...DEFAULT_APPLICATION_STATE,
@@ -302,7 +302,7 @@ describe('Application Row', () => {
 
       updateBtn.click();
 
-      expect(eventHub.$emit).toHaveBeenCalledWith('upgradeApplication', {
+      expect(eventHub.$emit).toHaveBeenCalledWith('updateApplication', {
         id: DEFAULT_APPLICATION_STATE.id,
         params: {},
       });
