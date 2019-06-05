@@ -160,8 +160,8 @@ describe NotificationRecipient do
             )
           end
 
-          it 'returns true' do
-            expect(recipient.suitable_notification_level?).to eq true
+          it 'returns false' do
+            expect(recipient.suitable_notification_level?).to eq false
           end
         end
       end
@@ -186,8 +186,8 @@ describe NotificationRecipient do
             )
           end
 
-          it 'returns true' do
-            expect(recipient.suitable_notification_level?).to eq true
+          it 'returns false' do
+            expect(recipient.suitable_notification_level?).to eq false
           end
         end
       end
