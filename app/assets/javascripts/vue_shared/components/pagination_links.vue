@@ -26,7 +26,7 @@ export default {
 <template>
   <gl-pagination
     v-bind="$attrs"
-    :change="change"
+    @input="change"
     :page="pageInfo.page"
     :per-page="pageInfo.perPage"
     :total-items="pageInfo.total"
