@@ -2130,7 +2130,7 @@ msgstr ""
 msgid "ClusterIntegration|%{title} uninstalled successfully."
 msgstr ""
 
-msgid "ClusterIntegration|%{title} upgraded successfully."
+msgid "ClusterIntegration|%{title} updated successfully."
 msgstr ""
 
 msgid "ClusterIntegration|A service token scoped to %{code}kube-system%{end_code} with %{code}cluster-admin%{end_code} privileges."
@@ -2490,9 +2490,6 @@ msgstr ""
 msgid "ClusterIntegration|Request to begin uninstalling failed"
 msgstr ""
 
-msgid "ClusterIntegration|Retry update"
-msgstr ""
-
 msgid "ClusterIntegration|Save changes"
 msgstr ""
 
@@ -2590,21 +2587,6 @@ msgid "ClusterIntegration|Uninstall %{appTitle}"
 msgstr ""
 
 msgid "ClusterIntegration|Update failed. Please check the logs and try again."
-msgstr ""
-
-msgid "ClusterIntegration|Updating"
-msgstr ""
-
-msgid "ClusterIntegration|Upgrade"
-msgstr ""
-
-msgid "ClusterIntegration|Upgrade failed"
-msgstr ""
-
-msgid "ClusterIntegration|Upgraded"
-msgstr ""
-
-msgid "ClusterIntegration|Upgrading"
 msgstr ""
 
 msgid "ClusterIntegration|Validating project billing status"
@@ -8514,6 +8496,9 @@ msgstr ""
 msgid "Retry this job in order to create the necessary resources."
 msgstr ""
 
+msgid "Retry update"
+msgstr ""
+
 msgid "Retry verification"
 msgstr ""
 
@@ -10976,6 +10961,9 @@ msgid "UpdateProject|New visibility level not allowed!"
 msgstr ""
 
 msgid "UpdateProject|Project could not be updated!"
+msgstr ""
+
+msgid "Updated"
 msgstr ""
 
 msgid "Updating"

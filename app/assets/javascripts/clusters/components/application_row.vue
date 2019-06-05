@@ -202,12 +202,12 @@ export default {
     },
     versionLabel() {
       if (this.updateFailed) {
-        return s__('ClusterIntegration|Upgrade failed');
+        return s__('Update failed');
       } else if (this.isUpdating) {
-        return s__('ClusterIntegration|Upgrading');
+        return s__('Updating');
       }
 
-      return s__('ClusterIntegration|Upgraded');
+      return s__('Updated');
     },
     updateFailureDescription() {
       return s__('ClusterIntegration|Update failed. Please check the logs and try again.');
@@ -220,11 +220,11 @@ export default {
     updateButtonLabel() {
       let label;
       if (this.updateAvailable && !this.updateFailed && !this.isUpdating) {
-        label = s__('ClusterIntegration|Upgrade');
+        label = s__('Update');
       } else if (this.isUpdating) {
-        label = s__('ClusterIntegration|Updating');
+        label = s__('Updating');
       } else if (this.updateFailed) {
-        label = s__('ClusterIntegration|Retry update');
+        label = s__('Retry update');
       }
 
       return label;
@@ -235,8 +235,8 @@ export default {
     },
     shouldShowUpdateDetails() {
       // This method only returns true when;
-      // Upgrade was successful OR Upgrade failed
-      //     AND new upgrade is unavailable AND version information is present.
+      // Update was successful OR Update failed
+      //     AND new update is unavailable AND version information is present.
       return (this.updateSuccessful || this.updateFailed) && !this.updateAvailable && this.version;
     },
     uninstallSuccessDescription() {
