@@ -7,6 +7,8 @@ export default (props = {}) => {
   const el = document.getElementById('prometheus-graphs');
 
   if (el && el.dataset) {
+    store.dispatch('setDashboardEnabled', gon.features.environmentMetricsUsePrometheusEndpoint);
+
     // eslint-disable-next-line no-new
     new Vue({
       el,
@@ -17,6 +19,7 @@ export default (props = {}) => {
             ...el.dataset,
             hasMetrics: parseBoolean(el.dataset.hasMetrics),
             showTimeWindowDropdown: gon.features.metricsTimeWindow,
+            usePrometheusEndpoint: gon.features.environmentMetricsUsePrometheusEndpoint,
             ...props,
           },
         });

@@ -13,6 +13,7 @@ import { s__ } from '~/locale';
 import Icon from '~/vue_shared/components/icon.vue';
 import '~/vue_shared/mixins/is_ee';
 import { getParameterValues } from '~/lib/utils/url_utility';
+import invalidUrl from '~/lib/utils/invalid_url';
 import MonitorAreaChart from './charts/area.vue';
 import GraphGroup from './graph_group.vue';
 import EmptyState from './empty_state.vue';
@@ -117,11 +118,18 @@ export default {
     },
     customMetricsPath: {
       type: String,
-      required: true,
+      required: false,
+      default: invalidUrl,
     },
     validateQueryPath: {
       type: String,
-      required: true,
+      required: false,
+      default: invalidUrl,
+    },
+    dashboardEndpoint: {
+      type: String,
+      required: false,
+      default: invalidUrl,
     },
   },
   data() {
@@ -150,6 +158,7 @@ export default {
       metricsEndpoint: this.metricsEndpoint,
       environmentsEndpoint: this.environmentsEndpoint,
       deploymentsEndpoint: this.deploymentEndpoint,
+      dashboardEndpoint: this.dashboardEndpoint,
     });
 
     this.timeWindows = timeWindows;
@@ -187,6 +196,7 @@ export default {
       'fetchData',
       'setGettingStartedEmptyState',
       'setEndpoints',
+      'setDashboardEnabled',
     ]),
     getGraphAlerts(queries) {
       if (!this.allAlerts) return {};
