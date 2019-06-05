@@ -56,7 +56,6 @@ describe 'task completion status response' do
         get api(path, user)
 
         taskable_response = json_response.find { |item| item['id'] == taskable.id }
-        expect(taskable_response).not_to be_nil
 
         task_completion_status = taskable_response['task_completion_status']
         expect(task_completion_status['count']).to be(sample_data[:expected_count])
