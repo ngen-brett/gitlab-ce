@@ -246,7 +246,7 @@ https://gitlab.com/gitlab-org/gitlab-ce/blob/master/doc/user/markdown.md#inline-
 
 With inline diffs tags you can display {+ additions +} or [- deletions -].
 
-The wrapping tags can be either curly braces or square brackets: [+ additions +] or {- deletions -}.
+The wrapping tags can be either curly braces or square brackets.
 
 Examples:
 
@@ -256,6 +256,14 @@ Examples:
 - {- deletions -}
 - [- deletions -]
 ```
+
+becomes:
+
+- {+ additions +}
+- [+ additions +]
+- {- deletions -}
+- [- deletions -]
+
 
 However the wrapping tags cannot be mixed as such:
 
