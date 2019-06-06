@@ -53,7 +53,7 @@ If you wish to undo this dismissal, you can click the **Undo dismiss** button.
 
 When dismissing a vulnerability, it's often helpful to provide a reason for doing so.
 If you press the comment button next to **Dismiss vulnerability** in the modal, a text box will appear, allowing you to add a comment with your dismissal.
-This comment can not currently be edited or removed, but future versions will add this functionality.
+This comment can not currently be edited or removed, but [future versions](https://gitlab.com/gitlab-org/gitlab-ee/issues/11721) will add this functionality.
 
 ![Dismissed vulnerability comment](img/dismissed_info.png)
 
