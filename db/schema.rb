@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190530154715) do
+ActiveRecord::Schema.define(version: 20190606034427) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1188,6 +1188,8 @@ ActiveRecord::Schema.define(version: 20190530154715) do
     t.integer "project_id", null: false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer "repository_type", limit: 2
+    t.index ["lfs_object_id"], name: "index_lfs_objects_projects_on_lfs_object_id", using: :btree
     t.index ["project_id"], name: "index_lfs_objects_projects_on_project_id", using: :btree
   end
 
