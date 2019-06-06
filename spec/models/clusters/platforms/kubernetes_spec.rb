@@ -267,14 +267,14 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
 
       it_behaves_like 'setting variables'
 
-      it 'sets KUBE_TOKEN' do
-        expect(subject).to include(
+      it 'does not set KUBE_TOKEN' do
+        expect(subject).not_to include(
           { key: 'KUBE_TOKEN', value: kubernetes.token, public: false, masked: true }
         )
       end
     end
 
-    context 'kubernetes namespace is created with no service account token' do
+    context 'kubernetes namespace is created with service account token' do
       let!(:kubernetes_namespace) { create(:cluster_kubernetes_namespace, :with_token, cluster: cluster) }
 
       it_behaves_like 'setting variables'
@@ -282,32 +282,6 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
       it 'sets KUBE_TOKEN' do
         expect(subject).to include(
           { key: 'KUBE_TOKEN', value: kubernetes_namespace.service_account_token, public: false, masked: true }
-        )
-      end
-    end
-
-    context 'namespace is provided' do
-      let(:namespace) { 'my-project' }
-
-      before do
-        kubernetes.namespace = namespace
-      end
-
-      it_behaves_like 'setting variables'
-
-      it 'sets KUBE_TOKEN' do
-        expect(subject).to include(
-          { key: 'KUBE_TOKEN', value: kubernetes.token, public: false, masked: true }
-        )
-      end
-    end
-
-    context 'no namespace provided' do
-      it_behaves_like 'setting variables'
-
-      it 'sets KUBE_TOKEN' do
-        expect(subject).to include(
-          { key: 'KUBE_TOKEN', value: kubernetes.token, public: false, masked: true }
         )
       end
     end
