@@ -2636,7 +2636,7 @@ describe Project do
       end
 
       context 'when user configured kubernetes from CI/CD > Clusters and KubernetesNamespace migration has not been executed' do
-        let!(:cluster) { create(:cluster, :project, :provided_by_gcp) }
+        let!(:cluster) { create(:cluster, :project, :not_managed, :provided_by_gcp) }
         let(:project) { cluster.project }
 
         it_behaves_like 'same behavior between KubernetesService and Platform::Kubernetes'
