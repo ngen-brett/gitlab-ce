@@ -134,6 +134,13 @@ to a different Group.
 be deducted from your Additional Minutes quota immediately after your purchase of additional
 minutes.
 
+## What happens when the CI minutes quota run out
+
+When CI minutes quota run out, an email is automatically sent and notifies all the Owners of the Group or the
+individual user. In the email, you'll find a link where you can purchase extra CI minutes.
+
+In case you are not the Owner of the group, find one and inform them of this situation.
+
 ## Archive jobs **[CORE ONLY]**
 
 Archiving jobs is useful for reducing the CI/CD footprint on the system by
