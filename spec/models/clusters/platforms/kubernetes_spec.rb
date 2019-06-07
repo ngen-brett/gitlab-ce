@@ -284,6 +284,20 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
           { key: 'KUBE_TOKEN', value: kubernetes_namespace.service_account_token, public: false, masked: true }
         )
       end
+
+      context 'the cluster has been set to unmanaged after the namespace was created' do
+        before do
+          cluster.update!(managed: false)
+        end
+
+        it_behaves_like 'setting variables'
+
+        it 'sets KUBE_TOKEN from the platform' do
+          expect(subject).to include(
+            { key: 'KUBE_TOKEN', value: kubernetes.token, public: false, masked: true }
+          )
+        end
+      end
     end
 
     context 'group level cluster' do

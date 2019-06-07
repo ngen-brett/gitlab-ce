@@ -81,9 +81,7 @@ module Clusters
               .append(key: 'KUBE_CA_PEM_FILE', value: ca_pem, file: true)
           end
 
-          if kubernetes_namespace = cluster.kubernetes_namespaces.has_service_account_token.find_by(project: project)
-            variables.concat(kubernetes_namespace.predefined_variables)
-          elsif !cluster.managed?
+          if !cluster.managed?
             project_namespace = cluster.kubernetes_namespace_for(project)
 
             variables
@@ -91,6 +89,8 @@ module Clusters
               .append(key: 'KUBE_TOKEN', value: token, public: false, masked: true)
               .append(key: 'KUBE_NAMESPACE', value: project_namespace)
               .append(key: 'KUBECONFIG', value: kubeconfig(project_namespace), public: false, file: true)
+          elsif kubernetes_namespace = cluster.kubernetes_namespaces.has_service_account_token.find_by(project: project)
+            variables.concat(kubernetes_namespace.predefined_variables)
           end
 
           variables.concat(cluster.predefined_variables)
