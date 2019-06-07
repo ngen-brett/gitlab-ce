@@ -230,7 +230,7 @@ Once a vulnerability is found, you can interact with it. Read more on how to
 > [Introduced](https://gitlab.com/gitlab-org/gitlab-ee/issues/10075)
 in [GitLab Ultimate](https://about.gitlab.com/pricing/) 12.0.
 
-Additional benefit of Dependency Scanning job is an ability to get a list of project's dependencies with their versions. 
+An additional benefit of Dependency Scanning is the ability to get a list of your project's dependencies with their versions. 
 
 This list can be generated only for [supported languages and package managers](#supported-languages-and-package-managers).
 
