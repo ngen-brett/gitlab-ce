@@ -52,7 +52,7 @@ module Lfs
     end
 
     def cached_attributes
-      @cached_attributes ||= Gitlab::Git::AttributesAtRefParser.new(repository, branch_name)
+      @cached_attributes ||= repository.attributes_at(branch_name)
     end
 
     # rubocop: disable CodeReuse/ActiveRecord
