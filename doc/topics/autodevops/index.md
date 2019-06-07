@@ -367,7 +367,7 @@ Any differences between the source and target branches are also
 Static Application Security Testing (SAST) uses the
 [SAST Docker image](https://gitlab.com/gitlab-org/security-products/sast) to run static
 analysis on the current code and checks for potential security issues. The
-the Auto SAST stage will be skipped on licenses other than Ultimate and trequires GitLab Runner 11.5 or above.
+the Auto SAST stage will be skipped on licenses other than Ultimate and requires GitLab Runner 11.5 or above.
 
 Once the report is created, it's uploaded as an artifact which you can later download and
 check out.
