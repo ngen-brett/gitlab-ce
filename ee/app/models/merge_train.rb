@@ -7,19 +7,13 @@ class MergeTrain < ApplicationRecord
   belongs_to :user
   belongs_to :pipeline, class_name: 'Ci::Pipeline'
 
-  after_create do |merge_train|
-    run_after_commit { AutoMergeProcessWorker.perform_async(merge_train.merge_request_id) }
-  end
-
-  after_destroy do |merge_train|
-    run_after_commit { AutoMergeProcessWorker.perform_async(merge_train.merge_request_id) }
-  end
-
   delegate :project, to: :merge_request
+
+  scope :ordered -> { order('merge_trains.id ASC') }
 
   class << self
     def all_in_train(merge_request)
-      joined_merge_requests(merge_request).order('merge_trains.id ASC')
+      joined_merge_requests(merge_request).ordered
     end
 
     def first_in_train(merge_request)

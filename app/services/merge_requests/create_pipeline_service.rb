@@ -9,6 +9,8 @@ module MergeRequests
     end
 
     def create_detached_merge_request_pipeline(merge_request)
+      raise MismatchingProjectError unless merge_request.target_project == project
+
       if can_use_merge_request_ref?(merge_request)
         Ci::CreatePipelineService.new(merge_request.source_project, current_user,
                                       ref: merge_request.ref_path)
