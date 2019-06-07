@@ -234,7 +234,7 @@ An additional benefit of Dependency Scanning is the ability to get a list of you
 
 This list can be generated only for [supported languages and package managers](#supported-languages-and-package-managers).
 
-To see generated dependency list, navigate to the Dependency List page under your project's left sidebar menu **Project > Dependency List**.
+To see the generated dependency list, navigate to the Dependency List page under your project's left sidebar menu **Project > Dependency List**.
 
 ## Contributing to the vulnerability database
 
