@@ -31,6 +31,7 @@ class ProjectCiCdSetting < ApplicationRecord
   private
 
   def set_default_git_depth
+    return unless Feature.enabled?(:ci_set_project_default_git_depth, default_enabled: true)
     self.default_git_depth ||= DEFAULT_GIT_DEPTH
   end
 end
