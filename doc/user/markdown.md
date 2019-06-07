@@ -259,11 +259,7 @@ Examples:
 
 becomes:
 
-- {+ additions +}
-- [+ additions +]
-- {- deletions -}
-- [- deletions -]
-
+![inline diffs tags rendered](img/markdown_inline_diffs_tags_rendered.png)
 
 However the wrapping tags cannot be mixed as such:
 
