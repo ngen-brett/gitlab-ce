@@ -224,12 +224,12 @@ sast:
 ## Reports JSON format
 
 CAUTION: **Caution:**
-JSON report artifacts are not a public API of SAST and their format may change in future.
+The JSON report artifacts are not a public API of SAST and their format may change in the future.
 
-SAST tool emits a JSON report report file. Here is an example of a structure for such report will all important parts of
+The SAST tool emits a JSON report report file. Here is an example of a structure for a report will all important parts of
 it highlighted:
 
-```json5
+```json-doc
 {
   "version": "2.0",
   "vulnerabilities": [
@@ -309,14 +309,14 @@ Here is the description of the report file structure nodes and their meaning:
 |-----------------------------------------|----------|
 | `version`                               | Current version of the report syntax. |
 | `vulnerabilities`                       | Array of vulnerability objects. |
-| `vulnerabilities[].category`            | Describes where this vulnerability belongs (SAST, Dependency Scanning etc.). For SAST, it will always be `sast`. |
-| `vulnerabilities[].name`                | Name of the vulnerability, this must not include occurrence's specific information. |
-| `vulnerabilities[].message`             | A short text that describes the vulnerability, it may include occurrence's specific information. |
+| `vulnerabilities[].category`            | Where this vulnerability belongs (SAST, Dependency Scanning etc.). For SAST, it will always be `sast`. |
+| `vulnerabilities[].name`                | Name of the vulnerability, this must not include the occurrence's specific information. |
+| `vulnerabilities[].message`             | A short text that describes the vulnerability, it may include the occurrence's specific information. |
 | `vulnerabilities[].description`         | A long text that describes the vulnerability. |
-| `vulnerabilities[].cve`                 | A fingerprint string value that represents a concrete occurrence of the vulnerability. Is used to determine whether two vulnerability occurrences are same or different. May not be 100% accurate. And **this is NOT a [CVE](https://cve.mitre.org/)**. |
-| `vulnerabilities[].severity`            | Describes how much the vulnerability impacts the software. Possible values: `Info`, `Unknown`, `Low`, `Medium`, `High`, `Critical`. |
-| `vulnerabilities[].confidence`          | Describes how reliable the vulnerability's assessment is. Possible values: `Ignore`, `Unknown`, `Experimental`, `Low`, `Medium`, `High`, `Confirmed`. |
-| `vulnerabilities[].solution`            | Explains how to fix the vulnerability. |
+| `vulnerabilities[].cve`                 | A fingerprint string value that represents a concrete occurrence of the vulnerability. Is used to determine whether two vulnerability occurrences are same or different. May not be 100% accurate. **This is NOT a [CVE](https://cve.mitre.org/)**. |
+| `vulnerabilities[].severity`            | How much the vulnerability impacts the software. Possible values: `Info`, `Unknown`, `Low`, `Medium`, `High`, `Critical`. |
+| `vulnerabilities[].confidence`          | How reliable the vulnerability's assessment is. Possible values: `Ignore`, `Unknown`, `Experimental`, `Low`, `Medium`, `High`, `Confirmed`. |
+| `vulnerabilities[].solution`            | Explanation of how to fix the vulnerability. |
 | `vulnerabilities[].scanner`             | A node that describes the analyzer used find this vulnerability. |
 | `vulnerabilities[].scanner.id`          | Id of the scanner as a snake_case string (mandatory). |
 | `vulnerabilities[].scanner.name`        | Name of the scanner, for display purposes (mandatory). |
@@ -328,9 +328,9 @@ Here is the description of the report file structure nodes and their meaning:
 | `vulnerabilities[].location.method`     | If specified, provides the name of the method where the vulnerability is located. |
 | `vulnerabilities[].location.dependency` | A node that describes the dependency of a project where the vulnerability is located. Used by [Dependency Scanning](../dependency_scanning/index.md) but is present in SAST report since both tools share the same report format. For SAST, always holds `{ "package": {} }` value. |
 | `vulnerabilities[].identifiers`         | An array of references that identify a vulnerability on internal or external DBs. |
-| `vulnerabilities[].identifiers[].type`  | Type of the identifier. Possible values: common identifier types (among `cve`, `cwe`, `osvdb`, and `usn`) or analyzer-dependent ones (e.g. `bandit_test_id` for [Bandit analyzer](https://wiki.openstack.org/wiki/Security/Projects/Bandit)). |
-| `vulnerabilities[].identifiers[].name`  | Name of the identifier for display purpose. |
-| `vulnerabilities[].identifiers[].value` | Value of the identifier for matching purpose. |
+| `vulnerabilities[].identifiers[].type`  | Type of the identifier. Possible values: common identifier types (among `cve`, `cwe`, `osvdb`, and `usn`) or analyzer-dependent ones (e.g., `bandit_test_id` for [Bandit analyzer](https://wiki.openstack.org/wiki/Security/Projects/Bandit)). |
+| `vulnerabilities[].identifiers[].name`  | Name of the identifier for display purposes. |
+| `vulnerabilities[].identifiers[].value` | Value of the identifier for matching purposes. |
 | `vulnerabilities[].identifiers[].url`   | URL to identifier's documentation. |
 | `remediations`                          | An array of objects containing information on cured vulnerabilities along with patch diffs to apply. Used by [Dependency Scanning](../dependency_scanning/index.md) but is present in SAST report since both tools share the same report format. For SAST, always holds `[]` value. |
 
