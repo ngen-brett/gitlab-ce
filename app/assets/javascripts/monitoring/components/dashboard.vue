@@ -139,6 +139,7 @@ export default {
       selectedTimeWindow: '',
       selectedTimeWindowKey: '',
       formIsValid: null,
+      currentDashboard: '',
     };
   },
   computed: {
@@ -153,6 +154,7 @@ export default {
       'deploymentData',
       'metricsWithData',
       'useDashboardEndpoint',
+      'allDashboards',
     ]),
     groupsWithData() {
       return this.groups.filter(group => this.chartsWithData(group.metrics).length > 0);
@@ -255,6 +257,22 @@ export default {
         class="dropdowns d-flex align-items-center justify-content-between"
       >
         <div class="d-flex align-items-center">
+          <label>{{ __('Dashboard') }}</label>
+          <gl-dropdown
+            class="prepend-left-10 js-dashboards-dropdown"
+            toggle-class="dropdown-menu-toggle"
+            :text="currentDashboard"
+          >
+            <gl-dropdown-item
+              v-for="dashboard in allDashboards"
+              :key="dashboard.path"
+              :active="dashboard.path === currentDashboard"
+              active-class="is-active"
+              >{{ dashboard.name || dashboard.path }}</gl-dropdown-item
+            >
+          </gl-dropdown>
+        </div>
+        <div class="d-flex align-items-center">
           <strong>{{ s__('Metrics|Environment') }}</strong>
           <gl-dropdown
             class="prepend-left-10 js-environments-dropdown"
@@ -286,6 +304,7 @@ export default {
             >
           </gl-dropdown>
         </div>
+
       </div>
       <div class="d-flex">
         <div v-if="isEE && canAddMetrics">

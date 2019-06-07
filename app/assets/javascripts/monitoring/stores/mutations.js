@@ -88,4 +88,7 @@ export default {
     state.showEmptyState = true;
     state.emptyState = 'noData';
   },
+  [types.SET_ALL_DASHBOARDS](state, dashboards) {
+    state.allDashboards = dashboards;
+  },
 };
