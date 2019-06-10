@@ -68,9 +68,10 @@ module API
       delete ':id/registry/repositories/:repository_id/tags', requirements: REGISTRY_ENDPOINT_REQUIREMENTS do
         authorize_admin_container_image!
 
-        CleanupContainerRepositoryWorker.perform_async(current_user.id, repository.id,
+        service = ::ContainerRegistries::CleanupContainerRepositoryService.new(current_user, repository,
           declared_params.except(:repository_id)) # rubocop: disable CodeReuse/ActiveRecord
 
+        render_api_error!(service.message, 400) unless service.execute
         status :accepted
       end
 

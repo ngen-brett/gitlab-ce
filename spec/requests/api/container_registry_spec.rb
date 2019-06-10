@@ -156,12 +156,26 @@ describe API::ContainerRegistry do
         end
 
         it 'schedules cleanup of tags repository' do
-          expect(CleanupContainerRepositoryWorker).to receive(:perform_async)
-            .with(maintainer.id, root_repository.id, worker_params)
+          service = double('CleanupContainerRepositoryService', execute: true)
+          expect(ContainerRegistries::CleanupContainerRepositoryService).to receive(:new)
+            .with(maintainer, root_repository, worker_params).and_return(service)
 
           subject
 
           expect(response).to have_gitlab_http_status(:accepted)
+        end
+
+        context 'called multiple times in one hour' do
+          it 'returns 400 with an error message' do
+            service = double('CleanupContainerRepositoryService', execute: false, message: 'service message')
+            expect(ContainerRegistries::CleanupContainerRepositoryService).to receive(:new)
+              .with(maintainer, root_repository, worker_params).and_return(service)
+
+            subject
+
+            expect(response).to have_gitlab_http_status(400)
+            expect(json_response['message']).to eq(service.message)
+          end
         end
       end
     end
