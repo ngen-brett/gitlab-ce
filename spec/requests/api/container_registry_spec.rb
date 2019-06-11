@@ -122,9 +122,41 @@ describe API::ContainerRegistry do
   describe 'DELETE /projects/:id/registry/repositories/:repository_id/tags' do
     subject { delete api("/projects/#{project.id}/registry/repositories/#{root_repository.id}/tags", api_user), params: params }
 
-    it_behaves_like 'being disallowed', :developer do
-      let(:params) do
-        { name_regex: 'v10.*' }
+    context 'for developer' do
+      let(:api_user) { developer }
+
+      context 'without required parameters' do
+        let(:params) { }
+
+        it 'returns bad request' do
+          subject
+
+          expect(response).to have_gitlab_http_status(:bad_request)
+        end
+      end
+
+      context 'passes all declared parameters' do
+        let(:params) do
+          { name_regex: 'v10.*',
+            keep_n: 100,
+            older_than: '1 day',
+            other: 'some value' }
+        end
+
+        let(:worker_params) do
+          { name_regex: 'v10.*',
+            keep_n: 100,
+            older_than: '1 day' }
+        end
+
+        it 'schedules cleanup of tags repository' do
+          expect(CleanupContainerRepositoryWorker).to receive(:perform_async)
+            .with(developer.id, root_repository.id, worker_params)
+
+          subject
+
+          expect(response).to have_gitlab_http_status(:accepted)
+        end
       end
     end
 
@@ -201,7 +233,23 @@ describe API::ContainerRegistry do
   describe 'DELETE /projects/:id/registry/repositories/:repository_id/tags/:tag_name' do
     subject { delete api("/projects/#{project.id}/registry/repositories/#{root_repository.id}/tags/rootA", api_user) }
 
-    it_behaves_like 'being disallowed', :developer
+    context 'for developer' do
+      let(:api_user) { developer }
+
+      before do
+        stub_container_registry_tags(repository: root_repository.path, tags: %w(rootA), with_manifest: true)
+      end
+
+      it 'properly removes tag' do
+        expect_any_instance_of(ContainerRegistry::Client)
+          .to receive(:delete_repository_tag).with(root_repository.path,
+            'sha256:4c8e63ca4cb663ce6c688cb06f1c372b088dac5b6d7ad7d49cd620d85cf72a15')
+
+        subject
+
+        expect(response).to have_gitlab_http_status(:ok)
+      end
+    end
 
     context 'for maintainer' do
       let(:api_user) { maintainer }

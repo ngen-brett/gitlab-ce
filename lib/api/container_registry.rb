@@ -66,7 +66,7 @@ module API
         optional :older_than, type: String, desc: 'Delete older than: 1h, 1d, 1month'
       end
       delete ':id/registry/repositories/:repository_id/tags', requirements: REGISTRY_ENDPOINT_REQUIREMENTS do
-        authorize_admin_container_image!
+        authorize_destroy_container_image!
 
         CleanupContainerRepositoryWorker.perform_async(current_user.id, repository.id,
           declared_params.except(:repository_id)) # rubocop: disable CodeReuse/ActiveRecord
@@ -120,7 +120,7 @@ module API
       end
 
       def authorize_destroy_container_image!
-        authorize! :admin_container_image, repository
+        authorize! :update_container_image, repository
       end
 
       def authorize_admin_container_image!
