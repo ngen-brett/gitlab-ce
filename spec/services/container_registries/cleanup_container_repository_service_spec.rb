@@ -17,6 +17,10 @@ describe ContainerRegistries::CleanupContainerRepositoryService do
   describe '#execute' do
     let(:worker) { instance_double(CleanupContainerRepositoryWorker) }
     context 'when there is not already a lease' do
+      before do
+        allow(CleanupContainerRepositoryWorker).to receive(:perform)
+          .with(user.id, repository.id, params).and_return(worker)
+      end
       it 'schedules the cleanup worker' do
         stub_exclusive_lease(lease_key, timeout: lease_timeout)
 
