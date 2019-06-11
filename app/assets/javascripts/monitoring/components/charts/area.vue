@@ -111,7 +111,8 @@ export default {
         yAxis: {
           name: this.yAxisLabel,
           axisLabel: {
-            formatter: value => value.toFixed(3),
+            // num.toFixed(3), but only show decimals when needed
+            formatter: value => Math.round(value * 1000) / 1000,
           },
         },
         series: this.scatterSeries,
