@@ -63,7 +63,7 @@ project in a simple and automatic way:
 1. [Auto SAST (Static Application Security Testing)](#auto-sast-ultimate) **[ULTIMATE]**
 1. [Auto Dependency Scanning](#auto-dependency-scanning-ultimate) **[ULTIMATE]**
 1. [Auto License Management](#auto-license-management-ultimate) **[ULTIMATE]**
-1. [Auto Container Scanning](#auto-container-scanning-ultimate)
+1. [Auto Container Scanning](#auto-container-scanning-ultimate) **[ULTIMATE]**
 1. [Auto Review Apps](#auto-review-apps)
 1. [Auto DAST (Dynamic Application Security Testing)](#auto-dast-ultimate) **[ULTIMATE]**
 1. [Auto Deploy](#auto-deploy)
