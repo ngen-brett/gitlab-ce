@@ -214,7 +214,7 @@ To resolve the problem, we needed to (forcibly) drain some nodes:
   pod runs so that Kubernetes automatically move it to another node: `kubectl drain NODE_NAME`
 1. If that doesn't work, you can also perform a forcible "drain" the node by removing all pods: `kubectl delete pods --field-selector=spec.nodeName=NODE_NAME`
 1. In the node:
-  - Perform `systemctl daemon-reload` to remove the dead/inactive units
+  - Perform `sudo systemctl daemon-reload` to remove the dead/inactive units
   - If that doesn't solve the problem, perform a hard reboot: `sudo systemctl reboot`
 1. Uncordon any cordoned nodes: `kubectl uncordon NODE_NAME`
 
