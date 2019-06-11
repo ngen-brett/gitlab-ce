@@ -5,7 +5,6 @@ import {
   GlDropdownItem,
   GlModal,
   GlModalDirective,
-  GlLink,
 } from '@gitlab/ui';
 import _ from 'underscore';
 import { mapActions, mapState } from 'vuex';
@@ -31,7 +30,6 @@ export default {
     GlButton,
     GlDropdown,
     GlDropdownItem,
-    GlLink,
     GlModal,
   },
   directives: {
@@ -255,7 +253,8 @@ export default {
               v-for="(value, key) in timeWindows"
               :key="key"
               :active="activeTimeWindow(key)"
-              ><gl-link :href="setTimeWindowParameter(key)">{{ value }}</gl-link></gl-dropdown-item
+              :href="setTimeWindowParameter(key)"
+              >{{ value }}</gl-dropdown-item
             >
           </gl-dropdown>
         </div>
