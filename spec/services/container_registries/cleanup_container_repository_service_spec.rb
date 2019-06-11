@@ -21,6 +21,7 @@ describe ContainerRegistries::CleanupContainerRepositoryService do
         allow(CleanupContainerRepositoryWorker).to receive(:perform)
           .with(user.id, repository.id, params).and_return(worker)
       end
+
       it 'schedules the cleanup worker' do
         stub_exclusive_lease(lease_key, timeout: lease_timeout)
 
@@ -32,6 +33,7 @@ describe ContainerRegistries::CleanupContainerRepositoryService do
       before do
         stub_exclusive_lease_taken(lease_key, timeout: lease_timeout)
       end
+
       it 'executes service only for the first time' do
         expect(subject.execute).to be false
       end
