@@ -57,6 +57,8 @@ class Admin::ApplicationSettingsController < Admin::ApplicationController
   end
 
   def usage_data
+    Gitlab::QueryLimiting.whitelist('https://gitlab.com/gitlab-org/gitlab-ce/issues/63107')
+
     respond_to do |format|
       format.html do
         usage_data_json = JSON.pretty_generate(Gitlab::UsageData.data)
