@@ -67,6 +67,8 @@ describe('MergeRequestTabs', function() {
 
         this.class.bindEvents();
         $('.merge-request-tabs .commits-tab a').trigger(metakeyEvent);
+
+        expect(window.open).toHaveBeenCalled();
       });
 
       it('opens page when commits badge is clicked', function() {
@@ -77,6 +79,8 @@ describe('MergeRequestTabs', function() {
 
         this.class.bindEvents();
         $('.merge-request-tabs .commits-tab a .badge').trigger(metakeyEvent);
+
+        expect(window.open).toHaveBeenCalled();
       });
     });
 
@@ -91,7 +95,15 @@ describe('MergeRequestTabs', function() {
         ctrlKey: true,
         which: 1,
         stopImmediatePropagation: function() {},
+        preventDefault: function() {},
+        currentTarget: {
+          getAttribute: function(attr) {
+            return attr === 'href' ? tabUrl : null;
+          },
+        },
       });
+
+      expect(window.open).toHaveBeenCalled();
     });
 
     it('opens page tab in a new browser tab with Cmd+Click - Mac', function() {
@@ -105,7 +117,15 @@ describe('MergeRequestTabs', function() {
         ctrlKey: false,
         which: 1,
         stopImmediatePropagation: function() {},
+        preventDefault: function() {},
+        currentTarget: {
+          getAttribute: function(attr) {
+            return attr === 'href' ? tabUrl : null;
+          },
+        },
       });
+
+      expect(window.open).toHaveBeenCalled();
     });
 
     it('opens page tab in a new browser tab with Middle-click - Mac/PC', function() {
@@ -119,7 +139,15 @@ describe('MergeRequestTabs', function() {
         ctrlKey: false,
         which: 2,
         stopImmediatePropagation: function() {},
+        preventDefault: function() {},
+        currentTarget: {
+          getAttribute: function(attr) {
+            return attr === 'href' ? tabUrl : null;
+          },
+        },
       });
+
+      expect(window.open).toHaveBeenCalled();
     });
   });
 
