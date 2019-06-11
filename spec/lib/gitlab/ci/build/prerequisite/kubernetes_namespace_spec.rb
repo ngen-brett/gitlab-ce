@@ -39,12 +39,6 @@ describe Gitlab::Ci::Build::Prerequisite::KubernetesNamespace do
 
           it { is_expected.to be_falsey }
         end
-
-        context 'and cluster is project type' do
-          let(:cluster) { create(:cluster, :project) }
-
-          it { is_expected.to be_falsey }
-        end
       end
 
       context 'and no cluster to deploy to' do
