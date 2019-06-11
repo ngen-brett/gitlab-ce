@@ -17,13 +17,13 @@ export default {
   computed: {
     title() {
       return stringifyTime(
-        parseSeconds(this.estimate, { limitToHours: gon.time_tracking_display_hours_only }),
-        true
+        parseSeconds(this.estimate, { limitToHours: gon.time_tracking_limit_to_hours }),
+        true,
       );
     },
     timeEstimate() {
       return stringifyTime(
-        parseSeconds(this.estimate, { limitToHours: gon.time_tracking_display_hours_only })
+        parseSeconds(this.estimate, { limitToHours: gon.time_tracking_limit_to_hours }),
       );
     },
   },
