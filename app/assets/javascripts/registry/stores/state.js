@@ -1,3 +1,23 @@
+export const confirmDeletionModalState = () => ({
+  // Controls modal's visibility
+  isVisible: false,
+
+  // Item to be deleted
+  item: {},
+
+  // Item title
+  title: '',
+
+  // Item type, either repository or image
+  type: '',
+
+  // Delete success callback
+  onSuccess: () => {},
+
+  // Delete error callback
+  onError: () => {},
+});
+
 export default () => ({
   isLoading: false,
   endpoint: '', // initial endpoint to fetch the repos list
@@ -23,4 +43,5 @@ export default () => ({
    * }
    */
   repos: [],
+  confirmDeletionModal: confirmDeletionModalState(),
 });

@@ -35,11 +35,12 @@ export const fetchList = ({ commit }, { repo, page }) => {
     });
 };
 
-// eslint-disable-next-line no-unused-vars
-export const deleteRepo = ({ commit }, repo) => axios.delete(repo.destroyPath);
+export const confirmDeletion = ({ commit }, payload) => commit(types.CONFIRM_DELETION, payload);
+
+export const resetDeletionModal = ({ commit }) => commit(types.RESET_DELETION_MODAL);
 
 // eslint-disable-next-line no-unused-vars
-export const deleteRegistry = ({ commit }, image) => axios.delete(image.destroyPath);
+export const deleteItem = (_, item) => axios.delete(item.destroyPath);
 
 export const setMainEndpoint = ({ commit }, data) => commit(types.SET_MAIN_ENDPOINT, data);
 export const toggleLoading = ({ commit }) => commit(types.TOGGLE_MAIN_LOADING);

@@ -1,4 +1,5 @@
 import * as types from './mutation_types';
+import { confirmDeletionModalState } from './state';
 import { parseIntPagination, normalizeHeaders } from '../../lib/utils/common_utils';
 
 export default {
@@ -50,5 +51,16 @@ export default {
     const listToUpdate = state.repos.find(el => el.id === list.id);
 
     listToUpdate.isLoading = !listToUpdate.isLoading;
+  },
+
+  [types.CONFIRM_DELETION](state, payload) {
+    state.confirmDeletionModal = {
+      ...payload,
+      isVisible: true,
+    };
+  },
+
+  [types.RESET_DELETION_MODAL](state) {
+    state.confirmDeletionModal = confirmDeletionModalState();
   },
 };

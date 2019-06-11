@@ -37,7 +37,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['fetchRepos', 'fetchList', 'deleteRepo']),
+    ...mapActions(['fetchRepos', 'fetchList', 'confirmDeletion']),
     toggleRepo() {
       this.isOpen = !this.isOpen;
 
@@ -46,12 +46,16 @@ export default {
       }
     },
     handleDeleteRepository() {
-      this.deleteRepo(this.repo)
-        .then(() => {
+      this.confirmDeletion({
+        item: this.repo,
+        title: this.repo.name,
+        type: 'repo',
+        onSuccess: () => {
           createFlash(__('This container registry has been scheduled for deletion.'), 'notice');
           this.fetchRepos();
-        })
-        .catch(() => this.showError(errorMessagesTypes.DELETE_REPO));
+        },
+        onError: () => this.showError(errorMessagesTypes.DELETE_REPO),
+      });
     },
     showError(message) {
       createFlash(errorMessages[message]);

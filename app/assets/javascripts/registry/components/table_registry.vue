@@ -33,7 +33,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['fetchList', 'deleteRegistry']),
+    ...mapActions(['fetchList', 'confirmDeletion']),
     layers(item) {
       return item.layers ? n__('%d layer', '%d layers', item.layers) : '';
     },
@@ -41,9 +41,13 @@ export default {
       return numberToHumanSize(size);
     },
     handleDeleteRegistry(registry) {
-      this.deleteRegistry(registry)
-        .then(() => this.fetchList({ repo: this.repo }))
-        .catch(() => this.showError(errorMessagesTypes.DELETE_REGISTRY));
+      this.confirmDeletion({
+        item: registry,
+        title: registry.tag,
+        type: 'image',
+        onSuccess: () => this.fetchList({ repo: this.repo }),
+        onError: () => this.showError(errorMessagesTypes.DELETE_REGISTRY),
+      });
     },
     onPageChange(pageNumber) {
       this.fetchList({ repo: this.repo, page: pageNumber }).catch(() =>
@@ -80,9 +84,9 @@ export default {
             />
           </td>
           <td>
-            <span v-gl-tooltip.bottom class="monospace" :title="item.revision">{{
-              item.shortRevision
-            }}</span>
+            <span v-gl-tooltip.bottom class="monospace" :title="item.revision">
+              {{ item.shortRevision }}
+            </span>
           </td>
           <td>
             {{ formatSize(item.size) }}
@@ -93,9 +97,9 @@ export default {
           </td>
 
           <td>
-            <span v-gl-tooltip.bottom :title="tooltipTitle(item.createdAt)">{{
-              timeFormated(item.createdAt)
-            }}</span>
+            <span v-gl-tooltip.bottom :title="tooltipTitle(item.createdAt)">
+              {{ timeFormated(item.createdAt) }}
+            </span>
           </td>
 
           <td class="content">

@@ -3,12 +3,14 @@ import { mapGetters, mapActions } from 'vuex';
 import { GlLoadingIcon } from '@gitlab/ui';
 import store from '../stores';
 import CollapsibleContainer from './collapsible_container.vue';
+import ConfirmDeletionModal from './confirm_deletion_modal.vue';
 
 export default {
   name: 'RegistryListApp',
   components: {
     CollapsibleContainer,
     GlLoadingIcon,
+    ConfirmDeletionModal,
   },
   props: {
     endpoint: {
@@ -45,8 +47,9 @@ export default {
     <p v-else-if="!isLoading && !repos.length">
       {{
         __(`No container images stored for this project.
-Add one by following the instructions above.`)
+      Add one by following the instructions above.`)
       }}
     </p>
+    <confirm-deletion-modal />
   </div>
 </template>
