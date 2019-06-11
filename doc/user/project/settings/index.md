@@ -26,7 +26,6 @@ Set up your project's access, [visibility](../../../public_access/public_access.
 
 ![projects sharing permissions](img/sharing_and_permissions_settings.png)
 
-NOTE: **Note:**
 If Issues are disabled, or you can't access Issues because you're not a project member, then Lables and Milestones 
 links will be missing from the sidebar UI.
 
