@@ -20,6 +20,10 @@ push code to a repository, or when a merge request is created. Additionally,
 it shows the pipeline status on merge requests widgets and on the project's home page.
 
 <i class="fa fa-youtube-play youtube" aria-hidden="true"></i>
+For a video demonstration of integration with Jenkins, see [GitLab workflow with Jira issues
+and Jenkins pipelines](https://youtu.be/Jn-_fyra7xQ).
+
+<i class="fa fa-youtube-play youtube" aria-hidden="true"></i>
 For a video overview, see [Migrating from Jenkins to GitLab](https://www.youtube.com/watch?v=RlEVGOpYF5Y).
 
 ## Use cases
