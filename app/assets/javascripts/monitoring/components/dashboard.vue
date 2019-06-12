@@ -70,7 +70,7 @@ export default {
       type: String,
       required: true,
     },
-    deploymentEndpoint: {
+    deploymentsEndpoint: {
       type: String,
       required: false,
       default: null,
@@ -148,7 +148,7 @@ export default {
     this.setEndpoints({
       metricsEndpoint: this.metricsEndpoint,
       environmentsEndpoint: this.environmentsEndpoint,
-      deploymentsEndpoint: this.deploymentEndpoint,
+      deploymentsEndpoint: this.deploymentsEndpoint,
       dashboardEndpoint: this.dashboardEndpoint,
     });
 
@@ -253,8 +253,7 @@ export default {
               :key="environment.id"
               :active="environment.name === currentEnvironmentName"
               active-class="is-active"
-              >{{ environment.name }}</gl-dropdown-item
-            >
+            >{{ environment.name }}</gl-dropdown-item>
           </gl-dropdown>
         </div>
         <div class="d-flex align-items-center prepend-left-8">
@@ -270,8 +269,7 @@ export default {
               :active="activeTimeWindow(key)"
               :href="setTimeWindowParameter(key)"
               active-class="active"
-              >{{ value }}</gl-dropdown-item
-            >
+            >{{ value }}</gl-dropdown-item>
           </gl-dropdown>
         </div>
       </div>
@@ -280,9 +278,7 @@ export default {
           <gl-button
             v-gl-modal-directive="$options.addMetric.modalId"
             class="js-add-metric-button text-success border-success"
-          >
-            {{ $options.addMetric.title }}
-          </gl-button>
+          >{{ $options.addMetric.title }}</gl-button>
           <gl-modal
             ref="addMetricModal"
             :modal-id="$options.addMetric.modalId"
@@ -296,16 +292,12 @@ export default {
               />
             </form>
             <div slot="modal-footer">
-              <gl-button @click="hideAddMetricModal">
-                {{ __('Cancel') }}
-              </gl-button>
+              <gl-button @click="hideAddMetricModal">{{ __('Cancel') }}</gl-button>
               <gl-button
                 :disabled="!formIsValid"
                 variant="success"
                 @click="submitCustomMetricsForm"
-              >
-                {{ __('Save changes') }}
-              </gl-button>
+              >{{ __('Save changes') }}</gl-button>
             </div>
           </gl-modal>
         </div>
@@ -317,7 +309,7 @@ export default {
           target="_blank"
         >
           {{ __('View full dashboard') }}
-          <icon name="external-link" />
+          <icon name="external-link"/>
         </gl-button>
       </div>
     </div>
