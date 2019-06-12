@@ -2,6 +2,7 @@
 import Deployment from './deployment.vue';
 import MrWidgetContainer from './mr_widget_container.vue';
 import MrWidgetPipeline from './mr_widget_pipeline.vue';
+import { MT_MERGE_STRATEGY } from '../constants';
 
 /**
  * Renders the pipeline and related deployments from the store.
@@ -17,6 +18,8 @@ export default {
     Deployment,
     MrWidgetContainer,
     MrWidgetPipeline,
+    MergeTrainInfo: () =>
+      import('ee_component/vue_merge_request_widget/components/merge_train_info.vue'),
   },
   props: {
     mr: {
@@ -58,6 +61,9 @@ export default {
     showVisualReviewAppLink() {
       return Boolean(this.mr.visualReviewFF && this.mr.visualReviewAppAvailable);
     },
+    showMergeTrainInfo() {
+      return Boolean(this.mr.isOpen && this.mr.autoMergeStrategy === MT_MERGE_STRATEGY);
+    },
   },
 };
 </script>
@@ -83,6 +89,11 @@ export default {
           :visual-review-app-meta="visualReviewAppMeta"
         />
       </div>
+      <merge-train-info
+        v-if="showMergeTrainInfo"
+        class="mr-widget-extension"
+        :merge-train-index="mr.mergeTrainIndex"
+      />
     </template>
   </mr-widget-container>
 </template>
