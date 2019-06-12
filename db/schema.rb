@@ -1418,6 +1418,24 @@ ActiveRecord::Schema.define(version: 20190611161641) do
     t.index ["title"], name: "index_milestones_on_title_trigram", using: :gin, opclasses: {"title"=>"gin_trgm_ops"}
   end
 
+  create_table "namespace_aggregation_schedules", force: :cascade do |t|
+    t.integer "namespace_id", null: false
+    t.index ["namespace_id"], name: "index_namespace_aggregation_schedules_on_namespace_id", unique: true, using: :btree
+  end
+
+  create_table "namespace_root_storage_statistics", force: :cascade do |t|
+    t.integer "namespace_id", null: false
+    t.datetime_with_timezone "created_at", null: false
+    t.datetime_with_timezone "updated_at", null: false
+    t.bigint "repository_size", default: 0, null: false
+    t.bigint "lfs_objects_size", default: 0, null: false
+    t.bigint "wiki_size", default: 0, null: false
+    t.bigint "build_artifacts_size", default: 0, null: false
+    t.bigint "storage_size", default: 0, null: false
+    t.bigint "packages_size", default: 0, null: false
+    t.index ["namespace_id"], name: "index_namespace_root_storage_statistics_on_namespace_id", unique: true, using: :btree
+  end
+
   create_table "namespaces", id: :serial, force: :cascade do |t|
     t.string "name", null: false
     t.string "path", null: false
@@ -2579,6 +2597,8 @@ ActiveRecord::Schema.define(version: 20190611161641) do
   add_foreign_key "merge_trains", "users", on_delete: :cascade
   add_foreign_key "milestones", "namespaces", column: "group_id", name: "fk_95650a40d4", on_delete: :cascade
   add_foreign_key "milestones", "projects", name: "fk_9bd0a0c791", on_delete: :cascade
+  add_foreign_key "namespace_aggregation_schedules", "namespaces", on_delete: :cascade
+  add_foreign_key "namespace_root_storage_statistics", "namespaces", on_delete: :cascade
   add_foreign_key "note_diff_files", "notes", column: "diff_note_id", on_delete: :cascade
   add_foreign_key "notes", "projects", name: "fk_99e097b079", on_delete: :cascade
   add_foreign_key "notification_settings", "users", name: "fk_0c95e91db7", on_delete: :cascade
