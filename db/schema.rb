@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190611161641) do
+ActiveRecord::Schema.define(version: 20190612195231) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1864,6 +1864,7 @@ ActiveRecord::Schema.define(version: 20190611161641) do
     t.datetime_with_timezone "updated_at", null: false
     t.boolean "common", default: false, null: false
     t.string "identifier"
+    t.integer "metric_type"
     t.index ["common"], name: "index_prometheus_metrics_on_common", using: :btree
     t.index ["group"], name: "index_prometheus_metrics_on_group", using: :btree
     t.index ["identifier"], name: "index_prometheus_metrics_on_identifier", unique: true, using: :btree
@@ -1934,6 +1935,7 @@ ActiveRecord::Schema.define(version: 20190611161641) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["path"], name: "index_redirect_routes_on_path", unique: true, using: :btree
+    t.index ["path"], name: "index_redirect_routes_on_path_text_pattern_ops", using: :btree, opclasses: {"path"=>"varchar_pattern_ops"}
     t.index ["source_type", "source_id"], name: "index_redirect_routes_on_source_type_and_source_id", using: :btree
   end
 
