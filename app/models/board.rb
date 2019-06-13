@@ -9,6 +9,8 @@ class Board < ApplicationRecord
   validates :project, presence: true, if: :project_needed?
   validates :group, presence: true, unless: :project
 
+  scope :with_associations, -> { preload(:lists) }
+
   def project_needed?
     !group
   end

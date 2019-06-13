@@ -14,7 +14,19 @@ shared_examples_for 'group and project boards' do |route_definition, ee = false|
     end
   end
 
-  describe "GET #{route_definition}" do
+  it 'avoids N+1 queries' do
+    pat = create(:personal_access_token, user: user)
+
+    control = ActiveRecord::QueryRecorder.new { get api(root_url, personal_access_token: pat) }
+
+    create(:milestone, project: board_parent)
+    create(:board, project: board_parent)
+
+    expect { get api(root_url, personal_access_token: pat) }.not_to exceed_query_limit(control)
+  end
+
+
+describe "GET #{route_definition}" do
     context "when unauthenticated" do
       it "returns authentication error" do
         get api(root_url)
