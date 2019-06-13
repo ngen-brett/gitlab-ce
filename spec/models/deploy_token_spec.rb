@@ -87,8 +87,32 @@ describe DeployToken do
   end
 
   describe '#username' do
-    it 'returns a harcoded username' do
+    it 'returns a default username if none is set' do
       expect(deploy_token.username).to eq("gitlab+deploy-token-#{deploy_token.id}")
+    end
+
+    it 'nullify username if empty string' do
+      deploy_token = create(:deploy_token, username: '')
+
+      expect(deploy_token.read_attribute(:username)).to be_nil
+    end
+
+    it 'returns the username provided if one is set' do
+      deploy_token = create(:deploy_token, username: 'deployer')
+
+      expect(deploy_token.username).to eq('deployer')
+    end
+
+    it 'returns nil for new records' do
+      deploy_token = DeployToken.new
+
+      expect(deploy_token.username).to be_nil
+    end
+
+    it 'returns the username provided if one is set for new records' do
+      deploy_token = DeployToken.new(username: 'deployer')
+
+      expect(deploy_token.username).to eq('deployer')
     end
   end
 

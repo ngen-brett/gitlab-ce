@@ -32,4 +32,15 @@ describe Projects::Settings::RepositoryController do
       expect(RepositoryCleanupWorker).to have_received(:perform_async).once
     end
   end
+
+  describe 'POST create_deploy_token' do
+    let(:deploy_token_params) { { name: "deployer_token", expires_at: 1.month.from_now.to_date.to_s, username: 'deployer', read_repository: "1"} }
+
+    it 'creates deploy token' do
+      post :create_deploy_token, params: { namespace_id: project.namespace, project_id: project, deploy_token: deploy_token_params }
+
+      expect(response).to have_gitlab_http_status(200)
+      expect(response).to render_template(:show)
+    end
+  end
 end

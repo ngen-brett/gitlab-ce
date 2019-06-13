@@ -16,6 +16,8 @@ class DeployToken < ApplicationRecord
   has_many :projects, through: :project_deploy_tokens
 
   validate :ensure_at_least_one_scope
+
+  before_validation :nullify_empty_username
   before_save :ensure_token
 
   accepts_nested_attributes_for :project_deploy_tokens
@@ -39,7 +41,9 @@ class DeployToken < ApplicationRecord
   end
 
   def username
-    "gitlab+deploy-token-#{id}"
+    return unless persisted? || username?
+
+    read_attribute(:username).presence || "gitlab+deploy-token-#{id}"
   end
 
   def has_access_to?(requested_project)
@@ -74,5 +78,9 @@ class DeployToken < ApplicationRecord
 
   def ensure_at_least_one_scope
     errors.add(:base, "Scopes can't be blank") unless read_repository || read_registry
+  end
+
+  def nullify_empty_username
+    self.username = read_attribute(:username).presence
   end
 end
