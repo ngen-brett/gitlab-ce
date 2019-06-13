@@ -1,0 +1,6 @@
+memory-usage:
+  script:
+    - echo 'test_metric_name 1000' > memory_usage.txt
+  artifacts:
+    reports:
+      metrics: memory_usage.txt
