@@ -60,3 +60,13 @@ questions that you know someone might ask.
 Each scenario can be a third-level heading, e.g. `### Getting error message X`.
 If you have none to add when creating a doc, leave this section in place
 but commented out to help encourage others to add to it in the future. -->
+
+
+## Storage Usage Quota **[STARTER]**
+
+> [Introduced](https://gitlab.com/gitlab-org/gitlab-ee/merge_requests/13294) in GitLab Enterprise Edition 12.0.
+> Available in [GitLab Starter](https://about.gitlab.com/pricing/).
+
+A group owner can check the aggregated storage usage for all the project in a group, sub-groups included, in the **Storage** tab of the **Usage Quotas** page available to the group page settings list.
+
+![Group storage usage quota](img/group_storage_usage_quota.png)

@@ -360,7 +360,9 @@ Define project templates at a group level by setting a group as the template sou
 - **Kubernetes cluster integration**: Connect your GitLab group with [Kubernetes clusters](clusters/index.md).
 - **Audit Events**: View [Audit Events](../../administration/audit_events.md)
   for the group. **[STARTER ONLY]**
-- **Pipelines quota**: Keep track of the [pipeline quota](../admin_area/settings/continuous_integration.md) for the group.
+- **Usage quota**: Keep track of several quotas for the group:
+  - [Pipeline CI minutes](../admin_area/settings/continuous_integration.md)
+  - [Storage](../admin_area/settings/account_and_limit_settings.md)
 
 ## User contribution analysis **[STARTER]**
 
