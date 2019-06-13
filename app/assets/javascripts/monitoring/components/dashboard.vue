@@ -1,18 +1,12 @@
 <script>
-import {
-  GlButton,
-  GlDropdown,
-  GlDropdownItem,
-  GlModal,
-  GlModalDirective,
-  GlLink,
-} from '@gitlab/ui';
+import { GlButton, GlDropdown, GlDropdownItem, GlModal, GlModalDirective } from '@gitlab/ui';
 import _ from 'underscore';
 import { mapActions, mapState } from 'vuex';
 import { s__ } from '~/locale';
 import Icon from '~/vue_shared/components/icon.vue';
 import '~/vue_shared/mixins/is_ee';
 import { getParameterValues } from '~/lib/utils/url_utility';
+import invalidUrl from '~/lib/utils/invalid_url';
 import MonitorAreaChart from './charts/area.vue';
 import GraphGroup from './graph_group.vue';
 import EmptyState from './empty_state.vue';
@@ -31,7 +25,6 @@ export default {
     GlButton,
     GlDropdown,
     GlDropdownItem,
-    GlLink,
     GlModal,
   },
   directives: {
@@ -119,6 +112,11 @@ export default {
       type: String,
       required: true,
     },
+    dashboardEndpoint: {
+      type: String,
+      required: false,
+      default: invalidUrl,
+    },
   },
   data() {
     return {
@@ -139,13 +137,19 @@ export default {
       'showEmptyState',
       'environments',
       'deploymentData',
+      'metricsWithData',
+      'useDashboardEndpoint',
     ]),
+    groupsWithData() {
+      return this.groups.filter(group => this.chartsWithData(group.metrics).length > 0);
+    },
   },
   created() {
     this.setEndpoints({
       metricsEndpoint: this.metricsEndpoint,
       environmentsEndpoint: this.environmentsEndpoint,
       deploymentsEndpoint: this.deploymentEndpoint,
+      dashboardEndpoint: this.dashboardEndpoint,
     });
 
     this.timeWindows = timeWindows;
@@ -183,7 +187,16 @@ export default {
       'fetchData',
       'setGettingStartedEmptyState',
       'setEndpoints',
+      'setDashboardEnabled',
     ]),
+    chartsWithData(charts) {
+      if (!this.useDashboardEndpoint) {
+        return charts;
+      }
+      return charts.filter(chart =>
+        chart.metrics.some(metric => this.metricsWithData.includes(metric.metric_id)),
+      );
+    },
     getGraphAlerts(queries) {
       if (!this.allAlerts) return {};
       const metricIdsForChart = queries.map(q => q.metricId);
@@ -255,7 +268,9 @@ export default {
               v-for="(value, key) in timeWindows"
               :key="key"
               :active="activeTimeWindow(key)"
-              ><gl-link :href="setTimeWindowParameter(key)">{{ value }}</gl-link></gl-dropdown-item
+              :href="setTimeWindowParameter(key)"
+              active-class="active"
+              >{{ value }}</gl-dropdown-item
             >
           </gl-dropdown>
         </div>
@@ -307,13 +322,13 @@ export default {
       </div>
     </div>
     <graph-group
-      v-for="(groupData, index) in groups"
+      v-for="(groupData, index) in groupsWithData"
       :key="index"
       :name="groupData.group"
       :show-panels="showPanels"
     >
       <monitor-area-chart
-        v-for="(graphData, graphIndex) in groupData.metrics"
+        v-for="(graphData, graphIndex) in chartsWithData(groupData.metrics)"
         :key="graphIndex"
         :graph-data="graphData"
         :deployment-data="deploymentData"

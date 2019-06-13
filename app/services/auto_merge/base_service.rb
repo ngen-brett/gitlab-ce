@@ -14,6 +14,17 @@ module AutoMerge
 
       yield if block_given?
 
+      # Notify the event that auto merge is enabled or merge param is updated
+      AutoMergeProcessWorker.perform_async(merge_request.id)
+
+      strategy.to_sym
+    end
+
+    def update(merge_request)
+      merge_request.merge_params.merge!(params)
+
+      return :failed unless merge_request.save
+
       strategy.to_sym
     end
 

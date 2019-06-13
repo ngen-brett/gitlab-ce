@@ -49,9 +49,6 @@ describe('Dashboard', () => {
     window.gon = {
       ...window.gon,
       ee: false,
-      features: {
-        grafanaDashboardLink: true,
-      },
     };
 
     store = createStore();
@@ -314,9 +311,7 @@ describe('Dashboard', () => {
       });
 
       setTimeout(() => {
-        const selectedTimeWindow = component.$el.querySelector(
-          '.js-time-window-dropdown [active="true"]',
-        );
+        const selectedTimeWindow = component.$el.querySelector('.js-time-window-dropdown .active');
 
         expect(selectedTimeWindow.textContent.trim()).toEqual('30 minutes');
         done();
@@ -384,52 +379,26 @@ describe('Dashboard', () => {
   describe('external dashboard link', () => {
     beforeEach(() => {
       mock.onGet(mockApiEndpoint).reply(200, metricsGroupsAPIResponse);
-    });
 
-    describe('with feature flag enabled', () => {
-      beforeEach(() => {
-        component = new DashboardComponent({
-          el: document.querySelector('.prometheus-graphs'),
-          propsData: {
-            ...propsData,
-            hasMetrics: true,
-            showPanels: false,
-            externalDashboardUrl: '/mockUrl',
-          },
-          store,
-        });
-      });
-
-      it('shows the link', done => {
-        setTimeout(() => {
-          expect(component.$el.querySelector('.js-external-dashboard-link').innerText).toContain(
-            'View full dashboard',
-          );
-          done();
-        });
+      component = new DashboardComponent({
+        el: document.querySelector('.prometheus-graphs'),
+        propsData: {
+          ...propsData,
+          hasMetrics: true,
+          showPanels: false,
+          showTimeWindowDropdown: false,
+          externalDashboardUrl: '/mockUrl',
+        },
+        store,
       });
     });
 
-    describe('without feature flage enabled', () => {
-      beforeEach(() => {
-        window.gon.features.grafanaDashboardLink = false;
-        component = new DashboardComponent({
-          el: document.querySelector('.prometheus-graphs'),
-          propsData: {
-            ...propsData,
-            hasMetrics: true,
-            showPanels: false,
-            externalDashboardUrl: '',
-          },
-          store,
-        });
-      });
-
-      it('does not show the link', done => {
-        setTimeout(() => {
-          expect(component.$el.querySelector('.js-external-dashboard-link')).toBe(null);
-          done();
-        });
+    it('shows the link', done => {
+      setTimeout(() => {
+        expect(component.$el.querySelector('.js-external-dashboard-link').innerText).toContain(
+          'View full dashboard',
+        );
+        done();
       });
     });
   });

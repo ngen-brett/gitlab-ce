@@ -12,6 +12,10 @@ describe AutoMerge::BaseService do
   describe '#execute' do
     subject { service.execute(merge_request) }
 
+    before do
+      allow(AutoMergeProcessWorker).to receive(:perform_async) {}
+    end
+
     it 'sets properies to the merge request' do
       subject
 
@@ -65,6 +69,12 @@ describe AutoMerge::BaseService do
       it 'returns activated strategy name' do
         is_expected.to eq(AutoMergeService::STRATEGY_MERGE_WHEN_PIPELINE_SUCCEEDS.to_sym)
       end
+
+      it 'calls AutoMergeProcessWorker' do
+        expect(AutoMergeProcessWorker).to receive(:perform_async).with(merge_request.id).once
+
+        subject
+      end
     end
 
     context 'when failed to save' do
@@ -78,6 +88,30 @@ describe AutoMerge::BaseService do
 
       it 'returns failed' do
         is_expected.to eq(:failed)
+      end
+    end
+  end
+
+  describe '#update' do
+    subject { service.update(merge_request) }
+
+    let(:merge_request) { create(:merge_request, :merge_when_pipeline_succeeds) }
+
+    context 'when merge params are specified' do
+      let(:params) do
+        {
+          'commit_message' => "Merge branch 'patch-12' into 'master'",
+          'sha' => "200fcc9c260f7219eaf0daba87d818f0922c5b18",
+          'should_remove_source_branch' => false,
+          'squash' => false,
+          'squash_commit_message' => "Update README.md"
+        }
+      end
+
+      it 'updates merge params' do
+        expect { subject }.to change {
+          merge_request.reload.merge_params.slice(*params.keys)
+        }.from({}).to(params)
       end
     end
   end
