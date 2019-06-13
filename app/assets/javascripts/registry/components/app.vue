@@ -68,24 +68,25 @@ export default {
 </script>
 <template>
   <div>
-    <gl-loading-icon v-if="isLoading" :size="3"/>
+    <gl-loading-icon v-if="isLoading" :size="3" />
 
     <div v-else-if="!isLoading && characterError" id="invalid-characters" class="container-message">
-      <img :src="containersErrorImage">
-      <h4>{{I18NKeys.CharacterErrorHeading}}</h4>
+      <img :src="containersErrorImage" />
+      <h4>{{ I18NKeys.CharacterErrorHeading }}</h4>
       <p>
-        {{I18NKeys.CharacterErrorMessage}}
-        <a :href="helpPagePath">{{I18NKeys.CharacterErrorDocLink}}</a>.
+        {{ I18NKeys.CharacterErrorMessage }}
+        <a :href="helpPagePath">{{ I18NKeys.CharacterErrorDocLink }}</a
+        >.
       </p>
     </div>
 
     <div v-else-if="!isLoading && !characterError && repos.length">
-      <h4>{{I18NKeys.MainHeading}}</h4>
+      <h4>{{ I18NKeys.MainHeading }}</h4>
       <p>
-        {{I18NKeys.MainMessage}}
+        {{ I18NKeys.MainMessage }}
         <a :href="helpPagePath">Container Registry</a>.
       </p>
-      <collapsible-container v-for="item in repos" :key="item.id" :repo="item"/>
+      <collapsible-container v-for="item in repos" :key="item.id" :repo="item" />
     </div>
 
     <div
@@ -93,10 +94,10 @@ export default {
       id="no-container-images"
       class="container-message"
     >
-      <img :src="noContainersImage">
-      <h4>{{I18NKeys.NoImagesHeading}}</h4>
+      <img :src="noContainersImage" />
+      <h4>{{ I18NKeys.NoImagesHeading }}</h4>
       <p>
-        {{I18NKeys.DefaultMessage}}
+        {{ I18NKeys.DefaultMessage }}
         <a :href="helpPagePath">Container Registry</a>.
       </p>
     </div>
