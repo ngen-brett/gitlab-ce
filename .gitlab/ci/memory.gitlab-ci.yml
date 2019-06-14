@@ -1,7 +1,7 @@
 memory-usage:
   extends: .dedicated-no-docs-no-db-pull-cache-job
   script:
-    - echo 'test_metric_name 1000' > metrics.txt
+    - bundle exec derailed bundle:mem | head -n 1 | sed -n 's/TOP: /total_mib /p' | sed -n 's/ MiB//p' > memory_usage.txt
   artifacts:
     reports:
-      metrics: metrics.txt
+      metrics: memory_usage.txt
