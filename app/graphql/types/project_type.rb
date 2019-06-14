@@ -69,9 +69,9 @@ module Types
     field :namespace, Types::NamespaceType, null: false
     field :group, Types::GroupType, null: true
 
-    field :statistics, Types::ProjectStatisticsType,
-          null: false,
-          resolve: -> (obj, _args, _ctx) { Gitlab::Graphql::Loaders::BatchProjectStatisticsLoader.new(obj.id).find }
+    field :statistics, Types::ProjectStatisticsType, null: true, resolve: -> (obj, _args, ctx) do
+      Gitlab::Graphql::Loaders::BatchProjectStatisticsLoader.new(obj.id).find if Ability.allowed?(ctx[:current_user], :read_statistics, obj)
+    end
 
     field :repository, Types::RepositoryType, null: false
 
