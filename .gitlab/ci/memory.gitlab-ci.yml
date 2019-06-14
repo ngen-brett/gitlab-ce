@@ -1,6 +1,7 @@
 memory-usage:
   extends: .dedicated-no-docs-no-db-pull-cache-job
   script:
+    - echo '1'
     - 'bundle exec derailed bundle:mem | head -n 1 | sed -n "s/TOP: /total_mib /p" | sed -n "s/ MiB//p" > memory_usage.txt'
   artifacts:
     reports:
