@@ -229,13 +229,21 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
       let(:namespace) { nil }
 
       context 'when kubernetes namespace is present' do
-        let(:kubernetes_namespace) { create(:cluster_kubernetes_namespace, cluster: cluster) }
+        let(:kubernetes_namespace) { create(:cluster_kubernetes_namespace, :with_token, cluster: cluster) }
 
         before do
           kubernetes_namespace
         end
 
         it { is_expected.to eq(kubernetes_namespace.namespace) }
+
+        context 'kubernetes namespace has no service account token' do
+          before do
+            kubernetes_namespace.update!(namespace: 'old-namespace', service_account_token: nil)
+          end
+
+          it { is_expected.to eq("#{project.path}-#{project.id}") }
+        end
       end
 
       context 'when kubernetes namespace is not present' do

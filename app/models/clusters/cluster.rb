@@ -201,7 +201,7 @@ module Clusters
       attributes = { project: project }
       attributes[:cluster_project] = cluster_project if project_type?
 
-      kubernetes_namespaces.find_or_initialize_by(attributes).tap do |namespace|
+      kubernetes_namespaces.has_service_account_token.find_or_initialize_by(attributes).tap do |namespace|
         namespace.set_defaults
       end
     end
