@@ -1,46 +1,83 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe ProjectStatisticsPolicy do
+  using RSpec::Parameterized::TableSyntax
+
   describe '#rules' do
-    let(:user) { create(:user) }
-    let(:project) { create(:project, :public) }
-    let(:project_statistics) { create(:project_statistics, project: project) }
-    let(:policy) { described_class.new(user, project_statistics) }
+    let(:external)   { create(:user, :external) }
+    let(:guest)      { create(:user) }
+    let(:reporter)   { create(:user) }
+    let(:developer)  { create(:user) }
+    let(:maintainer) { create(:user) }
 
-    shared_examples 'require reporter level' do
-      it 'disallow guest' do
-        project.add_guest(user)
+    let(:users) do
+      {
+        unauthenticated: nil,
+        non_member: create(:user),
+        guest: guest,
+        reporter: reporter,
+        developer: developer,
+        maintainer: maintainer
+      }
+    end
 
-        expect(policy).to be_disallowed(:read_statistics)
+    where(:project_type, :user_type, :outcome) do
+      [
+        # Public projects
+        [:public, :unauthenticated, false],
+        [:public, :non_member, false],
+        [:public, :guest, false],
+        [:public, :reporter, true],
+        [:public, :developer, true],
+        [:public, :maintainer, true],
+
+        # Private project
+        [:private, :unauthenticated, false],
+        [:private, :non_member, false],
+        [:private, :guest, false],
+        [:private, :reporter, true],
+        [:private, :developer, true],
+        [:private, :maintainer, true],
+
+        # Internal projects
+        [:internal, :unauthenticated, false],
+        [:internal, :non_member, false],
+        [:internal, :guest, false],
+        [:internal, :reporter, true],
+        [:internal, :developer, true],
+        [:internal, :maintainer, true]
+      ]
+    end
+
+    with_them do
+      let(:user) { users[user_type] }
+      let(:project) { create(:project, visibility_level: Gitlab::VisibilityLevel.level_value(project_type.to_s)) }
+      let(:project_statistics) { create(:project_statistics, project: project) }
+
+      subject { Ability.allowed?(user, :read_statistics, project_statistics) }
+
+      before do
+        project.add_guest(guest)
+        project.add_reporter(reporter)
+        project.add_developer(developer)
+        project.add_maintainer(maintainer)
       end
 
-      it 'allow reporter' do
-        project.add_reporter(user)
+      it { is_expected.to eq(outcome) }
 
-        expect(policy).to be_allowed(:read_statistics)
-      end
+      context 'when the user is external' do
+        let(:user) { external }
 
-      context 'without a user' do
-        let(:user) { nil }
-
-        it 'disallow reading statistics' do
-          expect(policy).to be_disallowed(:read_statistics)
+        before do
+          unless [:unauthenticated, :non_member].include?(user_type)
+            project.add_user(external, user_type)
+          end
         end
+
+        it { is_expected.to eq(outcome) }
       end
-    end
-
-    include_examples 'require reporter level'
-
-    context 'when the project is private' do
-      let(:project) { create(:project, :private) }
-
-      include_examples 'require reporter level'
-    end
-
-    context 'when the project is internal' do
-      let(:project) { create(:project, :internal) }
-
-      include_examples 'require reporter level'
     end
   end
 end
