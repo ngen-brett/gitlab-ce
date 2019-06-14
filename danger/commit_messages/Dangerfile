@@ -88,6 +88,9 @@ def lint_commit(commit)
   # We ignore revert commits as they are well structured by Git already
   return false if commit.message.start_with?('Revert "')
 
+  # We ignore commits applied by using the suggestions feature
+  return false if commit.message.start_with?('Apply suggestion "')
+
   failures = false
   subject, separator, details = commit.message.split("\n", 3)
 
