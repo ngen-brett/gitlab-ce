@@ -68,7 +68,7 @@ export default {
 </script>
 <template>
   <div>
-    <gl-loading-icon v-if="isLoading" :size="3" />
+    <gl-loading-icon v-if="isLoading" size="sm" class="loading-icon" />
 
     <div v-else-if="!isLoading && characterError" id="invalid-characters" class="container-message">
       <img :src="containersErrorImage" />
