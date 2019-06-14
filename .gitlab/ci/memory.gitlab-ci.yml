@@ -1,4 +1,5 @@
 memory-usage:
+  extends: .dedicated-no-docs-no-db-pull-cache-job
   script:
     - echo 'test_metric_name 1000' > metrics.txt
   artifacts:
