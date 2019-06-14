@@ -89,6 +89,10 @@ export default (
     payload,
   );
 
+  if (result instanceof Promise) {
+    result.catch(noop);
+  }
+
   return new Promise(resolve => {
     setImmediate(resolve);
   })
