@@ -7,6 +7,7 @@ module Types
     DEFAULT_COMPLEXITY = 1
 
     def initialize(*args, **kwargs, &block)
+      @calls_gitaly = !!kwargs.delete(:calls_gitaly)
       kwargs[:complexity] ||= field_complexity(kwargs[:resolver_class])
 
       super(*args, **kwargs, &block)
@@ -38,9 +39,20 @@ module Types
         # Resolvers may add extra complexity depending on number of items being loaded.
         multiplier = self.resolver&.try(:complexity_multiplier, args).to_f
         complexity += complexity * limit_value * multiplier
+        complexity +=1 if @calls_gitaly
 
         complexity.to_i
       end
+    end
+
+    def calls_gitaly_check
+      # Will inform you if :calls_gitaly should be true or false based on the number of Gitaly calls
+      # involved with the request.
+      return if @calls_gitaly == Gitlab::GitalyClient.get_request_count > 0
+
+      raise "Gitaly is called for #{field.name} - please add `calls_gitaly: true` to the field declaration"
+      rescue => e
+        Gitlab::Sentry.track_exception(e)
     end
   end
 end
