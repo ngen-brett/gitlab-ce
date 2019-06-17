@@ -6,5 +6,5 @@ unless full_report_filename && metrics_filename
   exit 1
 end
 
-
+p "TEST!"
 p Gitlab::Popen.popen(%w(bundle exec derailed bundle:mem))
