@@ -4,6 +4,7 @@ require 'spec_helper'
 describe SortingHelper do
   include ApplicationHelper
   include IconsHelper
+  include ExploreHelper
 
   describe '#issuable_sort_option_title' do
     it 'returns correct title for issuable_sort_option_overrides key' do
@@ -56,13 +57,13 @@ describe SortingHelper do
       sort_value_latest_activity  => sort_title_latest_activity,
       sort_value_recently_created => sort_title_created_date,
       sort_value_name             => sort_title_name,
-      sort_value_stars_desc       => sort_title_stars      
+      sort_value_stars_desc       => sort_title_stars
     }  
   end
 
   def admin_additional_project_options()
     {
-      sort_value_recently_created => sort_title_recently_created,      
+      sort_value_recently_created => sort_title_recently_created,
       sort_value_largest_repo     => sort_title_largest_repo,
       sort_value_oldest_activity  => sort_title_oldest_activity,
       sort_value_oldest_created   => sort_title_oldest_created,
@@ -80,16 +81,12 @@ describe SortingHelper do
         hash = projects_sort_options_hash
 
         admin_options = project_common_options.merge(admin_additional_project_options)
-
-        admin_options.each do |key, opt|
-          expect(hash).to include(key)
-          expect(hash[key]).to eq(opt)
-        end   
+        expect(hash).to eq(admin_options)
       end
     end
   end
 
-  describe 'with `projects` controller', :focus do 
+  describe 'with `projects` controller', :focus do
     before do
       stub_controller_path('projects')
     end
@@ -101,11 +98,11 @@ describe SortingHelper do
         common_options = project_common_options
         admin_options = admin_additional_project_options
         common_with_different_values = [sort_value_recently_created, sort_value_stars_desc]
-        
+
         common_options.each do |key, opt|
           expect(hash).to include(key)
           expect(hash[key]).to eq(opt)
-        end   
+        end
 
         admin_options.each do |key, opt|
           if common_with_different_values.include?(key)
@@ -113,22 +110,52 @@ describe SortingHelper do
           else
             expect(hash).not_to include(key)
           end
-        end                   
+        end
+      end
+    end
+
+    describe '#projects_reverse_sort_options_hash' do 
+      it 'returns a reversed hash of available sorting options' do
+        reverse_hash = projects_reverse_sort_options_hash
+
+        options = {
+          sort_value_latest_activity  => sort_value_oldest_activity,
+          sort_value_recently_created => sort_value_oldest_created,
+          sort_value_name             => sort_value_name_desc,
+          sort_value_stars_desc       => sort_value_stars_asc,
+          sort_value_oldest_activity  => sort_value_latest_activity,
+          sort_value_oldest_created   => sort_value_recently_created,
+          sort_value_name_desc        => sort_value_name,
+          sort_value_stars_asc        => sort_value_stars_desc
+        }
+
+        options.each do |key, opt|
+          expect(reverse_hash).to include(key)
+          expect(reverse_hash[key]).to eq(opt)
+        end
       end
     end
   end
 
-  describe '#projects_sort_options_hash' do
-    # it 'returns correct title for project_sort_option_overrides key' do
-    #   expect(projects_sort_options_hash('created_asc')).to eq('Created date')
-    # end
-
-    it 'returns correct title for a valid sort value' do
-      expect(projects_sort_options_hash('latest_activity_desc')).to eq('Priority')
+  describe '#project_sort_direction_button', :focus do
+    before do
+      allow(self).to receive(:request).and_return(double(path: 'http://test.com', query_parameters: { label_name: 'test_label' }))
     end
 
-    # it 'returns nil for invalid sort value' do
-    #   expect(projects_sort_options_hash('invalid_key')).to eq(nil)
-    # end
-  end  
+    it 'returns icon with sort-highest when sort is created_date' do
+      expect(project_sort_direction_button('created_date')).to include('sort-highest')
+    end
+
+    it 'returns icon with sort-lowest when sort is asc' do
+      expect(project_sort_direction_button('created_asc')).to include('sort-lowest')
+    end
+
+    it 'returns icon with sort-lowest when sorting by milestone' do
+      expect(project_sort_direction_button('milestone')).to include('sort-lowest')
+    end
+
+    it 'returns icon with sort-lowest when sorting by due_date' do
+      expect(project_sort_direction_button('due_date')).to include('sort-lowest')
+    end
+  end
 end
