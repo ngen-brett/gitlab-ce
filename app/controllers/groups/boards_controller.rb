@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Groups::BoardsController < Groups::ApplicationController
-  include BoardsActions
+  include SingleBoardActions
   include RecordUserLastActivity
 
   before_action :assign_endpoint_vars

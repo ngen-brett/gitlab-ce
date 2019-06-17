@@ -1951,7 +1951,7 @@ class Project < ApplicationRecord
 
   # Overridden on EE module
   def multiple_issue_boards_available?
-    false
+    true
   end
 
   def full_path_before_last_save

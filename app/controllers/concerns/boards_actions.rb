@@ -3,37 +3,79 @@
 module BoardsActions
   include Gitlab::Utils::StrongMemoize
   extend ActiveSupport::Concern
+  include ::SingleBoardActions
 
   included do
-    include BoardsResponses
-
-    before_action :boards, only: :index
-    before_action :board, only: :show
+    before_action :redirect_to_recent_board, only: [:index]
+    before_action :authenticate_user!, only: [:recent]
+    before_action :authorize_create_board!, only: [:create]
+    before_action :authorize_admin_board!, only: [:create, :update, :destroy]
   end
 
-  def index
-    respond_with_boards
+  def recent
+    recent_visits = ::Boards::Visits::LatestService.new(parent, current_user, count: 4).execute
+    recent_boards = recent_visits.map(&:board)
+
+    render json: serialize_as_json(recent_boards)
   end
 
-  def show
-    # Add / update the board in the recent visits table
-    Boards::Visits::CreateService.new(parent, current_user).execute(board) if request.format.html?
+  def create
+    board = ::Boards::CreateService.new(parent, current_user, board_params).execute
 
-    respond_with_board
+    respond_to do |format|
+      format.json do
+        if board.valid?
+          extra_json = { board_path: board_path(board) }
+          render json: serialize_as_json(board).merge(extra_json)
+        else
+          render json: board.errors, status: :unprocessable_entity
+        end
+      end
+    end
+  end
+
+  def update
+    service = ::Boards::UpdateService.new(parent, current_user, board_params)
+    service.execute(board)
+
+    respond_to do |format|
+      format.json do
+        if board.valid?
+          extra_json = { board_path: board_path(board) }
+          render json: serialize_as_json(board).merge(extra_json)
+        else
+          render json: board.errors, status: :unprocessable_entity
+        end
+      end
+    end
+  end
+
+  def destroy
+    service = ::Boards::DestroyService.new(parent, current_user)
+    service.execute(board)
+
+    respond_to do |format|
+      format.json { head :ok }
+      format.html { redirect_to boards_path, status: :found }
+    end
   end
 
   private
 
-  def boards
-    strong_memoize(:boards) do
-      Boards::ListService.new(parent, current_user).execute
+  def redirect_to_recent_board
+    return if request.format.json? || !parent.multiple_issue_boards_available?
+
+    if recently_visited = ::Boards::Visits::LatestService.new(parent, current_user).execute
+      redirect_to board_path(recently_visited.board)
     end
   end
 
-  def board
-    strong_memoize(:board) do
-      boards.find(params[:id])
-    end
+  def authorize_create_board!
+    check_multiple_group_issue_boards_available! if group?
+  end
+
+  def authorize_admin_board!
+    return render_404 unless can?(current_user, :admin_board, parent)
   end
 
   def serializer
