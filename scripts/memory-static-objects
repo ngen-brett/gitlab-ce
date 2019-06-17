@@ -25,7 +25,7 @@ allocated_stats = /Total allocated: (?<bytes>.*) bytes \((?<objects>.*) objects\
 retained_stats = /Total retained: (?<bytes>.*) bytes \((?<objects>.*) objects\)/.match(retained_str)
 
 unless allocated_stats && retained_stats
-  puts 'failed to process benchmark output'
+  puts 'failed to process the benchmark output'
   exit 0
 end
 

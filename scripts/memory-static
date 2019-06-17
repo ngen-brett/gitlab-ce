@@ -22,7 +22,7 @@ end
 total_mibs_str = /TOP: (.*) MiB/.match(full_report.lines.first)[1]
 
 unless total_mibs_str
-  puts 'failed to process the benchmark'
+  puts 'failed to process the benchmark output'
   exit 1
 end
 
