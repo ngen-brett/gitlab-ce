@@ -150,14 +150,24 @@ describe('Dashboard', () => {
         singleGroupResponse,
       );
 
-      setTimeout(() => {
-        const dropdownMenuEnvironments = component.$el.querySelectorAll(
-          '.js-environments-dropdown .dropdown-item',
-        );
+      Vue.nextTick()
+        .then(() => {
+          const dropdownMenuEnvironments = component.$el.querySelectorAll(
+            '.js-environments-dropdown .dropdown-item',
+          );
 
-        expect(dropdownMenuEnvironments.length).toEqual(component.environments.length);
-        done();
-      });
+          expect(component.environments.length).toEqual(environmentData.length);
+          expect(dropdownMenuEnvironments.length).toEqual(component.environments.length);
+
+          for(let i = 0; i < dropdownMenuEnvironments.length; i+=1) {
+            if (environmentData[i].metrics_path) {
+              expect(dropdownMenuEnvironments[i]).toHaveAttr('href', environmentData[i].metrics_path);
+            }
+          }
+
+          done();
+        })
+        .catch(done.fail);
     });
 
     it('hides the environments dropdown list when there is no environments', done => {
@@ -212,7 +222,7 @@ describe('Dashboard', () => {
       Vue.nextTick()
         .then(() => {
           const dropdownItems = component.$el.querySelectorAll(
-            '.js-environments-dropdown .dropdown-item[active="true"]',
+            '.js-environments-dropdown .dropdown-item.is-active',
           );
 
           expect(dropdownItems.length).toEqual(1);
