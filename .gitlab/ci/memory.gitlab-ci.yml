@@ -1,10 +1,10 @@
-memory-usage:
+# For now, using dedicated jobs for every benchmark, we could merge them if needed
+memory-static:
   extends: .dedicated-no-docs-no-db-pull-cache-job
   script:
-    - echo '1'
-    - 'bundle exec derailed bundle:mem | head -n 1 | sed -n "s/TOP: /total_mib /p" | sed -n "s/ MiB//p" > memory_usage.txt'
+    - scripts/memory-static 'memory_static_full_report.txt' 'memory_static_metrics.txt'
   artifacts:
     paths:
-      - memory_usage.txt
+      - memory_static_full_report.txt
     reports:
-      metrics: memory_usage.txt
+      metrics: memory_static_metrics.txt
