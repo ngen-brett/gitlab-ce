@@ -1,4 +1,4 @@
-# For now, using dedicated jobs for every benchmark, we could merge them if needed
+# For now, using dedicated jobs for every benchmark, we could DRY them up
 memory-static:
   extends: .dedicated-no-docs-no-db-pull-cache-job
   script:
@@ -8,3 +8,13 @@ memory-static:
       - memory_static_full_report.txt
     reports:
       metrics: memory_static_metrics.txt
+
+memory-static-objects:
+  extends: .dedicated-no-docs-no-db-pull-cache-job
+  script:
+    - scripts/memory-static-objects 'memory_static_objects_full_report.txt' 'memory_static_objects_metrics.txt'
+  artifacts:
+    paths:
+      - memory_static_objects_full_report.txt
+    reports:
+      metrics: memory_static_objects_metrics.txt

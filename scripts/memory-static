@@ -2,8 +2,6 @@
 
 require_relative '../lib/gitlab/popen'
 
-#TODO: wrap into module
-
 full_report_filename, metrics_filename = ARGV
 unless full_report_filename && metrics_filename
   puts 'usage: memory-static <full_report_file> <metrics_filename>'
@@ -22,10 +20,14 @@ File.open(full_report_filename, 'w') do |f|
 end
 
 total_mibs_str = /TOP: (.*) MiB/.match(full_report.lines.first)[1]
-metrics = "memory_static_total_mibs #{total_mibs_str.to_f.round}"
+
+unless total_mibs_str
+  puts 'failed to process the benchmark'
+  exit 1
+end
 
 File.open(metrics_filename, 'w') do |f|
-  f.puts(metrics)
+  f.puts "memory_static_total_mibs #{total_mibs_str.to_f.round}"
 end
 
 exit 0
