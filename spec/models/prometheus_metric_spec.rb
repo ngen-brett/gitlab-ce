@@ -67,6 +67,7 @@ describe PrometheusMetric do
     it_behaves_like 'group_title', :business, 'Business metrics (Custom)'
     it_behaves_like 'group_title', :response, 'Response metrics (Custom)'
     it_behaves_like 'group_title', :system, 'System metrics (Custom)'
+    it_behaves_like 'group_title', :cluster_health, 'Cluster Health'
   end
 
   describe '#priority' do
@@ -78,6 +79,7 @@ describe PrometheusMetric do
       :ha_proxy          | 10
       :aws_elb           | 10
       :nginx             | 10
+      :cluster_health    | 10
       :kubernetes        | 5
       :business          | 0
       :response          | -5
@@ -102,6 +104,7 @@ describe PrometheusMetric do
       :ha_proxy          | %w(haproxy_frontend_http_requests_total haproxy_frontend_http_responses_total)
       :aws_elb           | %w(aws_elb_request_count_sum aws_elb_latency_average aws_elb_httpcode_backend_5_xx_sum)
       :nginx             | %w(nginx_server_requests nginx_server_requestMsec)
+      :cluster_health    | %w(container_cpu_usage_seconds_total container_memory_usage_bytes)
       :kubernetes        | %w(container_memory_usage_bytes container_cpu_usage_seconds_total)
       :business          | %w()
       :response          | %w()

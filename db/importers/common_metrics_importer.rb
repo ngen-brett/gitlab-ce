@@ -10,6 +10,7 @@ module Importers
       nginx: -4,
       kubernetes: -5,
       nginx_ingress: -6,
+      cluster_health: -7,
 
       # custom groups
       business: 0,
@@ -28,7 +29,8 @@ module Importers
       ha_proxy: _('Response metrics (HA Proxy)'),
       aws_elb: _('Response metrics (AWS ELB)'),
       nginx: _('Response metrics (NGINX)'),
-      kubernetes: _('System metrics (Kubernetes)')
+      kubernetes: _('System metrics (Kubernetes)'),
+      cluster_health: _('Cluster Health')
     }.freeze
   end
 
