@@ -64,8 +64,7 @@ but commented out to help encourage others to add to it in the future. -->
 
 ## Storage Usage Quota **[STARTER]**
 
-> [Introduced](https://gitlab.com/gitlab-org/gitlab-ee/merge_requests/13294) in GitLab Enterprise Edition 12.0.
-> Available in [GitLab Starter](https://about.gitlab.com/pricing/).
+> [Introduced](https://gitlab.com/gitlab-org/gitlab-ee/merge_requests/13294) in [GitLab Starter](https://about.gitlab.com/pricing/) 12.0.
 
 A group owner can check the aggregated storage usage for all the project in a group, sub-groups included, in the **Storage** tab of the **Usage Quotas** page available to the group page settings list.
 
