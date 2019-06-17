@@ -44,10 +44,11 @@ module Gitlab
     end
 
     def filter_by_legacy_label(items, app, env)
-      labels = { app: env }
-      non_legacy_items = filter_by_project_environment(items, app, env)
+      legacy_items = filter_by_label(items, { app: env })
 
-      filter_by_label(items, labels).reject do |item|
+      non_legacy_items = filter_by_project_environment(legacy_items, app, env)
+
+      legacy_items.reject do |item|
         non_legacy_items.include?(item)
       end
     end
