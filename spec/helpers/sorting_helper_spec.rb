@@ -44,4 +44,91 @@ describe SortingHelper do
       expect(issuable_sort_direction_button('due_date')).to include('sort-lowest')
     end
   end
+
+  # TODO: need separate tests for /admin/projects and /projects
+  # TODO: should this be renamed to `projects_sort_option_title??` ... maybe not
+  def stub_controller_path(value)
+    allow(helper.controller).to receive(:controller_path).and_return(value)
+  end
+
+  def project_common_options()
+    {
+      sort_value_latest_activity  => sort_title_latest_activity,
+      sort_value_recently_created => sort_title_created_date,
+      sort_value_name             => sort_title_name,
+      sort_value_stars_desc       => sort_title_stars      
+    }  
+  end
+
+  def admin_additional_project_options()
+    {
+      sort_value_recently_created => sort_title_recently_created,      
+      sort_value_largest_repo     => sort_title_largest_repo,
+      sort_value_oldest_activity  => sort_title_oldest_activity,
+      sort_value_oldest_created   => sort_title_oldest_created,
+      sort_value_stars_desc       => sort_title_most_stars
+    }
+  end
+
+  describe 'with `admin/projects` controller', :focus do 
+    before do
+      stub_controller_path('admin/projects')
+    end
+
+    describe '#projects_sort_options_hash' do
+      it 'returns a hash of available sorting options' do
+        hash = projects_sort_options_hash
+
+        admin_options = project_common_options.merge(admin_additional_project_options)
+
+        admin_options.each do |key, opt|
+          expect(hash).to include(key)
+          expect(hash[key]).to eq(opt)
+        end   
+      end
+    end
+  end
+
+  describe 'with `projects` controller', :focus do 
+    before do
+      stub_controller_path('projects')
+    end
+
+    describe '#projects_sort_options_hash' do
+      it 'returns a hash of available sorting options' do
+        hash = projects_sort_options_hash
+
+        common_options = project_common_options
+        admin_options = admin_additional_project_options
+        common_with_different_values = [sort_value_recently_created, sort_value_stars_desc]
+        
+        common_options.each do |key, opt|
+          expect(hash).to include(key)
+          expect(hash[key]).to eq(opt)
+        end   
+
+        admin_options.each do |key, opt|
+          if common_with_different_values.include?(key)
+            expect(hash[key]).not_to eq(opt)
+          else
+            expect(hash).not_to include(key)
+          end
+        end                   
+      end
+    end
+  end
+
+  describe '#projects_sort_options_hash' do
+    # it 'returns correct title for project_sort_option_overrides key' do
+    #   expect(projects_sort_options_hash('created_asc')).to eq('Created date')
+    # end
+
+    it 'returns correct title for a valid sort value' do
+      expect(projects_sort_options_hash('latest_activity_desc')).to eq('Priority')
+    end
+
+    # it 'returns nil for invalid sort value' do
+    #   expect(projects_sort_options_hash('invalid_key')).to eq(nil)
+    # end
+  end  
 end
