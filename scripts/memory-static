@@ -1,10 +1,11 @@
 #!/usr/bin/env ruby
 
+require 'gitlab'
+
 full_report_filename, metrics_filename = ARGV
 unless full_report_filename && metrics_filename
   puts 'usage: memory-static <full_report_file> <metrics_filename>'
   exit 1
 end
 
-p "TEST!"
 p Gitlab::Popen.popen(%w(bundle exec derailed bundle:mem))
