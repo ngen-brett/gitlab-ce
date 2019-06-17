@@ -61,7 +61,7 @@ Each scenario can be a third-level heading, e.g. `### Getting error message X`.
 If you have none to add when creating a doc, leave this section in place
 but commented out to help encourage others to add to it in the future. -->
 
-## Storage Usage Quota **[STARTER]**
+## Storage usage quota **[STARTER]**
 
 > [Introduced](https://gitlab.com/gitlab-org/gitlab-ee/merge_requests/13294) in [GitLab Starter](https://about.gitlab.com/pricing/) 12.0.
 
