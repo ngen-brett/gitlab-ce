@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'gitlab'
+require_relative '../lib/gitlab/popen'
 
 full_report_filename, metrics_filename = ARGV
 unless full_report_filename && metrics_filename
