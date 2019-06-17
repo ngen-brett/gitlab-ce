@@ -154,6 +154,8 @@ module Gitlab
       start = Gitlab::Metrics::System.monotonic_time
       request_hash = request.is_a?(Google::Protobuf::MessageExts) ? request.to_h : {}
 
+      raise "Cannot call Gitaly from within an active transaction." if ActiveRecord::Base.connection.open_transactions > 0
+
       enforce_gitaly_request_limits(:call)
 
       kwargs = request_kwargs(storage, timeout, remote_storage: remote_storage)
