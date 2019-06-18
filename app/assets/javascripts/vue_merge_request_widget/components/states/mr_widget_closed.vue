@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import MrWidgetAuthorTime from '../../components/mr_widget_author_time.vue';
 import statusIcon from '../mr_widget_status_icon.vue';
 

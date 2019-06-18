@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import $ from 'jquery';
 import statusIcon from '../mr_widget_status_icon.vue';
 import tooltip from '../../../vue_shared/directives/tooltip';
@@ -52,8 +53,7 @@ export default {
           class="fa fa-question-circle"
           title="When this merge request is ready,
           remove the WIP: prefix from the title to allow it to be merged"
-          aria-label="When this merge request is ready,
-          remove the WIP: prefix from the title to allow it to be merged"
+          :aria-label="__(`When this merge request is ready, remove the WIP: prefix from the title to allow it to be merged`)"
         >
         </i>
       </span>

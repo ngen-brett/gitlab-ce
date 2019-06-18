@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapState, mapGetters, mapActions } from 'vuex';
 import { viewerInformationForPath } from '~/vue_shared/components/content_viewer/lib/viewer_utils';
 import flash from '~/flash';
@@ -145,7 +146,7 @@ export default {
           this.createEditorInstance();
         })
         .catch(err => {
-          flash('Error setting up editor. Please try again.', 'alert', document, null, false, true);
+          flash(__('Error setting up editor. Please try again.'), 'alert', document, null, false, true);
           throw err;
         });
     },

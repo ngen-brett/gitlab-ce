@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import _ from 'underscore';
 import { GlTooltipDirective, GlLink } from '@gitlab/ui';
 import Icon from '~/vue_shared/components/icon.vue';
@@ -26,13 +27,13 @@ export default {
   },
   computed: {
     releasedTimeAgo() {
-      return sprintf('released %{time}', {
+      return sprintf(__('released %{time}'), {
         time: this.timeFormated(this.release.created_at),
       });
     },
     userImageAltDescription() {
       return this.author && this.author.username
-        ? sprintf("%{username}'s avatar", { username: this.author.username })
+        ? sprintf(__("%{username}'s avatar"), { username: this.author.username })
         : null;
     },
     commit() {

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlPagination } from '@gitlab/ui';
 import {
   PREV,

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions, mapState } from 'vuex';
 import { s__ } from '~/locale';
 import Icon from '~/vue_shared/components/icon.vue';

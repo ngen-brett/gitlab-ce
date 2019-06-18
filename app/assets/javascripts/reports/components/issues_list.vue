@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import ReportItem from '~/reports/components/report_item.vue';
 import { STATUS_FAILED, STATUS_NEUTRAL, STATUS_SUCCESS } from '~/reports/constants';
 import SmartVirtualList from '~/vue_shared/components/smart_virtual_list.vue';

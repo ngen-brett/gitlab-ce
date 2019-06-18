@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { s__ } from '~/locale';
 import eventHub from './event_hub';
 

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions } from 'vuex';
 import Icon from '~/vue_shared/components/icon.vue';
 import { pluralize, truncate } from '~/lib/utils/text_utility';
@@ -74,7 +75,7 @@ export default {
     <button
       v-if="discussionsExpanded"
       type="button"
-      aria-label="Show comments"
+      :aria-label="__(`Show comments`)"
       class="diff-notes-collapse js-diff-comment-avatar js-diff-comment-button"
       @click="toggleDiscussions"
     >

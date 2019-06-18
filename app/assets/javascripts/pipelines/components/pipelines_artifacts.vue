@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLink, GlTooltipDirective } from '@gitlab/ui';
 import Icon from '~/vue_shared/components/icon.vue';
 

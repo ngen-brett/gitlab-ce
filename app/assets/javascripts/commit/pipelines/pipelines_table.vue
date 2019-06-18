@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import PipelinesService from '../../pipelines/services/pipelines_service';
 import PipelineStore from '../../pipelines/stores/pipelines_store';
 import pipelinesMixin from '../../pipelines/mixins/pipelines';

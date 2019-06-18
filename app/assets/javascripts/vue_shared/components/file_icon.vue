@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLoadingIcon } from '@gitlab/ui';
 import getIconForFile from './file_icon/file_icon_map';
 import icon from '../../vue_shared/components/icon.vue';

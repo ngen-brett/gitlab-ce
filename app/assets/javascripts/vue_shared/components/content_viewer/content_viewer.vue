@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import MarkdownViewer from './viewers/markdown_viewer.vue';
 import ImageViewer from './viewers/image_viewer.vue';
 import DownloadViewer from './viewers/download_viewer.vue';

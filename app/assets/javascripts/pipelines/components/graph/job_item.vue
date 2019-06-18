@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import ActionComponent from './action_component.vue';
 import JobNameComponent from './job_name_component.vue';
 import { GlTooltipDirective, GlLink } from '@gitlab/ui';

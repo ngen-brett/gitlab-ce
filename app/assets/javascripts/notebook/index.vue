@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { MarkdownCell, CodeCell } from './cells';
 
 export default {
@@ -39,7 +40,7 @@ export default {
   },
   methods: {
     cellType(type) {
-      return `${type}-cell`;
+      return __(`${type}-cell`);
     },
   },
 };

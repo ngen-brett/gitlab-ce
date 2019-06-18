@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import tooltip from '~/vue_shared/directives/tooltip';
 import icon from '~/vue_shared/components/icon.vue';
 

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import ImportStatus from './import_status.vue';
 import { STATUSES } from '../constants';
 

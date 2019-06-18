@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { truncatePathMiddleToLength } from '~/lib/utils/text_utility';
 
 const MAX_PATH_LENGTH = 40;

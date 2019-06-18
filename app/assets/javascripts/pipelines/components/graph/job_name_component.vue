@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import ciIcon from '../../../vue_shared/components/ci_icon.vue';
 
 /**

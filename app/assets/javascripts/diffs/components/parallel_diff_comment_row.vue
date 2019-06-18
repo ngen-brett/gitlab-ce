@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import diffDiscussions from './diff_discussions.vue';
 import diffLineNoteForm from './diff_line_note_form.vue';
 

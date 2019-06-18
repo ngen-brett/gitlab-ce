@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLink } from '@gitlab/ui';
 import Icon from '~/vue_shared/components/icon.vue';
 import { WARNING, DANGER, WARNING_MESSAGE_CLASS, DANGER_MESSAGE_CLASS } from '../constants';

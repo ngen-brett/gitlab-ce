@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapState, mapActions, mapGetters } from 'vuex';
 import AccessorUtilities from '~/lib/utils/accessor';
 import { GlLoadingIcon } from '@gitlab/ui';

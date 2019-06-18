@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlDropdown, GlDropdownItem } from '@gitlab/ui';
 
 export default {

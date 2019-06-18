@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapState, mapGetters, mapActions } from 'vuex';
 import { s__ } from '~/locale';
 import diffLineNoteFormMixin from 'ee_else_ce/notes/mixins/diff_line_note_form';

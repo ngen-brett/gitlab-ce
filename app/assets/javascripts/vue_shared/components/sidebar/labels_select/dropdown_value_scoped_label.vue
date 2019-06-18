@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLink, GlTooltip } from '@gitlab/ui';
 
 export default {

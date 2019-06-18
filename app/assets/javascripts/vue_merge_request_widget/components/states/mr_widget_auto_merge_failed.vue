@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLoadingIcon } from '@gitlab/ui';
 import eventHub from '../../event_hub';
 import statusIcon from '../mr_widget_status_icon.vue';

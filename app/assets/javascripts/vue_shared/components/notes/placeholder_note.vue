@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 /**
  * Common component to render a placeholder note and user information.
  *

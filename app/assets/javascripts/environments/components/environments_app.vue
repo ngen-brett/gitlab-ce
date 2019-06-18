@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import envrionmentsAppMixin from 'ee_else_ce/environments/mixins/environments_app_mixin';
 import Flash from '../../flash';
 import { s__ } from '../../locale';

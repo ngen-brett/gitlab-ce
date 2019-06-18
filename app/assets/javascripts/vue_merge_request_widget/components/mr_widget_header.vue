@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import _ from 'underscore';
 import { n__, s__, sprintf } from '~/locale';
 import { mergeUrlParams, webIDEUrl } from '~/lib/utils/url_utility';
@@ -139,7 +140,7 @@ export default {
             type="button"
             class="btn dropdown-toggle qa-dropdown-toggle"
             data-toggle="dropdown"
-            aria-label="Download as"
+            :aria-label="__(`Download as`)"
             aria-haspopup="true"
             aria-expanded="false"
           >

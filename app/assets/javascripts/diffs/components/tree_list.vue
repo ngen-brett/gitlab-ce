@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions, mapGetters, mapState } from 'vuex';
 import { GlTooltipDirective } from '@gitlab/ui';
 import { s__, sprintf } from '~/locale';

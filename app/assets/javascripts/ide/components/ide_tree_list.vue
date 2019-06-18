@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions, mapGetters, mapState } from 'vuex';
 import Icon from '~/vue_shared/components/icon.vue';
 import { GlSkeletonLoading } from '@gitlab/ui';

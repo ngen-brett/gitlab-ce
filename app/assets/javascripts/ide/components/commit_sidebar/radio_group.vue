@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions, mapState, mapGetters } from 'vuex';
 import tooltip from '~/vue_shared/directives/tooltip';
 

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import fuzzaldrinPlus from 'fuzzaldrin-plus';
 import Mousetrap from 'mousetrap';
 import VirtualList from 'vue-virtual-scroll-list';

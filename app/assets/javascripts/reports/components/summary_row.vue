@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import CiIcon from '~/vue_shared/components/ci_icon.vue';
 import Popover from '~/vue_shared/components/help_popover.vue';
 import { GlLoadingIcon } from '@gitlab/ui';

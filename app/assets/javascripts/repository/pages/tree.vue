@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import FileTable from '../components/table/index.vue';
 
 export default {

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions, mapGetters } from 'vuex';
 import _ from 'underscore';
 import imageDiffMixin from 'ee_else_ce/diffs/mixins/image_diff';

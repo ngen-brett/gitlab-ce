@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import _ from 'underscore';
 import GlModal from '~/vue_shared/components/gl_modal.vue';
 import { GlLink } from '@gitlab/ui';

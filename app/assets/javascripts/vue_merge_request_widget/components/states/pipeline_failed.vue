@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import statusIcon from '../mr_widget_status_icon.vue';
 
 export default {
@@ -10,15 +11,15 @@ export default {
 </script>
 
 <template>
-  <div class="mr-widget-body media">
-    <status-icon :show-disabled-button="true" status="warning" />
-    <div class="media-body space-children">
-      <span class="bold">
-        {{
-          s__(`mrWidget|The pipeline for this merge request failed.
-Please retry the job or push a new commit to fix the failure`)
-        }}
-      </span>
+    <div class="mr-widget-body media">
+      <status-icon :show-disabled-button="true" status="warning" />
+      <div class="media-body space-children">
+        <span class="bold">
+          {{
+            s__(`mrWidget|The pipeline for this merge request failed.
+  Please retry the job or push a new commit to fix the failure`)
+          }}
+        </span>
+      </div>
     </div>
-  </div>
 </template>

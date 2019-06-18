@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import Icon from '~/vue_shared/components/icon.vue';
 import FileHeader from '~/vue_shared/components/file_row_header.vue';
 import FileIcon from '~/vue_shared/components/file_icon.vue';

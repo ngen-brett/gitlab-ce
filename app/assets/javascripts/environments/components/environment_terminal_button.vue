@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 /**
  * Renders a terminal button to open a web terminal.
  * Used in environments table.
@@ -27,7 +28,7 @@ export default {
   },
   computed: {
     title() {
-      return 'Terminal';
+      return __('Terminal');
     },
   },
 };

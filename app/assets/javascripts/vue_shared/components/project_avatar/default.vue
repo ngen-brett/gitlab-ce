@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import Identicon from '../identicon.vue';
 import ProjectAvatarImage from './image.vue';
 

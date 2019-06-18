@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlBadge } from '@gitlab/ui';
 import { visitUrl } from '~/lib/utils/url_utility';
 import { getIconName } from '../../utils/icon';
@@ -79,9 +80,7 @@ export default {
       <component :is="linkComponent" :to="routerLinkTo" :href="url" class="str-truncated">
         {{ fullPath }}
       </component>
-      <gl-badge v-if="lfsOid" variant="default" class="label-lfs ml-1">
-        LFS
-      </gl-badge>
+      <gl-badge v-if="lfsOid" variant="default" class="label-lfs ml-1">{{ __("LFS") }}</gl-badge>
       <template v-if="isSubmodule">
         @ <a href="#" class="commit-sha">{{ shortSha }}</a>
       </template>

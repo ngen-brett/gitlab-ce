@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapState } from 'vuex';
 import DropdownButton from '~/vue_shared/components/dropdown/dropdown_button.vue';
 import Icon from '~/vue_shared/components/icon.vue';

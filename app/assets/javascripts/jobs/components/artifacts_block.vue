@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLink } from '@gitlab/ui';
 import TimeagoTooltip from '~/vue_shared/components/time_ago_tooltip.vue';
 import timeagoMixin from '~/vue_shared/mixins/timeago';

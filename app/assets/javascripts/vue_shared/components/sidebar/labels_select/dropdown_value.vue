@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import DropdownValueScopedLabel from './dropdown_value_scoped_label.vue';
 import DropdownValueRegularLabel from './dropdown_value_regular_label.vue';
 import { isScopedLabel } from '~/lib/utils/common_utils';

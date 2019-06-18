@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import $ from 'jquery';
 import Icon from '~/vue_shared/components/icon.vue';
 import { inserted } from '~/feature_highlight/feature_highlight_helper';

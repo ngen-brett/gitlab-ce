@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import ReplyPlaceholder from './discussion_reply_placeholder.vue';
 import ResolveDiscussionButton from './discussion_resolve_button.vue';
 import ResolveWithIssueButton from './discussion_resolve_with_issue_button.vue';

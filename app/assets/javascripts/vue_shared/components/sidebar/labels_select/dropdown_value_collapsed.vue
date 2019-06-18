@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { s__, sprintf } from '~/locale';
 import tooltip from '~/vue_shared/directives/tooltip';
 

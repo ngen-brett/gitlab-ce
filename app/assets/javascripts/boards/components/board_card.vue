@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 /* eslint-disable vue/require-default-prop */
 import IssueCardInner from './issue_card_inner.vue';
 import eventHub from '../eventhub';

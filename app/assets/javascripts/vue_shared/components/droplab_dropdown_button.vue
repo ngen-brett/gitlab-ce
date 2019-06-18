@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlButton } from '@gitlab/ui';
 import Icon from './icon.vue';
 
@@ -69,7 +70,7 @@ export default {
       data-display="static"
       data-toggle="dropdown"
     >
-      <icon name="arrow-down" aria-label="toggle dropdown" />
+      <icon name="arrow-down" :aria-label="__(`toggle dropdown`)" />
     </button>
     <ul :class="dropdownClass" class="dropdown-menu dropdown-open-top">
       <template v-for="(action, index) in actions">

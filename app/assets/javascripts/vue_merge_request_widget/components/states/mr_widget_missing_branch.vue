@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { sprintf, s__ } from '~/locale';
 import tooltip from '~/vue_shared/directives/tooltip';
 import statusIcon from '../mr_widget_status_icon.vue';

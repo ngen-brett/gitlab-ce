@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import Icon from '~/vue_shared/components/icon.vue';
 import Timeago from '~/vue_shared/components/time_ago_tooltip.vue';
 import router from '../../ide_router';

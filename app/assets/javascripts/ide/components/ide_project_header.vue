@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import ProjectAvatarDefault from '~/vue_shared/components/project_avatar/default.vue';
 
 export default {

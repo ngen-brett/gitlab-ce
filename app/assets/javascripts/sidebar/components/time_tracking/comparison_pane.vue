@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { parseSeconds, stringifyTime } from '~/lib/utils/datetime_utility';
 import tooltip from '../../../vue_shared/directives/tooltip';
 import { GlProgressBar } from '@gitlab/ui';
@@ -38,7 +39,7 @@ export default {
       return stringifyTime(this.parsedTimeRemaining);
     },
     timeRemainingTooltip() {
-      const prefix = this.timeRemainingMinutes < 0 ? 'Over by' : 'Time remaining:';
+      const prefix = this.timeRemainingMinutes < 0 ? __('Over by') : __('Time remaining:');
       return `${prefix} ${this.timeRemainingHumanReadable}`;
     },
     /* Diff values for comparison meter */

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import IssueStatusIcon from '~/reports/components/issue_status_icon.vue';
 import { components, componentNames } from '~/reports/components/issue_body';
 

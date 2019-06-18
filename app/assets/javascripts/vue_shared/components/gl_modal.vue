@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import $ from 'jquery';
 
 const buttonVariants = ['danger', 'primary', 'success', 'warning'];

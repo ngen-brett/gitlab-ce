@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import JobDescription from './detail/description.vue';
 
 export default {

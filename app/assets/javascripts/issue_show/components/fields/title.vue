@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import updateMixin from '../../mixins/update';
 
 export default {
@@ -14,7 +15,7 @@ export default {
 
 <template>
   <fieldset>
-    <label class="sr-only" for="issuable-title"> Title </label>
+    <label class="sr-only" for="issuable-title">{{ __("Title") }}</label>
     <input
       id="issuable-title"
       ref="input"
@@ -22,8 +23,8 @@ export default {
       class="form-control qa-title-input"
       dir="auto"
       type="text"
-      placeholder="Title"
-      aria-label="Title"
+      :placeholder="__(`Title`)"
+      :aria-label="__(`Title`)"
       @keydown.meta.enter="updateIssuable"
       @keydown.ctrl.enter="updateIssuable"
     />

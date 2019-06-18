@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import FrequentItemsListItem from './frequent_items_list_item.vue';
 import frequentItemsMixin from './frequent_items_mixin';
 

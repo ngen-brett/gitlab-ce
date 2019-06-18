@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLink } from '@gitlab/ui';
 import _ from 'underscore';
 import { sprintf } from '~/locale';
@@ -47,7 +48,7 @@ export default {
     },
     confidentialAndLockedDiscussionText() {
       return sprintf(
-        'This issue is %{confidentialLinkStart}confidential%{linkEnd} and %{lockedLinkStart}locked%{linkEnd}.',
+        __('This issue is %{confidentialLinkStart}confidential%{linkEnd} and %{lockedLinkStart}locked%{linkEnd}.'),
         {
           confidentialLinkStart: buildDocsLinkStart(this.confidentialIssueDocsPath),
           lockedLinkStart: buildDocsLinkStart(this.lockedIssueDocsPath),

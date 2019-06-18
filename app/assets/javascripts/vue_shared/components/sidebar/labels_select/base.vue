@@ -126,63 +126,63 @@ export default {
 </script>
 
 <template>
-  <div class="block labels js-labels-block">
-    <dropdown-value-collapsed
-      v-if="showCreate"
-      :labels="context.labels"
-      @onValueClick="handleCollapsedValueClick"
-    />
-    <dropdown-title :can-edit="canEdit" />
-    <dropdown-value
-      :labels="context.labels"
-      :label-filter-base-path="labelFilterBasePath"
-      :scoped-labels-documentation-link="scopedLabelsDocumentationLink"
-      :enable-scoped-labels="enableScopedLabels"
-    >
-      <slot></slot>
-    </dropdown-value>
-    <div v-if="canEdit" class="selectbox js-selectbox" style="display: none;">
-      <dropdown-hidden-input
-        v-for="label in context.labels"
-        :key="label.id"
-        :name="hiddenInputName"
-        :value="label.id"
+    <div class="block labels js-labels-block">
+      <dropdown-value-collapsed
+        v-if="showCreate"
+        :labels="context.labels"
+        @onValueClick="handleCollapsedValueClick"
       />
-      <div ref="dropdown" class="dropdown">
-        <dropdown-button
-          :ability-name="abilityName"
-          :field-name="hiddenInputName"
-          :update-path="updatePath"
-          :labels-path="labelsPath"
-          :namespace="namespace"
-          :labels="context.labels"
-          :show-extra-options="!showCreate"
-          :scoped-labels-documentation-link="scopedLabelsDocumentationLink"
-          :enable-scoped-labels="enableScopedLabels"
+      <dropdown-title :can-edit="canEdit" />
+      <dropdown-value
+        :labels="context.labels"
+        :label-filter-base-path="labelFilterBasePath"
+        :scoped-labels-documentation-link="scopedLabelsDocumentationLink"
+        :enable-scoped-labels="enableScopedLabels"
+      >
+        <slot></slot>
+      </dropdown-value>
+      <div v-if="canEdit" class="selectbox js-selectbox" style="display: none;">
+        <dropdown-hidden-input
+          v-for="label in context.labels"
+          :key="label.id"
+          :name="hiddenInputName"
+          :value="label.id"
         />
-        <div
-          class="dropdown-menu dropdown-select dropdown-menu-paging
-dropdown-menu-labels dropdown-menu-selectable"
-        >
-          <div class="dropdown-page-one">
-            <dropdown-header v-if="showCreate" />
-            <dropdown-search-input />
-            <div class="dropdown-content"></div>
-            <div class="dropdown-loading"><gl-loading-icon /></div>
-            <dropdown-footer
+        <div ref="dropdown" class="dropdown">
+          <dropdown-button
+            :ability-name="abilityName"
+            :field-name="hiddenInputName"
+            :update-path="updatePath"
+            :labels-path="labelsPath"
+            :namespace="namespace"
+            :labels="context.labels"
+            :show-extra-options="!showCreate"
+            :scoped-labels-documentation-link="scopedLabelsDocumentationLink"
+            :enable-scoped-labels="enableScopedLabels"
+          />
+          <div
+            class="dropdown-menu dropdown-select dropdown-menu-paging
+  dropdown-menu-labels dropdown-menu-selectable"
+          >
+            <div class="dropdown-page-one">
+              <dropdown-header v-if="showCreate" />
+              <dropdown-search-input />
+              <div class="dropdown-content"></div>
+              <div class="dropdown-loading"><gl-loading-icon /></div>
+              <dropdown-footer
+                v-if="showCreate"
+                :labels-web-url="labelsWebUrl"
+                :create-label-title="createLabelTitle"
+                :manage-labels-title="manageLabelsTitle"
+              />
+            </div>
+            <dropdown-create-label
               v-if="showCreate"
-              :labels-web-url="labelsWebUrl"
-              :create-label-title="createLabelTitle"
-              :manage-labels-title="manageLabelsTitle"
+              :is-project="isProject"
+              :header-title="createLabelTitle"
             />
           </div>
-          <dropdown-create-label
-            v-if="showCreate"
-            :is-project="isProject"
-            :header-title="createLabelTitle"
-          />
         </div>
       </div>
     </div>
-  </div>
 </template>

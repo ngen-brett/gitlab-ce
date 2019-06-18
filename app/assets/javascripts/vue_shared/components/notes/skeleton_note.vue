@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlSkeletonLoading } from '@gitlab/ui';
 import TimelineEntryItem from '~/vue_shared/components/notes/timeline_entry_item.vue';
 

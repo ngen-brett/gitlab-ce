@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import _ from 'underscore';
 import { GlLoadingIcon } from '@gitlab/ui';
 import ProjectListItem from './project_list_item.vue';

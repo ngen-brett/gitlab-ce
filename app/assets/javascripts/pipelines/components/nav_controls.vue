@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLink, GlButton } from '@gitlab/ui';
 import LoadingButton from '../../vue_shared/components/loading_button.vue';
 

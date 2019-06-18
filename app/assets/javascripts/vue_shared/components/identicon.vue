@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { getIdenticonBackgroundClass, getIdenticonTitle } from '~/helpers/avatar_helper';
 
 export default {

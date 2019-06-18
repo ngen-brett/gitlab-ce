@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapGetters } from 'vuex';
 import draftCommentsMixin from 'ee_else_ce/diffs/mixins/draft_comments';
 import inlineDiffTableRow from './inline_diff_table_row.vue';

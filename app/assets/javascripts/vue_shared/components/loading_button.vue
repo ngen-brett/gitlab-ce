@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLoadingIcon } from '@gitlab/ui';
 /* eslint-disable vue/require-default-prop */
 /* This is a re-usable vue component for rendering a button

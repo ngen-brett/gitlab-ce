@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 /**
  * Renders Rollback or Re deploy button in environments table depending
  * of the provided property `isLastDeployment`.

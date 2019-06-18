@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import VirtualList from 'vue-virtual-scroll-list';
 
 export default {

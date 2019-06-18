@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlButton, GlFormInput } from '@gitlab/ui';
 import Icon from '~/vue_shared/components/icon.vue';
 
@@ -39,7 +40,7 @@ export default {
           <gl-form-input
             id="error-tracking-api-host"
             :value="apiHost"
-            placeholder="https://mysentryserver.com"
+            :placeholder="__(`https://mysentryserver.com`)"
             @input="$emit('update-api-host', $event)"
           />
         </div>

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLink } from '@gitlab/ui';
 /**
  * Renders Unmet Prerequisites block for job's view.

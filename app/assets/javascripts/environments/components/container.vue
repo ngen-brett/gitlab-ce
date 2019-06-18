@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLoadingIcon } from '@gitlab/ui';
 import TablePagination from '~/vue_shared/components/pagination/table_pagination.vue';
 import containerMixin from 'ee_else_ce/environments/mixins/container_mixin';

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapState, mapActions } from 'vuex';
 import { GlSkeletonLoading, GlEmptyState } from '@gitlab/ui';
 import ReleaseBlock from './release_block.vue';

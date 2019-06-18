@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import $ from 'jquery';
 import { GlPopover, GlButton, GlTooltipDirective } from '@gitlab/ui';
 import ToolbarButton from './toolbar_button.vue';
@@ -38,10 +39,10 @@ export default {
   computed: {
     mdTable() {
       return [
-        '| header | header |',
+        __('| header | header |'),
         '| ------ | ------ |',
-        '| cell | cell |',
-        '| cell | cell |',
+        __('| cell | cell |'),
+        __('| cell | cell |'),
       ].join('\n');
     },
     mdSuggestion() {

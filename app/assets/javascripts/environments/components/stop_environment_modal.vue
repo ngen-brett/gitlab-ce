@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlTooltipDirective } from '@gitlab/ui';
 import GlModal from '~/vue_shared/components/gl_modal.vue';
 import { s__, sprintf } from '~/locale';

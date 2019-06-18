@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import _ from 'underscore';
 import DeprecatedModal from '~/vue_shared/components/deprecated_modal.vue';
 import { s__, sprintf } from '~/locale';

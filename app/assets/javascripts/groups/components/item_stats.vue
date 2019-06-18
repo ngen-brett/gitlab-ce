@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import icon from '~/vue_shared/components/icon.vue';
 import timeAgoTooltip from '~/vue_shared/components/time_ago_tooltip.vue';
 import {

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { getTimeago } from '../../lib/utils/datetime_utility';
 
 export default {
@@ -20,7 +21,7 @@ export default {
   computed: {
     getFormattedMedian() {
       const deployedSince = getTimeago().format(this.deploymentTime * 1000);
-      return `Deployed ${deployedSince}`;
+      return __(`Deployed ${deployedSince}`);
     },
   },
   mounted() {

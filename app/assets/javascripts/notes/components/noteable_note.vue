@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import $ from 'jquery';
 import { mapGetters, mapActions } from 'vuex';
 import { escape } from 'underscore';
@@ -128,7 +129,7 @@ export default {
       this.$emit('handleEdit');
     },
     deleteHandler() {
-      const typeOfComment = this.note.isDraft ? 'pending comment' : 'comment';
+      const typeOfComment = this.note.isDraft ? __('pending comment') : 'comment';
       // eslint-disable-next-line no-alert
       if (window.confirm(`Are you sure you want to delete this ${typeOfComment}?`)) {
         this.isDeleting = true;
@@ -141,7 +142,7 @@ export default {
             this.isDeleting = false;
           })
           .catch(() => {
-            Flash('Something went wrong while deleting your note. Please try again.');
+            Flash(__('Something went wrong while deleting your note. Please try again.'));
             this.isDeleting = false;
           });
       }
@@ -185,7 +186,7 @@ export default {
           this.isRequesting = false;
           this.isEditing = true;
           this.$nextTick(() => {
-            const msg = 'Something went wrong while editing your comment. Please try again.';
+            const msg = __('Something went wrong while editing your comment. Please try again.');
             Flash(msg, 'alert', this.$el);
             this.recoverNoteContent(noteText);
             callback();
@@ -195,7 +196,7 @@ export default {
     formCancelHandler(shouldConfirm, isDirty) {
       if (shouldConfirm && isDirty) {
         // eslint-disable-next-line no-alert
-        if (!window.confirm('Are you sure you want to cancel editing this comment?')) return;
+        if (!window.confirm(__('Are you sure you want to cancel editing this comment?'))) return;
       }
       this.$refs.noteBody.resetAutoSave();
       if (this.oldContent) {

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import Icon from '~/vue_shared/components/icon.vue';
 
 export default {
@@ -27,7 +28,7 @@ export default {
       target="_blank"
       rel="noopener noreferrer"
     >
-      <span class="vertical-align-middle">Open in file view</span>
+      <span class="vertical-align-middle">{{ __("Open in file view") }}</span>
       <icon :size="16" name="external-link" css-classes="vertical-align-middle space-right" />
     </a>
   </div>

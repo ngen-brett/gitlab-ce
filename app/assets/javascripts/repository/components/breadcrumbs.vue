@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import getRefMixin from '../mixins/get_ref';
 import getProjectShortPath from '../queries/getProjectShortPath.graphql';
 

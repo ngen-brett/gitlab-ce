@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { visitUrl } from '../../lib/utils/url_utility';
 import tooltip from '../../vue_shared/directives/tooltip';
 import identicon from '../../vue_shared/components/identicon.vue';

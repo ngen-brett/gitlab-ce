@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import DeprecatedModal from './deprecated_modal.vue';
 
 export default {

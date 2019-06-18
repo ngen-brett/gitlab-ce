@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import Prism from '../../lib/highlight';
 import Prompt from '../prompt.vue';
 

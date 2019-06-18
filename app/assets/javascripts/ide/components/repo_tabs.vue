@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions } from 'vuex';
 import RepoTab from './repo_tab.vue';
 import EditorMode from './editor_mode_dropdown.vue';

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { n__ } from '../../locale';
 import { MAX_CHILDREN_COUNT } from '../constants';
 

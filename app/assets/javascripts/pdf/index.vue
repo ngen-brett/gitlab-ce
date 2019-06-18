@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import pdfjsLib from 'pdfjs-dist/build/pdf';
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min';
 

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import _ from 'underscore';
 import autoMergeMixin from 'ee_else_ce/vue_merge_request_widget/mixins/auto_merge';
 import Flash from '../../../flash';
@@ -55,7 +56,7 @@ export default {
         })
         .catch(() => {
           this.isCancellingAutoMerge = false;
-          Flash('Something went wrong. Please try again.');
+          Flash(__('Something went wrong. Please try again.'));
         });
     },
     removeSourceBranch() {
@@ -76,7 +77,7 @@ export default {
         })
         .catch(() => {
           this.isRemovingSourceBranch = false;
-          Flash('Something went wrong. Please try again.');
+          Flash(__('Something went wrong. Please try again.'));
         });
     },
   },

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import animateMixin from '../mixins/animate';
 import eventHub from '../event_hub';
 import tooltip from '../../vue_shared/directives/tooltip';

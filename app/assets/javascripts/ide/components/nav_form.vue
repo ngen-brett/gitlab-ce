@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import Tabs from '~/vue_shared/components/tabs/tabs';
 import Tab from '~/vue_shared/components/tabs/tab.vue';
 import BranchesSearchList from './branches/search_list.vue';

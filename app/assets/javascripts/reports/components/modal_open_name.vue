@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions } from 'vuex';
 
 export default {

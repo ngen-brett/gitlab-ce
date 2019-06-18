@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapGetters, mapActions } from 'vuex';
 import DiffLineGutterContent from './diff_line_gutter_content.vue';
 import {

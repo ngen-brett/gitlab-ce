@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlTooltipDirective, GlLink, GlButton } from '@gitlab/ui';
 import { polyfillSticky } from '~/lib/utils/sticky';
 import Icon from '~/vue_shared/components/icon.vue';
@@ -50,7 +51,7 @@ export default {
   },
   computed: {
     jobLogSize() {
-      return sprintf('Showing last %{size} of log -', {
+      return sprintf(__('Showing last %{size} of log -'), {
         size: numberToHumanSize(this.size),
       });
     },

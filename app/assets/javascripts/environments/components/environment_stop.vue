@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 /**
  * Renders the stop "button" that allows stop an environment.
  * Used in environments table.

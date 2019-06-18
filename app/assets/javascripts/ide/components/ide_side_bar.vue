@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapState, mapGetters } from 'vuex';
 import { GlSkeletonLoading } from '@gitlab/ui';
 import IdeTree from './ide_tree.vue';

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { n__ } from '~/locale';
 import { stripHtml } from '~/lib/utils/text_utility';
 import statusIcon from '../mr_widget_status_icon.vue';

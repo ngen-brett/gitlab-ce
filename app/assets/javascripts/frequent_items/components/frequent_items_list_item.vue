@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 /* eslint-disable vue/require-default-prop */
 import _ from 'underscore';
 import Identicon from '~/vue_shared/components/identicon.vue';

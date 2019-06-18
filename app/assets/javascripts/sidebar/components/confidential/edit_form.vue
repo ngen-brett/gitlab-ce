@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import editFormButtons from './edit_form_buttons.vue';
 import { s__ } from '../../../locale';
 

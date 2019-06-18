@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions } from 'vuex';
 import { GlLoadingIcon } from '@gitlab/ui';
 import Stage from './stage.vue';

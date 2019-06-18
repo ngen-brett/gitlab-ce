@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 /* This is a re-usable vue component for rendering a user avatar that
   does not need to link to the user's profile. The image and an optional
   tooltip can be configured by props passed to this component.
@@ -43,7 +44,7 @@ export default {
     imgAlt: {
       type: String,
       required: false,
-      default: 'user avatar',
+      default: __('user avatar'),
     },
     size: {
       type: Number,

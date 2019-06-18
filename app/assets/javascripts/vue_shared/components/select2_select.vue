@@ -1,9 +1,10 @@
 <script>
+import { __ } from "~/locale";
 import $ from 'jquery';
 import 'select2';
 
 export default {
-  name: 'Select2Select',
+  name: __('Select2Select'),
   props: {
     options: {
       type: Object,

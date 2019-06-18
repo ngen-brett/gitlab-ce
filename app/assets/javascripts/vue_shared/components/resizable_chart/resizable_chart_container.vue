@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { debounceByAnimationFrame } from '~/lib/utils/common_utils';
 import $ from 'jquery';
 

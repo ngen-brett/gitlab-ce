@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions, mapState } from 'vuex';
 import DiffTableCell from './diff_table_cell.vue';
 import {

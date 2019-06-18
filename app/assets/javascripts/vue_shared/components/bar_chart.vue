@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import * as d3 from 'd3';
 import tooltip from '../directives/tooltip';
 import Icon from './icon.vue';

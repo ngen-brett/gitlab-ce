@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 const calloutVariants = ['danger', 'success', 'info', 'warning'];
 
 export default {

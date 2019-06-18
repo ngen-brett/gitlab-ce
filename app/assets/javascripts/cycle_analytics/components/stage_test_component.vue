@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import iconBuildStatus from '../svg/icon_build_status.svg';
 import iconBranch from '../svg/icon_branch.svg';
 import limitWarning from './limit_warning_component.vue';

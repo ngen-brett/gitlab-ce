@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 /**
  * Render environments table.
  */

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlButton } from '@gitlab/ui';
 import Icon from '~/vue_shared/components/icon.vue';
 import ProjectAvatar from '~/vue_shared/components/project_avatar/default.vue';

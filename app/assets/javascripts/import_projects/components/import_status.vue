@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlLoadingIcon } from '@gitlab/ui';
 import CiIcon from '~/vue_shared/components/ci_icon.vue';
 import STATUS_MAP from '../constants';

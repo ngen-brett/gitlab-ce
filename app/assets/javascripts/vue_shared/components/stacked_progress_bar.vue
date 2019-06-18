@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { roundOffFloat } from '~/lib/utils/common_utils';
 import tooltip from '~/vue_shared/directives/tooltip';
 
@@ -78,7 +79,7 @@ export default {
       return percent;
     },
     barStyle(percent) {
-      return `width: ${percent}%;`;
+      return __(`width: ${percent}%;`);
     },
     getTooltip(label, count) {
       return `${label}: ${count}`;

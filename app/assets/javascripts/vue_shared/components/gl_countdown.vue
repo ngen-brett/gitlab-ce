@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { calculateRemainingMilliseconds, formatTime } from '~/lib/utils/datetime_utility';
 import { GlTooltipDirective } from '@gitlab/ui';
 

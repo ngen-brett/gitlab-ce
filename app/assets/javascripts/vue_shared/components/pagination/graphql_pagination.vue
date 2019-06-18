@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlButton } from '@gitlab/ui';
 import { PREV, NEXT } from '~/vue_shared/components/pagination/constants';
 

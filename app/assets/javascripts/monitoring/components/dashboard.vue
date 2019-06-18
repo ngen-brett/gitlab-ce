@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlButton, GlDropdown, GlDropdownItem, GlModal, GlModalDirective } from '@gitlab/ui';
 import _ from 'underscore';
 import { mapActions, mapState } from 'vuex';

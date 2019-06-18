@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import ModalStore from '../../stores/modal_store';
 import modalMixin from '../../mixins/modal_mixins';
 

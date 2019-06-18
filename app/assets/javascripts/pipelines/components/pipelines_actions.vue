@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlButton, GlTooltipDirective, GlLoadingIcon } from '@gitlab/ui';
 import { s__, sprintf } from '~/locale';
 import GlCountdown from '~/vue_shared/components/gl_countdown.vue';

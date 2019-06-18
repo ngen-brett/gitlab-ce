@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions, mapGetters } from 'vuex';
 import tooltip from '~/vue_shared/directives/tooltip';
 import Icon from '~/vue_shared/components/icon.vue';
@@ -108,23 +109,23 @@ export default {
 
       // Add myself to the beginning of the list so title will start with You.
       if (hasReactionByCurrentUser) {
-        namesToShow.unshift('You');
+        namesToShow.unshift(__('You'));
       }
 
       let title = '';
 
       // We have 10+ awarded user, join them with comma and add `and x more`.
       if (remainingAwardList.length) {
-        title = `${namesToShow.join(', ')}, and ${remainingAwardList.length} more.`;
+        title = __(`${namesToShow.join(', ')}, and ${remainingAwardList.length} more.`);
       } else if (namesToShow.length > 1) {
         // Join all names with comma but not the last one, it will be added with and text.
         title = namesToShow.slice(0, namesToShow.length - 1).join(', ');
         // If we have more than 2 users we need an extra comma before and text.
         title += namesToShow.length > 2 ? ',' : '';
-        title += ` and ${namesToShow.slice(-1)}`; // Append and text
+        title += __(` and ${namesToShow.slice(-1)}`); // Append and text
       } else {
         // We have only 2 users so join them with and.
-        title = namesToShow.join(' and ');
+        title = namesToShow.join(__(' and '));
       }
 
       return title;
@@ -155,7 +156,7 @@ export default {
         awardName: parsedName,
       };
 
-      this.toggleAwardRequest(data).catch(() => Flash('Something went wrong on our end.'));
+      this.toggleAwardRequest(data).catch(() => Flash(__('Something went wrong on our end.')));
     },
   },
 };
@@ -184,7 +185,7 @@ export default {
           :class="{ 'js-user-authored': isAuthoredByMe }"
           class="award-control btn js-add-award"
           title="Add reaction"
-          aria-label="Add reaction"
+          :aria-label="__(`Add reaction`)"
           data-boundary="viewport"
           type="button"
         >

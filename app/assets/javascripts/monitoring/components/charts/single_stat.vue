@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlSingleStat } from '@gitlab/ui/dist/charts';
 
 export default {

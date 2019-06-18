@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapGetters } from 'vuex';
 
 export default {
@@ -16,6 +17,6 @@ export default {
 
 <template>
   <div class="disabled-comment text-center">
-    Please <a :href="registerLink">register</a> or <a :href="signInLink">sign in</a> to reply
+    Please <a :href="registerLink">{{ __("register") }}</a> or <a :href="signInLink">{{ __("sign in") }}</a> to reply
   </div>
 </template>

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import Prompt from '../prompt.vue';
 
 export default {
@@ -25,7 +26,7 @@ export default {
   },
   computed: {
     imgSrc() {
-      return `data:${this.outputType};base64,${this.rawCode}`;
+      return __(`data:${this.outputType};base64,${this.rawCode}`);
     },
     showOutput() {
       return this.index === 0;

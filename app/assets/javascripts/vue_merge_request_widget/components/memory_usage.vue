@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { sprintf, s__ } from '~/locale';
 import statusCodes from '../../lib/utils/http_status';
 import { bytesToMiB } from '../../lib/utils/number_utils';

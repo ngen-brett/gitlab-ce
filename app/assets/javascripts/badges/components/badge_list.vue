@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapState } from 'vuex';
 import { GlLoadingIcon } from '@gitlab/ui';
 import BadgeListRow from './badge_list_row.vue';

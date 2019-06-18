@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import _ from 'underscore';
 import { mapState, mapActions, mapGetters } from 'vuex';
 import PodBox from './pod_box.vue';
@@ -89,7 +90,7 @@ export default {
         }}
       </p>
     </div>
-    <div v-else><p>No pods loaded at this time.</p></div>
+    <div v-else><p>{{ __("No pods loaded at this time.") }}</p></div>
 
     <area-chart v-if="hasPrometheusData" :graph-data="graphData" :container-width="elWidth" />
     <missing-prometheus

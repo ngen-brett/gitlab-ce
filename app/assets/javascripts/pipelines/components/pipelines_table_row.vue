@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import eventHub from '../event_hub';
 import PipelinesActionsComponent from './pipelines_actions.vue';
 import PipelinesArtifactsComponent from './pipelines_artifacts.vue';

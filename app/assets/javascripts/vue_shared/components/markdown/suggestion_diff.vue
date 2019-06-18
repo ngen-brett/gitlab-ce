@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import SuggestionDiffHeader from './suggestion_diff_header.vue';
 import SuggestionDiffRow from './suggestion_diff_row.vue';
 import { selectDiffLines } from '../lib/utils/diff_utils';

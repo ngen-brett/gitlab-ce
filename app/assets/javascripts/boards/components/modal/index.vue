@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 /* global ListIssue */
 import { urlParamsToObject } from '~/lib/utils/common_utils';
 import ModalHeader from './header.vue';

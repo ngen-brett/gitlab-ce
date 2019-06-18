@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import UserAvatarLink from '~/vue_shared/components/user_avatar/user_avatar_link.vue';
 
 export default {

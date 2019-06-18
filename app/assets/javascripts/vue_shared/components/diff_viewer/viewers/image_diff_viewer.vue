@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import ImageViewer from '../../content_viewer/viewers/image_viewer.vue';
 import TwoUpViewer from './image_diff/two_up_viewer.vue';
 import SwipeViewer from './image_diff/swipe_viewer.vue';

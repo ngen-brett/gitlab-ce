@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import '~/commons/bootstrap';
 import { GlTooltipDirective } from '@gitlab/ui';
 import { sprintf } from '~/locale';
@@ -132,7 +133,7 @@ export default {
       type="button"
       class="btn btn-default btn-svg btn-item-remove js-issue-item-remove-button qa-remove-issue-button mr-xl-0 align-self-xl-center"
       title="Remove"
-      aria-label="Remove"
+      :aria-label="__(`Remove`)"
       @click="onRemoveRequest"
     >
       <icon :size="16" class="btn-item-remove-icon" name="close" />

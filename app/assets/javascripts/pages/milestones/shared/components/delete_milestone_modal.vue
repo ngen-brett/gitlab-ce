@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import axios from '~/lib/utils/axios_utils';
 
 import Flash from '~/flash';

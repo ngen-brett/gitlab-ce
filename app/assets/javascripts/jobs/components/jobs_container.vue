@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import JobContainerItem from './job_container_item.vue';
 
 export default {

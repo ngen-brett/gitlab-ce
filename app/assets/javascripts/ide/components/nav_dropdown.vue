@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import $ from 'jquery';
 import Icon from '~/vue_shared/components/icon.vue';
 import NavForm from './nav_form.vue';

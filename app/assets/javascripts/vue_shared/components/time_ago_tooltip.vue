@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlTooltipDirective } from '@gitlab/ui';
 import timeagoMixin from '../mixins/timeago';
 import '../../lib/utils/datetime_utility';

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import FunctionRow from './function_row.vue';
 import ItemCaret from '~/groups/components/item_caret.vue';
 

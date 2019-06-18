@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import _ from 'underscore';
 import Deployment from './deployment.vue';
 import MrWidgetContainer from './mr_widget_container.vue';

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { s__, sprintf } from '~/locale';
 import { formatTime } from '~/lib/utils/datetime_utility';
 import Icon from '~/vue_shared/components/icon.vue';
@@ -28,7 +29,7 @@ export default {
   },
   computed: {
     title() {
-      return 'Deploy to...';
+      return __('Deploy to...');
     },
   },
   methods: {

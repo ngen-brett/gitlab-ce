@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import CommitItem from './commit_item.vue';
 
 /**

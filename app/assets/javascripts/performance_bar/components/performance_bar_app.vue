@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import $ from 'jquery';
 import { glEmojiTag } from '~/emoji';
 
@@ -35,10 +36,10 @@ export default {
     },
   },
   detailedMetrics: [
-    { metric: 'pg', header: 'SQL queries', details: 'queries', keys: ['sql'] },
+    { metric: 'pg', header: __('SQL queries'), details: 'queries', keys: ['sql'] },
     {
       metric: 'gitaly',
-      header: 'Gitaly calls',
+      header: __('Gitaly calls'),
       details: 'details',
       keys: ['feature', 'request'],
     },
@@ -117,10 +118,8 @@ export default {
           class="btn-link btn-blank"
           data-toggle="modal"
           data-target="#modal-peek-line-profile"
-        >
-          profile
-        </button>
-        <a v-else :href="profileUrl"> profile </a>
+        >{{ __("profile") }}</button>
+        <a v-else :href="profileUrl">{{ __("profile") }}</a>
       </div>
       <simple-metric
         v-for="metric in $options.simpleMetrics"
@@ -139,7 +138,7 @@ export default {
         id="peek-view-trace"
         class="view"
       >
-        <a :href="currentRequest.details.tracing.tracing_url"> trace </a>
+        <a :href="currentRequest.details.tracing.tracing_url">{{ __("trace") }}</a>
       </div>
       <request-selector
         v-if="currentRequest"

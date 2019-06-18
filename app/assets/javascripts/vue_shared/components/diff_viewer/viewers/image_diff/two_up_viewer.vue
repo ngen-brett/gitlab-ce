@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import ImageViewer from '../../../content_viewer/viewers/image_viewer.vue';
 
 export default {

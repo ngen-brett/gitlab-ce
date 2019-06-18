@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import axios from '~/lib/utils/axios_utils';
 import createFlash from '~/flash';
 import GlModal from '~/vue_shared/components/gl_modal.vue';

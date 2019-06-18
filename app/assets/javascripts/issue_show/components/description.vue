@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import $ from 'jquery';
 import { s__, sprintf } from '~/locale';
 import createFlash from '~/flash';

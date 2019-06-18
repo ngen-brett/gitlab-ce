@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { listen } from 'codesandbox-api';
 import Icon from '~/vue_shared/components/icon.vue';
 import { GlLoadingIcon } from '@gitlab/ui';

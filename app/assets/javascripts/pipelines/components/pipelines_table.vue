@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlTooltipDirective } from '@gitlab/ui';
 import PipelinesTableRowComponent from './pipelines_table_row.vue';
 import PipelineStopModal from './pipeline_stop_modal.vue';

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions } from 'vuex';
 import $ from 'jquery';
 import getDiscussion from 'ee_else_ce/notes/mixins/get_discussion';

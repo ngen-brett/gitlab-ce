@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import Flash from '~/flash';
 import eventHub from '~/sidebar/event_hub';
 import Store from '~/sidebar/stores/sidebar_store';
@@ -74,7 +75,7 @@ export default {
         .then(setLoadingFalse.bind(this))
         .catch(() => {
           setLoadingFalse();
-          return new Flash('Error occurred when saving assignees');
+          return new Flash(__('Error occurred when saving assignees'));
         });
     },
   },

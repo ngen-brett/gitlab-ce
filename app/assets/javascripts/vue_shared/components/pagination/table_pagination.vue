@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import {
   PAGINATION_UI_BUTTON_LIMIT,
   UI_LIMIT,

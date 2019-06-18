@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import timeAgoTooltip from '../../vue_shared/components/time_ago_tooltip.vue';
 
 export default {

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions, mapGetters, mapState } from 'vuex';
 import { GlLoadingIcon } from '@gitlab/ui';
 import diffLineNoteFormMixin from 'ee_else_ce/notes/mixins/diff_line_note_form';

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapGetters, mapActions } from 'vuex';
 import { GlLoadingIcon } from '@gitlab/ui';
 import store from '../stores';
@@ -32,21 +33,21 @@ export default {
 };
 </script>
 <template>
-  <div>
-    <gl-loading-icon v-if="isLoading" :size="3" />
+    <div>
+      <gl-loading-icon v-if="isLoading" :size="3" />
 
-    <collapsible-container
-      v-for="item in repos"
-      v-else-if="!isLoading && repos.length"
-      :key="item.id"
-      :repo="item"
-    />
+      <collapsible-container
+        v-for="item in repos"
+        v-else-if="!isLoading && repos.length"
+        :key="item.id"
+        :repo="item"
+      />
 
-    <p v-else-if="!isLoading && !repos.length">
-      {{
-        __(`No container images stored for this project.
-Add one by following the instructions above.`)
-      }}
-    </p>
-  </div>
+      <p v-else-if="!isLoading && !repos.length">
+        {{
+          __(`No container images stored for this project.
+  Add one by following the instructions above.`)
+        }}
+      </p>
+    </div>
 </template>

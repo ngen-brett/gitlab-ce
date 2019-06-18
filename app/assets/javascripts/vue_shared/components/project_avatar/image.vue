@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 /* This is a re-usable vue component for rendering a project avatar that
     does not need to link to the project's profile. The image and an optional
     tooltip can be configured by props passed to this component.
@@ -43,7 +44,7 @@ export default {
     imgAlt: {
       type: String,
       required: false,
-      default: 'project avatar',
+      default: __('project avatar'),
     },
     size: {
       type: Number,
@@ -82,21 +83,21 @@ export default {
 </script>
 
 <template>
-  <img
-    v-tooltip
-    :class="{
-      lazy: lazy,
-      [avatarSizeClass]: true,
-      [cssClasses]: true,
-    }"
-    :src="resultantSrcAttribute"
-    :width="size"
-    :height="size"
-    :alt="imgAlt"
-    :data-src="sanitizedSource"
-    :data-container="tooltipContainer"
-    :data-placement="tooltipPlacement"
-    :title="tooltipText"
-    class="avatar"
-  />
+    <img
+      v-tooltip
+      :class="{
+        lazy: lazy,
+        [avatarSizeClass]: true,
+        [cssClasses]: true,
+      }"
+      :src="resultantSrcAttribute"
+      :width="size"
+      :height="size"
+      :alt="imgAlt"
+      :data-src="sanitizedSource"
+      :data-container="tooltipContainer"
+      :data-placement="tooltipPlacement"
+      :title="tooltipText"
+      class="avatar"
+    />
 </template>

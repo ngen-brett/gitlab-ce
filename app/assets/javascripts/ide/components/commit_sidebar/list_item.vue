@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions } from 'vuex';
 import tooltip from '~/vue_shared/directives/tooltip';
 import Icon from '~/vue_shared/components/icon.vue';
@@ -45,7 +46,7 @@ export default {
   },
   computed: {
     iconName() {
-      const suffix = this.stagedList ? '-solid' : '';
+      const suffix = this.stagedList ? __('-solid') : '';
 
       return `${getCommitIconMap(this.file).icon}${suffix}`;
     },

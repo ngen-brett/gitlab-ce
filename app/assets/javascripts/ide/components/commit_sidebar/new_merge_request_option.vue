@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapGetters, createNamespacedHelpers } from 'vuex';
 
 const {

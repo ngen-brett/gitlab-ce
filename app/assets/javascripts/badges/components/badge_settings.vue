@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapState, mapActions } from 'vuex';
 import createFlash from '~/flash';
 import { s__ } from '~/locale';

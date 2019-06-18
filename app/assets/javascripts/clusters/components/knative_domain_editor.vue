@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import LoadingButton from '~/vue_shared/components/loading_button.vue';
 import ClipboardButton from '../../vue_shared/components/clipboard_button.vue';
 import { GlLoadingIcon } from '@gitlab/ui';
@@ -32,7 +33,7 @@ export default {
       return [UPDATING].includes(this.knative.status);
     },
     saveButtonLabel() {
-      return this.saving ? this.__('Saving') : this.__('Save changes');
+      return this.saving ? this.__(__('Saving')) : this.__(__('Save changes'));
     },
     knativeInstalled() {
       return this.knative.installed;

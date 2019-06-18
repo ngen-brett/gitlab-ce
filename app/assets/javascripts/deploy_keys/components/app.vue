@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { s__ } from '~/locale';
 import Flash from '~/flash';
 import NavigationTabs from '~/vue_shared/components/navigation_tabs.vue';

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import userAvatarImage from '../../vue_shared/components/user_avatar/user_avatar_image.vue';
 import iconBranch from '../svg/icon_branch.svg';
 import limitWarning from './limit_warning_component.vue';

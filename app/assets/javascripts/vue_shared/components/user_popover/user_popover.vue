@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlPopover, GlSkeletonLoading } from '@gitlab/ui';
 import Icon from '~/vue_shared/components/icon.vue';
 import UserAvatarImage from '../user_avatar/user_avatar_image.vue';

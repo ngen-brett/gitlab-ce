@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlButton, GlLink } from '@gitlab/ui';
 import { s__ } from '../../locale';
 

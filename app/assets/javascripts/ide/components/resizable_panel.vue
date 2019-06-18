@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapActions, mapState } from 'vuex';
 import PanelResizer from '~/vue_shared/components/panel_resizer.vue';
 

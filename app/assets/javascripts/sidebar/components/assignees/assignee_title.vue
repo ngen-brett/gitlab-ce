@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 export default {
   name: 'AssigneeTitle',
   props: {
@@ -24,7 +25,7 @@ export default {
   computed: {
     assigneeTitle() {
       const assignees = this.numberOfAssignees;
-      return assignees > 1 ? `${assignees} Assignees` : 'Assignee';
+      return assignees > 1 ? __(`${assignees} Assignees`) : __('Assignee');
     },
   },
 };
@@ -38,7 +39,7 @@ export default {
     </a>
     <a
       v-if="showToggle"
-      aria-label="Toggle sidebar"
+      :aria-label="__(`Toggle sidebar`)"
       class="gutter-toggle float-right js-sidebar-toggle"
       href="#"
       role="button"

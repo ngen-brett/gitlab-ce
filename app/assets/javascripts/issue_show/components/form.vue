@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import $ from 'jquery';
 import lockedWarning from './locked_warning.vue';
 import titleField from './fields/title.vue';

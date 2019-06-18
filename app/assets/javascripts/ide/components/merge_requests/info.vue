@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapGetters } from 'vuex';
 import Icon from '../../../vue_shared/components/icon.vue';
 import TitleComponent from '../../../issue_show/components/title.vue';

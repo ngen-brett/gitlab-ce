@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import icon from '~/vue_shared/components/icon.vue';
 import { ITEM_TYPE } from '../constants';
 

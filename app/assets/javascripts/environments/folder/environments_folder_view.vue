@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import folderMixin from 'ee_else_ce/environments/mixins/environments_folder_view_mixin';
 import environmentsMixin from '../mixins/environments_mixin';
 import CIPaginationMixin from '../../vue_shared/mixins/ci_pagination_api_mixin';

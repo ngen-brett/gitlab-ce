@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 export default {
   name: 'TimeTrackingSpentOnlyPane',
   props: {
@@ -12,6 +13,6 @@ export default {
 
 <template>
   <div class="time-tracking-spend-only-pane">
-    <span class="bold">Spent:</span> {{ timeSpentHumanReadable }}
+    <span class="bold">{{ __("Spent:") }}</span> {{ timeSpentHumanReadable }}
   </div>
 </template>

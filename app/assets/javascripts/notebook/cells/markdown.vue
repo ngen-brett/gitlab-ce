@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 /* global katex */
 import marked from 'marked';
 import sanitize from 'sanitize-html';
@@ -43,7 +44,7 @@ renderer.paragraph = t => {
   if (typeof katex !== 'undefined') {
     const katexString = text
       .replace(/&amp;/g, '&')
-      .replace(/&=&/g, '\\space=\\space')
+      .replace(/&=&/g, __('\\space=\\space'))
       .replace(/<(\/?)em>/g, '_');
     const regex = new RegExp(katexRegexString, 'gi');
     const matchLocation = katexString.search(regex);

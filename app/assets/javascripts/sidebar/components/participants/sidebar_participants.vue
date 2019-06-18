@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import Store from '../../stores/sidebar_store';
 import participants from './participants.vue';
 

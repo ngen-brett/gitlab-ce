@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import DownloadViewer from '../../content_viewer/viewers/download_viewer.vue';
 import { diffModes } from '../constants';
 

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlButton } from '@gitlab/ui';
 import ClipboardButton from '../../vue_shared/components/clipboard_button.vue';
 import Icon from '~/vue_shared/components/icon.vue';

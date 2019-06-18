@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { mapGetters } from 'vuex';
 
 export default {

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import CodeOutput from './code/index.vue';
 import OutputCell from './output/index.vue';
 

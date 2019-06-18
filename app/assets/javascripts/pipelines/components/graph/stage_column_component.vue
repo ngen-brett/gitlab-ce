@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import _ from 'underscore';
 import stageColumnMixin from 'ee_else_ce/pipelines/mixins/stage_column_mixin';
 import JobItem from './job_item.vue';

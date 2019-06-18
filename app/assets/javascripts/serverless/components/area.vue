@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import { GlAreaChart } from '@gitlab/ui/dist/charts';
 import { debounceByAnimationFrame } from '~/lib/utils/common_utils';
 import dateFormat from 'dateformat';
@@ -42,7 +43,7 @@ export default {
     },
     generateSeries() {
       return {
-        name: 'Invocations',
+        name: __('Invocations'),
         type: 'line',
         data: this.chartData.requests.map(data => [data.time, data.value]),
         symbolSize: 0,

@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import GlModal from '~/vue_shared/components/gl_modal.vue';
 import Icon from '~/vue_shared/components/icon.vue';
 

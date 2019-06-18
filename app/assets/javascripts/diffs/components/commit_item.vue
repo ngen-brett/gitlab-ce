@@ -1,4 +1,5 @@
 <script>
+import { __ } from "~/locale";
 import UserAvatarLink from '~/vue_shared/components/user_avatar/user_avatar_link.vue';
 import Icon from '~/vue_shared/components/icon.vue';
 import ClipboardButton from '~/vue_shared/components/clipboard_button.vue';
@@ -49,7 +50,7 @@ export default {
       return this.author.id ? this.author.id : '';
     },
     authorUrl() {
-      return this.author.web_url || `mailto:${this.commit.author_email}`;
+      return this.author.web_url || __(`mailto:${this.commit.author_email}`);
     },
     authorAvatar() {
       return this.author.avatar_url || this.commit.author_gravatar_url;
