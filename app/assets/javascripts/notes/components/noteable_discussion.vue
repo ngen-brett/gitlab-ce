@@ -126,9 +126,7 @@ export default {
       return this.discussion.resolved_by_push ? __('Automatically resolved') : __('Resolved');
     },
     shouldShowJumpToNextDiscussion() {
-      return this.showJumpToNextDiscussion(
-        this.discussionsByDiffOrder ? 'diff' : 'discussion',
-      );
+      return this.showJumpToNextDiscussion(this.discussionsByDiffOrder ? 'diff' : 'discussion');
     },
     shouldRenderDiffs() {
       return this.discussion.diff_discussion && this.renderDiffFile;
@@ -311,11 +309,23 @@ Please check your network connection and try again.`;
 </script>
 
 <template>
-  <timeline-entry-item class="note note-discussion" :class="componentClassName">
+  <timeline-entry-item
+    class="note note-discussion"
+    :class="componentClassName"
+  >
     <div class="timeline-content">
-      <div :data-discussion-id="discussion.id" class="discussion js-discussion-container">
-        <div v-if="shouldRenderDiffs" class="discussion-header note-wrapper">
-          <div v-once class="timeline-icon">
+      <div
+        :data-discussion-id="discussion.id"
+        class="discussion js-discussion-container"
+      >
+        <div
+          v-if="shouldRenderDiffs"
+          class="discussion-header note-wrapper"
+        >
+          <div
+            v-once
+            class="timeline-icon"
+          >
             <user-avatar-link
               v-if="author"
               :link-href="author.path"
@@ -351,7 +361,10 @@ Please check your network connection and try again.`;
             />
           </div>
         </div>
-        <div v-if="!shouldHideDiscussionBody" class="discussion-body">
+        <div
+          v-if="!shouldHideDiscussionBody"
+          class="discussion-body"
+        >
           <component
             :is="wrapperComponent"
             v-bind="wrapperComponentProps"
@@ -368,7 +381,10 @@ Please check your network connection and try again.`;
               @toggleDiscussion="toggleDiscussionHandler"
               @deleteNote="deleteNoteHandler"
             >
-              <slot slot="avatar-badge" name="avatar-badge"></slot>
+              <slot
+                slot="avatar-badge"
+                name="avatar-badge"
+              ></slot>
               <template #footer="{ showReplies }">
                 <draft-note
                   v-if="showDraft(discussion.reply_id)"
@@ -399,7 +415,10 @@ Please check your network connection and try again.`;
                     @resolve="resolveHandler"
                     @jumpToNextDiscussion="jumpToNextDiscussion"
                   />
-                  <div v-if="isReplying" class="avatar-note-form-holder">
+                  <div
+                    v-if="isReplying"
+                    class="avatar-note-form-holder"
+                  >
                     <user-avatar-link
                       v-if="currentUser"
                       :link-href="currentUser.path"
