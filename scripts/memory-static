@@ -19,15 +19,15 @@ File.open(full_report_filename, 'w') do |f|
   f.write(full_report)
 end
 
-total_mibs_str = /TOP: (.*) MiB/.match(full_report.lines.first)[1]
+stats = /TOP: (?<total_mibs_str>.*) MiB/.match(full_report.lines.first)
 
-unless total_mibs_str
+unless stats
   puts 'failed to process the benchmark output'
   exit 1
 end
 
 File.open(metrics_filename, 'w') do |f|
-  f.puts "memory_static_total_mibs #{total_mibs_str.to_f.round}"
+  f.puts "memory_static_total_mibs #{stats[:total_mibs_str].to_f.round}"
 end
 
 exit 0
