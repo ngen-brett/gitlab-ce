@@ -26,7 +26,7 @@ retained_stats = /Total retained: (?<bytes>.*) bytes \((?<objects>.*) objects\)/
 
 unless allocated_stats && retained_stats
   puts 'failed to process the benchmark output'
-  exit 0
+  exit 1
 end
 
 File.open(metrics_filename, 'w') do |f|
