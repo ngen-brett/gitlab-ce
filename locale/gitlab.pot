@@ -12514,6 +12514,9 @@ msgstr ""
 msgid "personal access token"
 msgstr ""
 
+msgid "pre-release"
+msgstr ""
+
 msgid "private"
 msgstr ""
 
