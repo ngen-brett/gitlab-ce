@@ -216,7 +216,7 @@ Or you can view all jobs, by going to the **Pipelines ➔ Jobs** page.
 
 ![Commit status](img/builds_status.png)
 
-By clicking on a job's status, you will be able to see the log of that job.
+By clicking on a job's status, you will be able to see the [log of that job].
 This is important to diagnose why a job failed or acted differently than
 you expected.
 
@@ -239,3 +239,4 @@ CI with various languages.
 [enabled]: ../enable_or_disable_ci.md
 [stages]: ../yaml/README.md#stages
 [pipeline]: ../pipelines.md
+[log of that job]: ../job/README.md
