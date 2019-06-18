@@ -39,7 +39,7 @@ the following table.
 | `read_repository` | Allows read-access to the repository through `git clone` |
 | `read_registry` | Allows read-access to [container registry] images if a project is private and authorization is required. |
 
-## Username
+## Deploy token username
 
 Default username format is `gitlab+deploy-token-#{n}`. You can specify custom username to be used when creating the deploy token.
 
