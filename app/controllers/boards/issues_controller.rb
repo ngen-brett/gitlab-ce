@@ -2,16 +2,19 @@
 
 module Boards
   class IssuesController < Boards::ApplicationController
+    MAX_MOVE_ISSUES_COUNT = 50
+
     include BoardsResponses
     include ControllerWithCrossProjectAccessCheck
 
     requires_cross_project_access if: -> { board&.group_board? }
 
-    before_action :whitelist_query_limiting, only: [:index, :update]
+    before_action :whitelist_query_limiting, only: [:index, :update, :move_multiple_issues]
     before_action :authorize_read_issue, only: [:index]
     before_action :authorize_create_issue, only: [:create]
     before_action :authorize_update_issue, only: [:update]
     skip_before_action :authenticate_user!, only: [:index]
+    before_action :validate_id_list, only: [:move_multiple_issues]
 
     # rubocop: disable CodeReuse/ActiveRecord
     def index
@@ -46,6 +49,19 @@ module Boards
       end
     end
 
+    def move_multiple_issues
+      # TODO: Check ability to admin issues on board / project
+
+      service = Boards::Issues::MoveService.new(board_parent, current_user, move_params)
+
+      issues = find_issues(params[:id])
+      if service.execute_multiple(issues)
+        head :ok
+      else
+        head :unprocessable_entity
+      end
+    end
+
     def update
       service = Boards::Issues::MoveService.new(board_parent, current_user, move_params)
 
@@ -57,6 +73,13 @@ module Boards
     end
 
     private
+
+    def find_issues(ids)
+      Issue.find(ids) # TODO: IssueFinder
+
+      # TODO: Check ability to move
+      # return render_403 if issues.find { |issue| !can?(current_user, :admin_issue, issue) } # -> too expensive
+    end
 
     def render_issues(issues, metadata)
       data = { issues: serialize_as_json(issues) }
@@ -111,6 +134,15 @@ module Boards
     def whitelist_query_limiting
       # Also see https://gitlab.com/gitlab-org/gitlab-ce/issues/42439
       Gitlab::QueryLimiting.whitelist('https://gitlab.com/gitlab-org/gitlab-ce/issues/42428')
+    end
+
+    def validate_id_list
+      raise(ArgumentError, 'invalid id list type') unless behaves_like_collection?(params[:id])
+      raise(ArgumentError, 'too many issues to move') if params[:id].size > MAX_MOVE_ISSUES_COUNT
+    end
+
+    def behaves_like_collection?(param)
+      %w(each size).all? { |method| param.respond_to?(method) }
     end
   end
 end
