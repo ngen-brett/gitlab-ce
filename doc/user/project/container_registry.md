@@ -167,6 +167,18 @@ curl localhost:5001/debug/health
 curl localhost:5001/debug/vars
 ```
 
+#### Docker connection error
+
+A Docker connection error can occur when there are special characters in either the group or
+project name. Special characters can include:
+
+* Leading underscore
+* Trailing hyphen/dash
+* Double hyphen/dash
+
+To get around this, you can [change the group path](../group/index.md#changing-a-groups-path) or 
+[change the project path](../project/settings/index.md#renaming-a-repository).
+
 ### Advanced Troubleshooting
 
 >**NOTE:** The following section is only recommended for experts.
