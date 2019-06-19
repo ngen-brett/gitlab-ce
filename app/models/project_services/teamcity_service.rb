@@ -92,16 +92,22 @@ class TeamcityService < CiService
     return unless supported_events.include?(data[:object_kind])
 
     case data[:object_kind]
-    when 'push'
-      branch = Gitlab::Git.ref_name(data[:ref])
-      post_to_build_queue(data, branch) if push_valid?(data)
-    when 'merge_request'
-      branch = data[:object_attributes][:source_branch]
-      post_to_build_queue(data, branch) if merge_request_valid?(data)
+    when 'push'          then execute_push(data)
+    when 'merge_request' then execute_merge_request(data)
     end
   end
 
   private
+
+  def execute_push(data)
+    branch = Gitlab::Git.ref_name(data[:ref])
+    post_to_build_queue(data, branch) if push_valid?(data)
+  end
+
+  def execute_merge_request(data)
+    branch = data[:object_attributes][:source_branch]
+    post_to_build_queue(data, branch) if merge_request_valid?(data)
+  end
 
   def read_build_page(response)
     if response.code != 200
@@ -163,23 +169,28 @@ class TeamcityService < CiService
   def push_valid?(data)
     data[:total_commits_count] > 0 &&
       !branch_removed?(data) &&
-      no_open_merge_requests?(data)
+      # prefer merge request trigger over push to avoid double builds
+      !opened_merge_requests?(data)
   end
 
   def merge_request_valid?(data)
-    data.dig(:object_attributes, :state) == 'opened' &&
-      MergeRequest.state_machines[:merge_status].check_state?(data.dig(:object_attributes, :merge_status))
+    data.dig(:object_attributes, :state) == 'opened' && merge_request_unchecked?(data)
   end
 
   def branch_removed?(data)
     Gitlab::Git.blank_ref?(data[:after])
   end
 
-  def no_open_merge_requests?(data)
-    !project.merge_requests
+  def opened_merge_requests?(data)
+    project.merge_requests
       .opened
       .from_project(project)
       .from_source_branches(Gitlab::Git.ref_name(data[:ref]))
       .exists?
+  end
+
+  def merge_request_unchecked?(data)
+    MergeRequest.state_machines[:merge_status]
+      .check_state?(data.dig(:object_attributes, :merge_status))
   end
 end
