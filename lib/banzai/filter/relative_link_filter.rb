@@ -20,8 +20,10 @@ module Banzai
         @uri_types = {}
         clear_memoization(:linkable_files)
 
-        doc.search('a:not(.gfm)').each do |el|
-          process_link_attr el.attribute('href')
+        unless context[:system_note]
+          doc.search('a:not(.gfm)').each do |el|
+            process_link_attr el.attribute('href')
+          end
         end
 
         doc.css('img, video').each do |el|
