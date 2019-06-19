@@ -200,7 +200,9 @@ module Gitlab
             css_classes = %w[section line] + sections.map { |section| "s_#{section}" }
           end
 
-          write_in_tag %{<br/>}
+          ensure_open_new_tag
+          write_raw %{<span class="#{section_classes(sections).join(' ')}"><br/></span>}
+          close_open_tags
           write_raw %{<span class="#{css_classes.join(' ')}"></span>} if css_classes.any?
           @lineno_in_section += 1
           open_new_tag
@@ -311,7 +313,7 @@ module Gitlab
           if @sections.any?
             css_classes << "section"
             css_classes << "js-section-header" if @lineno_in_section == 0
-            css_classes += sections.map { |section| "js-s-#{section}" }
+            css_classes += section_classes(sections)
           end
 
           @out << %{<span class="#{css_classes.join(' ')}">}
@@ -372,6 +374,10 @@ module Gitlab
 
         def set_bg_color(color_index, prefix = nil)
           @bg_color = get_term_color_class(color_index, ["bg", prefix])
+        end
+
+        def section_classes(sections)
+          sections.map { |section| "js-s-#{section}" }
         end
 
         def get_term_color_class(color_index, prefix)
