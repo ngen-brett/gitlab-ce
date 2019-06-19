@@ -59,11 +59,17 @@ class MembersFinder
   def distinct_on(union)
     # We're interested in a list of members without duplicates by user_id.
     # We prefer project members over group members, project members should go first.
+    # We override the access_level by selecting project_authorizations.access_level as last, with
+    # this trick when we use #from we override Member.access_level with project_authorizations.access_level.
     if Gitlab::Database.postgresql?
       <<~SQL
-          SELECT DISTINCT ON (user_id, invite_email) member_union.*
+          SELECT DISTINCT ON (user_id, invite_email) member_union.*, project_authorizations.access_level
           FROM (#{union.to_sql}) AS member_union
-          ORDER BY user_id,
+          JOIN users on  users.id = member_union.user_id
+          JOIN project_authorizations on project_authorizations.user_id = users.id
+               AND
+               project_authorizations.project_id = #{project.id}
+          ORDER BY member_union.user_id,
             invite_email,
             CASE
               WHEN type = 'ProjectMember' THEN 1
