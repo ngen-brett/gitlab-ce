@@ -15,6 +15,14 @@ end
 stats = /TOP: (?<total_mibs_str>.*) MiB/.match(full_report.lines.first)
 abort 'failed to process the benchmark output' unless stats
 
+# add gem size information into metrics
+# assume we only need top level gems, without their dependencies
+# each gem data is one line in format of : gem_size{name="gem_name"}
+TOP_LEVEL_GEM_LOG_FORMAT = /^  (?<gem_name>\S.*):\s*(?<gen_size>\d[.\d]*)\s*MiB/
+top_level_gem_lines = full_report.lines.select{ |x| TOP_LEVEL_GEM_LOG_FORMAT.match(x) }
+top_level_gems_in_metrics_format = top_level_gem_lines.map{ |x| gem_stats = TOP_LEVEL_GEM_LOG_FORMAT.match(x); gem_stats[:gen_size].to_f.round(3).to_s + 'MiB{name="' + gem_stats[:gem_name] + '"}'}
+
 File.open(metrics_filename, 'a') do |f|
   f.puts "memory_static_total_mb #{stats[:total_mibs_str].to_f.round(3)}"
+  f.puts top_level_gems_in_metrics_format
 end
