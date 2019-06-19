@@ -10,18 +10,14 @@
     = link_to note.author_name, user_url(note.author)
     - if discussion.nil?
       commented
-    - elsif discussion&.diff_discussion?
-      - if discussion.new_discussion?
-        started a new discussion
-      - else
-        commented on a discussion
-
-      on #{link_to discussion.file_path, target_url}
+    - elsif discussion.new_discussion?
+      started a new discussion
     - else
-      - if discussion.new_discussion?
-        started a new discussion
+      commented on a
+      - if discussion&.diff_discussion?
+        discussion on #{link_to discussion.file_path, target_url}
       - else
-        commented on a #{link_to 'discussion', target_url}
+        #{link_to 'discussion', target_url}
 
 - if discussion&.diff_discussion? && discussion.on_text?
   = content_for :head do

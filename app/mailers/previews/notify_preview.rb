@@ -56,7 +56,7 @@ class NotifyPreview < ActionMailer::Preview
         diff_refs: merge_request.diff_refs
       )
 
-      create_note(noteable_type: 'merge_request', noteable_id: merge_request.id, type: 'LegacyDiffNote', position: position, note: note)
+      create_note(noteable_type: 'merge_request', noteable_id: merge_request.id, type: 'DiffNote', position: position, note: note)
     end
   end
 
@@ -147,10 +147,6 @@ class NotifyPreview < ActionMailer::Preview
 
   def autodevops_disabled_email
     Notify.autodevops_disabled_email(pipeline, user.email).message
-  end
-
-  def new_issue_email
-    Notify.new_issue_email(user.id, issue.id).message
   end
 
   def remote_mirror_update_failed_email
