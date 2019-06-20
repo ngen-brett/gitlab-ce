@@ -12,9 +12,11 @@ describe Deployable do
     end
 
     context 'when the deployable object will deploy to production' do
-      let!(:job) { create(:ci_build, :start_review_app) }
+      let(:job) { create(:ci_build, :start_review_app) }
 
       it 'creates a deployment and environment record' do
+        job.create_deployment
+
         expect(deployment.project).to eq(job.project)
         expect(deployment.ref).to eq(job.ref)
         expect(deployment.tag).to eq(job.tag)
@@ -27,26 +29,32 @@ describe Deployable do
     end
 
     context 'when the deployable object will stop an environment' do
-      let!(:job) { create(:ci_build, :stop_review_app) }
+      let(:job) { create(:ci_build, :stop_review_app) }
 
       it 'does not create a deployment record' do
+        job.create_deployment
+
         expect(deployment).to be_nil
       end
     end
 
     context 'when the deployable object has already had a deployment' do
-      let!(:job) { create(:ci_build, :start_review_app, deployment: race_deployment) }
-      let!(:race_deployment) { create(:deployment, :success) }
+      let(:job) { create(:ci_build, :start_review_app, deployment: race_deployment) }
+      let(:race_deployment) { create(:deployment, :success) }
 
       it 'does not create a new deployment' do
+        job.create_deployment
+
         expect(deployment).to eq(race_deployment)
       end
     end
 
     context 'when the deployable object will not deploy' do
-      let!(:job) { create(:ci_build) }
+      let(:job) { create(:ci_build) }
 
       it 'does not create a deployment and environment record' do
+        job.create_deployment
+
         expect(deployment).to be_nil
         expect(environment).to be_nil
       end
@@ -68,6 +76,8 @@ describe Deployable do
       end
 
       it 'does not create a deployment and environment record' do
+        job.create_deployment
+
         expect(deployment).to be_nil
         expect(environment).to be_nil
       end
