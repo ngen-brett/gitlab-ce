@@ -37,6 +37,7 @@ class User < ApplicationRecord
   default_value_for :can_create_team, false
   default_value_for :hide_no_ssh_key, false
   default_value_for :hide_no_password, false
+  default_value_for :private_profile, false
   default_value_for :project_view, :files
   default_value_for :notified_of_own_activity, false
   default_value_for :preferred_language, I18n.default_locale
