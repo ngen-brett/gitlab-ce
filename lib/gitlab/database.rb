@@ -12,7 +12,7 @@ module Gitlab
     MAX_TIMESTAMP_VALUE = Time.at((1 << 31) - 1).freeze
 
     # Minimum schema version from which migrations are be supported
-    # Migrations before this version may have been removed 
+    # Migrations before this version may have been removed
     MIN_SCHEMA_VERSION = 20190506135400
 
     def self.config

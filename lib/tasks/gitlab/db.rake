@@ -54,7 +54,7 @@ namespace :gitlab do
       # The schema_migrations table will still exist if drop_tables was called
       if ActiveRecord::Base.connection.tables.count > 1
         if ActiveRecord::Migrator.current_version < Gitlab::Database::MIN_SCHEMA_VERSION
-          fail "Your current database version is too old to be migrated. Please see https://docs.gitlab.com/ee/policy/maintenance.html#upgrade-recommendations"
+          raise "Your current database version is too old to be migrated. Please see https://docs.gitlab.com/ee/policy/maintenance.html#upgrade-recommendations"
         end
 
         Rake::Task['db:migrate'].invoke
