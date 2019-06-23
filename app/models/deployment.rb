@@ -7,6 +7,7 @@ class Deployment < ApplicationRecord
 
   belongs_to :project, required: true
   belongs_to :environment, required: true
+  belongs_to :cluster, class_name: 'Clusters::Cluster', optional: true
   belongs_to :user
   belongs_to :deployable, polymorphic: true # rubocop:disable Cop/PolymorphicAssociations
 
@@ -82,14 +83,6 @@ class Deployment < ApplicationRecord
 
   def short_sha
     Commit.truncate_sha(sha)
-  end
-
-  def cluster
-    platform = project.deployment_platform(environment: environment.name)
-
-    if platform.present? && platform.respond_to?(:cluster)
-      platform.cluster
-    end
   end
 
   def execute_hooks
