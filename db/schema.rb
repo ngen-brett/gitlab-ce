@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190619175843) do
+ActiveRecord::Schema.define(version: 20190620112608) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1391,7 +1391,7 @@ ActiveRecord::Schema.define(version: 20190619175843) do
   end
 
   create_table "geo_nodes", id: :serial, force: :cascade do |t|
-    t.boolean "primary"
+    t.boolean "primary", default: false, null: false
     t.integer "oauth_application_id"
     t.boolean "enabled", default: true, null: false
     t.string "access_key"
@@ -2333,6 +2333,7 @@ ActiveRecord::Schema.define(version: 20190619175843) do
     t.boolean "auto_ssl_enabled", default: false, null: false
     t.datetime_with_timezone "certificate_valid_not_before"
     t.datetime_with_timezone "certificate_valid_not_after"
+    t.integer "certificate_source", limit: 2, default: 0, null: false
     t.index ["domain"], name: "index_pages_domains_on_domain", unique: true, using: :btree
     t.index ["project_id", "enabled_until"], name: "index_pages_domains_on_project_id_and_enabled_until", using: :btree
     t.index ["project_id"], name: "index_pages_domains_on_project_id", using: :btree

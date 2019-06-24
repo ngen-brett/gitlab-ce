@@ -281,14 +281,14 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
 
       it_behaves_like 'setting variables'
 
-      it 'sets KUBE_TOKEN' do
-        expect(subject).to include(
+      it 'does not set KUBE_TOKEN' do
+        expect(subject).not_to include(
           { key: 'KUBE_TOKEN', value: kubernetes.token, public: false, masked: true }
         )
       end
     end
 
-    context 'kubernetes namespace is created with no service account token' do
+    context 'kubernetes namespace is created with service account token' do
       let!(:kubernetes_namespace) { create(:cluster_kubernetes_namespace, :with_token, cluster: cluster) }
 
       it_behaves_like 'setting variables'
@@ -337,32 +337,6 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
             )
           end
         end
-      end
-    end
-
-    context 'namespace is provided' do
-      let(:namespace) { 'my-project' }
-
-      before do
-        kubernetes.namespace = namespace
-      end
-
-      it_behaves_like 'setting variables'
-
-      it 'sets KUBE_TOKEN' do
-        expect(subject).to include(
-          { key: 'KUBE_TOKEN', value: kubernetes.token, public: false, masked: true }
-        )
-      end
-    end
-
-    context 'no namespace provided' do
-      it_behaves_like 'setting variables'
-
-      it 'sets KUBE_TOKEN' do
-        expect(subject).to include(
-          { key: 'KUBE_TOKEN', value: kubernetes.token, public: false, masked: true }
-        )
       end
     end
 
@@ -508,29 +482,6 @@ describe Clusters::Platforms::Kubernetes, :use_clean_rails_memory_store_caching 
       let(:cluster) { create(:cluster, :group, platform_kubernetes: service) }
 
       it { is_expected.to include(pods: []) }
-    end
-  end
-
-  describe '#update_kubernetes_namespace' do
-    let(:cluster) { create(:cluster, :provided_by_gcp) }
-    let(:platform) { cluster.platform }
-
-    context 'when namespace is updated' do
-      it 'calls ConfigureWorker' do
-        expect(ClusterConfigureWorker).to receive(:perform_async).with(cluster.id).once
-
-        platform.namespace = 'new-namespace'
-        platform.save
-      end
-    end
-
-    context 'when namespace is not updated' do
-      it 'does not call ConfigureWorker' do
-        expect(ClusterConfigureWorker).not_to receive(:perform_async)
-
-        platform.username = "new-username"
-        platform.save
-      end
     end
   end
 end
