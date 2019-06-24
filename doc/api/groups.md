@@ -428,7 +428,7 @@ Parameters:
 | `visibility`                         | string  | no  | The group's visibility. Can be `private`, `internal`, or `public`. |
 | `lfs_enabled`                        | boolean | no  | Enable/disable Large File Storage (LFS) for the projects in this group |
 | `request_access_enabled`             | boolean | no  | Allow users to request member access. |
-| `parent_id`                          | integer | no  | The parent group id for creating nested group. |
+| `parent_id`                          | integer | no  | The parent group ID for creating nested group. |
 | `shared_runners_minutes_limit`       | integer | no  | **[STARTER ONLY]** Pipeline minutes quota for this group. |
 | `extra_shared_runners_minutes_limit` | integer | no  | **[STARTER ONLY]** Extra pipeline minutes quota for this group. |
 
