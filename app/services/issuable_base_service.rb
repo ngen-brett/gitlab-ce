@@ -191,6 +191,7 @@ class IssuableBaseService < BaseService
   end
 
   def update(issuable)
+    should_touch = !changes_position_only?(issuable, params)
     change_state(issuable)
     change_subscription(issuable)
     change_todo(issuable)
@@ -205,6 +206,7 @@ class IssuableBaseService < BaseService
     end
 
     if issuable.changed? || params.present?
+
       issuable.assign_attributes(params.merge(updated_by: current_user))
 
       if has_title_or_description_changed?(issuable)
@@ -217,7 +219,7 @@ class IssuableBaseService < BaseService
       # the changed fields upon calling #save.
       update_project_counters = issuable.project && update_project_counter_caches?(issuable)
       # Do not touch when saving the issuable if only changes position within a list
-      should_touch = !changes_position_only?(issuable, params)
+
       if issuable.with_transaction_returning_status { issuable.save(touch: should_touch) }
         # We do not touch as it will affect a update on updated_at field
         ActiveRecord::Base.no_touching do
