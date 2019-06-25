@@ -2118,15 +2118,6 @@ msgstr ""
 msgid "Closed"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-msgid "Closed issues"
-msgstr ""
-
-msgid "Cluster Health"
-msgstr ""
-
->>>>>>> c30b5812898... Refactor common metrics importer
 msgid "ClusterIntegration| %{custom_domain_start}More information%{custom_domain_end}."
 msgstr ""
 
