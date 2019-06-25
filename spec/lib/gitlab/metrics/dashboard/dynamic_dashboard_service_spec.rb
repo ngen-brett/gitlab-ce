@@ -18,6 +18,7 @@ describe Gitlab::Metrics::Dashboard::DynamicDashboardService, :use_clean_rails_m
     let(:service_call) { described_class.new(*service_params).get_dashboard }
 
     it_behaves_like 'valid embedded dashboard service response'
+    it_behaves_like 'raises error for users with insufficient permissions'
 
     it 'caches the unprocessed dashboard for subsequent calls' do
       expect(YAML).to receive(:safe_load).once.and_call_original

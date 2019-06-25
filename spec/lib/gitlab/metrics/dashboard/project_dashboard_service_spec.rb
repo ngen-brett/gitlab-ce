@@ -22,6 +22,8 @@ describe Gitlab::Metrics::Dashboard::ProjectDashboardService, :use_clean_rails_m
       it_behaves_like 'misconfigured dashboard service response', :not_found
     end
 
+    it_behaves_like 'raises error for users with insufficient permissions'
+
     context 'when the dashboard exists' do
       let(:project) { project_with_dashboard(dashboard_path) }
 
@@ -57,12 +59,6 @@ describe Gitlab::Metrics::Dashboard::ProjectDashboardService, :use_clean_rails_m
       let(:project) { project_with_dashboard(dashboard_path, {}) }
 
       it_behaves_like 'misconfigured dashboard service response', :unprocessable_entity
-    end
-
-    context 'when the user does not have sufficient access' do
-      let(:user) { build(:user) }
-
-      it_behaves_like 'misconfigured dashboard service response', :not_found
     end
   end
 
