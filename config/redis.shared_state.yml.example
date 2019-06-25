@@ -17,8 +17,11 @@ test:
   #
   # url: redis://localhost:6382
 production:
+  # Redis (for CI):
+  url: redis://localhost:6379/12
+  ##
   # Redis (single instance)
-  url: unix:/var/run/redis/redis.shared_state.sock
+  # url: unix:/var/run/redis/redis.shared_state.sock
   ##
   # Redis + Sentinel (for HA)
   #
