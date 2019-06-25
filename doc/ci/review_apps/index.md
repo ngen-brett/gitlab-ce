@@ -27,7 +27,7 @@ In the above example:
 - Once the review as passed, `topic branch` is merged into `master` where it's deploy to staging.
 - After been approved in staging, the changes that were merged into `master` are deployed in to production.
 
-### How Review Apps work
+## How Review Apps work
 
 A Review App is a mapping of a branch with an [environment](../environments.md).
 Access to the Review App is made available as a link on the [merge request](../../user/project/merge_requests.md) relevant to the branch.
@@ -41,6 +41,21 @@ In this example, a branch was:
 - Successfully built.
 - Deployed under a dynamic environment that can be reached by clicking on the **View app** button.
 
+After adding Review Apps to your workflow, you follow the branched Git flow. That is:
+
+1. Push a branch and let the Runner deploy the Review App based on the `script` definition of the dynamic environment job.
+1. Wait for the Runner to build and deploy your web application.
+1. Click on the link that provided in the merge request related to the branch to see the changes live.
+
+## Review Apps examples
+
+The following are example projects that demonstrate Review App configuration:
+
+- [NGINX](https://gitlab.com/gitlab-examples/review-apps-nginx).
+- [OpenShift](https://gitlab.com/gitlab-examples/review-apps-openshift).
+
+See also the video [Demo: Cloud Native Development with GitLab](https://www.youtube.com/watch?v=jfIyQEwrocw), which includes a Review Apps example.
+
 ## Configuring Review Apps
 
 Review Apps are built on [dynamic environments](../environments.md#configuring-dynamic-environments), which allow you to dynamically create a new environment for each branch.
@@ -52,16 +67,7 @@ The process of configuring Review Apps is as follows:
 1. Set up a job in `.gitlab-ci.yml` that uses the [predefined CI environment variable](../variables/README.md) `${CI_COMMIT_REF_NAME}` to create dynamic environments and restrict it to run only on branches.
 1. Optionally, set a job that [manually stops](../environments.md#stopping-an-environment) the Review Apps.
 
-### Examples
-
-The following are example projects that demonstrate Review App configuration:
-
-- [NGINX](https://gitlab.com/gitlab-examples/review-apps-nginx).
-- [OpenShift](https://gitlab.com/gitlab-examples/review-apps-openshift).
-
-See also the video [Demo: Cloud Native Development with GitLab](https://www.youtube.com/watch?v=jfIyQEwrocw), which includes a Review Apps example.
-
-### Route Maps
+## Route Maps
 
 > Introduced in GitLab 8.17. In GitLab 11.5, the file links are available in the merge request widget.
 
@@ -82,7 +88,7 @@ To set up a route map, add a a file inside the repository at `.gitlab/route-map.
 which contains a YAML array that maps `source` paths (in the repository) to `public`
 paths (on the website).
 
-#### Route Maps example
+### Route Maps example
 
 The following is an example of a route map for [Middleman](https://middlemanapp.com),
 a static site generator (SSG) used to build [GitLab's website](https://about.gitlab.com),
@@ -146,51 +152,57 @@ Once you have the route mapping set up, it will take effect in the following loc
 
     !["View on env" button in file view](img/view_on_env_blob.png)
 
-## Working with Review Apps
-
-After adding Review Apps to your workflow, you follow the branched Git flow. That is:
-
-1. Push a branch and let the Runner deploy the Review App based on the `script` definition of the dynamic environment job.
-1. Wait for the Runner to build and deploy your web application.
-1. Click on the link that provided in the merge request related to the branch to see the changes live.
-
-### Visual Reviews **[STARTER]**
+## Visual Reviews **[STARTER]**
 
 > [Introduced](https://gitlab.com/gitlab-org/gitlab-ee/issues/10761) in GitLab Starter 12.0.
 
-The Visual Reviews feedback form can be added to a Review App to enable reviewers to post comments
-directly from the app back to the merge request that spawned the Review App.
+With Visual Reviews, you can provide a feedback form to your Review Apps so
+that reviewers can post comments directly from the app back to the merge request
+that spawned the Review App.
 
-For example, a form like the following can be configured to post the contents of the
-text field into the discussion thread of a merge request:
-
-![feedback form](img/toolbar_feeback_form.png)
-
-#### Using Visual Reviews
-
-If Visual Reviews has been [enabled](#configuring-visual-reviews) for the Review App, the Visual Reviews feedback form is overlaid on the app's pages at the bottom-right corner.
-
-To use the feedback form, you will need to create a [personal access token](../../user/profile/personal_access_tokens.md) with the API scope selected.
-
-Paste the token into the feedback box, when prompted. If you select **Remember me**, your browser stores the token so that future visits to Review Apps at the same URL will not require you to re-enter the token. To clear the token, click **Log out**.
-
-Because tokens must be entered on a per-domain basis and they can only be accessed once, you can save the token to your password manager specifically for the purpose of Visual Reviews. This way, you will not need to create additional tokens for each merge request.
-
-Comments can make use of all the [Markdown annotations](../../user/markdown.md)
-available in merge request comment boxes.
-
-#### Configuring Visual Reviews
+### Configuring Visual Reviews
 
 The feedback form is served through a script you add to pages in your Review App.
-To access the code to include the script, click the **Review** button in the **Pipeline** section of the merge request.
+To access it, click the **Review** button in the **Pipeline** section of the
+merge request.
 
 ![review button](img/review_button.png)
 
-The provided script hardcodes the project and merge request IDs. You may want to consider
-using features of your programming language to use environment variables or other
-means to inject these at runtime.
+The provided script hardcodes the project and merge request IDs. Ideally, you
+should use the features of your programming language to use environment variables
+or other means to inject these at runtime.
 
-Future enhancements [are planned](https://gitlab.com/gitlab-org/gitlab-ee/issues/11322) to make this process even easier.
+Future enhancements [are planned](https://gitlab.com/gitlab-org/gitlab-ee/issues/11322)
+to make this process even easier.
+
+### Using Visual Reviews
+
+After Visual Reviews has been [enabled](#configuring-visual-reviews) for the
+Review App, the Visual Reviews feedback form is overlaid on the app's pages at
+the bottom-right corner.
+
+![Visual review feedback form](img/toolbar_feeback_form.png)
+
+To use the feedback form:
+
+1. Create a [personal access token](../../user/profile/personal_access_tokens.md)
+   with the API scope selected.
+1. Paste the token into the feedback box when prompted. If you select **Remember me**,
+   your browser stores the token so that future visits to Review Apps at the same URL
+   will not require you to re-enter the token. To clear the token, click **Log out**.
+1. Make a comment on the visual review. You can make use of all the
+   [Markdown annotations](../../user/markdown.md) that are also available in
+   merge request comments.
+1. Finally, click **Send feedback**.
+
+After you make and submit a comment in the visual review box, it will appear
+automatically to the respective merge request.
+
+TIP: **Tip:**
+Because tokens must be entered on a per-domain basis and they can only be accessed
+once, different review apps will not remember your token. You can save the token
+to your password manager specifically for the purpose of Visual Reviews. This way,
+you will not need to create additional tokens for each merge request.
 
 ## Limitations
 
