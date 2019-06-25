@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190703130053) do
+ActiveRecord::Schema.define(version: 20190703171157) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1203,6 +1203,8 @@ ActiveRecord::Schema.define(version: 20190703130053) do
     t.datetime "closed_at"
     t.integer "parent_id"
     t.integer "relative_position"
+    t.integer "start_date_sourcing_epic_id"
+    t.integer "end_date_sourcing_epic_id"
     t.index ["assignee_id"], name: "index_epics_on_assignee_id", using: :btree
     t.index ["author_id"], name: "index_epics_on_author_id", using: :btree
     t.index ["closed_by_id"], name: "index_epics_on_closed_by_id", using: :btree
