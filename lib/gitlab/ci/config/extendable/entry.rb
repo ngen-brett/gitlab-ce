@@ -63,23 +63,41 @@ module Gitlab
             return value unless extensible?
 
             if unknown_extensions.any?
-              raise Entry::InvalidExtensionError,
-                    "#{key}: unknown keys in `extends` (#{show_keys(unknown_extensions)})"
+              raise Entry::InvalidExtensionError, error_json_data({
+                exception: 'Entry::InvalidExtensionError',
+                error: {
+                  message: 'unknown keys found in `extends`',
+                  unknown_keys: show_keys(unknown_extensions)
+                }
+              })
             end
 
             if invalid_bases.any?
-              raise Entry::InvalidExtensionError,
-                    "#{key}: invalid base hashes in `extends` (#{show_keys(invalid_bases)})"
+              raise Entry::InvalidExtensionError, error_json_data({
+                exception: 'Entry::InvalidExtensionError',
+                error: {
+                  message: 'invalid base hashes in `extends`',
+                  unknown_keys: show_keys(invalid_bases)
+                }
+              })
             end
 
             if nesting_too_deep?
-              raise Entry::NestingTooDeepError,
-                    "#{key}: nesting too deep in `extends`"
+              raise Entry::NestingTooDeepError, error_json_data({
+                exception: 'Entry::NestingTooDeepError',
+                error: {
+                  message: 'nesting too deep in `extends`'
+                }
+              })
             end
 
             if circular_dependency?
-              raise Entry::CircularDependencyError,
-                    "#{key}: circular dependency detected in `extends`"
+              raise Entry::CircularDependencyError, error_json_data({
+                exception: 'Entry::CircularDependencyError',
+                error: {
+                  message: 'circular dependency detected in `extends`'
+                }
+              })
             end
 
             merged = {}
@@ -112,6 +130,10 @@ module Gitlab
             strong_memoize(:invalid_bases) do
               extends_keys.reject { |key| @context[key].is_a?(Hash) }
             end
+          end
+
+          def error_json_data(hsh)
+            { key: key, context: @context }.deep_merge(hsh).to_json
           end
         end
       end
