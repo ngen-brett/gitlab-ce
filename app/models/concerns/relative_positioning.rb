@@ -25,7 +25,7 @@ module RelativePositioning
           relative_position = position_between(max_relative_position, MAX_POSITION)
           object.relative_position = relative_position
           max_relative_position = relative_position
-          object.save
+          object.save(touch: false)
         end
       end
     end

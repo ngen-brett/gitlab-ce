@@ -192,7 +192,7 @@ class IssuableBaseService < BaseService
 
   def update(issuable)
     # Do not touch when saving the issuable if only changes position within a list
-    should_touch = !changes_position_only?(issuable, params)
+    should_touch = update_timestamp?(issuable, params)
     change_state(issuable)
     change_subscription(issuable)
     change_todo(issuable)
@@ -405,9 +405,9 @@ class IssuableBaseService < BaseService
     issuable.milestone_id = nil unless issuable.milestone_available?
   end
 
-  def changes_position_only?(issuable, params)
+  def update_timestamp?(issuable, params)
     return unless issuable.is_a?(Issue) && issuable.changes.key?(:relative_position)
 
-    return true unless params.present?
+    return false unless params.present?
   end
 end
