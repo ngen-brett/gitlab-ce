@@ -7,18 +7,16 @@ module Gitlab
         class Entry
           include Gitlab::Utils::StrongMemoize
 
-          InvalidExtensionError = Class.new(Extendable::ExtensionError)
-          CircularDependencyError = Class.new(Extendable::ExtensionError)
-          NestingTooDeepError = Class.new(Extendable::ExtensionError)
-
           MAX_NESTING_LEVELS = 10
 
           attr_reader :key
+          attr_reader :errors
 
           def initialize(key, context, parent = nil)
             @key = key
             @context = context
             @parent = parent
+            @errors = []
 
             unless @context.key?(@key)
               raise StandardError, 'Invalid entry key!'
@@ -62,43 +60,7 @@ module Gitlab
           def extend!
             return value unless extensible?
 
-            if unknown_extensions.any?
-              raise Entry::InvalidExtensionError, error_json_data({
-                exception: 'Entry::InvalidExtensionError',
-                error: {
-                  message: 'unknown keys found in `extends`',
-                  unknown_keys: show_keys(unknown_extensions)
-                }
-              })
-            end
-
-            if invalid_bases.any?
-              raise Entry::InvalidExtensionError, error_json_data({
-                exception: 'Entry::InvalidExtensionError',
-                error: {
-                  message: 'invalid base hashes in `extends`',
-                  unknown_keys: show_keys(invalid_bases)
-                }
-              })
-            end
-
-            if nesting_too_deep?
-              raise Entry::NestingTooDeepError, error_json_data({
-                exception: 'Entry::NestingTooDeepError',
-                error: {
-                  message: 'nesting too deep in `extends`'
-                }
-              })
-            end
-
-            if circular_dependency?
-              raise Entry::CircularDependencyError, error_json_data({
-                exception: 'Entry::CircularDependencyError',
-                error: {
-                  message: 'circular dependency detected in `extends`'
-                }
-              })
-            end
+            validate!
 
             merged = {}
             base_hashes!.each { |h| merged.deep_merge!(h) }
@@ -107,6 +69,26 @@ module Gitlab
           end
 
           private
+
+          def validate!
+            if unknown_extensions.any?
+              @errors << { message: 'unknown keys found in `extends`', unknown_keys: show_keys(unknown_extensions) }
+            end
+
+            if invalid_bases.any?
+              @errors << { message: 'invalid base hashes in `extends`', unknown_keys: show_keys(invalid_bases) }
+            end
+
+            if nesting_too_deep?
+              @errors << { message: 'nesting too deep in `extends`' }
+            end
+
+            if circular_dependency?
+              @errors << { message: 'circular dependency detected in `extends`' }
+            end
+
+            raise Extendable::ExtensionError, json_error_message if @errors.any?
+          end
 
           def show_keys(keys)
             keys.join(', ')
@@ -132,8 +114,8 @@ module Gitlab
             end
           end
 
-          def error_json_data(hsh)
-            { key: key, context: @context }.deep_merge(hsh).to_json
+          def json_error_message
+            { key: key, context: @context, errors: @errors }.to_json
           end
         end
       end
