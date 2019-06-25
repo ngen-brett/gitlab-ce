@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190619175843) do
+ActiveRecord::Schema.define(version: 20190620112608) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -229,6 +229,7 @@ ActiveRecord::Schema.define(version: 20190619175843) do
     t.integer "custom_project_templates_group_id"
     t.boolean "elasticsearch_limit_indexing", default: false, null: false
     t.string "geo_node_allowed_ips", default: "0.0.0.0/0, ::/0"
+    t.boolean "time_tracking_limit_to_hours", default: false, null: false
     t.index ["custom_project_templates_group_id"], name: "index_application_settings_on_custom_project_templates_group_id", using: :btree
     t.index ["file_template_project_id"], name: "index_application_settings_on_file_template_project_id", using: :btree
     t.index ["usage_stats_set_by_user_id"], name: "index_application_settings_on_usage_stats_set_by_user_id", using: :btree
@@ -1391,7 +1392,7 @@ ActiveRecord::Schema.define(version: 20190619175843) do
   end
 
   create_table "geo_nodes", id: :serial, force: :cascade do |t|
-    t.boolean "primary"
+    t.boolean "primary", default: false, null: false
     t.integer "oauth_application_id"
     t.boolean "enabled", default: true, null: false
     t.string "access_key"
@@ -2333,6 +2334,8 @@ ActiveRecord::Schema.define(version: 20190619175843) do
     t.boolean "auto_ssl_enabled", default: false, null: false
     t.datetime_with_timezone "certificate_valid_not_before"
     t.datetime_with_timezone "certificate_valid_not_after"
+    t.integer "certificate_source", limit: 2, default: 0, null: false
+    t.index ["certificate_source", "certificate_valid_not_after"], name: "index_pages_domains_need_auto_ssl_renewal", where: "(auto_ssl_enabled = true)", using: :btree
     t.index ["domain"], name: "index_pages_domains_on_domain", unique: true, using: :btree
     t.index ["project_id", "enabled_until"], name: "index_pages_domains_on_project_id_and_enabled_until", using: :btree
     t.index ["project_id"], name: "index_pages_domains_on_project_id", using: :btree

@@ -520,9 +520,7 @@ service account of the cluster integration.
 ### Troubleshooting failed deployment jobs
 
 GitLab will create a namespace and service account specifically for your
-deployment jobs. On project level clusters, this happens when the cluster
-is created. On group level clusters, resources are created immediately
-before the deployment job starts.
+deployment jobs. This happens immediately before the deployment job starts.
 
 However, sometimes GitLab can not create them. In such instances, your job will fail with the message:
 
@@ -531,6 +529,14 @@ This job failed because the necessary resources were not successfully created.
 ```
 
 To find the cause of this error when creating a namespace and service account, check the [logs](../../../administration/logs.md#kuberneteslog).
+
+NOTE: **NOTE:**
+As of GitLab 12.1 we require [`cluster-admin`](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#user-facing-roles)
+tokens for all project level clusters unless you unselect the
+[GitLab-managed cluster](#gitlab-managed-clusters) option. If you
+want to manage namespaces and service accounts yourself and don't
+want to provide a `cluster-admin` token to GitLab you must unselect this
+option or you will get the above error.
 
 Common reasons for failure include:
 

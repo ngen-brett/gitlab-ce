@@ -117,6 +117,15 @@ if github_settings
     end
 end
 
+# SAML should be enabled for the tests automatically, but only for EE.
+saml_provider_enabled = Settings.omniauth.providers.any? do |provider|
+  provider['name'] == 'group_saml'
+end
+
+if Gitlab.ee? && Rails.env.test? && !saml_provider_enabled
+  Settings.omniauth.providers << Settingslogic.new({ 'name' => 'group_saml' })
+end
+
 Settings['shared'] ||= Settingslogic.new({})
 Settings.shared['path'] = Settings.absolute(Settings.shared['path'] || "shared")
 
@@ -291,6 +300,11 @@ Settings.gravatar['host']         = Settings.host_without_www(Settings.gravatar[
 # Cron Jobs
 #
 Settings['cron_jobs'] ||= Settingslogic.new({})
+
+if Gitlab.ee? && Settings['ee_cron_jobs']
+  Settings.cron_jobs.merge!(Settings.ee_cron_jobs)
+end
+
 Settings.cron_jobs['stuck_ci_jobs_worker'] ||= Settingslogic.new({})
 Settings.cron_jobs['stuck_ci_jobs_worker']['cron'] ||= '0 * * * *'
 Settings.cron_jobs['stuck_ci_jobs_worker']['job_class'] = 'StuckCiJobsWorker'
@@ -352,6 +366,10 @@ Settings.cron_jobs['pages_domain_verification_cron_worker']['job_class'] = 'Page
 Settings.cron_jobs['pages_domain_removal_cron_worker'] ||= Settingslogic.new({})
 Settings.cron_jobs['pages_domain_removal_cron_worker']['cron'] ||= '47 0 * * *'
 Settings.cron_jobs['pages_domain_removal_cron_worker']['job_class'] = 'PagesDomainRemovalCronWorker'
+
+Settings.cron_jobs['pages_domain_ssl_renewal_cron_worker'] ||= Settingslogic.new({})
+Settings.cron_jobs['pages_domain_ssl_renewal_cron_worker']['cron'] ||= '*/5 * * * *'
+Settings.cron_jobs['pages_domain_ssl_renewal_cron_worker']['job_class'] = 'PagesDomainSslRenewalCronWorker'
 
 Settings.cron_jobs['issue_due_scheduler_worker'] ||= Settingslogic.new({})
 Settings.cron_jobs['issue_due_scheduler_worker']['cron'] ||= '50 00 * * *'

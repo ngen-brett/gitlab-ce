@@ -16,6 +16,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+msgid " (from %{timeoutSource})"
+msgstr ""
+
 msgid " Please sign in."
 msgstr ""
 
@@ -2061,6 +2064,9 @@ msgstr ""
 msgid "Clear search input"
 msgstr ""
 
+msgid "Clear templates search input"
+msgstr ""
+
 msgid "Click any <strong>project name</strong> in the project list below to navigate to the project milestone."
 msgstr ""
 
@@ -2786,7 +2792,13 @@ msgstr ""
 msgid "Configure Let's Encrypt"
 msgstr ""
 
+msgid "Configure Prometheus"
+msgstr ""
+
 msgid "Configure automatic git checks and housekeeping on repositories."
+msgstr ""
+
+msgid "Configure existing installation"
 msgstr ""
 
 msgid "Configure limits for web and API requests."
@@ -2849,10 +2861,13 @@ msgstr ""
 msgid "ContainerRegistry|Once you log in, you&rsquo;re free to create and upload a container image using the common %{build} and %{push} commands"
 msgstr ""
 
-msgid "ContainerRegistry|Remove repository"
+msgid "ContainerRegistry|Remove image"
 msgstr ""
 
-msgid "ContainerRegistry|Remove tag"
+msgid "ContainerRegistry|Remove image and tags"
+msgstr ""
+
+msgid "ContainerRegistry|Remove repository"
 msgstr ""
 
 msgid "ContainerRegistry|Size"
@@ -2868,6 +2883,12 @@ msgid "ContainerRegistry|Use different image names"
 msgstr ""
 
 msgid "ContainerRegistry|With the Docker Container Registry integrated into GitLab, every project can have its own space to store its Docker images."
+msgstr ""
+
+msgid "ContainerRegistry|You are about to delete the image <b>%{title}</b>. This will delete the image and all tags pointing to this image."
+msgstr ""
+
+msgid "ContainerRegistry|You are about to remove repository <b>%{title}</b>. Once you confirm, this repository will be permanently deleted."
 msgstr ""
 
 msgid "ContainerRegistry|You can also use a %{deploy_token} for read-only access to the registry images."
@@ -3047,6 +3068,12 @@ msgstr ""
 msgid "Create commit"
 msgstr ""
 
+msgid "Create confidential merge request"
+msgstr ""
+
+msgid "Create confidential merge request and branch"
+msgstr ""
+
 msgid "Create directory"
 msgstr ""
 
@@ -3126,6 +3153,9 @@ msgid "Created on:"
 msgstr ""
 
 msgid "Creates branch '%{branch_name}' and a merge request to resolve this issue"
+msgstr ""
+
+msgid "Creating graphs uses the data from the Prometheus server. If this takes a long time, ensure that data is available."
 msgstr ""
 
 msgid "Cron Timezone"
@@ -4408,9 +4438,6 @@ msgstr ""
 msgid "February"
 msgstr ""
 
-msgid "Fields on this page are now uneditable, you can configure"
-msgstr ""
-
 msgid "File"
 msgid_plural "Files"
 msgstr[0] ""
@@ -4639,6 +4666,9 @@ msgid "Geo"
 msgstr ""
 
 msgid "Get started with error tracking"
+msgstr ""
+
+msgid "Get started with performance monitoring"
 msgstr ""
 
 msgid "Getting started with releases"
@@ -5318,6 +5348,9 @@ msgstr ""
 msgid "Install a soft token authenticator like %{free_otp_link} or Google Authenticator from your application repository and scan this QR code. More information is available in the %{help_link_start}documentation%{help_link_end}."
 msgstr ""
 
+msgid "Install on clusters"
+msgstr ""
+
 msgid "Installed"
 msgstr ""
 
@@ -5645,7 +5678,7 @@ msgstr ""
 msgid "Kubernetes error: %{error_code}"
 msgstr ""
 
-msgid "Kubernetes service integration has been deprecated. %{deprecated_message_content} your Kubernetes clusters using the new <a href=\"%{url}\"/>Kubernetes Clusters</a> page"
+msgid "Kubernetes service integration has been disabled. Fields on this page are not used by GitLab, you can configure your Kubernetes clusters using the new <a href=\"%{url}\"/>Kubernetes Clusters</a> page"
 msgstr ""
 
 msgid "LFS"
@@ -5822,6 +5855,9 @@ msgid "Let's Encrypt does not accept emails on example.com"
 msgstr ""
 
 msgid "Let's Encrypt is a free, automated, and open certificate authority (CA) that gives digital certificates in order to enable HTTPS (SSL/TLS) for websites. Learn more about Let's Encrypt configuration by following the %{docs_link_start}documentation on GitLab Pages%{docs_link_end}."
+msgstr ""
+
+msgid "Limit display of time tracking units to hours."
 msgstr ""
 
 msgid "Limited to showing %d event at most"
@@ -6569,6 +6605,9 @@ msgstr ""
 msgid "No contributions were found"
 msgstr ""
 
+msgid "No data found"
+msgstr ""
+
 msgid "No details available"
 msgstr ""
 
@@ -6630,6 +6669,9 @@ msgid "No runners found"
 msgstr ""
 
 msgid "No schedules"
+msgstr ""
+
+msgid "No template"
 msgstr ""
 
 msgid "No, directly import the existing email addresses and usernames."
@@ -6937,13 +6979,13 @@ msgstr ""
 msgid "Pagination|Last »"
 msgstr ""
 
-msgid "Pagination|Next"
-msgstr ""
-
-msgid "Pagination|Prev"
+msgid "Pagination|Next ›"
 msgstr ""
 
 msgid "Pagination|« First"
+msgstr ""
+
+msgid "Pagination|‹ Prev"
 msgstr ""
 
 msgid "Parameter"
@@ -7328,6 +7370,9 @@ msgid "Please wait a moment, this page will automatically refresh when ready."
 msgstr ""
 
 msgid "Please wait while we import the repository for you. Refresh at will."
+msgstr ""
+
+msgid "Pre-release"
 msgstr ""
 
 msgid "Preferences"
@@ -8053,6 +8098,9 @@ msgstr ""
 msgid "ProjectsDropdown|This feature requires browser localStorage support"
 msgstr ""
 
+msgid "Prometheus server"
+msgstr ""
+
 msgid "PrometheusService|%{exporters} with %{metrics} were found"
 msgstr ""
 
@@ -8521,6 +8569,9 @@ msgid "Reset health check access token"
 msgstr ""
 
 msgid "Reset runners registration token"
+msgstr ""
+
+msgid "Reset template"
 msgstr ""
 
 msgid "Resolve all discussions in new issue"
@@ -9166,6 +9217,9 @@ msgid_plural "Showing %d events"
 msgstr[0] ""
 msgstr[1] ""
 
+msgid "Showing last %{size} of log -"
+msgstr ""
+
 msgid "Side-by-side"
 msgstr ""
 
@@ -9571,6 +9625,9 @@ msgstr ""
 msgid "Status:"
 msgstr ""
 
+msgid "Stay updated about the performance and health of your environment by configuring Prometheus to monitor your deployments."
+msgstr ""
+
 msgid "Stop environment"
 msgstr ""
 
@@ -9945,9 +10002,6 @@ msgstr ""
 msgid "The X509 Certificate to use when mutual TLS is required to communicate with the external authorization service. If left blank, the server certificate is still validated when accessing over HTTPS."
 msgstr ""
 
-msgid "The certificate will be shown here once it has been obtained from Let's Encrypt. This process may take up to an hour to complete."
-msgstr ""
-
 msgid "The character highlighter helps you keep the subject line to %{titleLength} characters and wrap the body at %{bodyLength} so they are readable in git."
 msgstr ""
 
@@ -10002,7 +10056,7 @@ msgstr ""
 msgid "The import will time out after %{timeout}. For repositories that take longer, use a clone/push combination."
 msgstr ""
 
-msgid "The instance-level Kubernetes service integration is deprecated. Your data has been migrated to an <a href=\"%{url}\"/>instance-level cluster</a>."
+msgid "The instance-level Kubernetes service integration is disabled. Your data has been migrated to an <a href=\"%{url}\"/>instance-level cluster</a>."
 msgstr ""
 
 msgid "The invitation could not be accepted."
@@ -10281,9 +10335,6 @@ msgstr ""
 msgid "This branch has changed since you started editing. Would you like to create a new branch?"
 msgstr ""
 
-msgid "This certificate is automatically managed by Let's Encrypt"
-msgstr ""
-
 msgid "This commit is part of merge request %{link_to_merge_request}. Comments created here will be created in the context of that merge request."
 msgstr ""
 
@@ -10486,6 +10537,9 @@ msgid "This will remove the fork relationship to source project"
 msgstr ""
 
 msgid "Thursday"
+msgstr ""
+
+msgid "Time"
 msgstr ""
 
 msgid "Time based: Yes"
@@ -10933,6 +10987,9 @@ msgstr ""
 msgid "U2F only works with HTTPS-enabled websites. Contact your administrator for more details."
 msgstr ""
 
+msgid "Unable to connect to Prometheus server"
+msgstr ""
+
 msgid "Unable to connect to server: %{error}"
 msgstr ""
 
@@ -11338,6 +11395,9 @@ msgstr ""
 msgid "View details: %{details_url}"
 msgstr ""
 
+msgid "View documentation"
+msgstr ""
+
 msgid "View file @ "
 msgstr ""
 
@@ -11411,6 +11471,9 @@ msgid "VisibilityLevel|Unknown"
 msgstr ""
 
 msgid "Wait for the source to load to copy it to the clipboard"
+msgstr ""
+
+msgid "Waiting for performance data"
 msgstr ""
 
 msgid "Want to see the data? Please ask an administrator for access."
@@ -11668,6 +11731,9 @@ msgid "You are attempting to delete a file that has been previously updated."
 msgstr ""
 
 msgid "You are attempting to update a file that has changed since you started editing it."
+msgstr ""
+
+msgid "You are connected to the Prometheus server, but there is currently no data to display."
 msgstr ""
 
 msgid "You are going to remove %{group_name}, this will also remove all of its subgroups and projects. Removed groups CANNOT be restored! Are you ABSOLUTELY sure?"
