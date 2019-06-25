@@ -63,6 +63,7 @@ Rails.application.routes.draw do
     # '/-/health' implemented by BasicHealthMiddleware
     get 'liveness' => 'health#liveness'
     get 'readiness' => 'health#readiness'
+    get 'reload' => 'health#reload'
     resources :metrics, only: [:index]
     mount Peek::Railtie => '/peek', as: 'peek_routes'
 
