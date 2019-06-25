@@ -95,6 +95,14 @@ module QA
           Git::Location.new(api_resource[:http_url_to_repo])
         api_resource
       end
+
+      def options_post_body
+        return {} unless initialize_with_readme
+
+        {
+          initialize_with_readme: initialize_with_readme
+        }
+      end
     end
   end
 end
