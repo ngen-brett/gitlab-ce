@@ -55,7 +55,7 @@ module MetricsDashboardHelpers
     context 'when the user does not have sufficient access' do
       let(:user) { build(:user) }
 
-      it_behaves_like 'misconfigured dashboard service response', :not_found
+      it_behaves_like 'misconfigured dashboard service response', :unauthorized
     end
   end
 end

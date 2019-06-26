@@ -10,7 +10,7 @@ module Gitlab
         NOT_FOUND_ERROR = Gitlab::Template::Finders::RepoTemplateFinder::FileNotFoundError
 
         def get_dashboard
-          return error('No dashboard found.', :not_found) unless allowed?
+          return error('Insufficient permissions.', :unauthorized) unless allowed?
 
           success(dashboard: process_dashboard)
         rescue NOT_FOUND_ERROR
