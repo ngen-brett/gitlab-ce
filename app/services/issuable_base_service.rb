@@ -191,8 +191,6 @@ class IssuableBaseService < BaseService
   end
 
   def update(issuable)
-    # Do not touch when saving the issuable if only changes position within a list
-    should_touch = update_timestamp?(issuable, params)
     change_state(issuable)
     change_subscription(issuable)
     change_todo(issuable)
@@ -207,7 +205,7 @@ class IssuableBaseService < BaseService
     end
 
     if issuable.changed? || params.present?
-      issuable.assign_attributes(params.merge(updated_by: current_user))
+      issuable.assign_attributes(params)
 
       if has_title_or_description_changed?(issuable)
         issuable.assign_attributes(last_edited_at: Time.now, last_edited_by: current_user)
@@ -215,6 +213,10 @@ class IssuableBaseService < BaseService
 
       before_update(issuable)
 
+      # Do not touch when saving the issuable if only changes position within a list
+      should_touch = update_timestamp?(issuable)
+
+      issuable.updated_by = current_user if should_touch
       # We have to perform this check before saving the issuable as Rails resets
       # the changed fields upon calling #save.
       update_project_counters = issuable.project && update_project_counter_caches?(issuable)
@@ -405,9 +407,7 @@ class IssuableBaseService < BaseService
     issuable.milestone_id = nil unless issuable.milestone_available?
   end
 
-  def update_timestamp?(issuable, params)
-    return unless issuable.is_a?(Issue) && issuable.changes.key?(:relative_position)
-
-    return false unless params.present?
+  def update_timestamp?(issuable)
+    issuable.changes.keys != ["relative_position"]
   end
 end
