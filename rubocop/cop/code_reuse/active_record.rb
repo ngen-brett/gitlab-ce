@@ -80,6 +80,7 @@ module RuboCop
           lib/gitlab/database
           lib/gitlab/import_export
           lib/gitlab/project_authorizations
+          lib/gitlab/deployment_platform
           lib/gitlab/sql
           lib/system_check
           lib/tasks
