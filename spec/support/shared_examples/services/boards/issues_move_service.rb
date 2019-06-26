@@ -107,10 +107,13 @@ shared_examples 'issues move service' do |group|
   end
 
   context 'when moving to same list' do
-    let(:issue)   { create(:labeled_issue, project: project, labels: [bug, development]) }
-    let(:issue1)  { create(:labeled_issue, project: project, labels: [bug, development]) }
-    let(:issue2)  { create(:labeled_issue, project: project, labels: [bug, development]) }
-    let(:params)  { { board_id: board1.id, from_list_id: list1.id, to_list_id: list1.id } }
+    let(:assignee) { create(:user) }
+    let(:params)   { { board_id: board1.id, from_list_id: list1.id, to_list_id: list1.id } }
+    let(:issue1)   { create(:labeled_issue, project: project, labels: [bug, development]) }
+    let(:issue2)   { create(:labeled_issue, project: project, labels: [bug, development]) }
+    let(:issue) do
+      create(:labeled_issue, project: project, labels: [bug, development], assignees: [assignee])
+    end
 
     it 'returns false' do
       expect(described_class.new(parent, user, params).execute(issue)).to eq false
@@ -120,6 +123,12 @@ shared_examples 'issues move service' do |group|
       described_class.new(parent, user, params).execute(issue)
 
       expect(issue.reload.labels).to contain_exactly(bug, development)
+    end
+
+    it 'keeps issues assignees' do
+      described_class.new(parent, user, params).execute(issue)
+
+      expect(issue.reload.assignees).to contain_exactly(assignee)
     end
 
     it 'sorts issues' do
