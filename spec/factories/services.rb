@@ -6,8 +6,6 @@ FactoryBot.define do
 
   factory :custom_issue_tracker_service, class: CustomIssueTrackerService do
     project
-    type 'CustomIssueTrackerService'
-    category 'issue_tracker'
     active true
     properties(
       project_url: 'https://project.url.com',
@@ -52,6 +50,26 @@ FactoryBot.define do
       password: 'my-secret-password',
       project_key: 'jira-key'
     )
+  end
+
+  factory :bugzilla_service do
+    project
+    active true
+  end
+
+  factory :redmine_service do
+    project
+    active true
+  end
+
+  factory :youtrack_service do
+    project
+    active true
+  end
+
+  factory :gitlab_issue_tracker_service do
+    project
+    active true
   end
 
   factory :jira_cloud_service, class: JiraService do
