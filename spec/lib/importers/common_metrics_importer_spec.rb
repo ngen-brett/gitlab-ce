@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require Rails.root.join("db", "importers", "common_metrics_importer.rb")
 
 describe Importers::CommonMetrics::PrometheusMetric do
   let(:existing_group_titles) do

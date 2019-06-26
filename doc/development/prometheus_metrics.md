@@ -33,8 +33,6 @@ For example: you might be interested in migrating all dependent data to a differ
 class ImportCommonMetrics < ActiveRecord::Migration[4.2]
   include Gitlab::Database::MigrationHelpers
 
-  require Rails.root.join('db/importers/common_metrics_importer.rb')
-
   DOWNTIME = false
 
   def up
