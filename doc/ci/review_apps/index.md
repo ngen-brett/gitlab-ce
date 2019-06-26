@@ -54,6 +54,7 @@ The following are example projects that demonstrate Review App configuration:
 - [NGINX](https://gitlab.com/gitlab-examples/review-apps-nginx).
 - [OpenShift](https://gitlab.com/gitlab-examples/review-apps-openshift).
 
+<i class="fa fa-youtube-play youtube" aria-hidden="true"></i>
 See also the video [Demo: Cloud Native Development with GitLab](https://www.youtube.com/watch?v=jfIyQEwrocw), which includes a Review Apps example.
 
 ## Configuring Review Apps
