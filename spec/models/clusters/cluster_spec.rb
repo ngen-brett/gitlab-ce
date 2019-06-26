@@ -310,7 +310,7 @@ describe Clusters::Cluster, :use_clean_rails_memory_store_caching do
   describe '.ancestor_clusters_for_clusterable' do
     let(:group_cluster) { create(:cluster, :provided_by_gcp, :group) }
     let(:group) { group_cluster.group }
-    let(:hierarchy_order) { :desc }
+    let(:hierarchy_order) { :asc }
     let(:clusterable) { project }
 
     subject do

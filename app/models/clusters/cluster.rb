@@ -118,7 +118,15 @@ module Clusters
 
     def self.ancestor_clusters_for_clusterable(clusterable, hierarchy_order: :asc)
       return [] if clusterable.is_a?(Instance)
+      return old_way(clusterable, hierarchy_order: hierarchy_order) if clusterable.is_a?(::Group)
 
+      cluster_hierarchy = Gitlab::DeploymentPlatform::WithNestedGroups.new(clusterable).calculate
+      cluster_hierarchy = cluster_hierarchy.merge(current_scope) if current_scope
+
+      cluster_hierarchy
+    end
+
+    def self.old_way(clusterable, hierarchy_order:)
       hierarchy_groups = clusterable.ancestors_upto(hierarchy_order: hierarchy_order).eager_load(:clusters)
       hierarchy_groups = hierarchy_groups.merge(current_scope) if current_scope
 
