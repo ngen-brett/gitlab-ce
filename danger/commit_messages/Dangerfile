@@ -101,12 +101,15 @@ def lint_commit(commit) # rubocop:disable Metrics/AbcSize
   end
 
   if subject.length > 72
-    fail_commit(
-      commit,
-      'The commit subject may not be longer than 72 characters'
-    )
+    if commit.message.start_with?('Apply suggestion to "')
+      return false
+    else
+      fail_commit(
+        commit,
+        'The commit subject may not be longer than 72 characters'
+      )
 
-    failures = true
+      failures = true
   elsif subject.length > 50
     warn_commit(
       commit,
@@ -118,7 +121,7 @@ def lint_commit(commit) # rubocop:disable Metrics/AbcSize
   if commit.message.start_with?('Apply suggestion to') && !gitlab.mr_json['squash']
     fail_commit(
       commit,
-      'If you are applying suggestions, squash needs to be enabled in the merge request'
+      'If you are applying suggestions, enable squash in the merge request and re-run the failed job'
     )
 
     failures = true
