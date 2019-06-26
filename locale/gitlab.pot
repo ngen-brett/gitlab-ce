@@ -16,6 +16,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+msgid " (from %{timeoutSource})"
+msgstr ""
+
 msgid " Please sign in."
 msgstr ""
 
@@ -35,6 +38,11 @@ msgstr[1] ""
 
 msgid "%d commit behind"
 msgid_plural "%d commits behind"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d commit,"
+msgid_plural "%d commits,"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -2061,6 +2069,9 @@ msgstr ""
 msgid "Clear search input"
 msgstr ""
 
+msgid "Clear templates search input"
+msgstr ""
+
 msgid "Click any <strong>project name</strong> in the project list below to navigate to the project milestone."
 msgstr ""
 
@@ -2786,7 +2797,13 @@ msgstr ""
 msgid "Configure Let's Encrypt"
 msgstr ""
 
+msgid "Configure Prometheus"
+msgstr ""
+
 msgid "Configure automatic git checks and housekeeping on repositories."
+msgstr ""
+
+msgid "Configure existing installation"
 msgstr ""
 
 msgid "Configure limits for web and API requests."
@@ -3141,6 +3158,9 @@ msgid "Created on:"
 msgstr ""
 
 msgid "Creates branch '%{branch_name}' and a merge request to resolve this issue"
+msgstr ""
+
+msgid "Creating graphs uses the data from the Prometheus server. If this takes a long time, ensure that data is available."
 msgstr ""
 
 msgid "Cron Timezone"
@@ -3512,6 +3532,9 @@ msgid "Diff content limits"
 msgstr ""
 
 msgid "Diff limits"
+msgstr ""
+
+msgid "DiffsCompareBaseBranch|(base)"
 msgstr ""
 
 msgid "Diffs|No file name available"
@@ -4653,6 +4676,9 @@ msgstr ""
 msgid "Get started with error tracking"
 msgstr ""
 
+msgid "Get started with performance monitoring"
+msgstr ""
+
 msgid "Getting started with releases"
 msgstr ""
 
@@ -4998,6 +5024,9 @@ msgstr ""
 msgid "Help page text and support page url."
 msgstr ""
 
+msgid "Helps prevent bots from creating accounts. We currently only support %{recaptcha_v2_link_start}reCAPTCHA v2%{recaptcha_v2_link_end}"
+msgstr ""
+
 msgid "Hide archived projects"
 msgstr ""
 
@@ -5328,6 +5357,9 @@ msgid "Install Runner on Kubernetes"
 msgstr ""
 
 msgid "Install a soft token authenticator like %{free_otp_link} or Google Authenticator from your application repository and scan this QR code. More information is available in the %{help_link_start}documentation%{help_link_end}."
+msgstr ""
+
+msgid "Install on clusters"
 msgstr ""
 
 msgid "Installed"
@@ -5836,6 +5868,9 @@ msgstr ""
 msgid "Let's Encrypt is a free, automated, and open certificate authority (CA) that gives digital certificates in order to enable HTTPS (SSL/TLS) for websites. Learn more about Let's Encrypt configuration by following the %{docs_link_start}documentation on GitLab Pages%{docs_link_end}."
 msgstr ""
 
+msgid "Limit display of time tracking units to hours."
+msgstr ""
+
 msgid "Limited to showing %d event at most"
 msgid_plural "Limited to showing %d events at most"
 msgstr[0] ""
@@ -5974,6 +6009,9 @@ msgid "Manifest file import"
 msgstr ""
 
 msgid "Manual job"
+msgstr ""
+
+msgid "ManualOrdering|Couldn't save the order of the issues"
 msgstr ""
 
 msgid "Map a FogBugz account ID to a GitLab user"
@@ -6581,6 +6619,9 @@ msgstr ""
 msgid "No contributions were found"
 msgstr ""
 
+msgid "No data found"
+msgstr ""
+
 msgid "No details available"
 msgstr ""
 
@@ -6642,6 +6683,9 @@ msgid "No runners found"
 msgstr ""
 
 msgid "No schedules"
+msgstr ""
+
+msgid "No template"
 msgstr ""
 
 msgid "No, directly import the existing email addresses and usernames."
@@ -8068,6 +8112,9 @@ msgstr ""
 msgid "ProjectsDropdown|This feature requires browser localStorage support"
 msgstr ""
 
+msgid "Prometheus server"
+msgstr ""
+
 msgid "PrometheusService|%{exporters} with %{metrics} were found"
 msgstr ""
 
@@ -8536,6 +8583,9 @@ msgid "Reset health check access token"
 msgstr ""
 
 msgid "Reset runners registration token"
+msgstr ""
+
+msgid "Reset template"
 msgstr ""
 
 msgid "Resolve all discussions in new issue"
@@ -9152,6 +9202,9 @@ msgstr ""
 msgid "Show command"
 msgstr ""
 
+msgid "Show comments"
+msgstr ""
+
 msgid "Show comments only"
 msgstr ""
 
@@ -9180,6 +9233,9 @@ msgid "Showing %d event"
 msgid_plural "Showing %d events"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "Showing last %{size} of log -"
+msgstr ""
 
 msgid "Side-by-side"
 msgstr ""
@@ -9584,6 +9640,9 @@ msgid "Status"
 msgstr ""
 
 msgid "Status:"
+msgstr ""
+
+msgid "Stay updated about the performance and health of your environment by configuring Prometheus to monitor your deployments."
 msgstr ""
 
 msgid "Stop environment"
@@ -10497,6 +10556,9 @@ msgstr ""
 msgid "Thursday"
 msgstr ""
 
+msgid "Time"
+msgstr ""
+
 msgid "Time based: Yes"
 msgstr ""
 
@@ -10942,6 +11004,9 @@ msgstr ""
 msgid "U2F only works with HTTPS-enabled websites. Contact your administrator for more details."
 msgstr ""
 
+msgid "Unable to connect to Prometheus server"
+msgstr ""
+
 msgid "Unable to connect to server: %{error}"
 msgstr ""
 
@@ -11347,6 +11412,9 @@ msgstr ""
 msgid "View details: %{details_url}"
 msgstr ""
 
+msgid "View documentation"
+msgstr ""
+
 msgid "View file @ "
 msgstr ""
 
@@ -11420,6 +11488,9 @@ msgid "VisibilityLevel|Unknown"
 msgstr ""
 
 msgid "Wait for the source to load to copy it to the clipboard"
+msgstr ""
+
+msgid "Waiting for performance data"
 msgstr ""
 
 msgid "Want to see the data? Please ask an administrator for access."
@@ -11677,6 +11748,9 @@ msgid "You are attempting to delete a file that has been previously updated."
 msgstr ""
 
 msgid "You are attempting to update a file that has changed since you started editing it."
+msgstr ""
+
+msgid "You are connected to the Prometheus server, but there is currently no data to display."
 msgstr ""
 
 msgid "You are going to remove %{group_name}, this will also remove all of its subgroups and projects. Removed groups CANNOT be restored! Are you ABSOLUTELY sure?"
@@ -12622,6 +12696,9 @@ msgid "uses Kubernetes clusters to deploy your code!"
 msgstr ""
 
 msgid "verify ownership"
+msgstr ""
+
+msgid "version %{versionIndex}"
 msgstr ""
 
 msgid "via %{closed_via}"
