@@ -1,6 +1,7 @@
 <script>
+import settingsMixin from 'ee_else_ce/pages/projects/shared/permissions/mixins/settings_pannel_mixin';
 import projectFeatureSetting from './project_feature_setting.vue';
-import projectFeatureToggle from '../../../../../vue_shared/components/toggle_button.vue';
+import projectFeatureToggle from '~/vue_shared/components/toggle_button.vue';
 import projectSettingRow from './project_setting_row.vue';
 import { visibilityOptions, visibilityLevelDescriptions } from '../constants';
 import { toggleHiddenClassBySelector } from '../external';
@@ -11,6 +12,7 @@ export default {
     projectFeatureToggle,
     projectSettingRow,
   },
+  mixins: [settingsMixin],
 
   props: {
     currentSettings: {
@@ -68,7 +70,6 @@ export default {
       default: '',
     },
   },
-
   data() {
     const defaults = {
       visibilityOptions,
@@ -297,6 +298,18 @@ export default {
             v-model="lfsEnabled"
             :disabled-input="!repositoryEnabled"
             name="project[lfs_enabled]"
+          />
+        </project-setting-row>
+        <project-setting-row
+          v-if="packagesAvailable"
+          :help-path="packagesHelpPath"
+          label="Packages"
+          help-text="Every project can have its own space to store its packages"
+        >
+          <project-feature-toggle
+            v-model="packagesEnabled"
+            :disabled-input="!repositoryEnabled"
+            name="project[packages_enabled]"
           />
         </project-setting-row>
       </div>
