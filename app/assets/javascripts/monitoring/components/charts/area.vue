@@ -112,7 +112,7 @@ export default {
         yAxis: {
           name: this.yAxisLabel,
           axisLabel: {
-            formatter: num => roundOffFloat(num, 3).toString(),
+            formatter: num => roundOffFloat(num, 3).toString() + this.yAxisLabelUnit,
           },
         },
         series: this.scatterSeries,
@@ -174,6 +174,9 @@ export default {
     yAxisLabel() {
       return `${this.graphData.y_label}`;
     },
+    yAxisLabelUnit() {
+      return `${this.graphData.queries[0].unit}`;
+    },
   },
   watch: {
     containerWidth: 'onResize',
@@ -189,7 +192,7 @@ export default {
   },
   methods: {
     formatLegendLabel(query) {
-      return `${query.label}`;
+      return `${query.label} ${query.unit}`;
     },
     formatTooltipText(params) {
       this.tooltip.title = dateFormat(params.value, 'dd mmm yyyy, h:MMTT');
