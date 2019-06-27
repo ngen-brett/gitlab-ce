@@ -40,26 +40,35 @@ export default {
     },
     showContentViewer() {
       return (
-        (this.shouldHideEditor || this.file.viewMode === 'preview') &&
+        (this.shouldHideEditor || this.isPreviewViewMode) &&
         (this.viewer !== viewerTypes.mr || !this.file.mrChange)
       );
     },
     showDiffViewer() {
       return this.shouldHideEditor && this.file.mrChange && this.viewer === viewerTypes.mr;
     },
+    isEditorViewMode() {
+      return this.file.viewMode === 'editor';
+    },
+    isPreviewViewMode() {
+      return this.file.viewMode === 'preview';
+    },
     editTabCSS() {
       return {
-        active: this.file.viewMode === 'editor',
+        active: this.isEditorViewMode,
       };
     },
     previewTabCSS() {
       return {
-        active: this.file.viewMode === 'preview',
+        active: this.isPreviewViewMode,
       };
     },
     fileType() {
       const info = viewerInformationForPath(this.file.path);
       return (info && info.id) || '';
+    },
+    showEditor() {
+      return !this.shouldHideEditor && this.isEditorViewMode;
     },
   },
   watch: {
@@ -89,7 +98,7 @@ export default {
       }
     },
     rightPanelCollapsed() {
-      this.editor.updateDimensions();
+      this.refreshEditorDimensions();
     },
     viewer() {
       if (!this.file.pending) {
@@ -98,11 +107,18 @@ export default {
     },
     panelResizing() {
       if (!this.panelResizing) {
-        this.editor.updateDimensions();
+        this.refreshEditorDimensions();
       }
     },
     rightPaneIsOpen() {
-      this.editor.updateDimensions();
+      this.refreshEditorDimensions();
+    },
+    showEditor(val) {
+      if (val) {
+        // We need to wait for the editor to actually be rendered in the
+        // dom before refreshing the dimensions.
+        this.$nextTick().then(() => this.refreshEditorDimensions());
+      }
     },
   },
   beforeDestroy() {
@@ -212,6 +228,11 @@ export default {
         eol: this.model.eol,
       });
     },
+    refreshEditorDimensions() {
+      if (this.showEditor) {
+        this.editor.updateDimensions();
+      }
+    },
   },
   viewerTypes,
 };
@@ -249,7 +270,7 @@ export default {
     </div>
     <file-templates-bar v-if="showFileTemplatesBar(file.name)" />
     <div
-      v-show="!shouldHideEditor && file.viewMode === 'editor'"
+      v-show="showEditor"
       ref="editor"
       :class="{
         'is-readonly': isCommitModeActive,
