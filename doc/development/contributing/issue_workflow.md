@@ -166,6 +166,7 @@ The current group labels are:
 * ~"group::upsell" 
 * ~"group::retention" 
 * ~"group::fulfillment" 
+* ~"group::telemetry" 
 * ~"group::distribution" 
 * ~"group::geo" 
 * ~"group::memory" 
