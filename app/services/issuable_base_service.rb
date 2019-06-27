@@ -213,7 +213,8 @@ class IssuableBaseService < BaseService
 
       before_update(issuable)
 
-      # Do not touch when saving the issuable if only changes position within a list
+      # Do not touch when saving the issuable if only changes position within a list. We should call
+      # this method at this point to capture all possible changes.
       should_touch = update_timestamp?(issuable)
 
       issuable.updated_by = current_user if should_touch
