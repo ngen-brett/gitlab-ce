@@ -7,13 +7,13 @@ a complete software development environment. It provides development, operations
 
 The GitLab Application Development Platform aims to:
 
-- Reduce and even eliminate the time it takes for an Operations team 
-to provide a full environment for software developers.
+- Reduce and even eliminate the time it takes for an Operations team
+  to provide a full environment for software developers.
 - Get developers up and running fast so they can focus on writing 
-great applications with a robust development feature set.
+  great applications with a robust development feature set.
 - Provide best-of-breed security features so that applications developed 
-with GitLab are not affected by vulnerabilities that may lead to security 
-problems and unintended use.
+  with GitLab are not affected by vulnerabilities that may lead to security 
+  problems and unintended use.
 
 The Secure stage aims to ensure that applications developed with GitLab are not affected by vulnerabilities that may lead to security problems and unintended use. This can be achieved by covering the Dev side of the DevOps lifecycle with features that allow both security teams and developers to know if there is something that they should consider in their apps, before it is too late to create a fix.
 
