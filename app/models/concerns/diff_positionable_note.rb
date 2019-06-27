@@ -55,7 +55,8 @@ module DiffPositionableNote
     return if active?
     return unless position
 
-    tracer = Gitlab::Diff::PositionTracer.new(
+    tracer = Gitlab::Diff::PositionTracer.for(
+      self.position.position_type,
       project: self.project,
       old_diff_refs: self.position.diff_refs,
       new_diff_refs: self.noteable.diff_refs,

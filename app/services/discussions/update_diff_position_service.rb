@@ -3,7 +3,8 @@
 module Discussions
   class UpdateDiffPositionService < BaseService
     def execute(discussion)
-      result = tracer.trace(discussion.position)
+      old_position = discussion.position
+      result = tracer(old_position.position_type).trace(old_position)
       return unless result
 
       position = result[:position]
@@ -35,8 +36,9 @@ module Discussions
 
     private
 
-    def tracer
-      @tracer ||= Gitlab::Diff::PositionTracer.new(
+    def tracer(position_type)
+      @tracer ||= Gitlab::Diff::PositionTracer.for(
+        position_type,
         project: project,
         old_diff_refs: params[:old_diff_refs],
         new_diff_refs: params[:new_diff_refs],
