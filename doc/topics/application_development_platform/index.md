@@ -15,8 +15,6 @@ The GitLab Application Development Platform aims to:
   with GitLab are not affected by vulnerabilities that may lead to security 
   problems and unintended use.
 
-The Secure stage aims to ensure that applications developed with GitLab are not affected by vulnerabilities that may lead to security problems and unintended use. This can be achieved by covering the Dev side of the DevOps lifecycle with features that allow both security teams and developers to know if there is something that they should consider in their apps, before it is too late to create a fix.
-
 It is comprised of the following high-level elements:
 
 1. Compute
