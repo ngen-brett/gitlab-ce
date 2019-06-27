@@ -1,9 +1,8 @@
 shared_examples 'issues move service' do |group|
-  subject { described_class.new(parent, user, params).execute(issue) }
-
   shared_examples 'updating timestamps' do
     it 'updates updated_at' do
-      expect {subject}.to change {issue.reload.updated_at}
+      expect {described_class.new(parent, user, params).execute(issue)}
+        .to change {issue.reload.updated_at}
     end
   end
 
@@ -18,11 +17,11 @@ shared_examples 'issues move service' do |group|
       expect(Issues::UpdateService).to receive(:new).and_return(service)
       expect(service).to receive(:execute).with(issue).once
 
-      subject
+      described_class.new(parent, user, params).execute(issue)
     end
 
     it 'removes the label from the list it came from and adds the label of the list it goes to' do
-      subject
+      described_class.new(parent, user, params).execute(issue)
 
       expect(issue.reload.labels).to contain_exactly(bug, testing)
     end
@@ -39,11 +38,11 @@ shared_examples 'issues move service' do |group|
     it 'delegates the close proceedings to Issues::CloseService' do
       expect_any_instance_of(Issues::CloseService).to receive(:execute).with(issue).once
 
-      subject
+      described_class.new(parent, user, params).execute(issue)
     end
 
     it 'removes all list-labels from boards and close the issue' do
-      subject
+      described_class.new(parent, user, params).execute(issue)
       issue.reload
 
       expect(issue.labels).to contain_exactly(bug, regression)
@@ -61,7 +60,7 @@ shared_examples 'issues move service' do |group|
     it_behaves_like 'updating timestamps'
 
     it 'keeps labels and milestone' do
-      subject
+      described_class.new(parent, user, params).execute(issue)
       issue.reload
 
       expect(issue.labels).to contain_exactly(bug, regression)
@@ -78,11 +77,11 @@ shared_examples 'issues move service' do |group|
     it 'delegates the re-open proceedings to Issues::ReopenService' do
       expect_any_instance_of(Issues::ReopenService).to receive(:execute).with(issue).once
 
-      subject
+      described_class.new(parent, user, params).execute(issue)
     end
 
     it 'adds the label of the list it goes to and reopen the issue' do
-      subject
+      described_class.new(parent, user, params).execute(issue)
       issue.reload
 
       expect(issue.labels).to contain_exactly(bug, testing)
@@ -100,17 +99,17 @@ shared_examples 'issues move service' do |group|
     end
 
     it 'returns false' do
-      expect(subject).to eq false
+      expect(described_class.new(parent, user, params).execute(issue)).to eq false
     end
 
     it 'keeps issues labels' do
-      subject
+      described_class.new(parent, user, params).execute(issue)
 
       expect(issue.reload.labels).to contain_exactly(bug, development)
     end
 
     it 'keeps issues assignees' do
-      subject
+      described_class.new(parent, user, params).execute(issue)
 
       expect(issue.reload.assignees).to contain_exactly(assignee)
     end
@@ -118,7 +117,7 @@ shared_examples 'issues move service' do |group|
     it 'sorts issues' do
       reorder_issues(params, issues: [issue, issue1, issue2])
 
-      subject
+      described_class.new(parent, user, params).execute(issue)
 
       expect(issue.relative_position).to be_between(issue1.relative_position, issue2.relative_position)
     end
@@ -131,12 +130,12 @@ shared_examples 'issues move service' do |group|
       updated_at2 = issue2.updated_at
 
       Timecop.travel(1.minute.from_now) do
-        subject
+        described_class.new(parent, user, params).execute(issue)
       end
 
-      expect(issue.reload.updated_at).to eq updated_at
-      expect(issue1.reload.updated_at).to eq updated_at1
-      expect(issue2.reload.updated_at).to eq updated_at2
+      expect(issue.reload.updated_at.change(usec: 0)).to eq updated_at.change(usec: 0)
+      expect(issue1.reload.updated_at.change(usec: 0)).to eq updated_at1.change(usec: 0)
+      expect(issue2.reload.updated_at.change(usec: 0)).to eq updated_at2.change(usec: 0)
     end
 
     if group
@@ -147,7 +146,7 @@ shared_examples 'issues move service' do |group|
           match_params = { move_between_ids: [issue1.id, issue2.id], board_group_id: parent.id }
           expect(Issues::UpdateService).to receive(:new).with(issue.project, user, match_params).and_return(double(execute: build(:issue)))
 
-          subject
+          described_class.new(parent, user, params).execute(issue)
         end
       end
     end
