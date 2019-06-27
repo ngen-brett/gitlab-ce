@@ -45,7 +45,7 @@ After adding Review Apps to your workflow, you follow the branched Git flow. Tha
 
 1. Push a branch and let the Runner deploy the Review App based on the `script` definition of the dynamic environment job.
 1. Wait for the Runner to build and deploy your web application.
-1. Click on the link that provided in the merge request related to the branch to see the changes live.
+1. Click on the link provided in the merge request related to the branch to see the changes live.
 
 ## Review Apps examples
 
