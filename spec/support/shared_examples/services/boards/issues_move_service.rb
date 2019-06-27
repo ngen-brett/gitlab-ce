@@ -3,11 +3,7 @@ shared_examples 'issues move service' do |group|
 
   shared_examples 'updating timestamps' do
     it 'updates updated_at' do
-      Timecop.travel(1.minute.from_now) do
-        subject
-      end
-
-      expect(issue.reload.updated_at).to be > Time.now
+      expect {subject}.to change {issue.reload.updated_at}
     end
   end
 
