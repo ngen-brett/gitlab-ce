@@ -662,18 +662,19 @@ class Project < ApplicationRecord
 
   alias_method :lfs_enabled, :lfs_enabled?
 
-  def auto_devops_enabled?
+  def auto_devops_enabled?(ref:)
     if auto_devops&.enabled.nil?
-      has_auto_devops_implicitly_enabled?
+      has_auto_devops_implicitly_enabled?(ref: ref)
     else
       auto_devops.enabled?
     end
   end
 
-  def has_auto_devops_implicitly_enabled?
+  def has_auto_devops_implicitly_enabled?(ref:)
     auto_devops_config = first_auto_devops_config
+    detector = Gitlab::AutoDevops::BuildableDetector.new(repository, ref)
 
-    auto_devops_config[:scope] != :project && auto_devops_config[:status]
+    auto_devops_config[:scope] != :project && auto_devops_config[:status] && detector.detect
   end
 
   def has_auto_devops_implicitly_disabled?
@@ -1783,7 +1784,7 @@ class Project < ApplicationRecord
     repository.gitlab_ci_yml || auto_devops_enabled?
   end
 
-  def predefined_variables
+  def predefined_variables(ref:)
     visibility = Gitlab::VisibilityLevel.string_level(visibility_level)
 
     Gitlab::Ci::Variables::Collection.new
@@ -1796,7 +1797,7 @@ class Project < ApplicationRecord
       .append(key: 'CI_PROJECT_VISIBILITY', value: visibility)
       .concat(pages_variables)
       .concat(container_registry_variables)
-      .concat(auto_devops_variables)
+      .concat(auto_devops_variables(ref: ref))
       .concat(api_variables)
   end
 
@@ -1866,8 +1867,8 @@ class Project < ApplicationRecord
     deployment_platform(environment: environment)&.predefined_variables(project: self) || []
   end
 
-  def auto_devops_variables
-    return [] unless auto_devops_enabled?
+  def auto_devops_variables(ref:)
+    return [] unless auto_devops_enabled?(ref: ref)
 
     (auto_devops || build_auto_devops)&.predefined_variables
   end

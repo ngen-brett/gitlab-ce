@@ -34,7 +34,7 @@ class ProjectAutoDevops < ApplicationRecord
   end
 
   def needs_to_create_deploy_token?
-    project.auto_devops_enabled? &&
+    project.auto_devops_enabled?(ref: :head) &&
       !project.public? &&
       !project.deploy_tokens.find_by(name: DeployToken::GITLAB_DEPLOY_TOKEN_NAME).present?
   end

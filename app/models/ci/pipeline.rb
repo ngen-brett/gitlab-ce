@@ -800,7 +800,7 @@ module Ci
     def implied_ci_yaml_file
       return unless project
 
-      if project.auto_devops_enabled?
+      if project.auto_devops_enabled?(ref: source_ref)
         Gitlab::Template::GitlabCiYmlTemplate.find('Auto-DevOps').content
       end
     end

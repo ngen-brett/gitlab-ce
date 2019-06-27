@@ -12,7 +12,7 @@ module Ci
     def scoped_variables(environment: expanded_environment_name)
       Gitlab::Ci::Variables::Collection.new.tap do |variables|
         variables.concat(predefined_variables)
-        variables.concat(project.predefined_variables)
+        variables.concat(project.predefined_variables(ref: source_ref))
         variables.concat(pipeline.predefined_variables)
         variables.concat(runner.predefined_variables) if runnable? && runner
         variables.concat(project.deployment_variables(environment: environment)) if environment
