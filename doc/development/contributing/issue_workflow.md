@@ -6,7 +6,7 @@ scheduling into milestones. Labelling is a task for everyone.
 
 Most issues will have labels for at least one of the following:
 
-- Type: ~feature, ~bug, ~customer, etc.
+- Type: ~feature, ~bug, ~backstage, etc.
 - Subject: ~wiki, ~"Container Registry", ~ldap, ~api, etc.
 - Team: ~Documentation, ~Delivery, etc.
 - Stage: ~"devops::plan", ~"devops::create", etc.
@@ -30,8 +30,8 @@ labels, you can _always_ add the team and type, and often also the subject.
 Type labels are very important. They define what kind of issue this is. Every
 issue should have one or more.
 
-Examples of type labels are ~feature, ~bug, ~backstage, ~customer, ~security,
-and ~direction.
+Examples of type labels are ~feature, ~bug, ~backstage, ~security,
+and ~"Community contribution".
 
 A number of type labels have a priority assigned to them, which automatically
 makes them float to the top, depending on their importance.
