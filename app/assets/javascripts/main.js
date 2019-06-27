@@ -37,6 +37,8 @@ import { __ } from './locale';
 window.jQuery = jQuery;
 window.$ = jQuery;
 
+Flash('This is an error message. Sorry this should not happen!');
+
 // inject test utilities if necessary
 if (process.env.NODE_ENV !== 'production' && gon && gon.test_env) {
   $.fx.off = true;
