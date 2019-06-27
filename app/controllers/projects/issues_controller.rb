@@ -10,6 +10,10 @@ class Projects::IssuesController < Projects::ApplicationController
   include SpammableActions
   include RecordUserLastActivity
 
+  before_action do
+    push_frontend_feature_flag(:manual_sorting)
+  end
+
   def issue_except_actions
     %i[index calendar new create bulk_update import_csv]
   end
@@ -33,7 +37,7 @@ class Projects::IssuesController < Projects::ApplicationController
   before_action :authorize_create_issue!, only: [:new, :create]
 
   # Allow modify issue
-  before_action :authorize_update_issuable!, only: [:edit, :update, :move]
+  before_action :authorize_update_issuable!, only: [:edit, :update, :move, :reorder]
 
   # Allow create a new branch and empty WIP merge request from current issue
   before_action :authorize_create_merge_request_from!, only: [:create_merge_request]
@@ -130,6 +134,16 @@ class Projects::IssuesController < Projects::ApplicationController
 
   rescue ActiveRecord::StaleObjectError
     render_conflict_response
+  end
+
+  def reorder
+    service = Issues::ReorderService.new(project, current_user, reorder_params)
+
+    if service.execute(issue)
+      head :ok
+    else
+      head :unprocessable_entity
+    end
   end
 
   def related_branches
@@ -237,6 +251,10 @@ class Projects::IssuesController < Projects::ApplicationController
       lock_version
       discussion_locked
     ] + [{ label_ids: [], assignee_ids: [], update_task: [:index, :checked, :line_number, :line_source] }]
+  end
+
+  def reorder_params
+    params.permit(:move_before_id, :move_after_id, :group_full_path)
   end
 
   def store_uri

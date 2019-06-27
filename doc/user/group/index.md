@@ -41,12 +41,13 @@ You can create groups for numerous reasons. To name a couple:
 - Make it easier to `@mention` all of your team at once in issues and merge requests by creating a group and including the appropriate members.
 
 For example, you could create a group for your company members, and create a [subgroup](subgroups/index.md) for each individual team. Let's say you create a group called `company-team`, and you create subgroups in this group for the individual teams `backend-team`, `frontend-team`, and `production-team`.
-    - When you start a new implementation from an issue, you add a comment:
-        _"`@company-team`, let's do it! `@company-team/backend-team` you're good to go!"_
-    - When your backend team needs help from frontend, they add a comment:
-        _"`@company-team/frontend-team` could you help us here please?"_
-    - When the frontend team completes their implementation, they comment:
-        _"`@company-team/backend-team`, it's done! Let's ship it `@company-team/production-team`!"_
+
+- When you start a new implementation from an issue, you add a comment:
+  _"`@company-team`, let's do it! `@company-team/backend-team` you're good to go!"_
+- When your backend team needs help from frontend, they add a comment:
+  _"`@company-team/frontend-team` could you help us here please?"_
+- When the frontend team completes their implementation, they comment:
+  _"`@company-team/backend-team`, it's done! Let's ship it `@company-team/production-team`!"_
 
 ## Namespaces
 
@@ -268,9 +269,10 @@ be unique.
 
 To change your group path:
 
-1. Navigate to your group's **Settings > General**.
-1. Enter a new name under **Group path**.
-1. Click **Save group**.
+1. Navigate to your group's **Settings > General** page.
+1. Expand the **Path, transfer, remove** section.
+1. Enter a new name under **Change group path**.
+1. Click **Change group path**.
 
 CAUTION: **Caution:**
 It is currently not possible to rename a namespace if it contains a
@@ -323,6 +325,25 @@ This will disable the option for all users who previously had permissions to
 operate project memberships, so no new users can be added. Furthermore, any
 request to add a new user to a project through API will not be possible.
 
+#### IP access restriction **[ULTIMATE]**
+
+> [Introduced](https://gitlab.com/gitlab-org/gitlab-ee/issues/1985) in
+[GitLab Ultimate](https://about.gitlab.com/pricing/) 12.0.
+
+To make sure only people from within your organization can access particular
+resources, you have the option to restrict access to groups and their
+underlying projects, issues, etc, by IP address. This can help ensure that
+particular content doesn't leave the premises, while not blocking off access to
+the entire instance.
+
+Add whitelisted IP subnet using CIDR notation to the group settings and anyone
+coming from a different IP address won't be able to access the restricted
+content.
+
+Restriction currently applies to UI, API access is not restricted.
+To avoid accidental lock-out, admins and group owners are are able to access
+the group regardless of the IP restriction.
+
 #### Group file templates **[PREMIUM]**
 
 Group file templates allow you to share a set of templates for common file
@@ -361,6 +382,14 @@ Define project templates at a group level by setting a group as the template sou
 - **Audit Events**: View [Audit Events](../../administration/audit_events.md)
   for the group. **[STARTER ONLY]**
 - **Pipelines quota**: Keep track of the [pipeline quota](../admin_area/settings/continuous_integration.md) for the group.
+
+#### Storage usage quota **[STARTER]**
+
+> [Introduced](https://gitlab.com/gitlab-org/gitlab-ee/merge_requests/13294) in [GitLab Starter](https://about.gitlab.com/pricing/) 12.0.
+
+A group owner can check the aggregated storage usage for all the project in a group, sub-groups included, in the **Storage** tab of the **Usage Quotas** page available to the group page settings list.
+
+![Group storage usage quota](img/group_storage_usage_quota.png)
 
 ## User contribution analysis **[STARTER]**
 

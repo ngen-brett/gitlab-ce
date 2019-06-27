@@ -57,10 +57,6 @@ differentiate the new cluster from the rest.
 > [Introduced](https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/22011) in GitLab 11.5.
 > Became [optional](https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/26565) in GitLab 11.11.
 
-NOTE: **Note:**
-Only available when creating clusters. Existing clusters not managed by GitLab
-cannot become GitLab-managed later.
-
 You can choose to allow GitLab to manage your cluster for you. If your cluster is
 managed by GitLab, resources for your projects will be automatically created. See the
 [Access controls](../../project/clusters/index.md#access-controls) section for details on which resources will
@@ -141,14 +137,6 @@ The result will then be:
 - The Project cluster will be used for the `test` job.
 - The Staging cluster will be used for the `deploy to staging` job.
 - The Production cluster will be used for the `deploy to production` job.
-
-## Unavailable features
-
-The following features are not currently available for group-level clusters:
-
-1. Terminals (see [related issue](https://gitlab.com/gitlab-org/gitlab-ce/issues/55487)).
-1. Pod logs (see [related issue](https://gitlab.com/gitlab-org/gitlab-ce/issues/55488)).
-1. Deployment boards (see [related issue](https://gitlab.com/gitlab-org/gitlab-ce/issues/55489)).
 
 <!-- ## Troubleshooting
 

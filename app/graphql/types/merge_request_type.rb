@@ -15,7 +15,9 @@ module Types
     field :id, GraphQL::ID_TYPE, null: false
     field :iid, GraphQL::STRING_TYPE, null: false
     field :title, GraphQL::STRING_TYPE, null: false
+    markdown_field :title_html, null: true
     field :description, GraphQL::STRING_TYPE, null: true
+    markdown_field :description_html, null: true
     field :state, MergeRequestStateEnum, null: false
     field :created_at, Types::TimeType, null: false
     field :updated_at, Types::TimeType, null: false
@@ -55,5 +57,7 @@ module Types
     field :head_pipeline, Types::Ci::PipelineType, null: true, method: :actual_head_pipeline
     field :pipelines, Types::Ci::PipelineType.connection_type,
           resolver: Resolvers::MergeRequestPipelinesResolver
+
+    field :task_completion_status, Types::TaskCompletionStatus, null: false
   end
 end

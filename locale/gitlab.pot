@@ -16,6 +16,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+msgid " (from %{timeoutSource})"
+msgstr ""
+
 msgid " Please sign in."
 msgstr ""
 
@@ -35,6 +38,11 @@ msgstr[1] ""
 
 msgid "%d commit behind"
 msgid_plural "%d commits behind"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d commit,"
+msgid_plural "%d commits,"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -388,6 +396,9 @@ msgstr ""
 msgid "<no name set>"
 msgstr ""
 
+msgid "<no scopes selected>"
+msgstr ""
+
 msgid "<strong>%{changedFilesLength} unstaged</strong> and <strong>%{stagedFilesLength} staged</strong> changes"
 msgstr ""
 
@@ -499,6 +510,54 @@ msgstr ""
 msgid "Access to '%{classification_label}' not allowed"
 msgstr ""
 
+msgid "AccessTokens|Access Tokens"
+msgstr ""
+
+msgid "AccessTokens|Are you sure? Any RSS or calendar URLs currently in use will stop working."
+msgstr ""
+
+msgid "AccessTokens|Are you sure? Any issue email addresses currently in use will stop working."
+msgstr ""
+
+msgid "AccessTokens|Created"
+msgstr ""
+
+msgid "AccessTokens|Feed token"
+msgstr ""
+
+msgid "AccessTokens|Incoming email token"
+msgstr ""
+
+msgid "AccessTokens|It cannot be used to access any other data."
+msgstr ""
+
+msgid "AccessTokens|Keep this token secret. Anyone who gets ahold of it can create issues as if they were you. You should %{link_reset_it} if that ever happens."
+msgstr ""
+
+msgid "AccessTokens|Keep this token secret. Anyone who gets ahold of it can read activity and issue RSS feeds or your calendar feed as if they were you. You should %{link_reset_it} if that ever happens."
+msgstr ""
+
+msgid "AccessTokens|Personal Access Tokens"
+msgstr ""
+
+msgid "AccessTokens|They are the only accepted password when you have Two-Factor Authentication (2FA) enabled."
+msgstr ""
+
+msgid "AccessTokens|You can also use personal access tokens to authenticate against Git over HTTP."
+msgstr ""
+
+msgid "AccessTokens|You can generate a personal access token for each application you use that needs access to the GitLab API."
+msgstr ""
+
+msgid "AccessTokens|Your feed token is used to authenticate you when your RSS reader loads a personalized RSS feed or when your calendar application loads a personalized calendar, and is included in those feed URLs."
+msgstr ""
+
+msgid "AccessTokens|Your incoming email token is used to authenticate you when you create a new issue by email, and is included in your personal project-specific email addresses."
+msgstr ""
+
+msgid "AccessTokens|reset it"
+msgstr ""
+
 msgid "Account"
 msgstr ""
 
@@ -509,6 +568,9 @@ msgid "Account: %{account}"
 msgstr ""
 
 msgid "Active"
+msgstr ""
+
+msgid "Active %{type} Tokens (%{token_length})"
 msgstr ""
 
 msgid "Active Sessions"
@@ -527,6 +589,9 @@ msgid "Add Kubernetes cluster"
 msgstr ""
 
 msgid "Add README"
+msgstr ""
+
+msgid "Add a %{type} token"
 msgstr ""
 
 msgid "Add a GPG key"
@@ -1154,6 +1219,9 @@ msgid "Are you sure you want to reset registration token?"
 msgstr ""
 
 msgid "Are you sure you want to reset the health check token?"
+msgstr ""
+
+msgid "Are you sure you want to revoke this %{type} Token? This action cannot be undone."
 msgstr ""
 
 msgid "Are you sure you want to revoke this nickname?"
@@ -2061,6 +2129,9 @@ msgstr ""
 msgid "Clear search input"
 msgstr ""
 
+msgid "Clear templates search input"
+msgstr ""
+
 msgid "Click any <strong>project name</strong> in the project list below to navigate to the project milestone."
 msgstr ""
 
@@ -2786,7 +2857,13 @@ msgstr ""
 msgid "Configure Let's Encrypt"
 msgstr ""
 
+msgid "Configure Prometheus"
+msgstr ""
+
 msgid "Configure automatic git checks and housekeeping on repositories."
+msgstr ""
+
+msgid "Configure existing installation"
 msgstr ""
 
 msgid "Configure limits for web and API requests."
@@ -2828,9 +2905,6 @@ msgstr ""
 msgid "Container registry images"
 msgstr ""
 
-msgid "ContainerRegistry|Created"
-msgstr ""
-
 msgid "ContainerRegistry|First log in to GitLab&rsquo;s Container Registry using your GitLab username and password. If you have %{link_2fa} you need to use a %{link_token}:"
 msgstr ""
 
@@ -2838,6 +2912,9 @@ msgid "ContainerRegistry|GitLab supports up to 3 levels of image names. The foll
 msgstr ""
 
 msgid "ContainerRegistry|How to use the Container Registry"
+msgstr ""
+
+msgid "ContainerRegistry|Last Updated"
 msgstr ""
 
 msgid "ContainerRegistry|Learn more about"
@@ -2849,10 +2926,13 @@ msgstr ""
 msgid "ContainerRegistry|Once you log in, you&rsquo;re free to create and upload a container image using the common %{build} and %{push} commands"
 msgstr ""
 
-msgid "ContainerRegistry|Remove repository"
+msgid "ContainerRegistry|Remove image"
 msgstr ""
 
-msgid "ContainerRegistry|Remove tag"
+msgid "ContainerRegistry|Remove image and tags"
+msgstr ""
+
+msgid "ContainerRegistry|Remove repository"
 msgstr ""
 
 msgid "ContainerRegistry|Size"
@@ -2868,6 +2948,12 @@ msgid "ContainerRegistry|Use different image names"
 msgstr ""
 
 msgid "ContainerRegistry|With the Docker Container Registry integrated into GitLab, every project can have its own space to store its Docker images."
+msgstr ""
+
+msgid "ContainerRegistry|You are about to delete the image <b>%{title}</b>. This will delete the image and all tags pointing to this image."
+msgstr ""
+
+msgid "ContainerRegistry|You are about to remove repository <b>%{title}</b>. Once you confirm, this repository will be permanently deleted."
 msgstr ""
 
 msgid "ContainerRegistry|You can also use a %{deploy_token} for read-only access to the registry images."
@@ -2966,6 +3052,9 @@ msgstr ""
 msgid "Copy link"
 msgstr ""
 
+msgid "Copy personal access token to clipboard"
+msgstr ""
+
 msgid "Copy reference to clipboard"
 msgstr ""
 
@@ -3014,6 +3103,9 @@ msgstr ""
 msgid "Create"
 msgstr ""
 
+msgid "Create %{type} token"
+msgstr ""
+
 msgid "Create New Directory"
 msgstr ""
 
@@ -3045,6 +3137,12 @@ msgid "Create branch"
 msgstr ""
 
 msgid "Create commit"
+msgstr ""
+
+msgid "Create confidential merge request"
+msgstr ""
+
+msgid "Create confidential merge request and branch"
 msgstr ""
 
 msgid "Create directory"
@@ -3126,6 +3224,9 @@ msgid "Created on:"
 msgstr ""
 
 msgid "Creates branch '%{branch_name}' and a merge request to resolve this issue"
+msgstr ""
+
+msgid "Creating graphs uses the data from the Prometheus server. If this takes a long time, ensure that data is available."
 msgstr ""
 
 msgid "Cron Timezone"
@@ -3499,6 +3600,9 @@ msgstr ""
 msgid "Diff limits"
 msgstr ""
 
+msgid "DiffsCompareBaseBranch|(base)"
+msgstr ""
+
 msgid "Diffs|No file name available"
 msgstr ""
 
@@ -3766,9 +3870,6 @@ msgstr ""
 msgid "Enable HTML emails"
 msgstr ""
 
-msgid "Enable Sentry for error reporting and logging."
-msgstr ""
-
 msgid "Enable access to the Performance Bar for a given group."
 msgstr ""
 
@@ -3986,9 +4087,6 @@ msgid "Epic"
 msgstr ""
 
 msgid "Error"
-msgstr ""
-
-msgid "Error Reporting and Logging"
 msgstr ""
 
 msgid "Error Tracking"
@@ -4213,6 +4311,12 @@ msgstr ""
 msgid "Expired %{expiredOn}"
 msgstr ""
 
+msgid "Expires"
+msgstr ""
+
+msgid "Expires at"
+msgstr ""
+
 msgid "Expires in %{expires_at}"
 msgstr ""
 
@@ -4408,9 +4512,6 @@ msgstr ""
 msgid "February"
 msgstr ""
 
-msgid "Fields on this page are now uneditable, you can configure"
-msgstr ""
-
 msgid "File"
 msgid_plural "Files"
 msgstr[0] ""
@@ -4498,12 +4599,6 @@ msgid "Finished"
 msgstr ""
 
 msgid "First day of the week"
-msgstr ""
-
-msgid "FirstPushedBy|First"
-msgstr ""
-
-msgid "FirstPushedBy|pushed by"
 msgstr ""
 
 msgid "FlowdockService|Flowdock Git source token"
@@ -4645,6 +4740,9 @@ msgid "Geo"
 msgstr ""
 
 msgid "Get started with error tracking"
+msgstr ""
+
+msgid "Get started with performance monitoring"
 msgstr ""
 
 msgid "Getting started with releases"
@@ -4992,6 +5090,9 @@ msgstr ""
 msgid "Help page text and support page url."
 msgstr ""
 
+msgid "Helps prevent bots from creating accounts. We currently only support %{recaptcha_v2_link_start}reCAPTCHA v2%{recaptcha_v2_link_end}"
+msgstr ""
+
 msgid "Hide archived projects"
 msgstr ""
 
@@ -5324,6 +5425,9 @@ msgstr ""
 msgid "Install a soft token authenticator like %{free_otp_link} or Google Authenticator from your application repository and scan this QR code. More information is available in the %{help_link_start}documentation%{help_link_end}."
 msgstr ""
 
+msgid "Install on clusters"
+msgstr ""
+
 msgid "Installed"
 msgstr ""
 
@@ -5439,6 +5543,9 @@ msgid "Issue was closed by %{name} %{reason}"
 msgstr ""
 
 msgid "IssueBoards|Board"
+msgstr ""
+
+msgid "IssueBoards|Boards"
 msgstr ""
 
 msgid "Issues"
@@ -5651,7 +5758,7 @@ msgstr ""
 msgid "Kubernetes error: %{error_code}"
 msgstr ""
 
-msgid "Kubernetes service integration has been deprecated. %{deprecated_message_content} your Kubernetes clusters using the new <a href=\"%{url}\"/>Kubernetes Clusters</a> page"
+msgid "Kubernetes service integration has been disabled. Fields on this page are not used by GitLab, you can configure your Kubernetes clusters using the new <a href=\"%{url}\"/>Kubernetes Clusters</a> page"
 msgstr ""
 
 msgid "LFS"
@@ -5830,6 +5937,9 @@ msgstr ""
 msgid "Let's Encrypt is a free, automated, and open certificate authority (CA) that gives digital certificates in order to enable HTTPS (SSL/TLS) for websites. Learn more about Let's Encrypt configuration by following the %{docs_link_start}documentation on GitLab Pages%{docs_link_end}."
 msgstr ""
 
+msgid "Limit display of time tracking units to hours."
+msgstr ""
+
 msgid "Limited to showing %d event at most"
 msgid_plural "Limited to showing %d events at most"
 msgstr[0] ""
@@ -5922,6 +6032,9 @@ msgstr ""
 msgid "Make issue confidential."
 msgstr ""
 
+msgid "Make sure you save it - you won't be able to access it again."
+msgstr ""
+
 msgid "Make sure you're logged into the account that owns the projects you'd like to import."
 msgstr ""
 
@@ -5968,6 +6081,9 @@ msgid "Manifest file import"
 msgstr ""
 
 msgid "Manual job"
+msgstr ""
+
+msgid "ManualOrdering|Couldn't save the order of the issues"
 msgstr ""
 
 msgid "Map a FogBugz account ID to a GitLab user"
@@ -6575,6 +6691,9 @@ msgstr ""
 msgid "No contributions were found"
 msgstr ""
 
+msgid "No data found"
+msgstr ""
+
 msgid "No details available"
 msgstr ""
 
@@ -6636,6 +6755,9 @@ msgid "No runners found"
 msgstr ""
 
 msgid "No schedules"
+msgstr ""
+
+msgid "No template"
 msgstr ""
 
 msgid "No, directly import the existing email addresses and usernames."
@@ -6943,13 +7065,13 @@ msgstr ""
 msgid "Pagination|Last »"
 msgstr ""
 
-msgid "Pagination|Next"
-msgstr ""
-
-msgid "Pagination|Prev"
+msgid "Pagination|Next ›"
 msgstr ""
 
 msgid "Pagination|« First"
+msgstr ""
+
+msgid "Pagination|‹ Prev"
 msgstr ""
 
 msgid "Parameter"
@@ -7042,13 +7164,13 @@ msgstr ""
 msgid "Pick a name"
 msgstr ""
 
+msgid "Pick a name for the application, and we'll give you a unique %{type} token."
+msgstr ""
+
 msgid "Pin code"
 msgstr ""
 
 msgid "Pipeline"
-msgstr ""
-
-msgid "Pipeline ID (IID)"
 msgstr ""
 
 msgid "Pipeline Schedule"
@@ -7339,6 +7461,9 @@ msgstr ""
 msgid "Please wait while we import the repository for you. Refresh at will."
 msgstr ""
 
+msgid "Pre-release"
+msgstr ""
+
 msgid "Preferences"
 msgstr ""
 
@@ -7567,6 +7692,9 @@ msgstr ""
 msgid "Profiles|Full name"
 msgstr ""
 
+msgid "Profiles|Impersonation"
+msgstr ""
+
 msgid "Profiles|Include private contributions on my profile"
 msgstr ""
 
@@ -7607,6 +7735,9 @@ msgid "Profiles|Organization"
 msgstr ""
 
 msgid "Profiles|Path"
+msgstr ""
+
+msgid "Profiles|Personal Access"
 msgstr ""
 
 msgid "Profiles|Position and size your new avatar"
@@ -7742,6 +7873,12 @@ msgid "Profiles|Your status"
 msgstr ""
 
 msgid "Profiles|e.g. My MacBook key"
+msgstr ""
+
+msgid "Profiles|impersonation"
+msgstr ""
+
+msgid "Profiles|personal access"
 msgstr ""
 
 msgid "Profiles|username"
@@ -8062,6 +8199,9 @@ msgstr ""
 msgid "ProjectsDropdown|This feature requires browser localStorage support"
 msgstr ""
 
+msgid "Prometheus server"
+msgstr ""
+
 msgid "PrometheusService|%{exporters} with %{metrics} were found"
 msgstr ""
 
@@ -8316,9 +8456,6 @@ msgstr ""
 msgid "Registry"
 msgstr ""
 
-msgid "Related Commits"
-msgstr ""
-
 msgid "Related Deployed Jobs"
 msgstr ""
 
@@ -8533,6 +8670,9 @@ msgid "Reset health check access token"
 msgstr ""
 
 msgid "Reset runners registration token"
+msgstr ""
+
+msgid "Reset template"
 msgstr ""
 
 msgid "Resolve all discussions in new issue"
@@ -8772,6 +8912,9 @@ msgid "Scope not supported with disabled 'users_search' feature!"
 msgstr ""
 
 msgid "Scoped label"
+msgstr ""
+
+msgid "Scopes"
 msgstr ""
 
 msgid "Scroll down to <strong>Google Code Project Hosting</strong> and enable the switch on the right."
@@ -9149,7 +9292,13 @@ msgstr ""
 msgid "Show command"
 msgstr ""
 
+msgid "Show comments"
+msgstr ""
+
 msgid "Show comments only"
+msgstr ""
+
+msgid "Show commit description"
 msgstr ""
 
 msgid "Show complete raw log"
@@ -9174,6 +9323,9 @@ msgid "Showing %d event"
 msgid_plural "Showing %d events"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "Showing last %{size} of log -"
+msgstr ""
 
 msgid "Side-by-side"
 msgstr ""
@@ -9580,6 +9732,9 @@ msgstr ""
 msgid "Status:"
 msgstr ""
 
+msgid "Stay updated about the performance and health of your environment by configuring Prometheus to monitor your deployments."
+msgstr ""
+
 msgid "Stop environment"
 msgstr ""
 
@@ -9954,9 +10109,6 @@ msgstr ""
 msgid "The X509 Certificate to use when mutual TLS is required to communicate with the external authorization service. If left blank, the server certificate is still validated when accessing over HTTPS."
 msgstr ""
 
-msgid "The certificate will be shown here once it has been obtained from Let's Encrypt. This process may take up to an hour to complete."
-msgstr ""
-
 msgid "The character highlighter helps you keep the subject line to %{titleLength} characters and wrap the body at %{bodyLength} so they are readable in git."
 msgstr ""
 
@@ -10009,6 +10161,9 @@ msgid "The group settings for %{group_links} require you to enable Two-Factor Au
 msgstr ""
 
 msgid "The import will time out after %{timeout}. For repositories that take longer, use a clone/push combination."
+msgstr ""
+
+msgid "The instance-level Kubernetes service integration is disabled. Your data has been migrated to an <a href=\"%{url}\"/>instance-level cluster</a>."
 msgstr ""
 
 msgid "The invitation could not be accepted."
@@ -10287,9 +10442,6 @@ msgstr ""
 msgid "This branch has changed since you started editing. Would you like to create a new branch?"
 msgstr ""
 
-msgid "This certificate is automatically managed by Let's Encrypt"
-msgstr ""
-
 msgid "This commit is part of merge request %{link_to_merge_request}. Comments created here will be created in the context of that merge request."
 msgstr ""
 
@@ -10482,6 +10634,9 @@ msgstr ""
 msgid "This user cannot be unlocked manually from GitLab"
 msgstr ""
 
+msgid "This user has no active %{type} Tokens."
+msgstr ""
+
 msgid "This user has no identities"
 msgstr ""
 
@@ -10492,6 +10647,9 @@ msgid "This will remove the fork relationship to source project"
 msgstr ""
 
 msgid "Thursday"
+msgstr ""
+
+msgid "Time"
 msgstr ""
 
 msgid "Time based: Yes"
@@ -10744,6 +10902,9 @@ msgstr ""
 msgid "To preserve performance only <strong>%{display_size} of %{real_size}</strong> files are displayed."
 msgstr ""
 
+msgid "To see all the user's personal access tokens you must impersonate them first."
+msgstr ""
+
 msgid "To specify the notification level per project of a group you belong to, you need to visit project page and change notification level there."
 msgstr ""
 
@@ -10937,6 +11098,9 @@ msgid "U2F Devices (%{length})"
 msgstr ""
 
 msgid "U2F only works with HTTPS-enabled websites. Contact your administrator for more details."
+msgstr ""
+
+msgid "Unable to connect to Prometheus server"
 msgstr ""
 
 msgid "Unable to connect to server: %{error}"
@@ -11344,6 +11508,9 @@ msgstr ""
 msgid "View details: %{details_url}"
 msgstr ""
 
+msgid "View documentation"
+msgstr ""
+
 msgid "View file @ "
 msgstr ""
 
@@ -11417,6 +11584,9 @@ msgid "VisibilityLevel|Unknown"
 msgstr ""
 
 msgid "Wait for the source to load to copy it to the clipboard"
+msgstr ""
+
+msgid "Waiting for performance data"
 msgstr ""
 
 msgid "Want to see the data? Please ask an administrator for access."
@@ -11674,6 +11844,9 @@ msgid "You are attempting to delete a file that has been previously updated."
 msgstr ""
 
 msgid "You are attempting to update a file that has changed since you started editing it."
+msgstr ""
+
+msgid "You are connected to the Prometheus server, but there is currently no data to display."
 msgstr ""
 
 msgid "You are going to remove %{group_name}, this will also remove all of its subgroups and projects. Removed groups CANNOT be restored! Are you ABSOLUTELY sure?"
@@ -11955,7 +12128,7 @@ msgstr ""
 msgid "Your Groups"
 msgstr ""
 
-msgid "Your Kubernetes cluster information on this page is still editable, but you are advised to disable and reconfigure"
+msgid "Your New Personal Access Token"
 msgstr ""
 
 msgid "Your Primary Email will be used for avatar detection."
@@ -12622,6 +12795,9 @@ msgid "uses Kubernetes clusters to deploy your code!"
 msgstr ""
 
 msgid "verify ownership"
+msgstr ""
+
+msgid "version %{versionIndex}"
 msgstr ""
 
 msgid "via %{closed_via}"

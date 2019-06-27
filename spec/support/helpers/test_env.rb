@@ -64,7 +64,8 @@ module TestEnv
     'with-codeowners'                    => '219560e',
     'submodule_inside_folder'            => 'b491b92',
     'png-lfs'                            => 'fe42f41',
-    'sha-starting-with-large-number'     => '8426165'
+    'sha-starting-with-large-number'     => '8426165',
+    'invalid-utf8-diff-paths'            => '99e4853'
   }.freeze
 
   # gitlab-test-fork is a fork of gitlab-fork, but we don't necessarily
@@ -146,19 +147,6 @@ module TestEnv
       install_dir: Gitlab.config.gitlab_shell.path,
       version: Gitlab::Shell.version_required,
       task: 'gitlab:shell:install')
-
-    # gitlab-shell hooks don't work in our test environment because they try to make internal API calls
-    sabotage_gitlab_shell_hooks
-  end
-
-  def sabotage_gitlab_shell_hooks
-    create_fake_git_hooks(Gitlab::Shell.new.hooks_path)
-  end
-
-  def create_fake_git_hooks(hooks_dir)
-    %w[pre-receive post-receive update].each do |hook|
-      File.open(File.join(hooks_dir, hook), 'w', 0755) { |f| f.puts '#!/bin/sh' }
-    end
   end
 
   def setup_gitaly
@@ -172,7 +160,6 @@ module TestEnv
       task: "gitlab:gitaly:install[#{install_gitaly_args}]") do
 
         Gitlab::SetupHelper.create_gitaly_configuration(gitaly_dir, { 'default' => repos_path }, force: true)
-        create_fake_git_hooks(File.join(gitaly_dir, 'ruby/git-hooks'))
         start_gitaly(gitaly_dir)
       end
   end

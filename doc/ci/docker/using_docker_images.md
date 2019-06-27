@@ -478,17 +478,18 @@ To define which should be used, the GitLab Runner process reads the configuratio
   - A [variable](../variables/README.md#gitlab-cicd-environment-variables) in `.gitlab-ci.yml`.
   - A project's variables stored on the projects **Settings > CI/CD** page.
 - `DOCKER_AUTH_CONFIG` variable provided as environment variable in `config.toml` of the Runner.
-- `config.json` file placed in `$HOME/docker` directory of the user running GitLab Runner process.
+- `config.json` file placed in `$HOME/.docker` directory of the user running GitLab Runner process.
   If the `--user` flag is provided to run the GitLab Runner child processes as unprivileged user,
   the home directory of the main GitLab Runner process user will be used.
 
-NOTE: **Note:** 
-GitLab Runner reads this configuration **only** from `config.toml` and ignores it if 
+NOTE: **Note:**
+GitLab Runner reads this configuration **only** from `config.toml` and ignores it if
 it's provided as an environment variable. This is because GitLab Runnner uses **only**
 `config.toml` configuration and doesn't interpolate **ANY** environment variables at
 runtime.
 
 ### Using statically-defined credentials
+
 As an example, let's assume that you want to use the `registry.example.com:5000/private/image:latest`
 image which is private and requires you to login into a private container registry.
 
@@ -566,7 +567,6 @@ for the Runner to match the `DOCKER_AUTH_CONFIG`. For example, if
 then the `DOCKER_AUTH_CONFIG` must also specify `registry.example.com:5000`.
 Specifying only `registry.example.com` will not work.
 
-
 ### Using Credentials Store
 
 > Support for using Credentials Store was added in GitLab Runner 9.5.
@@ -574,10 +574,10 @@ Specifying only `registry.example.com` will not work.
 To configure credentials store, follow these steps:
 
 1. To use a credentials store, you need an external helper program to interact with a specific keychain or external store.
-Make sure helper program is available in GitLab Runner `$PATH`.
+   Make sure helper program is available in GitLab Runner `$PATH`.
 
 1. Make GitLab Runner use it. There are two ways to accomplish this. Either:
-   - Create a 
+   - Create a
      [variable](../variables/README.md#gitlab-cicd-environment-variables)
      `DOCKER_AUTH_CONFIG` with the content of the
    Docker configuration file as the value:
@@ -741,7 +741,7 @@ creation.
 [tutum/wordpress]: https://hub.docker.com/r/tutum/wordpress/
 [postgres-hub]: https://hub.docker.com/r/_/postgres/
 [mysql-hub]: https://hub.docker.com/r/_/mysql/
-[runner-priv-reg]: http://docs.gitlab.com/runner/configuration/advanced-configuration.html#using-a-private-container-registry
+[runner-priv-reg]: https://docs.gitlab.com/runner/configuration/advanced-configuration.html#using-a-private-container-registry
 [entrypoint]: https://docs.docker.com/engine/reference/builder/#entrypoint
 [cmd]: https://docs.docker.com/engine/reference/builder/#cmd
 [register]: https://docs.gitlab.com/runner/register/

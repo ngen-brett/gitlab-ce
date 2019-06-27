@@ -1,6 +1,6 @@
 <script>
 import getRefMixin from '../mixins/get_ref';
-import getProjectShortPath from '../queries/getProjectShortPath.graphql';
+import getProjectShortPath from '../queries/getProjectShortPath.query.graphql';
 
 export default {
   apollo: {
@@ -36,7 +36,7 @@ export default {
               to: `/tree/${this.ref}${path}`,
             });
           },
-          [{ name: this.projectShortPath, path: '/', to: `/tree/${this.ref}` }],
+          [{ name: this.projectShortPath, path: '/', to: `/tree/${this.ref}/` }],
         );
     },
   },

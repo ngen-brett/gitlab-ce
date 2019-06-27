@@ -3,6 +3,9 @@
 class PagesDomain < ApplicationRecord
   VERIFICATION_KEY = 'gitlab-pages-verification-code'.freeze
   VERIFICATION_THRESHOLD = 3.days.freeze
+  SSL_RENEWAL_THRESHOLD = 30.days.freeze
+
+  enum certificate_source: { user_provided: 0, gitlab_provided: 1 }, _prefix: :certificate
 
   belongs_to :project
   has_many :acme_orders, class_name: "PagesDomainAcmeOrder"
@@ -37,6 +40,15 @@ class PagesDomain < ApplicationRecord
     threshold = Time.now + VERIFICATION_THRESHOLD
 
     where(verified_at.eq(nil).or(enabled_until.eq(nil).or(enabled_until.lt(threshold))))
+  end
+
+  scope :need_auto_ssl_renewal, -> do
+    expiring = where(certificate_valid_not_after: nil).or(
+      where(arel_table[:certificate_valid_not_after].lt(SSL_RENEWAL_THRESHOLD.from_now)))
+
+    user_provided_or_expiring = certificate_user_provided.or(expiring)
+
+    where(auto_ssl_enabled: true).merge(user_provided_or_expiring)
   end
 
   scope :for_removal, -> { where("remove_at < ?", Time.now) }
@@ -141,6 +153,34 @@ class PagesDomain < ApplicationRecord
     # set nil, if certificate is nil
     self.certificate_valid_not_before = x509&.not_before
     self.certificate_valid_not_after = x509&.not_after
+  end
+
+  def user_provided_key
+    key if certificate_user_provided?
+  end
+
+  def user_provided_key=(key)
+    self.key = key
+    self.certificate_source = 'user_provided' if key_changed?
+  end
+
+  def user_provided_certificate
+    certificate if certificate_user_provided?
+  end
+
+  def user_provided_certificate=(certificate)
+    self.certificate = certificate
+    self.certificate_source = 'user_provided' if certificate_changed?
+  end
+
+  def gitlab_provided_certificate=(certificate)
+    self.certificate = certificate
+    self.certificate_source = 'gitlab_provided' if certificate_changed?
+  end
+
+  def gitlab_provided_key=(key)
+    self.key = key
+    self.certificate_source = 'gitlab_provided' if key_changed?
   end
 
   private

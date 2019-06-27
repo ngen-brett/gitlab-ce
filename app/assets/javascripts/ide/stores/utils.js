@@ -135,18 +135,25 @@ export const getCommitFiles = stagedFiles =>
     });
   }, []);
 
-export const createCommitPayload = ({ branch, getters, newBranch, state, rootState }) => ({
+export const createCommitPayload = ({
+  branch,
+  getters,
+  newBranch,
+  state,
+  rootState,
+  rootGetters,
+}) => ({
   branch,
   commit_message: state.commitMessage || getters.preBuiltCommitMessage,
   actions: getCommitFiles(rootState.stagedFiles).map(f => ({
     action: commitActionForFile(f),
-    file_path: f.path,
+    file_path: f.moved ? f.movedPath : f.path,
     previous_path: f.prevPath === '' ? undefined : f.prevPath,
-    content: f.content || undefined,
+    content: f.prevPath ? null : f.content || undefined,
     encoding: f.base64 ? 'base64' : 'text',
     last_commit_id: newBranch || f.deleted || f.prevPath ? undefined : f.lastCommitSha,
   })),
-  start_branch: newBranch ? rootState.currentBranchId : undefined,
+  start_sha: newBranch ? rootGetters.lastCommit.short_id : undefined,
 });
 
 export const createNewMergeRequestUrl = (projectUrl, source, target) =>

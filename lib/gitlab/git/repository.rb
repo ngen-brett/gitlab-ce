@@ -15,11 +15,6 @@ module Gitlab
 
       SEARCH_CONTEXT_LINES = 3
       REV_LIST_COMMIT_LIMIT = 2_000
-      # In https://gitlab.com/gitlab-org/gitaly/merge_requests/698
-      # We copied these two prefixes into gitaly-go, so don't change these
-      # or things will break! (REBASE_WORKTREE_PREFIX and SQUASH_WORKTREE_PREFIX)
-      REBASE_WORKTREE_PREFIX = 'rebase'.freeze
-      SQUASH_WORKTREE_PREFIX = 'squash'.freeze
       GITALY_INTERNAL_URL = 'ssh://gitaly/internal.git'.freeze
       GITLAB_PROJECTS_TIMEOUT = Gitlab.config.gitlab_shell.git_timeout
       EMPTY_REPOSITORY_CHECKSUM = '0000000000000000000000000000000000000000'.freeze
@@ -683,17 +678,16 @@ module Gitlab
         attributes(path)[name]
       end
 
-      # Check .gitattributes for a given ref
+      # Returns parsed .gitattributes for a given ref
       #
-      # This only checks the root .gitattributes file,
+      # This only parses the root .gitattributes file,
       # it does not traverse subfolders to find additional .gitattributes files
       #
       # This method is around 30 times slower than `attributes`, which uses
       # `$GIT_DIR/info/attributes`. Consider caching AttributesAtRefParser
       # and reusing that for multiple calls instead of this method.
-      def attributes_at(ref, file_path)
-        parser = AttributesAtRefParser.new(self, ref)
-        parser.attributes(file_path)
+      def attributes_at(ref)
+        AttributesAtRefParser.new(self, ref)
       end
 
       def languages(ref = nil)
