@@ -66,9 +66,12 @@ export default {
       const entry = data.entries[key];
       const foundEntry = state.entries[key];
 
-      if (!foundEntry) {
+      if (!foundEntry || foundEntry.deleted) {
         Object.assign(state.entries, {
-          [key]: entry,
+          [key]: {
+            ...entry,
+            replaces: true,
+          },
         });
       } else {
         const tree = entry.tree.filter(
