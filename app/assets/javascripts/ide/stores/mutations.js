@@ -56,6 +56,11 @@ export default {
       stagedFiles: [],
     });
   },
+  [types.CLEAR_REPLACED_FILES](state) {
+    Object.assign(state, {
+      replacedFiles: [],
+    });
+  },
   [types.SET_ENTRIES](state, entries) {
     Object.assign(state, {
       entries,
@@ -147,6 +152,7 @@ export default {
       raw: file.content,
       changed: Boolean(changedFile),
       staged: false,
+      replaces: false,
       prevPath: '',
       moved: false,
       lastCommitSha: lastCommit.commit.id,

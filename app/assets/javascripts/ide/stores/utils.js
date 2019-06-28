@@ -18,6 +18,7 @@ export const dataStructure = () => ({
   active: false,
   changed: false,
   staged: false,
+  replaces: false,
   lastCommitPath: '',
   lastCommitSha: '',
   lastCommit: {
