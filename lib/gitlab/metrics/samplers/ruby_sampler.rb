@@ -38,7 +38,7 @@ module Gitlab
             metrics[key] = ::Gitlab::Metrics.gauge(with_prefix(:gc_stat, key), to_doc_string(key), labels, :livesum)
           end
 
-          metrics[process_start_time_seconds].set(labels.merge(worker_label), Time.now.to_i)
+          metrics[:process_start_time_seconds].set(labels.merge(worker_label), Time.now.to_i)
 
           metrics
         end
