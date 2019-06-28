@@ -208,6 +208,7 @@ export const deleteEntry = ({ commit, dispatch, state }, path) => {
   }
 
   commit(types.DELETE_ENTRY, path);
+  dispatch('stageChange', path);
 
   dispatch('triggerFilesChange');
 };
