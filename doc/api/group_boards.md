@@ -62,7 +62,8 @@ Example response:
 ```
 
 Users on GitLab [Premium, Silver, or higher](https://about.gitlab.com/pricing/) will see
-different parameters, due to the ability to have multiple group boards.
+different parameters, due to the ability to have multiple group boards. Refer to the table
+above to see what enpoint(s) belong to each tier.
 
 Example response: **[PREMIUM]**
 
