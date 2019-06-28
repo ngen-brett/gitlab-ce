@@ -495,13 +495,15 @@ In most cases, content considered for a note should be included:
 - As its own standalone paragraph.
 - As content under a new subheading that introduces the topic, making it more visible/findable.
 
-When to use notes:
+#### When to use
 
-- Use a note when there is a reason that most or all readers who browse the section
-  should see the content; i.e. if missed, it’s likely to cause major trouble for
-  a minority of users or significant trouble for a majority of users. Weigh the
-  costs of distracting users to whom the content is not relevant against
-  the cost of users missing the content if it were not expressed as a note.
+Use a note when there is a reason that most or all readers who browse the
+section should see the content. That is, if missed, it’s likely to cause 
+major trouble for a minority of users or significant trouble for a majority
+of users.
+
+Weigh the costs of distracting users to whom the content is not relevant against
+the cost of users missing the content if it were not expressed as a note.
 
 ```md
 NOTE: **Note:**
