@@ -187,7 +187,7 @@ can be applied to a single issue. You can find the groups listed in the
 
 ## Department labels
 
-The current department labels:
+The current department labels are:
 
 * ~UX
 * ~Quality
