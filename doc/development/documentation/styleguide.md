@@ -489,7 +489,7 @@ lists, headers, etc will not render correctly. For multiple lines, use blockquot
 ### Note
 
 Notes catch the eye of most readers, and therefore should be used very sparingly.
-In most cases, content considered for a note can better be included:
+In most cases, content considered for a note should be included:
 
 - As just another sentence in the previous paragraph or the most-relevant paragraph.
 - As its own standalone paragraph.
