@@ -1166,8 +1166,8 @@ test:
         group_base: 'ou=groups,dc=example,dc=com'
         admin_group: ''
   prometheus:
-    # enable: true
-    # listen_address: 'localhost:9090'
+    enable: true
+    listen_address: 'localhost:9090'
 
 staging:
   <<: *base
