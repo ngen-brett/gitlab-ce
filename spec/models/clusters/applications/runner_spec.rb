@@ -18,7 +18,7 @@ describe Clusters::Applications::Runner do
 
     subject { gitlab_runner.can_uninstall? }
 
-    it { is_expected.to be_falsey }
+    it { is_expected.to be_truthy }
   end
 
   describe '#install_command' do
