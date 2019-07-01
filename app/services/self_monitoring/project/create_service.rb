@@ -13,25 +13,29 @@ module SelfMonitoring
       NoPrometheusSettingInGitlabYml = Class.new(StandardError)
 
       def execute
-        admin_user = project_owner
-
-        unless admin_user
-          raise NoAdminUsersError, 'No active admin user found'
-        end
-
-        project = ::Projects::CreateService.new(admin_user, create_project_params).execute
+        project = create_project
 
         add_prometheus_manual_configuration(project)
 
         add_project_members(project)
 
-        # Generate alertmanager token (EE)
+        # EE only
         setup_alertmanager(project)
 
         project
       end
 
       private
+
+      def create_project
+        admin_user = project_owner
+
+        unless admin_user
+          raise NoAdminUsersError, 'No active admin user found'
+        end
+
+        ::Projects::CreateService.new(admin_user, create_project_params).execute
+      end
 
       # This function is overridden in EE
       def setup_alertmanager(project)
