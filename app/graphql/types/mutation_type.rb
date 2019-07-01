@@ -10,5 +10,7 @@ module Types
     mount_mutation Mutations::AwardEmojis::Remove
     mount_mutation Mutations::AwardEmojis::Toggle
     mount_mutation Mutations::MergeRequests::SetWip
+    mount_mutation Mutations::Notes::Create
+    mount_mutation Mutations::Notes::Destroy
   end
 end
