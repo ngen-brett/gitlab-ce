@@ -5,26 +5,53 @@ module SelfMonitoring
     class CreateService
       DEFAULT_VISIBILITY_LEVEL = Gitlab::VisibilityLevel::INTERNAL
       DEFAULT_NAME = 'GitLab Instance Administration'
+      DEFAULT_DESCRIPTION = <<~HEREDOC
+      This project is automatically generated and will be used to help monitor this GitLab instance.
+      HEREDOC
+
+      NoAdminUsersError = Class.new(StandardError)
+      NoPrometheusSettingInGitlabYml = Class.new(StandardError)
 
       def execute
-        admin_user = User.admins.active.first
+        admin_user = project_owner
+
+        unless admin_user
+          raise NoAdminUsersError, 'No active admin user found'
+        end
 
         project = ::Projects::CreateService.new(admin_user, create_project_params).execute
 
-        if add_prometheus_manual_configuration(project) == false
-          Rails.logger.warn("Could not connect self monitoring project to internal prometheus")
-        end
+        add_prometheus_manual_configuration(project)
+
+        add_project_members(project)
+
+        # Generate alertmanager token (EE)
+        setup_alertmanager(project)
 
         project
       end
 
       private
 
+      # This function is overridden in EE
+      def setup_alertmanager(project)
+      end
+
+      def add_project_members(project)
+        admins = User.admins.active - [project.owner]
+        ProjectMember.add_users(project, admins, :maintainer)
+      end
+
+      def project_owner
+        User.admins.active.first
+      end
+
       def create_project_params
         {
           initialize_with_readme: true,
           visibility_level: DEFAULT_VISIBILITY_LEVEL,
-          name: DEFAULT_NAME
+          name: DEFAULT_NAME,
+          description: DEFAULT_DESCRIPTION
         }
       end
 
@@ -41,7 +68,11 @@ module SelfMonitoring
       end
 
       def add_prometheus_manual_configuration(project)
-        return unless Settings.prometheus && Settings.prometheus.enable
+        begin
+          return unless Settings.prometheus.enable
+        rescue Settingslogic::MissingSetting
+          raise NoPrometheusSettingInGitlabYml, 'No prometheus setting in gitlab.yml'
+        end
 
         service = project.find_or_initialize_service('prometheus')
         service.attributes = prometheus_service_attributes
