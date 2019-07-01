@@ -11,16 +11,14 @@ module Gitlab
       end
 
       def call(env)
-        if profile_execution?(env)
-          call_with_profiling_execution(env)
-        elsif profile_memory?(env)
-          call_with_profiling_memory(env)
+        if profile?(env)
+          call_with_profiling(env)
         else
           @app.call(env)
         end
       end
 
-      def valid_profile_token?(env)
+      def profile?(env)
         header_token = env['HTTP_X_PROFILE_TOKEN']
         return unless header_token.present?
 
@@ -30,45 +28,64 @@ module Gitlab
         header_token == profile_token
       end
 
-      def profile_execution?(env)
-        return unless valid_profile_token?(env)
-
-        profile_mode = env['HTTP_X_PROFILE_MODE']
-        return unless profile_mode.present?
-
-        profile_mode == 'execution'
+      def call_with_profiling(env)
+        case env['HTTP_X_PROFILE_MODE'] 
+        when 'execution'
+          call_with_call_stack_profiling(env)
+        when 'memory'
+          call_with_memory_profiling(env)
+        else
+        end
       end
 
-      def profile_memory?(env)
-        return unless valid_profile_token?(env)
+      def call_with_call_stack_profiling(env)
+        request_ret, profile_ret = handle_request(RubyProf::Profile.profile, env)
 
-        profile_mode = env['HTTP_X_PROFILE_MODE']
-        return unless profile_mode.present?
-
-        profile_mode == 'memory'
-      end
-
-      def call_with_profiling_execution(env)
-        ret = nil
-        result = RubyProf::Profile.profile do
-          ret = catch(:warden) do
-            @app.call(env)
+        generate_report do |file_path|
+          printer   = RubyProf::CallStackPrinter.new(profile_ret)
+          File.open(file_path, 'wb') do |file|
+            printer.print(file_path)
           end
         end
 
-        printer   = RubyProf::CallStackPrinter.new(result)
+        handle_request_ret(request_ret)
+      end
+
+      def call_with_memory_profiling(env)
+        request_ret, profile_ret = handle_request(MemoryProfiler.report, env)
+
+        generate_report do |file_path|
+          report.pretty_print(to_file: file_path)
+          prepend_pre_to_file_content(file_path)
+        end
+
+        handle_request_ret(request_ret)
+      end
+
+      def handle_request(profiler, env)
+        request_ret = nil
+        profile_ret = profiler do
+          request_ret = catch(:warden) do
+            @app.call(env)
+          end
+        end
+        return request_ret, profile_ret
+      end
+
+      def generate_report
         file_name = "#{env['PATH_INFO'].tr('/', '|')}_#{Time.current.to_i}.html"
         file_path = "#{PROFILES_DIR}/#{file_name}"
 
         FileUtils.mkdir_p(PROFILES_DIR)
-        File.open(file_path, 'wb') do |file|
-          printer.print(file)
-        end
 
-        if ret.is_a?(Array)
-          ret
+        yield(file_path)
+      end
+
+      def handle_request_ret(request_ret)
+        if request_ret.is_a?(Array)
+          request_ret
         else
-          throw(:warden, ret)
+          throw(:warden, request_ret)
         end
       end
 
@@ -83,29 +100,6 @@ module Gitlab
         File.rename(new_file, file_path)
       end
 
-      def call_with_profiling_memory(env)
-        ret = nil
-        report = MemoryProfiler.report do
-          ret = catch(:warden) do
-            @app.call(env)
-          end
-        end
-
-        file_name = "#{env['PATH_INFO'].tr('/', '|')}_#{Time.current.to_i}.html"
-        file_path = "#{PROFILES_DIR}/#{file_name}"
-
-        FileUtils.mkdir_p(PROFILES_DIR)
-
-        report.pretty_print(to_file: file_path)
-
-        prepend_pre_to_file_content(file_path)
-
-        if ret.is_a?(Array)
-          ret
-        else
-          throw(:warden, ret)
-        end
-      end
     end
   end
 end
