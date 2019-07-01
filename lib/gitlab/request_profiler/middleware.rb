@@ -55,7 +55,7 @@ module Gitlab
         request_ret, profile_ret = handle_request(MemoryProfiler.report, env)
 
         generate_report do |file_path|
-          report.pretty_print(to_file: file_path)
+          profile_ret.pretty_print(to_file: file_path)
           prepend_pre_to_file_content(file_path)
         end
 
