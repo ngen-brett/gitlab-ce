@@ -29,7 +29,7 @@ module Gitlab
       end
 
       def call_with_profiling(env)
-        case env['HTTP_X_PROFILE_MODE'] 
+        case env['HTTP_X_PROFILE_MODE']
         when 'execution'
           call_with_call_stack_profiling(env)
         when 'memory'
