@@ -35,44 +35,54 @@ module Gitlab
         when 'memory'
           call_with_memory_profiling(env)
         else
+          raise ActionController::BadRequest.new(), invalid_profile_mode(env)
         end
+      end
+
+      def invalid_profile_mode(env)
+        <<~HEREDOC
+          Invalid X-Profile-Mode: #{env['HTTP_X_PROFILE_MODE']}.
+          Supported profile mode request header:
+            - X-Profile-Mode: execution
+            - X-Profile-Mode: memory
+        HEREDOC
       end
 
       def call_with_call_stack_profiling(env)
-        request_ret, profile_ret = handle_request(RubyProf::Profile.profile, env)
-
-        generate_report do |file_path|
-          printer   = RubyProf::CallStackPrinter.new(profile_ret)
-          File.open(file_path, 'wb') do |file|
-            printer.print(file_path)
-          end
-        end
-
-        handle_request_ret(request_ret)
-      end
-
-      def call_with_memory_profiling(env)
-        request_ret, profile_ret = handle_request(MemoryProfiler.report, env)
-
-        generate_report do |file_path|
-          profile_ret.pretty_print(to_file: file_path)
-          prepend_pre_to_file_content(file_path)
-        end
-
-        handle_request_ret(request_ret)
-      end
-
-      def handle_request(profiler, env)
-        request_ret = nil
-        profile_ret = profiler do
-          request_ret = catch(:warden) do
+        ret = nil
+        report = RubyProf::Profile.profile do
+          ret = catch(:warden) do
             @app.call(env)
           end
         end
-        return request_ret, profile_ret
+
+        generate_report(env) do |file_path|
+          printer   = RubyProf::CallStackPrinter.new(report)
+          File.open(file_path, 'wb') do |file|
+            printer.print(file)
+          end
+        end
+
+        handle_request_ret(ret)
       end
 
-      def generate_report
+      def call_with_memory_profiling(env)
+        ret = nil
+        report = MemoryProfiler.report do
+          ret = catch(:warden) do
+            @app.call(env)
+          end
+        end
+
+        generate_report(env) do |file_path|
+          report.pretty_print(to_file: file_path)
+          prepend_pre_to_file_content(file_path)
+        end
+
+        handle_request_ret(ret)
+      end
+
+      def generate_report(env)
         file_name = "#{env['PATH_INFO'].tr('/', '|')}_#{Time.current.to_i}.html"
         file_path = "#{PROFILES_DIR}/#{file_name}"
 
@@ -81,11 +91,11 @@ module Gitlab
         yield(file_path)
       end
 
-      def handle_request_ret(request_ret)
-        if request_ret.is_a?(Array)
-          request_ret
+      def handle_request_ret(ret)
+        if ret.is_a?(Array)
+          ret
         else
-          throw(:warden, request_ret)
+          throw(:warden, ret)
         end
       end
 
