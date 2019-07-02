@@ -69,10 +69,10 @@ docs lint:
     - echo $CI_PROJECT_DIR
     - mdl content/$DOCS_GITLAB_REPO_SUFFIX -c $CI_PROJECT_DIR/.mdlrc
     # Build HTML from Markdown
-    - nanoc
+    - bundle exec nanoc
     # Check the internal links
-    - nanoc check internal_links
+    - bundle exec nanoc check internal_links
     # Check the internal anchor links
-    - nanoc check internal_anchors
+    - bundle exec nanoc check internal_anchors
   except:
     - /(^qa[\/-].*|.*-qa$)/
