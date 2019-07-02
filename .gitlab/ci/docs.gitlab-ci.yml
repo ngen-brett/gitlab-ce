@@ -64,7 +64,8 @@ docs lint:
     - scripts/lint-doc.sh
     - scripts/lint-changelog-yaml
     # Lint Markdown
-    - bundle exec mdl content/$DOCS_GITLAB_REPO_SUFFIX/**/*.md
+    - bundle install
+    - bundle exec mdl doc
     # Build HTML from Markdown
     - mv doc/ /tmp/gitlab-docs/content/$DOCS_GITLAB_REPO_SUFFIX
     - cd /tmp/gitlab-docs
