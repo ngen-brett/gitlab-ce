@@ -147,7 +147,7 @@ module Boards
     end
 
     def behaves_like_collection?(param)
-      %w(each size).all? { |method| param.respond_to?(method) }
+      %i(each size).all? { |method| param.respond_to?(method) }
     end
   end
 end
