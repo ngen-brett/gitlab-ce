@@ -63,16 +63,16 @@ docs lint:
   script:
     - scripts/lint-doc.sh
     - scripts/lint-changelog-yaml
-    # Lint Markdown
-    - bundle install
-    - bundle exec mdl doc
-    # Build HTML from Markdown
     - mv doc/ /tmp/gitlab-docs/content/$DOCS_GITLAB_REPO_SUFFIX
     - cd /tmp/gitlab-docs
-    - bundle exec nanoc
+    # Lint Markdown
+    - echo $CI_PROJECT_DIR
+    - mdl content/$DOCS_GITLAB_REPO_SUFFIX -c $CI_PROJECT_DIR/.mdlrc
+    # Build HTML from Markdown
+    - nanoc
     # Check the internal links
-    - bundle exec nanoc check internal_links
+    - nanoc check internal_links
     # Check the internal anchor links
-    - bundle exec nanoc check internal_anchors
+    - nanoc check internal_anchors
   except:
     - /(^qa[\/-].*|.*-qa$)/
