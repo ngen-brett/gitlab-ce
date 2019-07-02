@@ -1,0 +1,5 @@
+# See https://github.com/markdownlint/markdownlint/blob/master/docs/RULES.md
+
+rule 'MD004'
+rule 'MD032'
+rule 'MD034'
