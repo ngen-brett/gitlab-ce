@@ -61,6 +61,7 @@
   - [repository_check, 1]
   - [git_garbage_collect, 1]
   - [reactive_caching, 1]
+  - [batch_pop_queueing, 1]
   - [cronjob, 1]
   - [default, 1]
   - [pages, 1]

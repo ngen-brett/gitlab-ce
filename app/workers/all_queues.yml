@@ -118,6 +118,7 @@
 
 - authorized_projects
 - background_migration
+- batch_pop_queueing
 - chat_notification
 - create_gpg_signature
 - delete_merged_branches
