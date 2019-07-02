@@ -2491,7 +2491,7 @@ msgstr ""
 msgid "ClusterIntegration|Kubernetes cluster name"
 msgstr ""
 
-msgid "ClusterIntegration|Kubernetes cluster was successfully created on Google Kubernetes Engine. Refresh the page to see Kubernetes cluster's details"
+msgid "ClusterIntegration|Kubernetes cluster was successfully created on Google Kubernetes Engine."
 msgstr ""
 
 msgid "ClusterIntegration|Kubernetes clusters allow you to use review apps, deploy your applications, run your pipelines, and much more in an easy way."
@@ -2675,6 +2675,9 @@ msgid "ClusterIntegration|This account must have permissions to create a Kuberne
 msgstr ""
 
 msgid "ClusterIntegration|This option will allow you to install applications on RBAC clusters."
+msgstr ""
+
+msgid "ClusterIntegration|This page will automatically reload upon completion."
 msgstr ""
 
 msgid "ClusterIntegration|To access your application after deployment, point a wildcard DNS to the Knative Endpoint."

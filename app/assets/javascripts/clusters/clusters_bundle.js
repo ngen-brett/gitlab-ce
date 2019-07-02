@@ -81,18 +81,19 @@ export default class Clusters {
     this.showTokenButton = document.querySelector('.js-show-cluster-token');
     this.tokenField = document.querySelector('.js-cluster-token');
     this.ingressDomainHelpText = document.querySelector('.js-ingress-domain-help-text');
-    this.ingressDomainSnippet = this.ingressDomainHelpText.querySelector(
-      '.js-ingress-domain-snippet',
-    );
+    this.ingressDomainSnippet =
+      this.ingressDomainHelpText &&
+      this.ingressDomainHelpText.querySelector('.js-ingress-domain-snippet');
 
     Clusters.initDismissableCallout();
     initSettingsPanels();
-    setupToggleButtons(document.querySelector('.js-cluster-enable-toggle-area'));
+    const toggleButtonsContainer = document.querySelector('.js-cluster-enable-toggle-area');
+    if (toggleButtonsContainer) {
+      setupToggleButtons(toggleButtonsContainer);
+    }
     this.initApplications(clusterType);
 
-    if (this.store.state.status !== 'created') {
-      this.updateContainer(null, this.store.state.status, this.store.state.statusReason);
-    }
+    this.updateContainer(null, this.store.state.status, this.store.state.statusReason);
 
     this.addListeners();
     if (statusPath) {
@@ -263,19 +264,46 @@ export default class Clusters {
     return bannerState === `${status}_true`;
   }
 
-  updateContainer(prevStatus, status, error) {
-    this.hideAll();
+  setClusterNewlyCreated(state) {
+    if (AccessorUtilities.isLocalStorageAccessSafe()) {
+      window.localStorage.setItem(
+        `cluster_${this.clusterId}_newly_created`,
+        String(Boolean(state)), // always 'true' or 'false' string value
+      );
+    }
+  }
 
-    if (this.isBannerDismissed(status)) {
+  isClusterNewlyCreated() {
+    // once this is true, it will always be true for a given page load
+    if (!this.isNewlyCreated) {
+      let newlyCreated;
+      if (AccessorUtilities.isLocalStorageAccessSafe()) {
+        newlyCreated = window.localStorage.getItem(`cluster_${this.clusterId}_newly_created`);
+      }
+
+      this.isNewlyCreated = newlyCreated === 'true';
+    }
+    return this.isNewlyCreated;
+  }
+
+  updateContainer(prevStatus, status, error) {
+    if (status !== 'created' && this.isBannerDismissed(status)) {
       return;
     }
     this.setBannerDismissedState(status, false);
 
-    // We poll all the time but only want the `created` banner to show when newly created
-    if (this.store.state.status !== 'created' || prevStatus !== this.store.state.status) {
+    if (prevStatus !== status) {
+      this.hideAll();
+
       switch (status) {
         case 'created':
-          this.successContainer.classList.remove('hidden');
+          if (this.isClusterNewlyCreated()) {
+            this.setClusterNewlyCreated(false);
+            this.successContainer.classList.remove('hidden');
+          } else if (prevStatus) {
+            this.setClusterNewlyCreated(true);
+            window.location.reload();
+          }
           break;
         case 'errored':
           this.errorContainer.classList.remove('hidden');
@@ -292,7 +320,6 @@ export default class Clusters {
           this.creatingContainer.classList.remove('hidden');
           break;
         default:
-          this.hideAll();
       }
     }
   }
