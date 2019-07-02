@@ -138,6 +138,14 @@ describe Gitlab::Auth::UserAuthFinders do
         expect { find_user_from_access_token }.to raise_error(Gitlab::Auth::UnauthorizedError)
       end
     end
+
+    context 'when token is given in OAuth format' do
+      it 'returns user' do
+        env[Gitlab::Auth::UserAuthFinders::PRIVATE_TOKEN_OAUTH_HEADER] = "Bearer #{personal_access_token.token}"
+
+        expect(find_user_from_access_token).to eq user
+      end
+    end
   end
 
   describe '#find_user_from_web_access_token' do

@@ -21,6 +21,7 @@ module Gitlab
       include Gitlab::Utils::StrongMemoize
 
       PRIVATE_TOKEN_HEADER = 'HTTP_PRIVATE_TOKEN'.freeze
+      PRIVATE_TOKEN_OAUTH_HEADER = 'HTTP_AUTHORIZATION'.freeze
       PRIVATE_TOKEN_PARAM = :private_token
 
       # Check the Rails session for valid authentication details
@@ -83,19 +84,26 @@ module Gitlab
 
       def access_token
         strong_memoize(:access_token) do
-          find_oauth_access_token || find_personal_access_token
+          oauth_with_private_token = current_request.env[PRIVATE_TOKEN_OAUTH_HEADER] &&
+            current_request.env[PRIVATE_TOKEN_OAUTH_HEADER].length == 27
+          if oauth_with_private_token
+            find_personal_access_token
+          else
+            find_oauth_access_token || find_personal_access_token
+          end
         end
       end
 
       def find_personal_access_token
         token =
           current_request.params[PRIVATE_TOKEN_PARAM].presence ||
-          current_request.env[PRIVATE_TOKEN_HEADER].presence
+          current_request.env[PRIVATE_TOKEN_HEADER].presence ||
+          current_request.env[PRIVATE_TOKEN_OAUTH_HEADER].presence
 
         return unless token
 
         # Expiration, revocation and scopes are verified in `validate_access_token!`
-        PersonalAccessToken.find_by_token(token) || raise(UnauthorizedError)
+        PersonalAccessToken.find_by_token(token.sub('Bearer ', '')) || raise(UnauthorizedError)
       end
 
       def find_oauth_access_token
