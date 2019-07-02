@@ -63,13 +63,11 @@ docs lint:
   script:
     - scripts/lint-doc.sh
     - scripts/lint-changelog-yaml
+    # Lint Markdown
+    - bundle exec mdl content/$DOCS_GITLAB_REPO_SUFFIX/**/*.md
+    # Build HTML from Markdown
     - mv doc/ /tmp/gitlab-docs/content/$DOCS_GITLAB_REPO_SUFFIX
     - cd /tmp/gitlab-docs
-    # Lint Markdown
-    # https://github.com/markdownlint/markdownlint/blob/master/docs/RULES.md
-    - bundle exec mdl content/$DOCS_GITLAB_REPO_SUFFIX/**/*.md --ignore-front-matter --rules \
-        MD004,MD032,MD034
-    # Build HTML from Markdown
     - bundle exec nanoc
     # Check the internal links
     - bundle exec nanoc check internal_links
