@@ -3,7 +3,7 @@
 module Gitlab
   module RequestProfiler
     class Profile
-      attr_reader :name, :time, :request_path
+      attr_reader :name, :time, :request_path, :type
 
       alias_method :to_param, :name
 
@@ -33,12 +33,17 @@ module Gitlab
         File.read("#{PROFILES_DIR}/#{name}")
       end
 
+      def memory?
+        @type == 'memory'
+      end
+
       private
 
       def set_attributes
-        _, path, timestamp = name.split(/(.*)_(\d+)\.html$/)
-        @request_path      = path.tr('|', '/')
-        @time              = Time.at(timestamp.to_i).utc
+        _, path, timestamp, type = name.split(/(.*)_(\d+)_(.*)\.html$/)
+        @request_path            = path.tr('|', '/')
+        @time                    = Time.at(timestamp.to_i).utc
+        @type                    = type
       end
     end
   end
