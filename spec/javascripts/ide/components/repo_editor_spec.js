@@ -30,6 +30,7 @@ describe('RepoEditor', () => {
     Vue.set(vm.$store.state.entries, f.path, f);
 
     spyOn(vm, 'getFileData').and.returnValue(Promise.resolve());
+    spyOn(vm, 'getRawFileData').and.returnValue(Promise.resolve());
 
     vm.$mount();
 
@@ -407,6 +408,45 @@ describe('RepoEditor', () => {
     });
   });
 
+  describe('initEditor', () => {
+    it('is being initialised for files without content even if shouldHideEditor is `true`', done => {
+      spyOn(vm.editor, 'createInstance');
+      spyOnProperty(vm, 'shouldHideEditor').and.returnValue(true);
+
+      vm.file.content = '';
+      vm.file.raw = '';
+
+      vm.initEditor();
+      vm.$nextTick()
+        .then(() => {
+          expect(vm.getFileData).toHaveBeenCalled();
+          expect(vm.getRawFileData).toHaveBeenCalled();
+        })
+        .then(done)
+        .catch(done.fail);
+    });
+
+    it('does not initialize editor for files already with content', done => {
+      spyOnProperty(vm, 'shouldHideEditor').and.returnValue(true);
+      spyOn(vm.editor, 'createInstance');
+
+      expect(vm.getFileData.calls.count()).toEqual(1);
+      expect(vm.getRawFileData.calls.count()).toEqual(1);
+
+      vm.file.content = 'foo';
+
+      vm.initEditor();
+      vm.$nextTick()
+        .then(() => {
+          expect(vm.getFileData.calls.count()).toEqual(1);
+          expect(vm.getRawFileData.calls.count()).toEqual(1);
+          expect(vm.editor.createInstance).not.toHaveBeenCalled();
+        })
+        .then(done)
+        .catch(done.fail);
+    });
+  });
+
   it('calls removePendingTab when old file is pending', done => {
     spyOnProperty(vm, 'shouldHideEditor').and.returnValue(true);
     spyOn(vm, 'removePendingTab');
@@ -416,6 +456,7 @@ describe('RepoEditor', () => {
     vm.$nextTick()
       .then(() => {
         vm.file = file('testing');
+        vm.file.content = 'foo'; // need to prevent full cycle of initEditor
 
         return vm.$nextTick();
       })

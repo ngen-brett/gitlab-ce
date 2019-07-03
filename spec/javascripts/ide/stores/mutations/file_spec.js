@@ -83,6 +83,24 @@ describe('IDE store file mutations', () => {
       expect(localFile.raw).toBeNull();
       expect(localFile.baseRaw).toBeNull();
     });
+
+    it('sets extra file data to all arrays concerned', () => {
+      localState.stagedFiles = [localFile];
+      localState.changedFiles = [localFile];
+      localState.openFiles = [localFile];
+
+      mutations.SET_FILE_DATA(localState, {
+        data: {
+          raw_path: 'foo/bar/blah.md',
+        },
+        file: localFile,
+      });
+
+      expect(localState.stagedFiles[0].rawPath).toEqual('foo/bar/blah.md');
+      expect(localState.changedFiles[0].rawPath).toEqual('foo/bar/blah.md');
+      expect(localState.openFiles[0].rawPath).toEqual('foo/bar/blah.md');
+      expect(localFile.rawPath).toEqual('foo/bar/blah.md');
+    });
   });
 
   describe('SET_FILE_RAW_DATA', () => {
