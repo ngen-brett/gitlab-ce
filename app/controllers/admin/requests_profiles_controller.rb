@@ -11,7 +11,11 @@ class Admin::RequestsProfilesController < Admin::ApplicationController
     profile    = Gitlab::RequestProfiler::Profile.find(clean_name)
 
     if profile
-      render html: profile.content.html_safe
+      if profile.memory?
+        render plain: profile.content
+      else
+        render html: profile.content.html_safe
+      end
     else
       redirect_to admin_requests_profiles_path, alert: 'Profile not found'
     end
