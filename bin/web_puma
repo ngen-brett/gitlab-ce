@@ -5,6 +5,11 @@ set -e
 cd $(dirname $0)/..
 app_root=$(pwd)
 
+# Switch to UNICORN configuration
+if [ -n "${USE_UNICORN}" ]; then
+  exec bin/web_unicorn "$@"
+fi
+
 puma_pidfile="$app_root/tmp/pids/puma.pid"
 puma_config="$app_root/config/puma.rb"
 
