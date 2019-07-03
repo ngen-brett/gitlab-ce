@@ -76,19 +76,40 @@ module Banzai
     #    => [{ text: '### Hello',
     #          context: { cache_key: [note, :note] } }]
     def self.cache_collection_render(texts_and_contexts)
-      items_collection = texts_and_contexts.each_with_index do |item, index|
+      items_collection = texts_and_contexts.each_with_index do |item, _index|
         context = item[:context]
-        cache_key = full_cache_multi_key(context.delete(:cache_key), context[:pipeline])
+        cache_key = context.delete(:cache_key)
 
-        item[:cache_key] = cache_key if cache_key
+        if cache_key.first.respond_to?(:cached_markdown_fields)
+          obj, attr = cache_key
+
+          if obj.cached_markdown_fields.markdown_fields.include?(attr.to_sym)
+            item[:pre_render] = obj.send(obj.cached_markdown_fields.html_field(attr)) # rubocop:disable GitlabSecurity/PublicSend
+          end
+        end
+
+        # If the attribute wasn't cached in the DB, let's cache it in redis
+        unless item[:pre_render]
+          key = full_cache_multi_key(cache_key, context[:pipeline])
+
+          item[:cache_key] = key if key
+        end
       end
 
-      cacheable_items, non_cacheable_items = items_collection.partition { |item| item.key?(:cache_key) }
+      cacheable_items, non_cacheable_items, pre_rendered_items = items_collection.group_by do |item|
+        if item.key?(:pre_render)
+          :pre_rendered
+        elsif item.key?(:cache_key)
+          :cacheable
+        else
+          :non_cacheable
+        end
+      end.values_at(:cacheable, :non_caheable, :pre_rendered)
 
       items_in_cache = []
       items_not_in_cache = []
 
-      unless cacheable_items.empty?
+      if cacheable_items.present?
         items_in_cache = Rails.cache.read_multi(*cacheable_items.map { |item| item[:cache_key] })
         items_not_in_cache = cacheable_items.reject do |item|
           item[:rendered] = items_in_cache[item[:cache_key]]
@@ -96,12 +117,12 @@ module Banzai
         end
       end
 
-      (items_not_in_cache + non_cacheable_items).each do |item|
+      (items_not_in_cache + Array.wrap(non_cacheable_items)).each do |item|
         item[:rendered] = render(item[:text], item[:context])
         Rails.cache.write(item[:cache_key], item[:rendered]) if item[:cache_key]
       end
 
-      items_collection.map { |item| item[:rendered] }
+      items_collection.map { |item| item[:rendered] }.concat(pre_rendered_items.map { |item| item[:pre_render] })
     end
 
     def self.render_result(text, context = {})
