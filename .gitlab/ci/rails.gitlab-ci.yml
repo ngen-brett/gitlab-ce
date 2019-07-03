@@ -67,6 +67,7 @@
     - date
     - 'export KNAPSACK_TEST_FILE_PATTERN=$(ruby -r./lib/quality/test_level.rb -e "puts Quality::TestLevel.new.pattern(:${TEST_LEVEL})")'
     - knapsack rspec "--color --format documentation --format RspecJunitFormatter --out junit_rspec.xml --tag level:${TEST_LEVEL} --tag ~geo"
+    - cp tmp/memory_data_for_tests.csv tmp/memory_test/${TEST_TOOL}_${TEST_LEVEL}_${DATABASE}_node_${CI_NODE_INDEX}_${CI_NODE_TOTAL}_memory.csv
     - date
   artifacts:
     expire_in: 31d
@@ -77,7 +78,7 @@
       - rspec_flaky/
       - rspec_profiling/
       - tmp/capybara/
-      - tmp/memory_data_for_tests.csv
+      - tmp/memory_test/
 #    reports:
 #      junit: junit_rspec.xml
 
