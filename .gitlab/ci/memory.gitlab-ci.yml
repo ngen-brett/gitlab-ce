@@ -45,7 +45,7 @@ memory-during-tests:
   extends: .single-script-job-dedicated-runner
   variables:
     SCRIPT_NAME: gather-test-memory-data
-  stage: test # TODO: change to post-test
+  stage: review # TODO: change to post-test
   when: manual # TODO: remove (using for debug)
   script:
     - ./$SCRIPT_NAME test_arg

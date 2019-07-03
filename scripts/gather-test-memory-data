@@ -2,3 +2,12 @@
 
 puts "Gather test memory reports"
 puts ARGV[0]
+
+%x(ls)
+%x(ls tmp/)
+%x(ls tmp/)
+%x(ls tmp/memory_test)
+
+File.open("tmp/memory_test/rspec_unit_pg_node_1_25_memory.csv").each do |line|
+   puts line
+end
