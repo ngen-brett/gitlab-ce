@@ -54,7 +54,7 @@ module Boards
     end
 
     def move_multiple_issues
-      return render_403 unless can_move_issues?(current_user, board)
+      return render_403 unless can_move_issues?(current_user)
 
       service = Boards::Issues::MoveService.new(board_parent, current_user, move_multiple_params)
 
@@ -78,8 +78,8 @@ module Boards
 
     private
 
-    def can_move_issues?(user, board)
-      can?(user, :update_issue, board)
+    def can_move_issues?(user)
+      can?(user, :update_issue, project)
     end
 
     def render_issues(issues, metadata)
