@@ -44,4 +44,9 @@ class Namespace::AggregationSchedule < ApplicationRecord
   def lease_key
     "namespace:namespaces_root_statistics:#{namespace_id}"
   end
+
+  # Used by ExclusiveLeaseGuard
+  def lease_release?
+    false
+  end
 end
