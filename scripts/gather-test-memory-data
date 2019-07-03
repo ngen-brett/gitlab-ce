@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+
+puts "Gather test memory reports"
+puts ARGV[0]
