@@ -115,7 +115,7 @@ RSpec.configure do |config|
     def gather_memory_data(place, test_group)
       puts "MEMORY #{place}"
 
-      CSV_HEADERS = %w[time, test_file, m_total, m_used, m_free, m_shared, m_buffers_cache, m_available].freeze
+      csv_headers = %w[time, test_file, m_total, m_used, m_free, m_shared, m_buffers_cache, m_available].freeze
       csv_path = Rails.root.join('tmp/memory_data_for_tests.csv')
 
       time = Time.current.to_s
