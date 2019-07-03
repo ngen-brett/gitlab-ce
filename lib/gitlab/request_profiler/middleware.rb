@@ -76,7 +76,6 @@ module Gitlab
 
         generate_report(env, 'memory') do |file_path|
           report.pretty_print(to_file: file_path)
-          #prepend_pre_to_file_content(file_path)
         end
 
         handle_request_ret(ret)
@@ -98,18 +97,6 @@ module Gitlab
           throw(:warden, ret)
         end
       end
-
-      def prepend_pre_to_file_content(file_path)
-        new_file = "#{file_path}_new_temp"
-        File.open(new_file, 'w') do |fo|
-          fo.puts '<pre>'
-          File.foreach(file_path) do |li|
-            fo.puts li
-          end
-        end
-        File.rename(new_file, file_path)
-      end
-
     end
   end
 end
