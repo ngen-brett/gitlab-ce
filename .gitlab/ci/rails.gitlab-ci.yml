@@ -77,6 +77,7 @@
       - rspec_flaky/
       - rspec_profiling/
       - tmp/capybara/
+      - tmp/memory_data_for_tests.csv
 #    reports:
 #      junit: junit_rspec.xml
 

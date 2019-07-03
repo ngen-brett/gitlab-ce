@@ -113,24 +113,24 @@ RSpec.configure do |config|
       :dump_summary)
 
     def gather_memory_data(place, test_group)
-      puts "MEMORY #{place}"
+      puts "#MEMORY #{place}"
 
-      csv_headers = %w[time, test_file, m_total, m_used, m_free, m_shared, m_buffers_cache, m_available].freeze
+      csv_headers = %w[time, test_file, place, m_total, m_used, m_free, m_shared, m_buffers_cache, m_available].freeze
       csv_path = Rails.root.join('tmp/memory_data_for_tests.csv')
 
       time = Time.current.to_s
       test_file = test_group.to_s
       m_data = %x(free -m | grep Mem: | grep -Eo '[0-9]+').split('\n')
       csv = ::CSV.open(csv_path, "a").tap do |csv|
-        csv << [time, test_file] + m_data
+        csv << [time, test_file, place] + m_data
       end
     end
 
     config.before(:all) do |all|
-      gather_memory_data("before all", test_group)
+      gather_memory_data("before", all)
     end
     config.after(:all) do |all|
-      gather_memory_data("after all", test_group)
+      gather_memory_data("after", all)
     end
   end
 
