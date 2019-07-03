@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190628145246) do
+ActiveRecord::Schema.define(version: 20190703043358) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1110,6 +1110,7 @@ ActiveRecord::Schema.define(version: 20190628145246) do
     t.text "position"
     t.text "original_position"
     t.text "change_position"
+    t.string "commit_id"
     t.index ["author_id"], name: "index_draft_notes_on_author_id", using: :btree
     t.index ["discussion_id"], name: "index_draft_notes_on_discussion_id", using: :btree
     t.index ["merge_request_id"], name: "index_draft_notes_on_merge_request_id", using: :btree
