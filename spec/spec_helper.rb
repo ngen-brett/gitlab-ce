@@ -122,11 +122,8 @@ RSpec.configure do |config|
       test_file = test_group.to_s
       m_data = %x(free -m | grep Mem: | grep -Eo '[0-9]+').split("\n")
 
-      if File.exist?(csv_path)
-        CSV.open(csv_path, "a") { |csv| csv << [time, test_file, place] + m_data }
-      else
-        CSV.open(csv_path, "w") { |csv| csv << csv_headers }
-      end
+      CSV.open(csv_path, "w") { |csv| csv << csv_headers } unless File.exist?(csv_path)
+      CSV.open(csv_path, "a") { |csv| csv << [time, test_file, place] + m_data }
     end
 
     config.before(:all) do |all|
