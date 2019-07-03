@@ -1,6 +1,7 @@
 <script>
 import _ from 'underscore';
 import { mapActions, mapGetters } from 'vuex';
+import Mousetrap from 'mousetrap';
 import { GlTooltipDirective } from '@gitlab/ui';
 import { truncateSha } from '~/lib/utils/text_utility';
 import { s__, __, sprintf } from '~/locale';
@@ -84,6 +85,7 @@ export default {
       'getNoteableData',
       'userCanReply',
       'nextUnresolvedDiscussionId',
+      'previousUnresolvedDiscussionId',
       'unresolvedDiscussionsCount',
       'hasUnresolvedDiscussions',
       'showJumpToNextDiscussion',
@@ -210,6 +212,10 @@ export default {
   },
   created() {
     eventHub.$on('startReplying', this.onStartReplying);
+  },
+  mounted() {
+    Mousetrap.bind('n', this.jumpToNextDiscussion);
+    Mousetrap.bind('p', this.jumpToPreviousDiscussion);
   },
   beforeDestroy() {
     eventHub.$off('startReplying', this.onStartReplying);

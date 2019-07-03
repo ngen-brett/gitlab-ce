@@ -319,4 +319,14 @@ describe('note_app', () => {
       });
     });
   });
+
+  describe('keyboard shortcuts', () => {
+    it('changes the currentDiscussionId and calls jumpToDiscussion with proper id when pressing `n`', () => {
+      throw new Error('TODO');
+    });
+
+    it('changes the currentDiscussionId and calls jumpToDiscussion with proper id when pressing `p`', () => {
+      throw new Error('TODO');
+    });
+  });
 });

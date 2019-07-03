@@ -1,5 +1,6 @@
 <script>
 import { mapGetters, mapActions } from 'vuex';
+import Mousetrap from 'mousetrap';
 import { getLocationHash } from '../../lib/utils/url_utility';
 import Flash from '../../flash';
 import * as constants from '../constants';
@@ -14,6 +15,7 @@ import placeholderSystemNote from '../../vue_shared/components/notes/placeholder
 import skeletonLoadingContainer from '../../vue_shared/components/notes/skeleton_note.vue';
 import highlightCurrentUser from '~/behaviors/markdown/highlight_current_user';
 import initUserPopovers from '../../user_popovers';
+import discussionNavigation from '../mixins/discussion_navigation';
 
 export default {
   name: 'NotesApp',
@@ -27,6 +29,7 @@ export default {
     skeletonLoadingContainer,
     discussionFilterNote,
   },
+  mixins: [discussionNavigation],
   props: {
     noteableData: {
       type: Object,
@@ -56,6 +59,7 @@ export default {
     return {
       isFetching: false,
       currentFilter: null,
+      currentDiscussionId: 0,
     };
   },
   computed: {
@@ -68,6 +72,8 @@ export default {
       'commentsDisabled',
       'getNoteableData',
       'userCanReply',
+      'nextUnresolvedDiscussionId',
+      'previousUnresolvedDiscussionId',
     ]),
     noteableType() {
       return this.noteableData.noteableType;
@@ -148,6 +154,7 @@ export default {
       'startTaskList',
       'convertToDiscussion',
       'stopPolling',
+      'setCurrentDiscussionId',
     ]),
     fetchNotes() {
       if (this.isFetching) return null;
@@ -165,6 +172,10 @@ export default {
           this.isFetching = false;
         })
         .then(() => this.$nextTick())
+        .then(() => {
+          Mousetrap.bind(['n'], () => this.jumpToNextDiscussion());
+          Mousetrap.bind(['p'], () => this.jumpToPreviousDiscussion());
+        })
         .then(() => this.startTaskList())
         .then(() => this.checkLocationHash())
         .catch(() => {
@@ -199,6 +210,18 @@ export default {
       return this.convertToDiscussion(discussionId)
         .then(() => this.$nextTick())
         .then(() => eventHub.$emit('startReplying', discussionId));
+    },
+    jumpToNextDiscussion() {
+      const nextId = this.nextUnresolvedDiscussionId(this.currentDiscussionId, false);
+
+      this.jumpToDiscussion(nextId);
+      this.currentDiscussionId = nextId;
+    },
+    jumpToPreviousDiscussion() {
+      const prevId = this.previousUnresolvedDiscussionId(this.currentDiscussionId, false);
+
+      this.jumpToDiscussion(prevId);
+      this.currentDiscussionId = prevId;
     },
   },
   systemNote: constants.SYSTEM_NOTE,
