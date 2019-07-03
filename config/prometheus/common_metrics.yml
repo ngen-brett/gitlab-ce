@@ -25,7 +25,7 @@ panel_groups:
       unit: ms
   - title: "HTTP Error Rate"
     type: "area-chart"
-    y_label: "HTTP Errors"
+    y_label: "HTTP Errors (%)"
     weight: 1
     metrics:
     - id: response_metrics_nginx_ingress_http_error_rate
@@ -56,7 +56,7 @@ panel_groups:
       unit: ms
   - title: "HTTP Error Rate"
     type: "area-chart"
-    y_label: "HTTP Errors"
+    y_label: "HTTP Errors (%)"
     weight: 1
     metrics:
     - id: response_metrics_nginx_ingress_16_http_error_rate
@@ -149,7 +149,7 @@ panel_groups:
   panels:
   - title: "Memory Usage (Total)"
     type: "area-chart"
-    y_label: "Total Memory Used"
+    y_label: "Total Memory Used (GB)"
     weight: 4
     metrics:
     - id: system_metrics_kubernetes_container_memory_total
@@ -167,7 +167,7 @@ panel_groups:
       unit: "cores"
   - title: "Memory Usage (Pod average)"
     type: "area-chart"
-    y_label: "Memory Used per Pod"
+    y_label: "Memory Used per Pod (MB)"
     weight: 2
     metrics:
     - id: system_metrics_kubernetes_container_memory_average
