@@ -1,42 +1,52 @@
 #!/bin/sh
 
+set -e
+
 cd $(dirname $0)/..
 app_root=$(pwd)
 
-unicorn_pidfile="$app_root/tmp/pids/unicorn.pid"
-unicorn_config="$app_root/config/unicorn.rb"
-unicorn_cmd="bundle exec unicorn_rails -c $unicorn_config -E $RAILS_ENV"
+# Switch to UNICORN configuration
+if [ -n "${USE_UNICORN}" ]; then
+  exec bin/web_unicorn "$@"
+fi
 
-get_unicorn_pid()
+puma_pidfile="$app_root/tmp/pids/puma.pid"
+puma_config="$app_root/config/puma.rb"
+
+spawn_puma()
 {
-  local pid=$(cat $unicorn_pidfile)
+  exec bundle exec puma --config "${puma_config}" "$@"
+}
+
+get_puma_pid()
+{
+  pid=$(cat "${puma_pidfile}")
   if [ -z "$pid" ] ; then
-    echo "Could not find a PID in $unicorn_pidfile"
+    echo "Could not find a PID in $puma_pidfile"
     exit 1
   fi
-  unicorn_pid=$pid
+  echo "${pid}"
 }
 
 start()
 {
-  exec $unicorn_cmd -D
+  spawn_puma -d
 }
 
 start_foreground()
 {
-  exec $unicorn_cmd
+  spawn_puma
 }
 
 stop()
 {
-  get_unicorn_pid
-  kill -QUIT $unicorn_pid
+  get_puma_pid
+  kill -QUIT "$(get_puma_pid)"
 }
 
 reload()
 {
-  get_unicorn_pid
-  kill -USR2 $unicorn_pid
+  kill -USR2 "$(get_puma_pid)"
 }
 
 case "$1" in
