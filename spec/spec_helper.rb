@@ -120,7 +120,7 @@ RSpec.configure do |config|
 
       time = Time.current.to_s
       test_file = test_group.to_s
-      m_data = %x(free -m | grep Mem: | grep -Eo '[0-9]+').split('\n')
+      m_data = %x(free -m | grep Mem: | grep -Eo '[0-9]+').split("\n")
       csv = ::CSV.open(csv_path, "a").tap do |csv|
         csv << [time, test_file, place] + m_data
       end
