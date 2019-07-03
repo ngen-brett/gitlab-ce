@@ -79,7 +79,7 @@ module Boards
     private
 
     def can_move_issues?(user)
-      can?(user, :update_issue, project)
+      can?(user, :admin_issue, board)
     end
 
     def render_issues(issues, metadata)
