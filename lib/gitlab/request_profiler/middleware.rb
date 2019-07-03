@@ -30,12 +30,12 @@ module Gitlab
 
       def call_with_profiling(env)
         case env['HTTP_X_PROFILE_MODE']
-        when 'execution'
+        when 'execution', nil
           call_with_call_stack_profiling(env)
         when 'memory'
           call_with_memory_profiling(env)
         else
-          raise ActionController::BadRequest.new(), invalid_profile_mode(env)
+          raise ActionController::BadRequest, invalid_profile_mode(env)
         end
       end
 
@@ -56,8 +56,8 @@ module Gitlab
           end
         end
 
-        generate_report(env) do |file_path|
-          printer   = RubyProf::CallStackPrinter.new(report)
+        generate_report(env, 'execution') do |file_path|
+          printer = RubyProf::CallStackPrinter.new(report)
           File.open(file_path, 'wb') do |file|
             printer.print(file)
           end
@@ -74,16 +74,16 @@ module Gitlab
           end
         end
 
-        generate_report(env) do |file_path|
+        generate_report(env, 'memory') do |file_path|
           report.pretty_print(to_file: file_path)
-          prepend_pre_to_file_content(file_path)
+          #prepend_pre_to_file_content(file_path)
         end
 
         handle_request_ret(ret)
       end
 
-      def generate_report(env)
-        file_name = "#{env['PATH_INFO'].tr('/', '|')}_#{Time.current.to_i}.html"
+      def generate_report(env, report_type)
+        file_name = "#{env['PATH_INFO'].tr('/', '|')}_#{Time.current.to_i}_#{report_type}.html"
         file_path = "#{PROFILES_DIR}/#{file_name}"
 
         FileUtils.mkdir_p(PROFILES_DIR)
