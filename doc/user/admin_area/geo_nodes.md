@@ -61,6 +61,12 @@ which is used by users. Internal URL does not need to be a private address.
 Internal URL defaults to External URL, but you can customize it under
 **Admin area > Geo Nodes**.
 
+CAUTION: **Warning:**
+We recommend the use of an HTTPS connection while configuring the Geo nodes,
+in this case, you need to customize your Internal URL to point to a Load Balancer
+with TLS termination otherwise it breaks the communication between primary and
+secondary nodes.
+
 ## Multiple secondary nodes behind a load balancer
 
 In GitLab 11.11, **secondary** nodes can use identical external URLs as long as
