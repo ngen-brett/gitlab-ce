@@ -16,12 +16,18 @@ export default class FilterableList {
     this.isBusy = false;
   }
 
-  getFilterEndpoint() {
-    return `${this.filterForm.getAttribute('action')}?${$(this.filterForm).serialize()}`;
+  getPagePath() {
+    const action = this.filterForm.getAttribute('action');
+    const params = $(this.filterForm).serialize();
+    return `${action}${action.indexOf('?') > 0 ? '&' : '?'}${params}`;
   }
 
-  getPagePath() {
-    return this.getFilterEndpoint();
+  getFilterEndpoint() {
+    let bp = this.getPagePath();
+    if (this.listFilterElement.classList.contains('js-projects-list-filter')) {
+      bp = bp.replace('/projects?', '/projects.json?');
+    }
+    return bp;
   }
 
   initSearch() {
