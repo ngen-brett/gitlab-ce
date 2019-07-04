@@ -235,7 +235,10 @@ module Gitlab
       caching_config_hash[:pool_timeout] = 1
     end
 
-    config.cache_store = :redis_store, caching_config_hash
+    config.cache_store = :level2, {
+      L1: [ :memory_store, size: 64.megabytes ],
+      L2: [ :redis_store, caching_config_hash ]
+    }
 
     config.active_job.queue_adapter = :sidekiq
 
