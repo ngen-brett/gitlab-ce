@@ -39,6 +39,7 @@ if [ "$GITLAB_DATABASE" = 'postgresql' ]; then
 
   if [ -f config/database_geo.yml ]; then
     sed -i 's/localhost/postgres/g' config/database_geo.yml
+    sed -i 's/username: git/username: postgres/g' config/database_geo.yml
   fi
 else # Assume it's mysql
   sed -i 's/localhost/mysql/g' config/database.yml

@@ -48,7 +48,7 @@ used by Omnibus and the GitLab source installation guide.
 Starting with GitLab 11.4, Gitaly is able to serve all Git requests without
 needed a shared NFS mount for Git repository data.
 Between 11.4 and 11.8 the exception was the
-[Elastic Search indexer](https://gitlab.com/gitlab-org/gitlab-elasticsearch-indexer).
+[Elasticsearch indexer](https://gitlab.com/gitlab-org/gitlab-elasticsearch-indexer).
 But since 11.8 the indexer uses Gitaly for data access as well. NFS can still
 be leveraged for redudancy on block level of the Git data. But only has to
 be mounted on the Gitaly server.
@@ -267,7 +267,7 @@ repository from your GitLab server over HTTP.
 
 Gitaly supports TLS encryption. To be able to communicate
 with a Gitaly instance that listens for secure connections you will need to use `tls://` url
-scheme in the `gitaly_address` of the corresponding storage entry in the gitlab configuration.
+scheme in the `gitaly_address` of the corresponding storage entry in the GitLab configuration.
 
 The admin needs to bring their own certificate as we do not provide that automatically.
 The certificate to be used needs to be installed on all Gitaly nodes and on all client nodes that communicate with it following procedures described in [GitLab custom certificate configuration](https://docs.gitlab.com/omnibus/settings/ssl.html#install-custom-public-certificates).

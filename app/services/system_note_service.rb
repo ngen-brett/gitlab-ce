@@ -221,8 +221,8 @@ module SystemNoteService
   end
 
   # Called when 'merge when pipeline succeeds' is executed
-  def merge_when_pipeline_succeeds(noteable, project, author, last_commit)
-    body = "enabled an automatic merge when the pipeline for #{last_commit.to_reference(project)} succeeds"
+  def merge_when_pipeline_succeeds(noteable, project, author, sha)
+    body = "enabled an automatic merge when the pipeline for #{sha} succeeds"
 
     create_note(NoteSummary.new(noteable, project, author, body, action: 'merge'))
   end
@@ -249,7 +249,7 @@ module SystemNoteService
   end
 
   def resolve_all_discussions(merge_request, project, author)
-    body = "resolved all discussions"
+    body = "resolved all threads"
 
     create_note(NoteSummary.new(merge_request, project, author, body, action: 'discussion'))
   end
@@ -404,8 +404,9 @@ module SystemNoteService
   # Example note text:
   #
   #   "created branch `201-issue-branch-button`"
-  def new_issue_branch(issue, project, author, branch)
-    link = url_helpers.project_compare_path(project, from: project.default_branch, to: branch)
+  def new_issue_branch(issue, project, author, branch, branch_project: nil)
+    branch_project ||= project
+    link = url_helpers.project_compare_path(branch_project, from: branch_project.default_branch, to: branch)
 
     body = "created branch [`#{branch}`](#{link}) to address this issue"
 
@@ -413,7 +414,7 @@ module SystemNoteService
   end
 
   def new_merge_request(issue, project, author, merge_request)
-    body = "created merge request #{merge_request.to_reference} to address this issue"
+    body = "created merge request #{merge_request.to_reference(project)} to address this issue"
 
     create_note(NoteSummary.new(issue, project, author, body, action: 'merge'))
   end

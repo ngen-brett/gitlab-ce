@@ -132,7 +132,7 @@ export default {
       return this.discussion.diff_discussion && this.renderDiffFile;
     },
     shouldGroupReplies() {
-      return !this.shouldRenderDiffs && !this.discussion.diff_discussion;
+      return !this.shouldRenderDiffs;
     },
     wrapperComponent() {
       return this.shouldRenderDiffs ? diffWithNote : 'div';
@@ -174,22 +174,20 @@ export default {
         active: isActive,
       } = this.discussion;
 
-      let text = s__('MergeRequests|started a discussion');
+      let text = s__('MergeRequests|started a thread');
       if (isForCommit) {
-        text = s__(
-          'MergeRequests|started a discussion on commit %{linkStart}%{commitId}%{linkEnd}',
-        );
+        text = s__('MergeRequests|started a thread on commit %{linkStart}%{commitId}%{linkEnd}');
       } else if (isDiffDiscussion && commitId) {
         text = isActive
-          ? s__('MergeRequests|started a discussion on commit %{linkStart}%{commitId}%{linkEnd}')
+          ? s__('MergeRequests|started a thread on commit %{linkStart}%{commitId}%{linkEnd}')
           : s__(
-              'MergeRequests|started a discussion on an outdated change in commit %{linkStart}%{commitId}%{linkEnd}',
+              'MergeRequests|started a thread on an outdated change in commit %{linkStart}%{commitId}%{linkEnd}',
             );
       } else if (isDiffDiscussion) {
         text = isActive
-          ? s__('MergeRequests|started a discussion on %{linkStart}the diff%{linkEnd}')
+          ? s__('MergeRequests|started a thread on %{linkStart}the diff%{linkEnd}')
           : s__(
-              'MergeRequests|started a discussion on %{linkStart}an old version of the diff%{linkEnd}',
+              'MergeRequests|started a thread on %{linkStart}an old version of the diff%{linkEnd}',
             );
       }
 
@@ -250,6 +248,11 @@ export default {
       clearDraft(this.autosaveKey);
     },
     saveReply(noteText, form, callback) {
+      if (!noteText) {
+        this.cancelReplyForm();
+        callback();
+        return;
+      }
       const postData = {
         in_reply_to_discussion_id: this.discussion.reply_id,
         target_type: this.getNoteableData.targetType,
@@ -280,8 +283,9 @@ export default {
           this.removePlaceholderNotes();
           this.isReplying = true;
           this.$nextTick(() => {
-            const msg = `Your comment could not be submitted!
-Please check your network connection and try again.`;
+            const msg = __(
+              'Your comment could not be submitted! Please check your network connection and try again.',
+            );
             Flash(msg, 'alert', this.$el);
             this.$refs.noteForm.note = noteText;
             callback(err);
@@ -363,7 +367,6 @@ Please check your network connection and try again.`;
               :line="line"
               :should-group-replies="shouldGroupReplies"
               @startReplying="showReplyForm"
-              @toggleDiscussion="toggleDiscussionHandler"
               @deleteNote="deleteNoteHandler"
             >
               <slot slot="avatar-badge" name="avatar-badge"></slot>
@@ -376,7 +379,7 @@ Please check your network connection and try again.`;
                 <div
                   v-else-if="showReplies"
                   :class="{ 'is-replying': isReplying }"
-                  class="discussion-reply-holder"
+                  class="discussion-reply-holder clearfix"
                 >
                   <user-avatar-link
                     v-if="!isReplying && userCanReply"
