@@ -57,6 +57,7 @@ export default {
           :diff-file-hash="diffFile.file_hash"
           :line="line"
           :help-page-path="helpPagePath"
+          :hasDraft="shouldRenderDraftRow(diffFile.file_hash, line) || false"
         />
         <inline-draft-comment-row
           v-if="shouldRenderDraftRow(diffFile.file_hash, line)"
