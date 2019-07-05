@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class AnalyticsIssueEntity < Grape::Entity
-  include RequestAwareEntity
+  include RequestAwareq
   include EntityDateHelper
 
   expose :title
