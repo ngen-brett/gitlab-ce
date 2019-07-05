@@ -11,10 +11,12 @@ class Admin::RequestsProfilesController < Admin::ApplicationController
     profile    = Gitlab::RequestProfiler::Profile.find(clean_name)
 
     if profile
-      if profile.memory?
+      if File.extname(clean_name) == '.txt'
         render plain: profile.content
-      else
+      elsif File.extname(clean_name) == '.html'
         render html: profile.content.html_safe
+      else
+        raise ActionController::BadRequest, "Neither .txt nor .html: #{clean_name}"
       end
     else
       redirect_to admin_requests_profiles_path, alert: 'Profile not found'

@@ -56,7 +56,7 @@ module Gitlab
           end
         end
 
-        generate_report(env, 'execution') do |file_path|
+        generate_report(env, 'execution', 'html') do |file_path|
           printer = RubyProf::CallStackPrinter.new(report)
           File.open(file_path, 'wb') do |file|
             printer.print(file)
@@ -74,15 +74,16 @@ module Gitlab
           end
         end
 
-        generate_report(env, 'memory') do |file_path|
+        generate_report(env, 'memory', 'txt') do |file_path|
           report.pretty_print(to_file: file_path)
         end
 
         handle_request_ret(ret)
       end
 
-      def generate_report(env, report_type)
-        file_name = "#{env['PATH_INFO'].tr('/', '|')}_#{Time.current.to_i}_#{report_type}.html"
+      def generate_report(env, report_type, extension)
+        file_name = "#{env['PATH_INFO'].tr('/', '|')}_#{Time.current.to_i}"\
+                    "_#{report_type}.#{extension}"
         file_path = "#{PROFILES_DIR}/#{file_name}"
 
         FileUtils.mkdir_p(PROFILES_DIR)

@@ -8,19 +8,18 @@ module Gitlab
       alias_method :to_param, :name
 
       def self.all
-        Dir["#{PROFILES_DIR}/*.html"].map do |path|
+        Dir["#{PROFILES_DIR}/*.{html,txt}"].map do |path|
           new(File.basename(path))
         end
       end
 
       def self.find(name)
-        name_dup = name.dup
-        name_dup << '.html' unless name.end_with?('.html')
+        raise "missing extension: #{name}" unless (name.end_with?('.html') || name.end_with?('.txt'))
 
-        file_path = "#{PROFILES_DIR}/#{name_dup}"
+        file_path = "#{PROFILES_DIR}/#{name}"
         return unless File.exist?(file_path)
 
-        new(name_dup)
+        new(name)
       end
 
       def initialize(name)
@@ -33,14 +32,10 @@ module Gitlab
         File.read("#{PROFILES_DIR}/#{name}")
       end
 
-      def memory?
-        @type == 'memory'
-      end
-
       private
 
       def set_attributes
-        _, path, timestamp, type = name.split(/(.*)_(\d+)_(.*)\.html$/)
+        _, path, timestamp, type = name.split(/(.*)_(\d+)_(.*)\.(html|txt)$/)
         @request_path            = path.tr('|', '/')
         @time                    = Time.at(timestamp.to_i).utc
         @type                    = type
