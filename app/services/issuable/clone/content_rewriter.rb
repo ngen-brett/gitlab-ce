@@ -23,10 +23,14 @@ module Issuable
       end
 
       def rewrite_notes
+        discussion_ids_map = {}
         original_entity.notes_with_associations.find_each do |note|
           new_note = note.dup
+          discussion_ids_map[note.discussion_id] = Discussion.discussion_id(new_note) if discussion_ids_map[note.discussion_id].blank?
           new_params = {
-            project: new_entity.project, noteable: new_entity,
+            project: new_entity.project,
+            noteable: new_entity,
+            discussion_id: discussion_ids_map[note.discussion_id],
             note: rewrite_content(new_note.note),
             note_html: nil,
             created_at: note.created_at,
