@@ -5,7 +5,8 @@ class IssueTrackerService < Service
 
   default_value_for :category, 'issue_tracker'
 
-  before_save :handle_properties
+  before_validation :handle_properties
+  after_save :save_data_fields
 
   # Pattern used to extract links from comments
   # Override this method on services that uses different patterns
@@ -43,12 +44,30 @@ class IssueTrackerService < Service
   end
 
   def handle_properties
-    properties.slice('title', 'description').each do |key, _|
+    return unless properties
+
+    data_values = properties.slice!('title', 'description')
+    properties.each do |key, _|
       current_value = self.properties.delete(key)
       value = attribute_changed?(key) ? attribute_change(key).last : current_value
 
       write_attribute(key, value)
     end
+# binding.pry
+    # unless cdata_fields.persisted?
+      updated_properties.each do |key, value|
+        updated_properties[key] = data_values[key]
+      end
+      data_values.reject! { |key| data_fields.changed.include?(key) }
+
+      data_fields.assign_attributes(data_values) if data_values.present?
+    # end
+
+    self.properties = {}
+  end
+
+  def save_data_fields
+    # binding.pry
   end
 
   def default?

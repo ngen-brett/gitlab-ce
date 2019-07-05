@@ -47,9 +47,12 @@ FactoryBot.define do
     properties(
       url: 'https://jira.example.com',
       username: 'jira_user',
-      password: 'my-secret-password',
-      project_key: 'jira-key'
+      password: 'my-secret-password'
     )
+  end
+
+  trait :skip_properties_callback do
+    after(:build) { IssueTrackerService.skip_callback(:save, :before, :handle_properties) }
   end
 
   factory :bugzilla_service do

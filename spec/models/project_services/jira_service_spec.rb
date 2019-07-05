@@ -6,6 +6,22 @@ describe JiraService do
   include Gitlab::Routing
   include AssetsHelpers
 
+  let(:title) { 'custom title' }
+  let(:description) { 'custom description' }
+  let(:url) { 'http://jira.example.com' }
+  let(:api_url) { 'http://api-jira.example.com' }
+  let(:username) { 'jira-username' }
+  let(:password) { 'jira-password' }
+  let(:transition_id) { 'test27' }
+
+  def skip_properties_callback
+    IssueTrackerService.skip_callback(:validation, :before, :handle_properties)
+  end
+
+  def set_properties_callback
+    IssueTrackerService.set_callback(:validation, :before, :handle_properties)
+  end
+
   describe '#options' do
     let(:service) do
       described_class.new(
@@ -46,53 +62,245 @@ describe JiraService do
   describe '#create' do
     let(:params) do
       {
-        project: create(:project), title: 'custom title', description: 'custom description'
+        project: create(:project),
+        title: 'custom title', description: 'custom description',
+        url: url, api_url: api_url,
+        username: username, password: password,
+        jira_issue_transition_id: transition_id
       }
     end
 
     subject { described_class.create(params) }
 
-    it 'does not store title & description into properties' do
-      expect(subject.properties.keys).not_to include('title', 'description')
+    it 'does not store data into properties' do
+      # expect(subject.properties).to be_empty
     end
 
-    it 'sets title & description correctly' do
+    it 'sets title  correctly' do
+      service = subject
+
+      expect(service.title).to eq('custom title')
+    end
+
+    it 'sets service data correctly' do
       service = subject
 
       expect(service.title).to eq('custom title')
       expect(service.description).to eq('custom description')
     end
+
+    it 'stores data in data_fields correcty' do
+      service = subject
+
+      # expect(service.jira_tracker_data.url).to eq(url)
+      # expect(service.jira_tracker_data.api_url).to eq(api_url)
+      # expect(service.jira_tracker_data.username).to eq(username)
+      # expect(service.jira_tracker_data.password).to eq(password)
+      # expect(service.jira_tracker_data.jira_issue_transition_id).to eq(transition_id)
+    end
   end
 
+  # we need to make sure we are able to read both from properties and jira_tracker_data table
+  # TODO: change this as part of #63084
   context 'overriding properties' do
-    let(:url) { 'http://issue_tracker.example.com' }
     let(:access_params) do
-      { url: url, username: 'username', password: 'password' }
+      { url: url, api_url: api_url, username: username, password: password,
+        jira_issue_transition_id: transition_id }
+    end
+
+
+    shared_examples 'handles jira fields' do
+      let(:data_params) do
+        {
+          url: url, api_url: api_url,
+          username: username, password: password,
+          jira_issue_transition_id: transition_id,
+          title: title, description: description
+        }
+      end
+
+      context 'reading data' do
+        it 'reads data correctly' do
+          expect(service.url).to eq(url)
+          expect(service.api_url).to eq(api_url)
+          expect(service.username).to eq(username)
+          expect(service.password).to eq(password)
+          expect(service.jira_issue_transition_id).to eq(transition_id)
+        end
+      end
+
+      context '#update' do
+        context 'basic update' do
+          let(:new_username) { 'new_username' }
+          let(:new_url) { 'http://jira-new.example.com' }
+
+          before do
+            service.update(username: new_username, url: new_url)
+          end
+
+          it 'leaves properties field emtpy' do
+            # expect(service.reload.properties).to be_empty
+          end
+
+          it 'stores updated data in jira_tracker_data table' do
+            data = service.jira_tracker_data.reload
+
+            expect(data.url).to eq(new_url)
+            expect(data.api_url).to eq(api_url)
+            expect(data.username).to eq(new_username)
+            expect(data.password).to eq(password)
+            expect(data.jira_issue_transition_id).to eq(transition_id)
+          end
+        end
+
+        context 'stored password invalidation' do
+          context 'when a password was previously set' do
+            context 'when only web url present' do
+              let(:data_params) do
+                {
+                  url: url, api_url: nil,
+                  username: username, password: password,
+                  jira_issue_transition_id: transition_id
+                }
+              end
+
+              it 'resets password if url changed' do
+                service
+                service.url = 'http://jira_edited.example.com'
+                service.save
+
+                expect(service.reload.url).to eq('http://jira_edited.example.com')
+                expect(service.password).to be_nil
+              end
+
+              it 'resets password if url not changed but api url added' do
+                service.api_url = 'http://jira_edited.example.com/rest/api/2'
+                service.save
+
+                expect(service.reload.api_url).to eq('http://jira_edited.example.com/rest/api/2')
+                expect(service.password).to be_nil
+              end
+
+              it 'does not reset password if new url is set together with password, even if it\'s the same password' do
+                service.url = 'http://jira_edited.example.com'
+                service.password = password
+                service.save
+
+                expect(service.password).to eq(password)
+                expect(service.url).to eq('http://jira_edited.example.com')
+              end
+
+              it 'resets password if url changed, even if setter called multiple times' do
+                service.url = 'http://jira1.example.com/rest/api/2'
+                service.url = 'http://jira1.example.com/rest/api/2'
+                service.save
+
+                expect(service.password).to be_nil
+              end
+
+              it 'does not reset password if username changed' do
+                service.username = 'some_name'
+                service.save
+
+                expect(service.reload.password).to eq(password)
+              end
+            end
+
+            context 'when both web and api url present' do
+              let(:data_params) do
+                {
+                  url: url, api_url: 'http://jira.example.com/rest/api/2',
+                  username: username, password: password,
+                  jira_issue_transition_id: transition_id
+                }
+              end
+
+              it 'resets password if api url changed' do
+                service.api_url = 'http://jira_edited.example.com/rest/api/2'
+                service.save
+
+                expect(service.password).to be_nil
+              end
+
+              it 'does not reset password if url changed' do
+                service.url = 'http://jira_edited.example.com'
+                service.save
+
+                expect(service.password).to eq(password)
+              end
+
+              it 'resets password if api url set to empty' do
+                service.update(api_url: '')
+
+                expect(service.reload.password).to be_nil
+              end
+            end
+          end
+
+          context 'when no password was previously set' do
+            let(:data_params) do
+              {
+                url: url, username: username
+              }
+            end
+
+            it 'saves password if new url is set together with password' do
+              service.url = 'http://jira_edited.example.com/rest/api/2'
+              service.password = 'password'
+              service.save
+              expect(service.reload.password).to eq('password')
+              expect(service.reload.url).to eq('http://jira_edited.example.com/rest/api/2')
+            end
+          end
+        end
+      end
     end
 
     # this  will be removed as part of https://gitlab.com/gitlab-org/gitlab-ce/issues/63084
     context 'when data are stored in properties' do
       let(:properties) { access_params.merge(title: title, description: description) }
-      let(:service) { create(:jira_service, properties: properties) }
+      let!(:service) do
+        skip_properties_callback
+        record = build(:jira_service, properties: data_params) do |service|
+          service.save(validate: false)
+        end
 
-      include_examples 'issue tracker fields'
+        set_properties_callback
+
+        record
+      end
+
+      # include_examples 'issue tracker fields'
+      include_examples 'handles jira fields'
     end
 
     context 'when data are stored in separated fields' do
       let(:service) do
-        create(:jira_service, title: title, description: description, properties: access_params)
+        create(:jira_service, title: title, description: description, properties: {})
+      end
+      let!(:jira_tracker_data) do
+        create(:jira_tracker_data,
+               data_params.except(:title, :description).merge(service: service))
       end
 
       include_examples 'issue tracker fields'
+      include_examples 'handles jira fields'
     end
 
     context 'when data are stored in both properties and separated fields' do
-      let(:properties) { access_params.merge(title: 'wrong title', description: 'wrong description') }
+      let(:properties) { data_params.merge(title: 'wrong title', description: 'wrong description') }
       let(:service) do
-        create(:jira_service, title: title, description: description, properties: properties)
+        skip_properties_callback
+        create(:jira_service, title: title, description: description, properties: properties).tap do
+          set_properties_callback
+        end
+      end
+      let!(:jira_tracker_data) do
+        create(:jira_tracker_data, data_params.except(:title, :description).merge(service: service))
       end
 
-      include_examples 'issue tracker fields'
+      # include_examples 'issue tracker fields'
+      include_examples 'handles jira fields'
     end
 
     context 'when no title & description are set' do
@@ -336,110 +544,110 @@ describe JiraService do
     end
   end
 
-  describe 'Stored password invalidation' do
-    let(:project) { create(:project) }
-
-    context 'when a password was previously set' do
-      before do
-        @jira_service = described_class.create!(
-          project: project,
-          properties: {
-            url: 'http://jira.example.com/web',
-            username: 'mic',
-            password: 'password'
-          }
-        )
-      end
-
-      context 'when only web url present' do
-        it 'reset password if url changed' do
-          @jira_service.url = 'http://jira_edited.example.com/rest/api/2'
-          @jira_service.save
-
-          expect(@jira_service.password).to be_nil
-        end
-
-        it 'reset password if url not changed but api url added' do
-          @jira_service.api_url = 'http://jira_edited.example.com/rest/api/2'
-          @jira_service.save
-
-          expect(@jira_service.password).to be_nil
-        end
-      end
-
-      context 'when both web and api url present' do
-        before do
-          @jira_service.api_url = 'http://jira.example.com/rest/api/2'
-          @jira_service.password = 'password'
-
-          @jira_service.save
-        end
-        it 'reset password if api url changed' do
-          @jira_service.api_url = 'http://jira_edited.example.com/rest/api/2'
-          @jira_service.save
-
-          expect(@jira_service.password).to be_nil
-        end
-
-        it 'does not reset password if url changed' do
-          @jira_service.url = 'http://jira_edited.example.com/rweb'
-          @jira_service.save
-
-          expect(@jira_service.password).to eq('password')
-        end
-
-        it 'reset password if api url set to empty' do
-          @jira_service.api_url = ''
-          @jira_service.save
-
-          expect(@jira_service.password).to be_nil
-        end
-      end
-
-      it 'does not reset password if username changed' do
-        @jira_service.username = 'some_name'
-        @jira_service.save
-
-        expect(@jira_service.password).to eq('password')
-      end
-
-      it 'does not reset password if new url is set together with password, even if it\'s the same password' do
-        @jira_service.url = 'http://jira_edited.example.com/rest/api/2'
-        @jira_service.password = 'password'
-        @jira_service.save
-
-        expect(@jira_service.password).to eq('password')
-        expect(@jira_service.url).to eq('http://jira_edited.example.com/rest/api/2')
-      end
-
-      it 'resets password if url changed, even if setter called multiple times' do
-        @jira_service.url = 'http://jira1.example.com/rest/api/2'
-        @jira_service.url = 'http://jira1.example.com/rest/api/2'
-        @jira_service.save
-        expect(@jira_service.password).to be_nil
-      end
-    end
-
-    context 'when no password was previously set' do
-      before do
-        @jira_service = described_class.create(
-          project: project,
-          properties: {
-            url: 'http://jira.example.com/rest/api/2',
-            username: 'mic'
-          }
-        )
-      end
-
-      it 'saves password if new url is set together with password' do
-        @jira_service.url = 'http://jira_edited.example.com/rest/api/2'
-        @jira_service.password = 'password'
-        @jira_service.save
-        expect(@jira_service.password).to eq('password')
-        expect(@jira_service.url).to eq('http://jira_edited.example.com/rest/api/2')
-      end
-    end
-  end
+  # describe 'Stored password invalidation' do
+  #   let(:project) { create(:project) }
+  #
+  #   context 'when a password was previously set' do
+  #     before do
+  #       @jira_service = described_class.create!(
+  #         project: project,
+  #         properties: {
+  #           url: 'http://jira.example.com/web',
+  #           username: 'mic',
+  #           password: 'password'
+  #         }
+  #       )
+  #     end
+  #
+  #     context 'when only web url present' do
+  #       it 'reset password if url changed' do
+  #         @jira_service.url = 'http://jira_edited.example.com/rest/api/2'
+  #         @jira_service.save
+  #
+  #         expect(@jira_service.password).to be_nil
+  #       end
+  #
+  #       it 'reset password if url not changed but api url added' do
+  #         @jira_service.api_url = 'http://jira_edited.example.com/rest/api/2'
+  #         @jira_service.save
+  #
+  #         expect(@jira_service.password).to be_nil
+  #       end
+  #     end
+  #
+  #     context 'when both web and api url present' do
+  #       before do
+  #         @jira_service.api_url = 'http://jira.example.com/rest/api/2'
+  #         @jira_service.password = 'password'
+  #
+  #         @jira_service.save
+  #       end
+  #       it 'reset password if api url changed' do
+  #         @jira_service.api_url = 'http://jira_edited.example.com/rest/api/2'
+  #         @jira_service.save
+  #
+  #         expect(@jira_service.password).to be_nil
+  #       end
+  #
+  #       it 'does not reset password if url changed' do
+  #         @jira_service.url = 'http://jira_edited.example.com/rweb'
+  #         @jira_service.save
+  #
+  #         expect(@jira_service.password).to eq('password')
+  #       end
+  #
+  #       it 'reset password if api url set to empty' do
+  #         @jira_service.api_url = ''
+  #         @jira_service.save
+  #
+  #         expect(@jira_service.password).to be_nil
+  #       end
+  #     end
+  #
+  #     it 'does not reset password if username changed' do
+  #       @jira_service.username = 'some_name'
+  #       @jira_service.save
+  #
+  #       expect(@jira_service.password).to eq('password')
+  #     end
+  #
+  #     it 'does not reset password if new url is set together with password, even if it\'s the same password' do
+  #       @jira_service.url = 'http://jira_edited.example.com/rest/api/2'
+  #       @jira_service.password = 'password'
+  #       @jira_service.save
+  #
+  #       expect(@jira_service.password).to eq('password')
+  #       expect(@jira_service.url).to eq('http://jira_edited.example.com/rest/api/2')
+  #     end
+  #
+  #     it 'resets password if url changed, even if setter called multiple times' do
+  #       @jira_service.url = 'http://jira1.example.com/rest/api/2'
+  #       @jira_service.url = 'http://jira1.example.com/rest/api/2'
+  #       @jira_service.save
+  #       expect(@jira_service.password).to be_nil
+  #     end
+  #   end
+  #
+  #   context 'when no password was previously set' do
+  #     before do
+  #       @jira_service = described_class.create(
+  #         project: project,
+  #         properties: {
+  #           url: 'http://jira.example.com/rest/api/2',
+  #           username: 'mic'
+  #         }
+  #       )
+  #     end
+  #
+  #     it 'saves password if new url is set together with password' do
+  #       @jira_service.url = 'http://jira_edited.example.com/rest/api/2'
+  #       @jira_service.password = 'password'
+  #       @jira_service.save
+  #       expect(@jira_service.password).to eq('password')
+  #       expect(@jira_service.url).to eq('http://jira_edited.example.com/rest/api/2')
+  #     end
+  #   end
+  # end
 
   describe 'description and title' do
     let(:title) { 'Jira One' }
