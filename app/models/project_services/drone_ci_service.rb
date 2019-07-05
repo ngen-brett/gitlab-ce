@@ -68,7 +68,7 @@ class DroneCiService < CiService
       end
 
     { commit_status: status }
-  rescue *Gitlab::HTTP::HTTP_ERRORS => e
+  rescue *Gitlab::HTTP::HTTP_ERRORS
     { commit_status: :error }
   end
 
