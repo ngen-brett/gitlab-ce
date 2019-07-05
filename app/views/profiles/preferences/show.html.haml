@@ -83,6 +83,7 @@
       = f.label :first_day_of_week, class: 'label-bold' do
         = _('First day of the week')
       = f.select :first_day_of_week, first_day_of_week_choices_with_default, {}, class: 'form-control'
+    -# if Feature.enabled?(:user_time_settings)
     .col-sm-12
       %hr
     .col-lg-4.profile-settings-sidebar
