@@ -28,7 +28,12 @@ export default {
       required: false,
       default: '',
     },
-    hasDraft: {
+    hasDraftLeft: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    hasDraftRight: {
       type: Boolean,
       required: false,
       default: false,
@@ -126,7 +131,7 @@ export default {
         />
       </div>
       <diff-discussion-reply
-        v-if="!hasDraft"
+        v-if="!hasDraftLeft"
         :has-form="showLeftSideCommentForm"
         :render-reply-placeholder="shouldRenderReplyPlaceholderOnLeft"
         @showNewDiscussionForm="showNewDiscussionForm"
@@ -151,7 +156,7 @@ export default {
         />
       </div>
       <diff-discussion-reply
-        v-if="!hasDraft"
+        v-if="!hasDraftRight"
         :has-form="showRightSideCommentForm"
         :render-reply-placeholder="shouldRenderReplyPlaceholderOnRight"
         @showNewDiscussionForm="showNewDiscussionForm"
