@@ -204,13 +204,19 @@ describe Boards::IssuesController do
           it 'moves issues as expected' do
             put :move_multiple_issues, params: move_issues_params
             expect(response).to have_gitlab_http_status(expected_status)
+            if expected_status == 200
+              expect(json_response).to eq({
+                'count' => move_issues_params[:ids].size,
+                'success' => true
+              })
+            end
 
             list_issues user: requesting_user, board: board, list: list2
             expect(response).to have_gitlab_http_status(200)
 
             expect(response).to match_response_schema('entities/issue_boards')
 
-            responded_issues = json_response['issues']
+            responded_issues = JSON.parse(response.body)['issues']
             expect(responded_issues.length).to eq expected_issue_count
 
             ids_in_order = responded_issues.pluck('id')

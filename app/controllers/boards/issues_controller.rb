@@ -59,11 +59,12 @@ module Boards
       service = Boards::Issues::MoveService.new(board_parent, current_user, move_multiple_params)
 
       issues = Issue.find(params[:ids])
-      if service.execute_multiple(issues)
-        head :ok
-      else
-        head :unprocessable_entity
-      end
+      count = service.execute_multiple(issues)
+
+      render json: {
+        count: count,
+        success: count == issues.size
+      }
     end
 
     def update

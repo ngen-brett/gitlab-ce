@@ -14,20 +14,24 @@ module Boards
         return false if issues.empty?
 
         last_inserted_issue_id = nil
-        issues.map.with_index do |issue, index|
+        issues.each.with_index.inject(0) do |moved_count, (issue, index)|
           issue_params = issue_params(issue)
           next if issue_params.empty?
 
           if last_inserted_issue_id
-            issue_params[:move_between_ids] = move_between_ids({ move_after_id: nil, move_before_id: last_inserted_issue_id })
+            issue_params[:move_between_ids] = move_after(last_inserted_issue_id)
           end
 
           last_inserted_issue_id = issue.id
-          move_single_issue(issue, issue_params, index == 0)
-        end.all?
+          move_single_issue(issue, issue_params, index == 0) ? moved_count += 1 : moved_count
+        end
       end
 
       private
+
+      def move_after(id)
+        move_between_ids({ move_after_id: nil, move_before_id: id })
+      end
 
       def move_single_issue(issue, issue_params, perform_ability_check = true)
         return false if perform_ability_check && !can?(current_user, :update_issue, issue)
