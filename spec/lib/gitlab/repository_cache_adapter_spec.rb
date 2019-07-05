@@ -213,7 +213,7 @@ describe Gitlab::RepositoryCacheAdapter do
 
     it 'does not expire caches for non-existent methods' do
       expect(cache).not_to receive(:expire).with(:nonexistent)
-      expect(Rails.logger).to(
+      expect(Rails.logger).to( # rubocop:disable Gitlab/RailsLogger
         receive(:error).with("Requested to expire non-existent method 'nonexistent' for Repository"))
 
       repository.expire_method_caches(%i(nonexistent))

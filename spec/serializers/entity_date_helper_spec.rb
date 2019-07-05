@@ -32,7 +32,7 @@ describe EntityDateHelper do
   end
 
   it 'converts 86560 seconds' do
-    Rails.logger.debug date_helper_class.inspect
+    Rails.logger.debug date_helper_class.inspect # rubocop:disable Gitlab/RailsLogger
     expect(date_helper_class.distance_of_time_as_hash(86560)).to eq(days: 1, mins: 2, seconds: 40)
   end
 

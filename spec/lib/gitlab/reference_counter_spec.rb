@@ -22,6 +22,7 @@ describe Gitlab::ReferenceCounter do
     expect(reference_counter.decrease).to be(true)
   end
 
+  # rubocop:disable Gitlab/RailsLogger
   it 'warns if attempting to decrease a counter with a value of one or less, and resets the counter' do
     expect(redis).to receive(:decr).and_return(-1)
     expect(redis).to receive(:del)
@@ -29,6 +30,7 @@ describe Gitlab::ReferenceCounter do
         " decreased when its value was less than 1. Reseting the counter.")
     expect(reference_counter.decrease).to be(true)
   end
+  # rubocop:enable Gitlab/RailsLogger
 
   it 'get the reference count for a path' do
     allow(redis).to receive(:get).and_return(1)

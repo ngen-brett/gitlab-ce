@@ -9,10 +9,12 @@ module ActiveRecord
       ActiveSupport::Notifications.subscribed(method(:callback), 'sql.active_record', &block)
     end
 
+    # rubocop:disable Gitlab/RailsLogger
     def show_backtrace(values)
       Rails.logger.debug("QueryRecorder SQL: #{values[:sql]}")
       Gitlab::Profiler.clean_backtrace(caller).each { |line| Rails.logger.debug("   --> #{line}") }
     end
+    # rubocop:enable Gitlab/RailsLogger
 
     def callback(name, start, finish, message_id, values)
       show_backtrace(values) if ENV['QUERY_RECORDER_DEBUG']

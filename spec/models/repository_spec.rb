@@ -825,7 +825,7 @@ describe Repository do
       end
 
       it 'returns nil' do
-        expect(Rails.logger).to receive(:info).with("Remove remote job failed to create for #{project.id} with remote name joe.")
+        expect(Rails.logger).to receive(:info).with("Remove remote job failed to create for #{project.id} with remote name joe.") # rubocop:disable Gitlab/RailsLogger
 
         expect(repository.async_remove_remote('joe')).to be_nil
       end

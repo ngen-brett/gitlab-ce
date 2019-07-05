@@ -80,7 +80,7 @@ describe ObjectStorage::MigrateUploadsWorker, :sidekiq do
 
         if success > 0
           it 'outputs the reports' do
-            expect(Rails.logger).to receive(:info).with(%r{Migrated #{success}/#{total} files})
+            expect(Rails.logger).to receive(:info).with(%r{Migrated #{success}/#{total} files}) # rubocop:disable Gitlab/RailsLogger
 
             perform(uploads)
           end
@@ -88,7 +88,7 @@ describe ObjectStorage::MigrateUploadsWorker, :sidekiq do
 
         if failures > 0
           it 'outputs upload failures' do
-            expect(Rails.logger).to receive(:warn).with(/Error .* I am a teapot/)
+            expect(Rails.logger).to receive(:warn).with(/Error .* I am a teapot/) # rubocop:disable Gitlab/RailsLogger
 
             perform(uploads)
           end

@@ -33,7 +33,7 @@ describe UpdateMergeRequestsWorker do
       end
 
       it 'logs debug info' do
-        expect(Rails.logger).to receive(:info).with(a_string_matching(/\AUpdateMergeRequestsWorker#perform.*project_id=#{project.id},user_id=#{user.id},oldrev=#{oldrev},newrev=#{newrev},ref=#{ref}/))
+        expect(Rails.logger).to receive(:info).with(a_string_matching(/\AUpdateMergeRequestsWorker#perform.*project_id=#{project.id},user_id=#{user.id},oldrev=#{oldrev},newrev=#{newrev},ref=#{ref}/)) # rubocop:disable Gitlab/RailsLogger
 
         perform
       end

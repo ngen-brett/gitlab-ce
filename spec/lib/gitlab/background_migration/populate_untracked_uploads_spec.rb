@@ -138,7 +138,7 @@ describe Gitlab::BackgroundMigration::PopulateUntrackedUploads, :sidekiq, :migra
       bad_path = "#{Gitlab::BackgroundMigration::PrepareUntrackedUploads::RELATIVE_UPLOAD_DIR}/#{get_full_path(project2)}/._7d37bf4c747916390e596744117d5d1a"
       untracked_files_for_uploads.create!(path: bad_path)
 
-      expect(Rails.logger).to receive(:error).with(/Error parsing path "#{bad_path}":/)
+      expect(Rails.logger).to receive(:error).with(/Error parsing path "#{bad_path}":/) # rubocop:disable Gitlab/RailsLogger
 
       subject.perform(1, untracked_files_for_uploads.last.id)
     end

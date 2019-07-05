@@ -152,7 +152,7 @@ describe Gitlab::GithubImport::Importer::PullRequestsImporter do
         .to receive(:fetch_remote)
         .with('github', forced: false)
 
-      expect(Rails.logger)
+      expect(Rails.logger) # rubocop:disable Gitlab/RailsLogger
         .to receive(:info)
         .with(an_instance_of(String))
 

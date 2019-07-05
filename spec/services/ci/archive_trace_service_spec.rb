@@ -37,7 +37,7 @@ describe Ci::ArchiveTraceService, '#execute' do
               issue_url: 'https://gitlab.com/gitlab-org/gitlab-ce/issues/51502',
               extra: { job_id: job.id } ).once
 
-      expect(Rails.logger)
+      expect(Rails.logger) # rubocop:disable Gitlab/RailsLogger
         .to receive(:error)
         .with("Failed to archive trace. id: #{job.id} message: Job is not finished yet")
         .and_call_original

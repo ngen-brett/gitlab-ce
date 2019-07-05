@@ -90,11 +90,13 @@ describe Projects::ImportExport::ExportService do
           expect_any_instance_of(NotificationService).to receive(:project_not_exported)
         end
 
+        # rubocop:disable Gitlab/RailsLogger
         it 'notifies logger' do
           allow(Rails.logger).to receive(:error)
 
           expect(Rails.logger).to receive(:error)
         end
+        # rubocop:enable Gitlab/RailsLogger
       end
     end
 
@@ -119,7 +121,7 @@ describe Projects::ImportExport::ExportService do
       end
 
       it 'notifies logger' do
-        expect(Rails.logger).to receive(:error)
+        expect(Rails.logger).to receive(:error) # rubocop:disable Gitlab/RailsLogger
       end
 
       it 'the after export strategy is not called' do

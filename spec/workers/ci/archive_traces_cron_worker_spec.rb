@@ -60,7 +60,7 @@ describe Ci::ArchiveTracesCronWorker do
       end
 
       it 'puts a log' do
-        expect(Rails.logger).to receive(:error).with("Failed to archive trace. id: #{build.id} message: Unexpected error")
+        expect(Rails.logger).to receive(:error).with("Failed to archive trace. id: #{build.id} message: Unexpected error") # rubocop:disable Gitlab/RailsLogger
 
         subject
       end

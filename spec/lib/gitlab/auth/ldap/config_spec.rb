@@ -166,7 +166,7 @@ AtlErSqafbECNDSwS5BX8yDpu5yRBJ4xegO/rNlmb8ICRYkuJapD1xXicFOsmfUK
     end
 
     it 'logs an error when an invalid key or cert are configured' do
-      allow(Rails.logger).to receive(:error)
+      allow(Rails.logger).to receive(:error) # rubocop:disable Gitlab/RailsLogger
       stub_ldap_config(
         options: {
           'host'                => 'ldap.example.com',
@@ -181,7 +181,7 @@ AtlErSqafbECNDSwS5BX8yDpu5yRBJ4xegO/rNlmb8ICRYkuJapD1xXicFOsmfUK
 
       config.adapter_options
 
-      expect(Rails.logger).to have_received(:error).with(/LDAP TLS Options/).twice
+      expect(Rails.logger).to have_received(:error).with(/LDAP TLS Options/).twice # rubocop:disable Gitlab/RailsLogger
     end
 
     context 'when verify_certificates is enabled' do

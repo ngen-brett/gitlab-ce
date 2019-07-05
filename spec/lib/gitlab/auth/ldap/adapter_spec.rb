@@ -126,7 +126,7 @@ describe Gitlab::Auth::LDAP::Adapter do
       before do
         allow(adapter).to receive(:renew_connection_adapter).and_return(ldap)
         allow(ldap).to receive(:search) { raise Net::LDAP::Error, "some error" }
-        allow(Rails.logger).to receive(:warn)
+        allow(Rails.logger).to receive(:warn) # rubocop:disable Gitlab/RailsLogger
       end
 
       context 'retries the operation' do
@@ -150,7 +150,7 @@ describe Gitlab::Auth::LDAP::Adapter do
 
           it 'logs the error' do
             expect { subject }.to raise_error(Gitlab::Auth::LDAP::LDAPConnectionError)
-            expect(Rails.logger).to have_received(:warn).with(
+            expect(Rails.logger).to have_received(:warn).with( # rubocop:disable Gitlab/RailsLogger
               "LDAP search raised exception Net::LDAP::Error: some error")
           end
         end

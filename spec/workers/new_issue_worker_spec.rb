@@ -15,7 +15,7 @@ describe NewIssueWorker do
       end
 
       it 'logs an error' do
-        expect(Rails.logger).to receive(:error).with('NewIssueWorker: couldn\'t find Issue with ID=99, skipping job')
+        expect(Rails.logger).to receive(:error).with('NewIssueWorker: couldn\'t find Issue with ID=99, skipping job') # rubocop:disable Gitlab/RailsLogger
 
         worker.perform(99, create(:user).id)
       end
@@ -30,7 +30,7 @@ describe NewIssueWorker do
       end
 
       it 'logs an error' do
-        expect(Rails.logger).to receive(:error).with('NewIssueWorker: couldn\'t find User with ID=99, skipping job')
+        expect(Rails.logger).to receive(:error).with('NewIssueWorker: couldn\'t find User with ID=99, skipping job') # rubocop:disable Gitlab/RailsLogger
 
         worker.perform(create(:issue).id, 99)
       end

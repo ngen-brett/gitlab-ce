@@ -59,7 +59,7 @@ describe RunPipelineScheduleWorker do
       end
 
       it 'logging a pipeline error' do
-        expect(Rails.logger)
+        expect(Rails.logger) # rubocop:disable Gitlab/RailsLogger
           .to receive(:error)
           .with(a_string_matching('ActiveRecord::StatementInvalid'))
           .and_call_original

@@ -15,7 +15,7 @@ describe NewMergeRequestWorker do
       end
 
       it 'logs an error' do
-        expect(Rails.logger).to receive(:error).with('NewMergeRequestWorker: couldn\'t find MergeRequest with ID=99, skipping job')
+        expect(Rails.logger).to receive(:error).with('NewMergeRequestWorker: couldn\'t find MergeRequest with ID=99, skipping job') # rubocop:disable Gitlab/RailsLogger
 
         worker.perform(99, create(:user).id)
       end
@@ -30,7 +30,7 @@ describe NewMergeRequestWorker do
       end
 
       it 'logs an error' do
-        expect(Rails.logger).to receive(:error).with('NewMergeRequestWorker: couldn\'t find User with ID=99, skipping job')
+        expect(Rails.logger).to receive(:error).with('NewMergeRequestWorker: couldn\'t find User with ID=99, skipping job') # rubocop:disable Gitlab/RailsLogger
 
         worker.perform(create(:merge_request).id, 99)
       end

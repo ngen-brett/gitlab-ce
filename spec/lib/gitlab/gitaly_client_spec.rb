@@ -40,7 +40,7 @@ describe Gitlab::GitalyClient do
 
   describe '.stub_certs' do
     it 'skips certificates if OpenSSLError is raised and report it' do
-      expect(Rails.logger).to receive(:error).at_least(:once)
+      expect(Rails.logger).to receive(:error).at_least(:once) # rubocop:disable Gitlab/RailsLogger
       expect(Gitlab::Sentry)
         .to receive(:track_exception)
         .with(
