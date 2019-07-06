@@ -4,6 +4,7 @@ module Gitlab
   module CycleAnalytics
     class BaseStage
       include BaseQuery
+      include BaseDataExtraction
 
       def initialize(project: nil, options:)
         @project = project
@@ -74,14 +75,6 @@ module Gitlab
 
       def event_options
         @options.merge(start_time_attrs: start_time_attrs, end_time_attrs: end_time_attrs)
-      end
-
-      def projects
-        group ? Project.inside_path(group.full_path) : [@project]
-      end
-
-      def group
-        @group ||= @options.fetch(:group, nil)
       end
     end
   end

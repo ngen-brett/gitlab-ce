@@ -4,6 +4,7 @@ module Gitlab
   module CycleAnalytics
     class BaseEventFetcher
       include BaseQuery
+      include BaseDataExtraction
 
       attr_reader :projections, :query, :stage, :order
 
@@ -73,14 +74,6 @@ module Gitlab
 
       def serialization_context
         {}
-      end
-
-      def projects
-        group ? Project.inside_path(group.full_path) : [@project]
-      end
-
-      def group
-        @group ||= @options.fetch(:group, nil)
       end
     end
   end
