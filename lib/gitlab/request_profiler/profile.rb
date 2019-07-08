@@ -14,8 +14,6 @@ module Gitlab
       end
 
       def self.find(name)
-        raise "missing extension: #{name}" unless (name.end_with?('.html') || name.end_with?('.txt'))
-
         file_path = "#{PROFILES_DIR}/#{name}"
         return unless File.exist?(file_path)
 
