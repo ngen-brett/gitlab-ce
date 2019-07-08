@@ -26,7 +26,7 @@ See the [Rails guides] for more info.
    feature and fill in the details for your specific IMAP server and email
    account:
 
-   Configuration for Gmail / Google Apps, assumes mailbox gitlab-incoming@gmail.com
+   Configuration for Gmail / Google Apps, assumes mailbox `gitlab-incoming@gmail.com`:
 
    ```yaml
    incoming_email:

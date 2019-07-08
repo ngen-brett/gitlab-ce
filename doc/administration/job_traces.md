@@ -27,7 +27,7 @@ To change the location where the job logs will be stored, follow the steps below
 
 1. Edit `/etc/gitlab/gitlab.rb` and add or amend the following line:
 
-   ```
+   ```ruby
    gitlab_ci['builds_directory'] = '/mnt/to/gitlab-ci/builds'
    ```
 

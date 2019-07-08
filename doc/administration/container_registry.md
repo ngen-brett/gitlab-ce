@@ -217,7 +217,7 @@ look like:
 1. Open `/home/git/gitlab/config/gitlab.yml`, find the `registry` entry and
    configure it with the following settings:
 
-   ```
+   ```yaml
    registry:
      enabled: true
      host: registry.gitlab.example.com
@@ -259,7 +259,7 @@ Registry application itself.
 1. Open `/home/git/gitlab/config/gitlab.yml`, find the `registry` entry and
    set `enabled` to `false`:
 
-   ```
+   ```yaml
    registry:
      enabled: false
    ```
@@ -291,7 +291,7 @@ the Container Registry by themselves, follow the steps below.
 1. Open `/home/git/gitlab/config/gitlab.yml`, find the `default_projects_features`
    entry and configure it so that `container_registry` is set to `false`:
 
-   ```
+   ```yaml
    ## Default project features settings
    default_projects_features:
      issues: true
@@ -346,7 +346,7 @@ The default location where images are stored in source installations, is
 1. Open `/home/git/gitlab/config/gitlab.yml`, find the `registry` entry and
    change the `path` setting:
 
-   ```
+   ```yaml
    registry:
      path: shared/registry
    ```
@@ -453,7 +453,7 @@ In the examples below we set the Registry's port to `5001`.
 1. Open the configuration file of your Registry server and edit the
    [`http:addr`][registry-http-config] value:
 
-   ```
+   ```yaml
    http
      addr: localhost:5001
    ```
@@ -510,7 +510,7 @@ You can use GitLab as an auth endpoint and use a non-bundled Container Registry.
 
 1. Open `/home/git/gitlab/config/gitlab.yml`, and edit the configuration settings under `registry`:
 
-   ```
+   ```yaml
    ## Container Registry
 
    registry:
