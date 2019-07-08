@@ -16,6 +16,27 @@ def prometheus_default_multiproc_dir
   end
 end
 
+def prometheus_unicorn_worker_id
+  ::Prometheus::Client::Support::Unicorn.worker_id || 'master'
+end
+
+def prometheus_puma_worker_id
+  match = $0.match(/cluster worker ([0-9]+):/)
+  match ? match[1] : 'master'
+end
+
+def prometheus_pid_provider
+  if Sidekiq.server?
+    'sidekiq'
+  elsif defined?(Unicorn::Worker)
+    "unicorn_#{prometheus_unicorn_worker_id}"
+  elsif defined?(::Puma)
+    "puma_#{prometheus_puma_worker_id}"
+  else
+    "process_#{Process.pid}"
+  end
+end
+
 Prometheus::Client.configure do |config|
   config.logger = Rails.logger
 
@@ -23,7 +44,7 @@ Prometheus::Client.configure do |config|
 
   config.multiprocess_files_dir = ENV['prometheus_multiproc_dir'] || prometheus_default_multiproc_dir
 
-  config.pid_provider = Prometheus::Client::Support::Unicorn.method(:worker_pid_provider)
+  config.pid_provider = method(:prometheus_pid_provider)
 end
 
 Gitlab::Application.configure do |config|
