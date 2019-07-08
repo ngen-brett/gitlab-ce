@@ -39,7 +39,7 @@ describe Clusters::Applications::Knative do
   describe '#can_uninstall?' do
     subject { knative.can_uninstall? }
 
-    it { is_expected.to be_falsey }
+    it { is_expected.to be_truthy }
   end
 
   describe '#schedule_status_update with external_ip' do
