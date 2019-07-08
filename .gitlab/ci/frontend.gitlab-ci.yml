@@ -1,6 +1,6 @@
 .assets-compile-cache: &assets-compile-cache
   cache:
-    key: "assets-compile:vendor_ruby:.yarn-cache:tmp_cache_assets_sprockets:v6"
+    key: 'assets-compile:vendor_ruby:.yarn-cache:tmp_cache_assets_sprockets:v6'
     paths:
       - vendor/ruby/
       - .yarn-cache/
@@ -9,7 +9,16 @@
 .use-pg: &use-pg
   services:
     - name: postgres:9.6.11
-      command: ["postgres", "-c", "fsync=off", "-c", "synchronous_commit=off", "-c", "full_page_writes=off"]
+      command:
+        [
+          'postgres',
+          '-c',
+          'fsync=off',
+          '-c',
+          'synchronous_commit=off',
+          '-c',
+          'full_page_writes=off',
+        ]
     - name: redis:alpine
 
 .gitlab:assets:compile-metadata:
@@ -21,11 +30,11 @@
   services:
     - docker:stable-dind
   variables:
-    NODE_ENV: "production"
-    RAILS_ENV: "production"
-    SETUP_DB: "false"
-    SKIP_STORAGE_VALIDATION: "true"
-    WEBPACK_REPORT: "true"
+    NODE_ENV: 'production'
+    RAILS_ENV: 'production'
+    SETUP_DB: 'false'
+    SKIP_STORAGE_VALIDATION: 'true'
+    WEBPACK_REPORT: 'true'
     # we override the max_old_space_size to prevent OOM errors
     NODE_OPTIONS: --max_old_space_size=3584
     DOCKER_DRIVER: overlay2
@@ -37,11 +46,11 @@
     - retry bundle exec rake gitlab:assets:compile
     - time scripts/build_assets_image
     - scripts/clean-old-cached-assets
-    - rm -f /etc/apt/sources.list.d/google*.list  # We don't need to update Chrome here
+    - rm -f /etc/apt/sources.list.d/google*.list # We don't need to update Chrome here
     # Play dependent manual jobs
     - install_api_client_dependencies_with_apt
-    - play_job "review-build-cng" || true  # this job might not exist so ignore the failure if it cannot be played
-    - play_job "schedule:review-build-cng" || true  # this job might not exist so ignore the failure if it cannot be played
+    - play_job "review-build-cng" || true # this job might not exist so ignore the failure if it cannot be played
+    - play_job "schedule:review-build-cng" || true # this job might not exist so ignore the failure if it cannot be played
   artifacts:
     name: webpack-report
     expire_in: 31d
@@ -172,6 +181,7 @@ karma:
 #      junit: junit_karma.xml
 
 jest:
+  image: 'dev.gitlab.org:5005/gitlab/gitlab-build-images:ruby-2.6.3-golang-1.11-git-2.21-chrome-73.0-node-10.x-yarn-1.12-postgresql-9.6-graphicsmagick-1.3.29'
   extends: .dedicated-no-docs-and-no-qa-pull-cache-job
   <<: *use-pg
   dependencies:
@@ -191,8 +201,8 @@ jest:
     paths:
       - coverage-frontend/
       - junit_jest.xml
-#    reports:
-#      junit: junit_jest.xml
+  #    reports:
+  #      junit: junit_jest.xml
   cache:
     key: jest
     paths:
@@ -223,7 +233,7 @@ qa:selectors:
   extends: .dedicated-no-docs-no-db-pull-cache-job
   stage: test
   cache:
-    key: "$CI_JOB_NAME"
+    key: '$CI_JOB_NAME'
     paths:
       - .yarn-cache/
     policy: pull-push
@@ -255,7 +265,7 @@ lint:javascript:report:
   before_script: []
   script:
     - date
-    - yarn run eslint-report || true  # ignore exit code
+    - yarn run eslint-report || true # ignore exit code
   artifacts:
     name: eslint-report
     expire_in: 31d
@@ -271,7 +281,7 @@ jsdoc:
   before_script: []
   script:
     - date
-    - yarn run jsdoc || true  # ignore exit code
+    - yarn run jsdoc || true # ignore exit code
   artifacts:
     name: jsdoc
     expire_in: 31d
