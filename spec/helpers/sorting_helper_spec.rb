@@ -61,25 +61,6 @@ describe SortingHelper do
     }
   end
 
-  def admin_additional_project_options
-    {
-      sort_value_oldest_activity  => sort_title_oldest_activity,
-      sort_value_oldest_created   => sort_title_oldest_created,
-      sort_value_recently_created => sort_title_recently_created,
-      sort_value_stars_desc       => sort_title_most_stars,
-      sort_value_largest_repo     => sort_title_largest_repo
-    }
-  end
-
-  def old_project_options
-    project_common_options.merge({
-      sort_value_oldest_activity  => sort_title_oldest_activity,
-      sort_value_oldest_created   => sort_title_oldest_created,
-      sort_value_recently_created => sort_title_recently_created,
-      sort_value_stars_desc       => sort_title_most_stars
-    })
-  end
-
   describe 'with `admin/projects` controller' do
     before do
       stub_controller_path('admin/projects')
@@ -89,7 +70,13 @@ describe SortingHelper do
       it 'returns a hash of available sorting options' do
         hash = projects_sort_options_hash
 
-        admin_options = project_common_options.merge(admin_additional_project_options)
+        admin_options = project_common_options.merge(    {
+          sort_value_oldest_activity  => sort_title_oldest_activity,
+          sort_value_oldest_created   => sort_title_oldest_created,
+          sort_value_recently_created => sort_title_recently_created,
+          sort_value_stars_desc       => sort_title_most_stars,
+          sort_value_largest_repo     => sort_title_largest_repo
+        })
         expect(hash).to eq(admin_options)
       end
     end
@@ -186,10 +173,15 @@ describe SortingHelper do
 
       describe '#projects_sort_options_hash' do
         it 'returns a hash of available sorting options' do
-          hash = old_projects_sort_options_hash
-          common_options = old_project_options
+          hash = projects_sort_options_hash
+          options = project_common_options.merge({
+            sort_value_oldest_activity  => sort_title_oldest_activity,
+            sort_value_oldest_created   => sort_title_oldest_created,
+            sort_value_recently_created => sort_title_recently_created,
+            sort_value_stars_desc       => sort_title_most_stars
+          })
 
-          common_options.each do |key, opt|
+          options.each do |key, opt|
             expect(hash).to include(key)
             expect(hash[key]).to eq(opt)
           end
