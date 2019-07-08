@@ -7,7 +7,7 @@ describe Gitlab::CycleAnalytics::GroupStageSummary do
   let(:project_2) { create(:project, :repository, namespace: group) }
   let(:from) { 1.day.ago }
   let(:user) { create(:user, :admin) }
-  subject { described_class.new(group, from: Time.now, current_user: user).data }
+  subject { described_class.new(group, from: Time.now, current_user: user, options: {}).data }
 
   describe "#new_issues" do
     it "finds the number of issues created after the 'from date'" do
@@ -38,12 +38,23 @@ describe Gitlab::CycleAnalytics::GroupStageSummary do
       expect(subject.second[:value]).to eq(2)
     end
 
-    it "doesn't find commits from other projects" do
+    it "doesn't find deploys from other projects" do
       Timecop.freeze(5.days.from_now) do
         create(:deployment, :success, project: create(:project, :repository, namespace: create(:group)))
       end
 
       expect(subject.second[:value]).to eq(0)
+    end
+
+    it "shows deploys from projects specified in options" do
+      Timecop.freeze(5.days.from_now) do
+        create(:deployment, :success, project: create(:project, :repository, namespace: group, name: 'test'))
+        create(:deployment, :success, project: create(:project, :repository, namespace: group, name: 'test2'))
+        create(:deployment, :success, project: create(:project, :repository, namespace: group, name: 'not_applicable'))
+      end
+      subject = described_class.new(group, from: Time.now, current_user: user, options: { projects: ['test', 'test2'] }).data
+
+      expect(subject.second[:value]).to eq(2)
     end
   end
 end

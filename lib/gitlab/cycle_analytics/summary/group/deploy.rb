@@ -10,11 +10,17 @@ module Gitlab
           end
 
           def value
-            @value ||= Deployment.joins(:project)
+            @value ||= find_deployments
+          end
+
+          private
+
+          def find_deployments
+            deployments = Deployment.joins(:project)
               .where(projects: { namespace_id: @group.id })
               .where("deployments.created_at > ?", @from)
-              .success
-              .count
+            deployments = deployments.where(projects: { name: @options[:projects] }) if @options[:projects]
+            deployments.success.count
           end
         end
       end
