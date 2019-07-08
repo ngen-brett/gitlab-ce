@@ -29,6 +29,7 @@ import {
   convertObjectPropsToCamelCase,
   parseBoolean,
 } from '~/lib/utils/common_utils';
+import boardConfigToggle from 'ee_else_ce/boards/config_toggle';
 
 let issueBoardsApp;
 
@@ -206,6 +207,8 @@ export default () => {
       initNewListDropdown();
     },
   });
+
+  boardConfigToggle(boardsStore);
 
   const issueBoardsModal = document.getElementById('js-add-issues-btn');
 
