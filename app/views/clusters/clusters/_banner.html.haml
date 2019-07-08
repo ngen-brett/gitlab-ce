@@ -3,10 +3,8 @@
   %p.js-error-reason
 
 .hidden.js-cluster-creating.bs-callout.bs-callout-info{ role: 'alert' }
+  %span.spinner.spinner-dark.spinner-sm{ 'aria-label': 'Loading' }
   = s_('ClusterIntegration|Kubernetes cluster is being created on Google Kubernetes Engine...')
-  %p
-    %strong= s_('ClusterIntegration|This page will automatically reload upon completion.')
-    %span.spinner.spinner-sm{ 'aria-label': 'Loading' }
 
 .hidden.row.js-cluster-api-unreachable.bs-callout.bs-callout-warning{ role: 'alert' }
   .col-11
