@@ -31,6 +31,19 @@ describe Projects::WikisController do
     end
   end
 
+  describe 'GET #history' do
+    context 'the user is not signed in' do
+      before do
+        sign_out(user)
+        get :history, params: { namespace_id: project.namespace, project_id: project, id: wiki_title }
+      end
+
+      it 'loads the history' do
+        expect(response).to have_http_status(:ok)
+      end
+    end
+  end
+
   describe 'GET #show' do
     render_views
 

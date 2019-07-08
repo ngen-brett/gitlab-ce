@@ -1,0 +1,4 @@
+---
+title: 'Fixes #29528, by allowing all users to view history'
+merge_request: '!30470'
+type: fixed
