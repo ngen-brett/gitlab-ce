@@ -5,10 +5,11 @@ module Gitlab
     module Summary
       module Group
         class Issue < Base
-          def initialize(group:, from:, current_user:)
+          def initialize(group:, from:, current_user:, options:)
             @group = group
             @from = from
             @current_user = current_user
+            @options = options
           end
 
           def title
