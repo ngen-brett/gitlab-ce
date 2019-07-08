@@ -39,7 +39,7 @@ describe Clusters::Applications::Knative do
   describe '#can_uninstall?' do
     subject { knative.can_uninstall? }
 
-    it { is_expected.to be_falsey }
+    it { is_expected.to be_truthy }
   end
 
   describe '#schedule_status_update with external_ip' do
@@ -127,6 +127,42 @@ describe Clusters::Applications::Knative do
     end
 
     it_behaves_like 'a command'
+  end
+
+  describe '#uninstall_command' do
+    subject { knative.uninstall_command }
+
+    it { is_expected.to be_an_instance_of(Gitlab::Kubernetes::Helm::DeleteCommand) }
+
+    it "removes knative deployed services before uninstallation" do
+      2.times do |i|
+        cluster_project = create(:cluster_project, cluster: knative.cluster)
+
+        create(:cluster_kubernetes_namespace,
+          cluster: cluster_project.cluster,
+          cluster_project: cluster_project,
+          project: cluster_project.project,
+          namespace: "namespace_#{i}")
+      end
+
+      remove_namespaced_services_script = [
+        "kubectl delete ksvc --all -n #{knative.cluster.kubernetes_namespaces.first.namespace}",
+        "kubectl delete ksvc --all -n #{knative.cluster.kubernetes_namespaces.second.namespace}"
+      ]
+
+      expect(subject.predelete.sort).to eq(remove_namespaced_services_script.sort)
+    end
+
+    it "initializes command with all necessary postdelete script" do
+      remove_knative_istio_leftovers_script = [
+        "kubectl delete ns knative-serving",
+        "kubectl delete ns knative-build",
+        "kubectl api-resources -o name | grep knative | xargs kubectl delete crd",
+        "kubectl api-resources -o name | grep istio | xargs kubectl delete crd"
+      ]
+
+      expect(subject.postdelete).to eq(remove_knative_istio_leftovers_script)
+    end
   end
 
   describe '#files' do
