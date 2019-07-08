@@ -56,11 +56,9 @@ module Gitlab
           end
         end
 
-        generate_report(env, 'execution', 'html') do |file_path|
+        generate_report(env, 'execution', 'html') do |file|
           printer = RubyProf::CallStackPrinter.new(report)
-          File.open(file_path, 'wb') do |file|
-            printer.print(file)
-          end
+          printer.print(file)
         end
 
         handle_request_ret(ret)
@@ -74,8 +72,8 @@ module Gitlab
           end
         end
 
-        generate_report(env, 'memory', 'txt') do |file_path|
-          report.pretty_print(to_file: file_path)
+        generate_report(env, 'memory', 'txt') do |file|
+          report.pretty_print(to_file: file)
         end
 
         handle_request_ret(ret)
@@ -88,7 +86,13 @@ module Gitlab
 
         FileUtils.mkdir_p(PROFILES_DIR)
 
-        yield(file_path)
+        begin
+          File.open(file_path, 'wb') do |file|
+            yield(file)
+          end
+        rescue
+          FileUtils.rm(file_path)
+        end
       end
 
       def handle_request_ret(ret)
