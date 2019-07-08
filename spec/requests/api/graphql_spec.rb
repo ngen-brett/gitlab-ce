@@ -11,8 +11,8 @@ describe 'GraphQL' do
       stub_feature_flags(graphql: false)
     end
 
-    it 'does not generate a route for GraphQL' do
-      expect { post_graphql(query) }.to raise_error(ActionController::RoutingError)
+    it 'has no effect' do
+      expect { post_graphql(query) }.to_not raise_error(ActionController::RoutingError)
     end
   end
 
