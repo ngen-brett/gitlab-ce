@@ -80,33 +80,10 @@ shfmt -i 2 -ci -ln posix scripts/**/*.sh
 TIP: **Tip:**
 Use `-ln` flag to specify the shell dialect (`-ln posix` or `-ln bash`).
 
-This tool should be also used in the GitLab CI/CD to check for the formatting instead of writing formatted files.
-
 NOTE: **Note:**
 Currently, the `shfmt` tool [is not shipped](https://github.com/mvdan/sh/issues/68) as a Docker image containing
 a Linux shell. This makes it impossible to use the [official Docker image](https://hub.docker.com/r/mvdan/shfmt)
 in GitLab Runner. This [may change](https://github.com/mvdan/sh/issues/68#issuecomment-507721371) in future.
-
-For instance,
-
-```yaml
-shell fmt lint:
-  image: alpine
-  stage: test
-  before_script:
-    - |
-      if [ ! -f ./bin/shfmt ]; then
-        mkdir -p .bin
-        wget https://github.com/mvdan/sh/releases/download/v2.6.4/shfmt_v2.6.4_linux_amd64 > .bin/shfmt
-      fi
-    - chmod +x .bin/shfmt
-    - .bin/shfmt -version
-  script:
-    - .bin/shfmt -i 2 -ci -l -ln posix scripts/**/*.sh
-  cache:
-    paths:
-      - .bin/shfmt
-```
 
 ## Testing
 
