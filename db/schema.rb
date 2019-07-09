@@ -1273,6 +1273,11 @@ ActiveRecord::Schema.define(version: 20190703130053) do
     t.string "key", null: false
   end
 
+  create_table "geo_container_repository_updated_events", force: :cascade do |t|
+    t.integer "container_repository_id", null: false
+    t.index ["container_repository_id"], name: "idx_geo_con_rep_updated_events_on_container_repository_id", using: :btree
+  end
+
   create_table "geo_event_log", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "repository_updated_event_id"
@@ -1287,6 +1292,7 @@ ActiveRecord::Schema.define(version: 20190703130053) do
     t.bigint "job_artifact_deleted_event_id"
     t.bigint "reset_checksum_event_id"
     t.bigint "cache_invalidation_event_id"
+    t.bigint "container_repository_updated_event_id"
     t.index ["cache_invalidation_event_id"], name: "index_geo_event_log_on_cache_invalidation_event_id", where: "(cache_invalidation_event_id IS NOT NULL)", using: :btree
     t.index ["hashed_storage_attachments_event_id"], name: "index_geo_event_log_on_hashed_storage_attachments_event_id", where: "(hashed_storage_attachments_event_id IS NOT NULL)", using: :btree
     t.index ["hashed_storage_migrated_event_id"], name: "index_geo_event_log_on_hashed_storage_migrated_event_id", where: "(hashed_storage_migrated_event_id IS NOT NULL)", using: :btree
@@ -3697,6 +3703,7 @@ ActiveRecord::Schema.define(version: 20190703130053) do
   add_foreign_key "fork_networks", "projects", column: "root_project_id", name: "fk_e7b436b2b5", on_delete: :nullify
   add_foreign_key "forked_project_links", "projects", column: "forked_to_project_id", name: "fk_434510edb0", on_delete: :cascade
   add_foreign_key "geo_event_log", "geo_cache_invalidation_events", column: "cache_invalidation_event_id", name: "fk_42c3b54bed", on_delete: :cascade
+  add_foreign_key "geo_event_log", "geo_container_repository_updated_events", column: "container_repository_updated_event_id", name: "fk_geo_event_log_on_container_repository_updated_event_id", on_delete: :cascade
   add_foreign_key "geo_event_log", "geo_hashed_storage_migrated_events", column: "hashed_storage_migrated_event_id", name: "fk_27548c6db3", on_delete: :cascade
   add_foreign_key "geo_event_log", "geo_job_artifact_deleted_events", column: "job_artifact_deleted_event_id", name: "fk_176d3fbb5d", on_delete: :cascade
   add_foreign_key "geo_event_log", "geo_lfs_object_deleted_events", column: "lfs_object_deleted_event_id", name: "fk_d5af95fcd9", on_delete: :cascade
