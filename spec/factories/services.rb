@@ -52,6 +52,15 @@ FactoryBot.define do
     )
   end
 
+  trait :jira_cloud do
+    properties(
+      url: 'https://mysite.atlassian.net',
+      username: 'jira_user',
+      password: 'my-secret-password',
+      project_key: 'jira-key'
+    )
+  end
+
   factory :bugzilla_service do
     project
     active true
@@ -81,17 +90,6 @@ FactoryBot.define do
       project_url: 'http://issue-tracker.example.com',
       issues_url: 'http://issue-tracker.example.com',
       new_issue_url: 'http://issue-tracker.example.com'
-    )
-  end
-
-  factory :jira_cloud_service, class: JiraService do
-    project
-    active true
-    properties(
-      url: 'https://mysite.atlassian.net',
-      username: 'jira_user',
-      password: 'my-secret-password',
-      project_key: 'jira-key'
     )
   end
 

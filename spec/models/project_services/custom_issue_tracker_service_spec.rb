@@ -32,21 +32,6 @@ describe CustomIssueTrackerService do
       it { is_expected.not_to validate_presence_of(:new_issue_url) }
     end
 
-    context 'title' do
-      let(:issue_tracker) { described_class.new(properties: {}) }
-
-      it 'sets a default title' do
-        issue_tracker.title = nil
-
-        expect(issue_tracker.title).to eq('Custom Issue Tracker')
-      end
-
-      it 'sets the custom title' do
-        issue_tracker.title = 'test title'
-
-        expect(issue_tracker.title).to eq('test title')
-      end
-    end
   end
 
   context 'overriding properties' do
