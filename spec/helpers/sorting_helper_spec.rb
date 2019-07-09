@@ -122,24 +122,41 @@ describe SortingHelper do
     end
 
     describe '#project_sort_direction_button' do
-      # TODO: add more of these
-      # TODO: Not too sure about these
-      # Take a look at the ui and just go with that
-      # it 'returns icon with sort-highest when sort is created_date' do
-      #   expect(project_sort_direction_button('created_date')).to include('sort-highest')
-      # end
+      def set_sorting_url(option)
+        allow(self).to receive(:request).and_return(double(path: 'http://test.com', query_parameters: { label_name: option }))
+      end
 
-      # it 'returns icon with sort-lowest when sort is asc' do
-      #   expect(project_sort_direction_button('created_asc')).to include('sort-lowest')
-      # end
+      it 'returns the correct icon for each sort option' do
+        sort_lowest_icon = 'sort-lowest'
+        sort_highest_icon = 'sort-highest'
 
-      # it 'returns icon with sort-lowest when sorting by milestone' do
-      #   expect(project_sort_direction_button('milestone')).to include('sort-lowest')
-      # end
+        sort_options_icons = {
+          sort_value_latest_activity  => sort_highest_icon,
+          sort_value_recently_created => sort_highest_icon,
+          sort_value_name_desc        => sort_highest_icon,
+          sort_value_stars_desc       => sort_highest_icon,
+          sort_value_oldest_activity  => sort_lowest_icon,
+          sort_value_oldest_created   => sort_lowest_icon,
+          sort_value_name             => sort_lowest_icon,
+          sort_value_stars_asc        => sort_lowest_icon
+        }
 
-      # it 'returns icon with sort-lowest when sorting by due_date' do
-      #   expect(project_sort_direction_button('due_date')).to include('sort-lowest')
-      # end
+        sort_options_icons.each do |selected_sort, icon|
+          set_sorting_url(selected_sort)
+
+          expect(project_sort_direction_button(selected_sort)).to include(icon)
+        end
+      end
+
+      it 'returns the correct link to reverse the current sort option' do
+        sort_options_links = projects_reverse_sort_options_hash
+
+        sort_options_links.each do |selected_sort, reverse_sort|
+          set_sorting_url(selected_sort)
+
+          expect(project_sort_direction_button(selected_sort)).to include(reverse_sort)
+        end
+      end
     end
 
     describe '#projects_sort_option_titles' do
@@ -186,47 +203,6 @@ describe SortingHelper do
             expect(hash[key]).to eq(opt)
           end
         end
-      end
-
-      describe '#projects_reverse_sort_options_hash' do 
-        it 'returns a reversed hash of available sorting options' do
-          reverse_hash = projects_reverse_sort_options_hash
-
-          options = {
-            sort_value_latest_activity  => sort_value_oldest_activity,
-            sort_value_recently_created => sort_value_oldest_created,
-            sort_value_name             => sort_value_name_desc,
-            sort_value_stars_desc       => sort_value_stars_asc,
-            sort_value_oldest_activity  => sort_value_latest_activity,
-            sort_value_oldest_created   => sort_value_recently_created,
-            sort_value_name_desc        => sort_value_name,
-            sort_value_stars_asc        => sort_value_stars_desc
-          }
-
-          options.each do |key, opt|
-            expect(reverse_hash).to include(key)
-            expect(reverse_hash[key]).to eq(opt)
-          end
-        end
-      end
-
-      describe '#project_sort_direction_button' do
-        # TODO: these don't look correct
-        # it 'returns icon with sort-highest when sort is created_date' do
-        #   expect(project_sort_direction_button('created_date')).to include('sort-highest')
-        # end
-
-        # it 'returns icon with sort-lowest when sort is asc' do
-        #   expect(project_sort_direction_button('created_asc')).to include('sort-lowest')
-        # end
-
-        # it 'returns icon with sort-lowest when sorting by milestone' do
-        #   expect(project_sort_direction_button('milestone')).to include('sort-lowest')
-        # end
-
-        # it 'returns icon with sort-lowest when sorting by due_date' do
-        #   expect(project_sort_direction_button('due_date')).to include('sort-lowest')
-        # end
       end
     end
   end
