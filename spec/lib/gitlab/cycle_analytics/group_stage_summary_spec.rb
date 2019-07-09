@@ -40,7 +40,7 @@ describe Gitlab::CycleAnalytics::GroupStageSummary do
       Timecop.freeze(5.days.from_now) { create(:issue, project: project) }
       Timecop.freeze(5.days.from_now) { create(:issue, project: project_2) }
 
-      subject = described_class.new(group, from: Time.now, current_user: user, options: { projects: [project.name, project_2.name] }).data
+      subject = described_class.new(group, from: Time.now, current_user: user, options: { projects: [project.id, project_2.id] }).data
 
       expect(subject.first[:value]).to eq(2)
     end
@@ -74,11 +74,11 @@ describe Gitlab::CycleAnalytics::GroupStageSummary do
 
     it "shows deploys from projects specified in options" do
       Timecop.freeze(5.days.from_now) do
-        create(:deployment, :success, project: create(:project, :repository, namespace: group, name: 'test'))
-        create(:deployment, :success, project: create(:project, :repository, namespace: group, name: 'test2'))
+        create(:deployment, :success, project: project)
+        create(:deployment, :success, project: project_2)
         create(:deployment, :success, project: create(:project, :repository, namespace: group, name: 'not_applicable'))
       end
-      subject = described_class.new(group, from: Time.now, current_user: user, options: { projects: %w(test test2) }).data
+      subject = described_class.new(group, from: Time.now, current_user: user, options: { projects: [project.id, project_2.id] }).data
 
       expect(subject.second[:value]).to eq(2)
     end
