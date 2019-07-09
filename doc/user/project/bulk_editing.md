@@ -14,6 +14,7 @@ by using the bulk editing feature.
 
 NOTE: **Note:**
 Bulk editing of merge requests is only available at the project level.
+See [more information](../group/bulk_editing/index.md) on bulk editing group issues.
 
 To update multiple project issues or merge requests at the same time, navigate to
 their respective lists and click **Edit issues** or **Edit merge requests** available
