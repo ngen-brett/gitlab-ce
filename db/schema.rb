@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190703130053) do
+ActiveRecord::Schema.define(version: 20190709220143) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -1680,6 +1680,7 @@ ActiveRecord::Schema.define(version: 20190703130053) do
     t.index ["project_id", "created_at", "id", "state"], name: "index_issues_on_project_id_and_created_at_and_id_and_state", using: :btree
     t.index ["project_id", "due_date", "id", "state"], name: "idx_issues_on_project_id_and_due_date_and_id_and_state_partial", where: "(due_date IS NOT NULL)", using: :btree
     t.index ["project_id", "iid"], name: "index_issues_on_project_id_and_iid", unique: true, using: :btree
+    t.index ["project_id", "relative_position", "state"], name: "index_issues_on_project_id_and_relative_position_and_state", using: :btree
     t.index ["project_id", "updated_at", "id", "state"], name: "index_issues_on_project_id_and_updated_at_and_id_and_state", using: :btree
     t.index ["relative_position"], name: "index_issues_on_relative_position", using: :btree
     t.index ["state"], name: "index_issues_on_state", using: :btree
