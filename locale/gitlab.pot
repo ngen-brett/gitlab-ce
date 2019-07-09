@@ -2260,6 +2260,9 @@ msgstr ""
 msgid "CiVariables|Masked"
 msgstr ""
 
+msgid "CiVariables|Protected"
+msgstr ""
+
 msgid "CiVariables|Remove variable row"
 msgstr ""
 
@@ -2288,6 +2291,9 @@ msgid "CiVariable|All environments"
 msgstr ""
 
 msgid "CiVariable|Create wildcard"
+msgstr ""
+
+msgid "CiVariable|Delete"
 msgstr ""
 
 msgid "CiVariable|Error occurred while saving variables"
