@@ -454,7 +454,7 @@ In the examples below we set the Registry's port to `5001`.
    [`http:addr`][registry-http-config] value:
 
    ```yaml
-   http
+   http:
      addr: localhost:5001
    ```
 
