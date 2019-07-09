@@ -8,7 +8,7 @@
     "eslint-fix": "eslint --max-warnings 0 --report-unused-disable-directives --ext .js,.vue --fix .",
     "eslint-report": "eslint --max-warnings 0 --ext .js,.vue --format html --output-file ./eslint-report.html --no-inline-config .",
     "prejest": "yarn check-dependencies",
-    "jest": "jest",
+    "jest": "node --expose-gc node_modules/.bin/jest",
     "jest-debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
     "jsdoc": "jsdoc -c config/jsdocs.config.js",
     "prekarma": "yarn check-dependencies",

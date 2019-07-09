@@ -79,3 +79,9 @@ Object.entries(jqueryMatchers).forEach(([matcherName, matcherFactory]) => {
 
 // Tech debt issue TBD
 testUtilsConfig.logModifiedComponents = false;
+
+afterAll(() => {
+  if (global.gc) {
+    global.gc();
+  }
+});
