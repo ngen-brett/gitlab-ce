@@ -99,7 +99,7 @@ export default {
       <p v-html="dockerConnectionErrorText"></p>
     </svg-message>
 
-    <gl-loading-icon v-else-if="isLoading" size="md" class="prepend-top-16" />
+    <gl-loading-icon v-else-if="isLoading && !characterError" size="md" class="prepend-top-16" />
 
     <div v-else-if="!isLoading && !characterError && repos.length">
       <h4>{{ s__('ContainerRegistry|Container Registry') }}</h4>
@@ -128,6 +128,8 @@ export default {
 
       <pre>
         docker build -t {{ repositoryUrl }} .
+      </pre>
+      <pre>
         docker push {{ repositoryUrl }}
       </pre>
     </svg-message>
