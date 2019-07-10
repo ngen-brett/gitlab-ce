@@ -18,7 +18,6 @@ module Gitlab
       # enforce_sanitization - Raises error if URL includes any HTML/CSS/JS tags and argument is true.
       #
       # Returns an array with [<uri>, <original-hostname>].
-      # rubocop:disable Metrics/CyclomaticComplexity
       # rubocop:disable Metrics/ParameterLists
       def validate!(
         url,
@@ -30,7 +29,6 @@ module Gitlab
         enforce_user: false,
         enforce_sanitization: false,
         dns_rebind_protection: true)
-        # rubocop:enable Metrics/CyclomaticComplexity
         # rubocop:enable Metrics/ParameterLists
 
         return [nil, nil] if url.nil?
@@ -38,36 +36,31 @@ module Gitlab
         # Param url can be a string, URI or Addressable::URI
         uri = parse_url(url)
 
-        validate_html_tags!(uri) if enforce_sanitization
+        validate_uri!(
+          uri: uri,
+          schemes: schemes,
+          ports: ports,
+          enforce_sanitization: enforce_sanitization,
+          enforce_user: enforce_user,
+          ascii_only: ascii_only
+        )
 
         hostname = uri.hostname
         port = get_port(uri)
 
-        unless internal?(uri)
-          validate_scheme!(uri.scheme, schemes)
-          validate_port!(port, ports) if ports.any?
-          validate_user!(uri.user) if enforce_user
-          validate_hostname!(hostname)
-          validate_unicode_restriction!(uri) if ascii_only
-        end
-
-        begin
-          addrs_info = Addrinfo.getaddrinfo(hostname, port, nil, :STREAM).map do |addr|
-            addr.ipv6_v4mapped? ? addr.ipv6_to_ipv4 : addr
-          end
-        rescue SocketError
-          return [uri, nil]
-        end
+        addrs_info = get_address_info(hostname, port)
+        return [uri, nil] unless addrs_info
 
         protected_uri_with_hostname = enforce_uri_hostname(addrs_info, uri, hostname, dns_rebind_protection)
 
         # Allow url from the GitLab instance itself but only for the configured hostname and ports
         return protected_uri_with_hostname if internal?(uri)
 
-        validate_localhost!(addrs_info) unless allow_localhost
-        validate_loopback!(addrs_info) unless allow_localhost
-        validate_local_network!(addrs_info) unless allow_local_network
-        validate_link_local!(addrs_info) unless allow_local_network
+        validate_local_request!(
+          address_info: addrs_info,
+          allow_localhost: allow_localhost,
+          allow_local_network: allow_local_network
+        )
 
         protected_uri_with_hostname
       end
@@ -99,6 +92,34 @@ module Gitlab
         uri = uri.dup
         uri.hostname = ip_address
         [uri, hostname]
+      end
+
+      def validate_uri!(uri:, schemes:, ports:, enforce_sanitization:, enforce_user:, ascii_only:)
+        validate_html_tags!(uri) if enforce_sanitization
+
+        return if internal?(uri)
+
+        validate_scheme!(uri.scheme, schemes)
+        validate_port!(get_port(uri), ports) if ports.any?
+        validate_user!(uri.user) if enforce_user
+        validate_hostname!(uri.hostname)
+        validate_unicode_restriction!(uri) if ascii_only
+      end
+
+      def get_address_info(hostname, port)
+        Addrinfo.getaddrinfo(hostname, port, nil, :STREAM).map do |addr|
+          addr.ipv6_v4mapped? ? addr.ipv6_to_ipv4 : addr
+        end
+      rescue SocketError
+      end
+
+      def validate_local_request!(address_info:, allow_localhost:, allow_local_network:)
+        return if allow_local_network && allow_localhost
+
+        validate_localhost!(address_info) unless allow_localhost
+        validate_loopback!(address_info) unless allow_localhost
+        validate_local_network!(address_info) unless allow_local_network
+        validate_link_local!(address_info) unless allow_local_network
       end
 
       def get_port(uri)
