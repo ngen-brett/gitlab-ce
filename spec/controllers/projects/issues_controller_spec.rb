@@ -1389,4 +1389,3 @@ describe Projects::IssuesController do
     end
   end
 end
-

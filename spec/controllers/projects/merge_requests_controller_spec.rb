@@ -1134,7 +1134,7 @@ describe Projects::MergeRequestsController do
 
         let(:requested_iid) { merge_request.iid }
         let(:expected_discussion_count) { 2 }
-        let(:expected_discussion_ids) { [ mr_note1.discussion_id, mr_note2.discussion_id ] }
+        let(:expected_discussion_ids) { [mr_note1.discussion_id, mr_note2.discussion_id] }
       end
     end
   end

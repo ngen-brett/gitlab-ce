@@ -13,4 +13,3 @@ shared_examples 'discussions provider' do
     expect(json_response.pluck('id')).to eq(expected_discussion_ids)
   end
 end
-
