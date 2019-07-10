@@ -65,7 +65,7 @@ CAUTION: **Warning:**
 We recommend using an HTTPS connection while configuring the Geo nodes. To avoid
 breaking communication between **primary** and **secondary** nodes when using
 HTTPS, customize your Internal URL to point to a Load Balancer with TLS
-termination.
+terminated at the load balancer.
 
 ## Multiple secondary nodes behind a load balancer
 
