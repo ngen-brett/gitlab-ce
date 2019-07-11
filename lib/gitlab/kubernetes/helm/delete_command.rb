@@ -7,19 +7,22 @@ module Gitlab
         include BaseCommand
         include ClientCommand
 
+        attr_reader :postdelete
         attr_accessor :name, :files
 
-        def initialize(name:, rbac:, files:)
+        def initialize(name:, rbac:, files:, postdelete: nil)
           @name = name
           @files = files
           @rbac = rbac
+          @postdelete = postdelete
         end
 
         def generate_script
           super + [
             init_command,
             wait_for_tiller_command,
-            delete_command
+            delete_command,
+            postdelete_command,
           ].compact.join("\n")
         end
 
@@ -37,6 +40,10 @@ module Gitlab
           command = ['helm', 'delete', '--purge', name] + optional_tls_flags
 
           command.shelljoin
+        end
+
+        def postdelete_command
+          postdelete.join("\n") if postdelete
         end
 
         def optional_tls_flags

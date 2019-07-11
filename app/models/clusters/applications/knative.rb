@@ -70,7 +70,27 @@ module Clusters
         cluster.kubeclient.get_service('istio-ingressgateway', 'istio-system')
       end
 
+      def uninstall_command
+        Gitlab::Kubernetes::Helm::DeleteCommand.new(
+          name: name,
+          rbac: cluster.platform_kubernetes_rbac?,
+          files: files,
+          postdelete: post_delete_script
+        )
+      end
+
       private
+
+      def post_delete_script
+        [
+          "/usr/bin/kubectl -n knative-build delete po,svc,daemonsets,replicasets,deployments,rc,secrets --all",
+          "/usr/bin/kubectl -n knative-serving delete po,svc,daemonsets,replicasets,deployments,rc,secrets --all",
+          "/usr/bin/kubectl delete ns knative-serving",
+          "/usr/bin/kubectl delete ns knative-build",
+          "/usr/bin/kubectl api-resources -o name | grep knative | xargs /usr/bin/kubectl delete crd",
+          "/usr/bin/kubectl api-resources -o name | grep istio | xargs /usr/bin/kubectl delete crd",
+        ]
+      end
 
       def install_knative_metrics
         ["kubectl apply -f #{METRICS_CONFIG}"] if cluster.application_prometheus_available?

@@ -129,6 +129,25 @@ describe Clusters::Applications::Knative do
     it_behaves_like 'a command'
   end
 
+  describe '#uninstall_command' do
+    subject { knative.uninstall_command }
+
+    it { is_expected.to be_an_instance_of(Gitlab::Kubernetes::Helm::DeleteCommand) }
+
+    it "initializes command with all necessary post script" do
+      post_script = [
+        "/usr/bin/kubectl -n knative-build delete po,svc,daemonsets,replicasets,deployments,rc,secrets --all",
+        "/usr/bin/kubectl -n knative-serving delete po,svc,daemonsets,replicasets,deployments,rc,secrets --all",
+        "/usr/bin/kubectl delete ns knative-serving",
+        "/usr/bin/kubectl delete ns knative-build",
+        "/usr/bin/kubectl api-resources -o name | grep knative | xargs /usr/bin/kubectl delete crd",
+        "/usr/bin/kubectl api-resources -o name | grep istio | xargs /usr/bin/kubectl delete crd",
+      ]
+
+      expect(subject.postdelete).to eq(post_script)
+    end
+  end
+
   describe '#files' do
     let(:application) { knative }
     let(:values) { subject[:'values.yaml'] }
