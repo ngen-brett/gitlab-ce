@@ -297,6 +297,43 @@ describe Gitlab::Auth do
       let(:project) { create(:project) }
       let(:auth_failure) { Gitlab::Auth::Result.new(nil, nil) }
 
+      context 'when deploy token and user have the same username' do
+        let(:username) { 'normal_user' }
+        let(:user) { create(:user, username: username, password: 'my-secret') }
+        let(:deploy_token) { create(:deploy_token, username: username, read_registry: false, projects: [project]) }
+
+        before do
+          expect(gl_auth).to receive(:rate_limit!).with('ip', success: true, login: username)
+        end
+
+        it 'succeeds for the token' do
+          auth_success = Gitlab::Auth::Result.new(deploy_token, project, :deploy_token, [:download_code])
+
+          expect(gl_auth.find_for_git_client(username, deploy_token.token, project: project, ip: 'ip'))
+            .to eq(auth_success)
+        end
+
+        it 'succeeds for the user' do
+          auth_success = Gitlab::Auth::Result.new(user, nil, :gitlab_or_ldap, full_authentication_abilities)
+
+          expect(gl_auth.find_for_git_client(username, 'my-secret', project: project, ip: 'ip'))
+            .to eq(auth_success)
+        end
+      end
+
+      context 'when deploy tokens have the same username' do
+        it 'succeeds for the right token' do
+          stub_container_registry_config(enabled: true)
+          deploy_token = create(:deploy_token, username: 'deployer', read_registry: false, projects: [project])
+          deploy_token_with_duplicate_username = create(:deploy_token, username: deploy_token.username, read_repository: false, projects: [project])
+          auth_success = Gitlab::Auth::Result.new(deploy_token_with_duplicate_username, project, :deploy_token, [:read_container_image])
+
+          expect(gl_auth).to receive(:rate_limit!).with('ip', success: true, login: 'deployer')
+          expect(gl_auth.find_for_git_client('deployer', deploy_token_with_duplicate_username.token, project: project, ip: 'ip'))
+            .to eq(auth_success)
+        end
+      end
+
       context 'when the deploy token has read_repository as scope' do
         let(:deploy_token) { create(:deploy_token, read_registry: false, projects: [project]) }
         let(:login) { deploy_token.username }
