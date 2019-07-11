@@ -17,18 +17,20 @@ module Blobs
 
     def initialize(blob, params)
       @subject = blob
-      @all_lines = highlight.lines
+      @raw_diff_lines = Gitlab::Diff::Parser.new.parse(blob.data.lines).to_a
+      @highlighted_lines = highlight.lines
       super(params)
 
       if full?
-        self.attributes = { since: 1, to: @all_lines.size, bottom: false, unfold: false, offset: 0, indent: 0 }
+        self.attributes = { since: 1, to: @raw_diff_lines.size, bottom: false, unfold: false, offset: 0, indent: 0 }
       end
     end
 
     # Converts a String array to Gitlab::Diff::Line array, with match line added
     def diff_lines
-      diff_lines = lines.map do |line|
-        Gitlab::Diff::Line.new(line, nil, nil, nil, nil, rich_text: line)
+      diff_lines = limited_raw_diff_lines.map.with_index do |line, index|
+        line.rich_text = lines[index]
+        line
       end
 
       add_match_line(diff_lines)
@@ -37,17 +39,13 @@ module Blobs
     end
 
     def lines
-      strong_memoize(:lines) do
-        lines = @all_lines
-        lines = lines[since - 1..to - 1] unless full?
-        lines.map(&:html_safe)
-      end
+      strong_memoize(:lines) { limit(@highlighted_lines).map(&:html_safe) }
     end
 
     def match_line_text
       return '' if bottom?
 
-      lines_length = lines.length - 1
+      lines_length = limited_raw_diff_lines.length - 1
       line = [since, lines_length].join(',')
       "@@ -#{line}+#{line} @@"
     end
@@ -57,7 +55,7 @@ module Blobs
     def add_match_line(diff_lines)
       return unless unfold?
 
-      if bottom? && to < @all_lines.size
+      if bottom? && to < @raw_diff_lines.size
         old_pos = to - offset
         new_pos = to
       elsif since != 1
@@ -70,6 +68,16 @@ module Blobs
       match_line = Gitlab::Diff::Line.new(match_line_text, 'match', nil, old_pos, new_pos)
 
       bottom? ? diff_lines.push(match_line) : diff_lines.unshift(match_line)
+    end
+
+    def limited_raw_diff_lines
+      strong_memoize(:limited_raw_diff_lines) { limit(@raw_diff_lines) }
+    end
+
+    def limit(lines)
+      return lines if full?
+
+      lines[since - 1..to - 1]
     end
   end
 end
