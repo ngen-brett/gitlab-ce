@@ -18,7 +18,14 @@ module BlobHelper
   end
 
   def ide_edit_path(project = @project, ref = @ref, path = @path, options = {})
-    segments = [ide_path, 'project', project.full_path, 'edit', ref]
+    project_path =
+      if can?(current_user, :push_code, project)
+        project.full_path
+      else
+        "#{current_user.namespace.full_path}/#{project.path}"
+      end
+
+    segments = [ide_path, 'project', project_path, 'edit', ref]
     segments.concat(['-', encode_ide_path(path)]) if path.present?
     File.join(segments)
   end
