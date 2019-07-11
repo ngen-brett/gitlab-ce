@@ -586,9 +586,13 @@ def function():
     print s
 ```
 
-    Using 4 spaces
-    is like using
-    3-backtick fences.
+<!-- The example above modified to what is below due to markdown requirements for docs.gitlab.com -->
+
+```
+Using 4 spaces
+is like using
+3-backtick fences.
+```
 
 ~~~
 Tildes are OK too.
