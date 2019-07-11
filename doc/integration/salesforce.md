@@ -32,14 +32,14 @@ To get the credentials (a pair of Client ID and Client Secret), you must [create
    For omnibus package:
 
    ```sh
-     sudo editor /etc/gitlab/gitlab.rb
+   sudo editor /etc/gitlab/gitlab.rb
    ```
 
    For installations from source:
 
    ```sh
-     cd /home/git/gitlab
-     sudo -u git -H editor config/gitlab.yml
+   cd /home/git/gitlab
+   sudo -u git -H editor config/gitlab.yml
    ```
 
 1. See [Initial OmniAuth Configuration](omniauth.md#initial-omniauth-configuration) for initial settings.
@@ -49,22 +49,22 @@ To get the credentials (a pair of Client ID and Client Secret), you must [create
    For omnibus package:
 
    ```ruby
-     gitlab_rails['omniauth_providers'] = [
-       {
-         "name" => "salesforce",
-         "app_id" => "SALESFORCE_CLIENT_ID",
-         "app_secret" => "SALESFORCE_CLIENT_SECRET"
-       }
-     ]
+   gitlab_rails['omniauth_providers'] = [
+     {
+       "name" => "salesforce",
+       "app_id" => "SALESFORCE_CLIENT_ID",
+       "app_secret" => "SALESFORCE_CLIENT_SECRET"
+     }
+   ]
    ```
 
    For installation from source:
 
    ```
-     - { name: 'salesforce',
-         app_id: 'SALESFORCE_CLIENT_ID',
-         app_secret: 'SALESFORCE_CLIENT_SECRET'
-       }
+   - { name: 'salesforce',
+       app_id: 'SALESFORCE_CLIENT_ID',
+       app_secret: 'SALESFORCE_CLIENT_SECRET'
+     }
    ```
 
 1. Change `SALESFORCE_CLIENT_ID` to the Consumer Key from the Salesforce connected application page.

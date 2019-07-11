@@ -33,14 +33,14 @@ application.
    For omnibus package:
 
    ```sh
-     sudo editor /etc/gitlab/gitlab.rb
+   sudo editor /etc/gitlab/gitlab.rb
    ```
 
    For installations from source:
 
    ```sh
-     cd /home/git/gitlab
-     sudo -u git -H editor config/gitlab.yml
+   cd /home/git/gitlab
+   sudo -u git -H editor config/gitlab.yml
    ```
 
 1. See [Initial OmniAuth Configuration](omniauth.md#initial-omniauth-configuration)
@@ -51,28 +51,28 @@ application.
    For omnibus package:
 
    ```ruby
-     gitlab_rails['omniauth_providers'] = [
-       {
-         "name" => "auth0",
-         "args" => { client_id: 'YOUR_AUTH0_CLIENT_ID',
-                     client_secret: 'YOUR_AUTH0_CLIENT_SECRET',
-                     domain: 'YOUR_AUTH0_DOMAIN',
-                     scope: 'openid profile email'
-                   }
-       }
-     ]
+   gitlab_rails['omniauth_providers'] = [
+     {
+       "name" => "auth0",
+       "args" => { client_id: 'YOUR_AUTH0_CLIENT_ID',
+                   client_secret: 'YOUR_AUTH0_CLIENT_SECRET',
+                   domain: 'YOUR_AUTH0_DOMAIN',
+                   scope: 'openid profile email'
+                 }
+     }
+   ]
    ```
 
    For installations from source:
 
    ```yaml
-     - { name: 'auth0',
-         args: {
-           client_id: 'YOUR_AUTH0_CLIENT_ID',
-           client_secret: 'YOUR_AUTH0_CLIENT_SECRET',
-           domain: 'YOUR_AUTH0_DOMAIN',
-           scope: 'openid profile email' }
-       }
+   - { name: 'auth0',
+       args: {
+         client_id: 'YOUR_AUTH0_CLIENT_ID',
+         client_secret: 'YOUR_AUTH0_CLIENT_SECRET',
+         domain: 'YOUR_AUTH0_DOMAIN',
+         scope: 'openid profile email' }
+     }
    ```
 
 1. Change `YOUR_AUTH0_CLIENT_ID` to the client ID from the Auth0 Console page

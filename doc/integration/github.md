@@ -39,15 +39,15 @@ To get the credentials (a pair of Client ID and Client Secret), you must registe
    For omnibus package:
 
    ```sh
-     sudo editor /etc/gitlab/gitlab.rb
+   sudo editor /etc/gitlab/gitlab.rb
    ```
 
    For installations from source:
 
    ```sh
-     cd /home/git/gitlab
+   cd /home/git/gitlab
 
-     sudo -u git -H editor config/gitlab.yml
+   sudo -u git -H editor config/gitlab.yml
    ```
 
 1. See [Initial OmniAuth Configuration](omniauth.md#initial-omniauth-configuration) for initial settings.
@@ -59,28 +59,28 @@ To get the credentials (a pair of Client ID and Client Secret), you must registe
    For GitHub.com:
 
    ```ruby
-     gitlab_rails['omniauth_providers'] = [
-       {
-         "name" => "github",
-         "app_id" => "YOUR_APP_ID",
-         "app_secret" => "YOUR_APP_SECRET",
-         "args" => { "scope" => "user:email" }
-       }
-     ]
+   gitlab_rails['omniauth_providers'] = [
+     {
+       "name" => "github",
+       "app_id" => "YOUR_APP_ID",
+       "app_secret" => "YOUR_APP_SECRET",
+       "args" => { "scope" => "user:email" }
+     }
+   ]
    ```
 
    For GitHub Enterprise:
 
    ```ruby
-     gitlab_rails['omniauth_providers'] = [
-       {
-         "name" => "github",
-         "app_id" => "YOUR_APP_ID",
-         "app_secret" => "YOUR_APP_SECRET",
-         "url" => "https://github.example.com/",
-         "args" => { "scope" => "user:email" }
-       }
-     ]
+   gitlab_rails['omniauth_providers'] = [
+     {
+       "name" => "github",
+       "app_id" => "YOUR_APP_ID",
+       "app_secret" => "YOUR_APP_SECRET",
+       "url" => "https://github.example.com/",
+       "args" => { "scope" => "user:email" }
+     }
+   ]
    ```
 
    For installation from source:
@@ -88,18 +88,18 @@ To get the credentials (a pair of Client ID and Client Secret), you must registe
    For GitHub.com:
 
    ```
-     - { name: 'github', app_id: 'YOUR_APP_ID',
-       app_secret: 'YOUR_APP_SECRET',
-       args: { scope: 'user:email' } }
+   - { name: 'github', app_id: 'YOUR_APP_ID',
+     app_secret: 'YOUR_APP_SECRET',
+     args: { scope: 'user:email' } }
    ```
 
    For GitHub Enterprise:
 
    ```
-     - { name: 'github', app_id: 'YOUR_APP_ID',
-       app_secret: 'YOUR_APP_SECRET',
-       url: "https://github.example.com/",
-       args: { scope: 'user:email' } }
+   - { name: 'github', app_id: 'YOUR_APP_ID',
+     app_secret: 'YOUR_APP_SECRET',
+     url: "https://github.example.com/",
+     args: { scope: 'user:email' } }
    ```
 
    __Replace `https://github.example.com/` with your GitHub URL.__
@@ -127,16 +127,16 @@ and changing the global Git `sslVerify` option to `false` in the GitLab server.
 For omnibus package:
 
 ```ruby
-  gitlab_rails['omniauth_providers'] = [
-    {
-      "name" => "github",
-      "app_id" => "YOUR_APP_ID",
-      "app_secret" => "YOUR_APP_SECRET",
-      "url" => "https://github.example.com/",
-      "verify_ssl" => false,
-      "args" => { "scope" => "user:email" }
-    }
-  ]
+gitlab_rails['omniauth_providers'] = [
+  {
+    "name" => "github",
+    "app_id" => "YOUR_APP_ID",
+    "app_secret" => "YOUR_APP_SECRET",
+    "url" => "https://github.example.com/",
+    "verify_ssl" => false,
+    "args" => { "scope" => "user:email" }
+  }
+]
 ```
 
 You will also need to disable Git SSL verification on the server hosting GitLab.
@@ -148,11 +148,11 @@ omnibus_gitconfig['system'] = { "http" => ["sslVerify = false"] }
 For installation from source:
 
 ```
-  - { name: 'github', app_id: 'YOUR_APP_ID',
-    app_secret: 'YOUR_APP_SECRET',
-    url: "https://github.example.com/",
-    verify_ssl: false,
-    args: { scope: 'user:email' } }
+- { name: 'github', app_id: 'YOUR_APP_ID',
+  app_secret: 'YOUR_APP_SECRET',
+  url: "https://github.example.com/",
+  verify_ssl: false,
+  args: { scope: 'user:email' } }
 ```
 
 You will also need to disable Git SSL verification on the server hosting GitLab.

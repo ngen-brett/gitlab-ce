@@ -15,33 +15,33 @@ The following changes are needed to enable Shibboleth:
 1. Protect omniauth-shibboleth callback URL:
 
    ```
-     <Location /users/auth/shibboleth/callback>
-       AuthType shibboleth
-       ShibRequestSetting requireSession 1
-       ShibUseHeaders On
-       require valid-user
-     </Location>
+   <Location /users/auth/shibboleth/callback>
+     AuthType shibboleth
+     ShibRequestSetting requireSession 1
+     ShibUseHeaders On
+     require valid-user
+   </Location>
 
-     Alias /shibboleth-sp /usr/share/shibboleth
-     <Location /shibboleth-sp>
-       Satisfy any
-     </Location>
+   Alias /shibboleth-sp /usr/share/shibboleth
+   <Location /shibboleth-sp>
+     Satisfy any
+   </Location>
 
-     <Location /Shibboleth.sso>
-       SetHandler shib
-     </Location>
+   <Location /Shibboleth.sso>
+     SetHandler shib
+   </Location>
    ```
 
 1. Exclude shibboleth URLs from rewriting. Add `RewriteCond %{REQUEST_URI} !/Shibboleth.sso` and `RewriteCond %{REQUEST_URI} !/shibboleth-sp`. Config should look like this:
 
    ```
-     # Apache equivalent of Nginx try files
-     RewriteEngine on
-     RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
-     RewriteCond %{REQUEST_URI} !/Shibboleth.sso
-     RewriteCond %{REQUEST_URI} !/shibboleth-sp
-     RewriteRule .* http://127.0.0.1:8080%{REQUEST_URI} [P,QSA]
-     RequestHeader set X_FORWARDED_PROTO 'https'
+   # Apache equivalent of Nginx try files
+   RewriteEngine on
+   RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+   RewriteCond %{REQUEST_URI} !/Shibboleth.sso
+   RewriteCond %{REQUEST_URI} !/shibboleth-sp
+   RewriteRule .* http://127.0.0.1:8080%{REQUEST_URI} [P,QSA]
+   RequestHeader set X_FORWARDED_PROTO 'https'
    ```
 
 1. Edit `/etc/gitlab/gitlab.rb` configuration file to enable OmniAuth and add
@@ -97,44 +97,44 @@ The order of the first 2 Location directives is important. If they are reversed,
 you will not get a shibboleth session!
 
 ```
-  <Location />
-    Require all granted
-    ProxyPassReverse http://127.0.0.1:8181
-    ProxyPassReverse http://YOUR_SERVER_FQDN/
-  </Location>
+<Location />
+  Require all granted
+  ProxyPassReverse http://127.0.0.1:8181
+  ProxyPassReverse http://YOUR_SERVER_FQDN/
+</Location>
 
-  <Location /users/auth/shibboleth/callback>
-    AuthType shibboleth
-    ShibRequestSetting requireSession 1
-    ShibUseHeaders On
-    Require shib-session
-  </Location>
+<Location /users/auth/shibboleth/callback>
+  AuthType shibboleth
+  ShibRequestSetting requireSession 1
+  ShibUseHeaders On
+  Require shib-session
+</Location>
 
-  Alias /shibboleth-sp /usr/share/shibboleth
+Alias /shibboleth-sp /usr/share/shibboleth
 
-  <Location /shibboleth-sp>
-    Require all granted
-  </Location>
+<Location /shibboleth-sp>
+  Require all granted
+</Location>
 
-  <Location /Shibboleth.sso>
-    SetHandler shib
-  </Location>
+<Location /Shibboleth.sso>
+  SetHandler shib
+</Location>
 
-  RewriteEngine on
+RewriteEngine on
 
-  #Don't escape encoded characters in api requests
-  RewriteCond %{REQUEST_URI} ^/api/v4/.*
-  RewriteCond %{REQUEST_URI} !/Shibboleth.sso
-  RewriteCond %{REQUEST_URI} !/shibboleth-sp
-  RewriteRule .* http://127.0.0.1:8181%{REQUEST_URI} [P,QSA,NE]
+#Don't escape encoded characters in api requests
+RewriteCond %{REQUEST_URI} ^/api/v4/.*
+RewriteCond %{REQUEST_URI} !/Shibboleth.sso
+RewriteCond %{REQUEST_URI} !/shibboleth-sp
+RewriteRule .* http://127.0.0.1:8181%{REQUEST_URI} [P,QSA,NE]
 
-  #Forward all requests to gitlab-workhorse except existing files
-  RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f [OR]
-  RewriteCond %{REQUEST_URI} ^/uploads/.*
-  RewriteCond %{REQUEST_URI} !/Shibboleth.sso
-  RewriteCond %{REQUEST_URI} !/shibboleth-sp
-  RewriteRule .* http://127.0.0.1:8181%{REQUEST_URI} [P,QSA]
+#Forward all requests to gitlab-workhorse except existing files
+RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f [OR]
+RewriteCond %{REQUEST_URI} ^/uploads/.*
+RewriteCond %{REQUEST_URI} !/Shibboleth.sso
+RewriteCond %{REQUEST_URI} !/shibboleth-sp
+RewriteRule .* http://127.0.0.1:8181%{REQUEST_URI} [P,QSA]
 
-  RequestHeader set X_FORWARDED_PROTO 'https'
-  RequestHeader set X-Forwarded-Ssl on
+RequestHeader set X_FORWARDED_PROTO 'https'
+RequestHeader set X-Forwarded-Ssl on
 ```

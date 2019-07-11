@@ -33,15 +33,15 @@ GitLab.com will generate an application ID and secret key for you to use.
    For omnibus package:
 
    ```sh
-     sudo editor /etc/gitlab/gitlab.rb
+   sudo editor /etc/gitlab/gitlab.rb
    ```
 
    For installations from source:
 
    ```sh
-     cd /home/git/gitlab
+   cd /home/git/gitlab
 
-     sudo -u git -H editor config/gitlab.yml
+   sudo -u git -H editor config/gitlab.yml
    ```
 
 1. See [Initial OmniAuth Configuration](omniauth.md#initial-omniauth-configuration) for initial settings.
@@ -51,22 +51,22 @@ GitLab.com will generate an application ID and secret key for you to use.
    For omnibus package:
 
    ```ruby
-     gitlab_rails['omniauth_providers'] = [
-       {
-         "name" => "gitlab",
-         "app_id" => "YOUR_APP_ID",
-         "app_secret" => "YOUR_APP_SECRET",
-         "args" => { "scope" => "api" }
-       }
-     ]
+   gitlab_rails['omniauth_providers'] = [
+     {
+       "name" => "gitlab",
+       "app_id" => "YOUR_APP_ID",
+       "app_secret" => "YOUR_APP_SECRET",
+       "args" => { "scope" => "api" }
+     }
+   ]
    ```
 
    For installations from source:
 
    ```
-     - { name: 'gitlab', app_id: 'YOUR_APP_ID',
-       app_secret: 'YOUR_APP_SECRET',
-       args: { scope: 'api' } }
+   - { name: 'gitlab', app_id: 'YOUR_APP_ID',
+     app_secret: 'YOUR_APP_SECRET',
+     args: { scope: 'api' } }
    ```
 
 1. Change 'YOUR_APP_ID' to the Application ID from the GitLab.com application page.

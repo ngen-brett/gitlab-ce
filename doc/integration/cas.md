@@ -7,15 +7,15 @@ To enable the CAS OmniAuth provider you must register your application with your
    For omnibus package:
 
    ```sh
-     sudo editor /etc/gitlab/gitlab.rb
+   sudo editor /etc/gitlab/gitlab.rb
    ```
 
    For installations from source:
 
    ```sh
-     cd /home/git/gitlab
+   cd /home/git/gitlab
 
-     sudo -u git -H editor config/gitlab.yml
+   sudo -u git -H editor config/gitlab.yml
    ```
 
 1. See [Initial OmniAuth Configuration](omniauth.md#initial-omniauth-configuration) for initial settings.
@@ -25,30 +25,30 @@ To enable the CAS OmniAuth provider you must register your application with your
    For omnibus package:
 
    ```ruby
-     gitlab_rails['omniauth_providers'] = [
-       {
-           "name"=> "cas3",
-           "label"=> "cas",
-           "args"=> {
-               "url"=> 'CAS_SERVER',
-               "login_url"=> '/CAS_PATH/login',
-               "service_validate_url"=> '/CAS_PATH/p3/serviceValidate',
-               "logout_url"=> '/CAS_PATH/logout'
-           }
-       }
-     ]
+   gitlab_rails['omniauth_providers'] = [
+     {
+         "name"=> "cas3",
+         "label"=> "cas",
+         "args"=> {
+             "url"=> 'CAS_SERVER',
+             "login_url"=> '/CAS_PATH/login',
+             "service_validate_url"=> '/CAS_PATH/p3/serviceValidate',
+             "logout_url"=> '/CAS_PATH/logout'
+         }
+     }
+   ]
    ```
 
    For installations from source:
 
    ```
-     - { name: 'cas3',
-         label: 'cas',
-         args: {
-                 url: 'CAS_SERVER',
-                 login_url: '/CAS_PATH/login',
-                 service_validate_url: '/CAS_PATH/p3/serviceValidate',
-                 logout_url: '/CAS_PATH/logout'} }
+   - { name: 'cas3',
+       label: 'cas',
+       args: {
+               url: 'CAS_SERVER',
+               login_url: '/CAS_PATH/login',
+               service_validate_url: '/CAS_PATH/p3/serviceValidate',
+               logout_url: '/CAS_PATH/logout'} }
    ```
 
 1. Change 'CAS_PATH' to the root of your CAS instance (ie. `cas`).

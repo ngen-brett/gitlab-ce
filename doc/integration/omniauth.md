@@ -105,22 +105,22 @@ To change these settings:
   and change the following section:
 
   ```yaml
-   ## OmniAuth settings
-    omniauth:
-      # Allow login via Twitter, Google, etc. using OmniAuth providers
-      # Versions prior to 11.4 require this to be set to true
-      # enabled: true
+  ## OmniAuth settings
+   omniauth:
+     # Allow login via Twitter, Google, etc. using OmniAuth providers
+     # Versions prior to 11.4 require this to be set to true
+     # enabled: true
 
-      # CAUTION!
-      # This allows users to login without having a user account first. Define the allowed providers
-      # using an array, e.g. ["saml", "twitter"], or as true/false to allow all providers or none.
-      # User accounts will be created automatically when authentication was successful.
-      allow_single_sign_on: ["saml", "twitter"]
+     # CAUTION!
+     # This allows users to login without having a user account first. Define the allowed providers
+     # using an array, e.g. ["saml", "twitter"], or as true/false to allow all providers or none.
+     # User accounts will be created automatically when authentication was successful.
+     allow_single_sign_on: ["saml", "twitter"]
 
-      auto_link_ldap_user: true
+     auto_link_ldap_user: true
 
-      # Locks down those users until they have been cleared by the admin (default: true).
-      block_auto_created_users: true
+     # Locks down those users until they have been cleared by the admin (default: true).
+     block_auto_created_users: true
   ```
 
 Now we can choose one or more of the [Supported Providers](#supported-providers)
@@ -161,14 +161,14 @@ want their accounts to be upgraded to full internal accounts.
 **For Omnibus installations**
 
 ```ruby
-  gitlab_rails['omniauth_external_providers'] = ['twitter', 'google_oauth2']
+gitlab_rails['omniauth_external_providers'] = ['twitter', 'google_oauth2']
 ```
 
 **For installations from source**
 
 ```yaml
-  omniauth:
-    external_providers: ['twitter', 'google_oauth2']
+omniauth:
+  external_providers: ['twitter', 'google_oauth2']
 ```
 
 ## Using Custom Omniauth Providers
@@ -255,8 +255,8 @@ gitlab_rails['omniauth_enabled'] = false
 **For installations from source**
 
 ```yaml
-  omniauth:
-    enabled: false
+omniauth:
+  enabled: false
 ```
 
 ## Keep OmniAuth user profiles up to date
@@ -266,14 +266,14 @@ You can enable profile syncing from selected OmniAuth providers and for all or f
 When authenticating using LDAP, the user's name and email are always synced.
 
 ```ruby
-  gitlab_rails['sync_profile_from_provider'] = ['twitter', 'google_oauth2']
-  gitlab_rails['sync_profile_attributes'] = ['name', 'email', 'location']
- ```
+gitlab_rails['sync_profile_from_provider'] = ['twitter', 'google_oauth2']
+gitlab_rails['sync_profile_attributes'] = ['name', 'email', 'location']
+```
 
 **For installations from source**
 
 ```yaml
-  omniauth:
-    sync_profile_from_provider: ['twitter', 'google_oauth2']
-    sync_profile_attributes: ['email', 'location']
+omniauth:
+  sync_profile_from_provider: ['twitter', 'google_oauth2']
+  sync_profile_attributes: ['email', 'location']
 ```

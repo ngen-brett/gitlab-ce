@@ -28,14 +28,14 @@ To get the credentials (a pair of Client ID and Client Secret), you must registe
    For omnibus package:
 
    ```sh
-     sudo editor /etc/gitlab/gitlab.rb
+   sudo editor /etc/gitlab/gitlab.rb
    ```
 
    For installations from source:
 
    ```sh
-     cd /home/git/gitlab
-     sudo -u git -H editor config/gitlab.yml
+   cd /home/git/gitlab
+   sudo -u git -H editor config/gitlab.yml
    ```
 
 1. See [Initial OmniAuth Configuration](omniauth.md#initial-omniauth-configuration) for initial settings.
@@ -44,32 +44,32 @@ To get the credentials (a pair of Client ID and Client Secret), you must registe
    For omnibus package:
 
    ```ruby
-     gitlab_rails['omniauth_providers'] = [
-       {
-         "name" => "ultraauth",
-         "app_id" => "OPENID_CLIENT_ID",
-         "app_secret" => "OPENID_CLIENT_SECRET",
-         "args" => {
-           "client_options" => {
-             "redirect_uri" => "https://example.com/users/auth/ultraauth/callback"
-           }
+   gitlab_rails['omniauth_providers'] = [
+     {
+       "name" => "ultraauth",
+       "app_id" => "OPENID_CLIENT_ID",
+       "app_secret" => "OPENID_CLIENT_SECRET",
+       "args" => {
+         "client_options" => {
+           "redirect_uri" => "https://example.com/users/auth/ultraauth/callback"
          }
        }
-     ]
+     }
+   ]
    ```
 
    For installation from source:
 
    ```
-     - { name: 'ultraauth',
-         app_id: 'OPENID_CLIENT_ID',
-         app_secret: 'OPENID_CLIENT_SECRET',
-         args: {
-           client_options: {
-             redirect_uri: 'https://example.com/users/auth/ultraauth/callback'
-           }
+   - { name: 'ultraauth',
+       app_id: 'OPENID_CLIENT_ID',
+       app_secret: 'OPENID_CLIENT_SECRET',
+       args: {
+         client_options: {
+           redirect_uri: 'https://example.com/users/auth/ultraauth/callback'
          }
        }
+     }
    ```
 
    __Replace `https://example.com/users/auth/ultraauth/callback` with your application's Callback URL.__
