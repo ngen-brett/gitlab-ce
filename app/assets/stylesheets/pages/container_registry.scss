@@ -27,4 +27,13 @@
 
 .table.tags {
   margin-bottom: 0;
+
+  th {
+    height: 55px;
+  }
+
+  td.check {
+    padding-right: $gl-padding;
+    width: 5%;
+  }
 }
