@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_07_03_130053) do
+ActiveRecord::Schema.define(version: 2019_07_12_040412) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -963,9 +963,11 @@ ActiveRecord::Schema.define(version: 2019_07_03_130053) do
     t.string "encrypted_service_account_token_iv"
     t.string "namespace", null: false
     t.string "service_account_name"
+    t.string "environment_slug"
     t.index ["cluster_id", "namespace"], name: "kubernetes_namespaces_cluster_and_namespace", unique: true, using: :btree
     t.index ["cluster_id"], name: "index_clusters_kubernetes_namespaces_on_cluster_id", using: :btree
     t.index ["cluster_project_id"], name: "index_clusters_kubernetes_namespaces_on_cluster_project_id", using: :btree
+    t.index ["project_id", "environment_slug"], name: "index_kubernetes_namespaces_on_project_id_and_environment_slug", unique: true, using: :btree
     t.index ["project_id"], name: "index_clusters_kubernetes_namespaces_on_project_id", using: :btree
   end
 
