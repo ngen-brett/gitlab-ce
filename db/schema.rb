@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_07_12_040412) do
+ActiveRecord::Schema.define(version: 2019_07_12_064021) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -859,6 +859,7 @@ ActiveRecord::Schema.define(version: 2019_07_12_040412) do
     t.integer "cluster_type", limit: 2, default: 3, null: false
     t.string "domain"
     t.boolean "managed", default: true, null: false
+    t.boolean "namespace_per_environment", default: false, null: false
     t.index ["enabled"], name: "index_clusters_on_enabled", using: :btree
     t.index ["user_id"], name: "index_clusters_on_user_id", using: :btree
   end
