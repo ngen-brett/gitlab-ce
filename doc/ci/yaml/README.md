@@ -119,6 +119,33 @@ The following table lists available parameters for jobs:
 NOTE: **Note:**
 Parameters `types` and `type` are [deprecated](#deprecated-parameters).
 
+## Globally defined parameters
+
+GitLab CI allows to define some parameters globally.
+The globally defined parameters can be overwritten by job once needed.
+
+The parameters of job that can be defined by `default:` are:
+
+- `image`
+- `services`
+- `before_script`
+- `after_script`
+- `cache`
+
+To define global defaults use the `default:` configuration:
+
+```yaml
+default:
+  image: ruby:2.5
+
+rspec:
+  script: bundle exec rspec
+
+rspec 2.6:
+  image: ruby:2.6
+  script: bundle exec rspec
+```
+
 ## Parameter details
 
 The following are detailed explanations for parameters used to configure CI/CD pipelines.
@@ -170,6 +197,22 @@ An [extended docker configuration option](../docker/using_docker_images.md#exten
 
 For more information, see [Available settings for `image`](../docker/using_docker_images.md#available-settings-for-image).
 
+#### Globally defined `image:`
+
+It is possible to define `image:` for all jobs.
+Job can then overwrite the `image:` if needed.
+
+```yaml
+default:
+  image: ruby:2.5
+
+rspec:
+  script: bundle exec rspec
+
+rspec 2.6:
+  image: ruby:2.6
+```
+
 ### `services`
 
 Used to specify a [service Docker image](../docker/using_docker_images.md#what-is-a-service), linked to a base image specified in [`image`](#image).
@@ -203,6 +246,24 @@ For more information, see see [Available settings for `services`](../docker/usin
 An [extended docker configuration option](../docker/using_docker_images.md#extended-docker-configuration-options).
 
 For more information, see see [Available settings for `services`](../docker/using_docker_images.md#available-settings-for-services).
+
+#### Globally defined `services:`
+
+It is possible to define `services:` for all jobs.
+Job can then overwrite the `services:` if needed.
+
+```yaml
+default:
+  services:
+    - postgres
+
+rspec:
+  script: bundle exec rspec
+
+docker_build:
+  services:
+    - docker:dind
+```
 
 ### `before_script` and `after_script`
 
@@ -239,8 +300,9 @@ It's possible to overwrite the globally defined `before_script` and `after_scrip
 if you set it per-job:
 
 ```yaml
-before_script:
-  - global before script
+default:
+  before_script:
+    - global before script
 
 job:
   before_script:
@@ -1200,6 +1262,24 @@ parallel.
 Additionally, if you have a job that unconditionally recreates the cache without
 reference to its previous contents, you can use `policy: push` in that job to
 skip the download step.
+
+
+#### Globally defined `cache:`
+
+It is possible to define `cache:` for all jobs.
+Job can then overwrite the `cache:` if needed.
+
+```yaml
+default:
+  cache:
+    paths: vendor/ruby/
+
+rspec:
+  script: bundle exec rspec
+
+docker_build:
+  cache: [] # do not cache anything
+```
 
 ### `artifacts`
 
@@ -2550,17 +2630,37 @@ You can set it globally or per-job in the [`variables`](#variables) section.
 
 The following parameters are deprecated.
 
-### `types`
+### Globally defined `types`
 
 CAUTION: **Deprecated:**
 `types` is deprecated, and could be removed in a future release.
 Use [`stages`](#stages) instead.
 
-### `type`
+### Job defined `type`
 
 CAUTION: **Deprecated:**
 `type` is deprecated, and could be removed in one of the future releases.
 Use [`stage`](#stage) instead.
+
+### Globally defined `image`, `services`, `cache`, `before_script`, `after_script`
+
+CAUTION: **Deprecated:**
+Globally defined `image`, `services`, `cache`, `before_script`, `after_script` are deprecated,
+and could be removed in one of the future releases.
+Use [`default:`](#globally-defined-parameters) instead.
+
+```yaml
+default:
+  image: ruby:2.5
+  services:
+    - docker:dind
+  cache:
+    paths: [vendor/]
+  before_script:
+    - bundle install --path vendor/
+  after_script:
+    - rm -rf tmp/
+```
 
 ## Custom build directories
 
