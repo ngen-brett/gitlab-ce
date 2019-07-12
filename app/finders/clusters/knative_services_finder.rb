@@ -84,7 +84,10 @@ module Clusters
     private
 
     def search_namespace
-      @search_namespace ||= cluster.kubernetes_namespace_for(project)
+      # TODO: Pass a nil environment_slug here to force a namespace that doesn't include
+      # an environment. When this finder becomes environment-aware we can switch to
+      # Environment#deployment_namespace.
+      @search_namespace ||= cluster.default_namespace_for(project, environment_slug: nil)
     end
 
     def knative_client

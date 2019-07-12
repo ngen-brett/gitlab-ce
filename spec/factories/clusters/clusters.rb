@@ -4,6 +4,7 @@ FactoryBot.define do
     name 'test-cluster'
     cluster_type :project_type
     managed true
+    namespace_per_environment true
 
     trait :instance do
       cluster_type { Clusters::Cluster.cluster_types[:instance_type] }

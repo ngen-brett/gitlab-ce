@@ -48,45 +48,38 @@ RSpec.describe Clusters::KubernetesNamespace, type: :model do
   describe '#set_defaults' do
     let(:kubernetes_namespace) { build(:cluster_kubernetes_namespace) }
     let(:cluster) { kubernetes_namespace.cluster }
-    let(:platform) { kubernetes_namespace.platform_kubernetes }
 
-    subject { kubernetes_namespace.set_defaults }
+    describe 'namespace' do
+      subject { kubernetes_namespace.tap(&:set_defaults).namespace }
 
-    describe '#namespace' do
-      before do
-        platform.update_column(:namespace, namespace)
+      it 'retrieves a default namespace from the cluster' do
+        expect(cluster).to receive(:default_namespace_for)
+          .with(kubernetes_namespace.project, environment_slug: kubernetes_namespace.environment_slug)
+          .and_return('mock-namespace')
+
+        expect(subject).to eq 'mock-namespace'
       end
 
-      context 'when platform has a namespace assigned' do
-        let(:namespace) { 'platform-namespace' }
-
-        it 'copies the namespace' do
-          subject
-
-          expect(kubernetes_namespace.namespace).to eq('platform-namespace')
+      context 'project is blank' do
+        before do
+          kubernetes_namespace.assign_attributes(project: nil)
         end
-      end
 
-      context 'when platform does not have namespace assigned' do
-        let(:project) { kubernetes_namespace.project }
-        let(:namespace) { nil }
-        let(:project_slug) { "#{project.path}-#{project.id}" }
-
-        it 'fallbacks to project namespace' do
-          subject
-
-          expect(kubernetes_namespace.namespace).to eq(project_slug)
-        end
+        it { is_expected.to be_nil }
       end
     end
 
-    describe '#service_account_name' do
-      let(:service_account_name) { "#{kubernetes_namespace.namespace}-service-account" }
+    describe 'service_account_name' do
+      subject { kubernetes_namespace.tap(&:set_defaults).service_account_name }
 
-      it 'sets a service account name based on namespace' do
-        subject
+      it { is_expected.to eq "#{kubernetes_namespace.namespace}-service-account" }
 
-        expect(kubernetes_namespace.service_account_name).to eq(service_account_name)
+      context 'project and namespace are blank' do
+        before do
+          kubernetes_namespace.assign_attributes(project: nil, namespace: nil)
+        end
+
+        it { is_expected.to be_nil }
       end
     end
   end

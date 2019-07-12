@@ -170,7 +170,7 @@ class Environment < ApplicationRecord
 
   def deployment_namespace
     strong_memoize(:kubernetes_namespace) do
-      deployment_platform&.kubernetes_namespace_for(project)
+      deployment_platform.cluster.kubernetes_namespace_for(self) if deployment_platform
     end
   end
 

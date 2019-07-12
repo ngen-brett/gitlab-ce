@@ -32,6 +32,7 @@ describe Clusters::RefreshService do
   describe '.create_or_update_namespaces_for_cluster' do
     let(:cluster) { create(:cluster, :provided_by_user, :project) }
     let(:project) { cluster.project }
+    let!(:environment) { create(:environment, project: project) }
 
     subject { described_class.create_or_update_namespaces_for_cluster(cluster) }
 
@@ -51,6 +52,7 @@ describe Clusters::RefreshService do
       let(:cluster) { create(:cluster, :provided_by_user, :group) }
       let(:group) { cluster.group }
       let(:project) { create(:project, group: group) }
+      let!(:environment) { create(:environment, project: project) }
 
       include_examples 'creates a kubernetes namespace'
 
@@ -66,6 +68,7 @@ describe Clusters::RefreshService do
 
   describe '.create_or_update_namespaces_for_project' do
     let(:project) { create(:project) }
+    let!(:environment) { create(:environment, project: project) }
 
     subject { described_class.create_or_update_namespaces_for_project(project) }
 
@@ -92,6 +95,7 @@ describe Clusters::RefreshService do
 
       let(:group) { cluster.group }
       let(:project) { create(:project, group: group) }
+      let!(:environment) { create(:environment, project: project) }
 
       include_examples 'does not create a kubernetes namespace'
 

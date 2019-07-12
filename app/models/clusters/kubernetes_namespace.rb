@@ -15,6 +15,7 @@ module Clusters
 
     validates :namespace, presence: true
     validates :namespace, uniqueness: { scope: :cluster_id }
+    validates :environment_slug, uniqueness: { scope: :project_id }, allow_nil: true
 
     validates :service_account_name, presence: true
 
@@ -43,31 +44,22 @@ module Clusters
     end
 
     def set_defaults
-      self.namespace ||= default_platform_kubernetes_namespace
-      self.namespace ||= default_project_namespace
+      self.namespace ||= default_namespace
       self.service_account_name ||= default_service_account_name
     end
 
     private
 
+    def default_namespace
+      return unless project
+
+      cluster.default_namespace_for(project, environment_slug: environment_slug)
+    end
+
     def default_service_account_name
       return unless namespace
 
       "#{namespace}-service-account"
-    end
-
-    def default_platform_kubernetes_namespace
-      platform_kubernetes&.namespace.presence
-    end
-
-    def default_project_namespace
-      Gitlab::NamespaceSanitizer.sanitize(project_slug) if project_slug
-    end
-
-    def project_slug
-      return unless project
-
-      "#{project.path}-#{project.id}".downcase
     end
 
     def kubeconfig

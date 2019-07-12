@@ -579,59 +579,131 @@ describe Clusters::Cluster, :use_clean_rails_memory_store_caching do
     end
   end
 
-  describe '#find_or_initialize_kubernetes_namespace_for_project' do
-    let(:cluster) { create(:cluster, :project, :provided_by_gcp) }
-    let(:project) { cluster.projects.first }
+  describe '#kubernetes_namespace_for' do
+    let(:cluster) { create(:cluster, :group) }
+    let(:environment) { create(:environment) }
 
-    subject { cluster.find_or_initialize_kubernetes_namespace_for_project(project) }
+    subject { cluster.kubernetes_namespace_for(environment) }
 
-    context 'kubernetes namespace exists' do
-      context 'with no service account token' do
-        let!(:kubernetes_namespace) { create(:cluster_kubernetes_namespace, project: project, cluster: cluster) }
+    before do
+      expect(Clusters::KubernetesNamespaceFinder).to receive(:new)
+        .with(cluster, project: environment.project, environment_slug: environment.slug)
+        .and_return(double(execute: persisted_namespace))
+    end
 
-        it { is_expected.to eq kubernetes_namespace }
+    context 'a persisted namespace exists' do
+      let(:persisted_namespace) { create(:cluster_kubernetes_namespace) }
+
+      it { is_expected.to eq persisted_namespace.namespace }
+    end
+
+    context 'no persisted namespace exists' do
+      let(:persisted_namespace) { nil }
+      let(:default_namespace) { 'a-default-namespace' }
+
+      before do
+        expect(cluster).to receive(:default_namespace_for)
+          .with(environment.project, environment_slug: environment.slug)
+          .and_return(default_namespace)
       end
 
-      context 'with a service account token' do
-        let!(:kubernetes_namespace) { create(:cluster_kubernetes_namespace, :with_token, project: project, cluster: cluster) }
+      it { is_expected.to eq default_namespace }
+    end
+  end
 
-        it { is_expected.to eq kubernetes_namespace }
+  describe '#default_namespace_for' do
+    let(:platform) { create(:cluster_platform_kubernetes, namespace: platform_namespace) }
+    let(:cluster) { create(:cluster, platform_kubernetes: platform) }
+    let(:project) { create(:project, path: "Path-With-Capitals") }
+    let(:environment) { create(:environment, project: project) }
+
+    subject { cluster.default_namespace_for(project, environment_slug: environment.slug) }
+
+    context 'namespace per environment is enabled' do
+      before do
+        stub_feature_flags(kubernetes_namespace_per_environment: true)
+      end
+
+      context 'platform namespace is specified' do
+        let(:platform_namespace) { 'platform-namespace' }
+
+        it { is_expected.to eq "#{platform_namespace}-#{environment.slug}" }
+      end
+
+      context 'platform namespace is blank' do
+        let(:platform_namespace) { nil }
+        let(:mock_namespace) { 'mock-namespace' }
+
+        it 'constructs a namespace from the project and environment' do
+          expect(Gitlab::NamespaceSanitizer).to receive(:sanitize)
+            .with("#{project.path}-#{project.id}-#{environment.slug}".downcase)
+            .and_return(mock_namespace)
+
+          expect(subject).to eq mock_namespace
+        end
       end
     end
 
-    context 'kubernetes namespace does not exist' do
-      it 'initializes a new namespace and sets default values' do
+    context 'namespace per environment is disabled' do
+      before do
+        stub_feature_flags(kubernetes_namespace_per_environment: false)
+      end
+
+      context 'platform namespace is specified' do
+        let(:platform_namespace) { 'platform-namespace' }
+
+        it { is_expected.to eq platform_namespace }
+      end
+
+      context 'platform namespace is blank' do
+        let(:platform_namespace) { nil }
+        let(:mock_namespace) { 'mock-namespace' }
+
+        it 'constructs a namespace from the project and environment' do
+          expect(Gitlab::NamespaceSanitizer).to receive(:sanitize)
+            .with("#{project.path}-#{project.id}".downcase)
+            .and_return(mock_namespace)
+
+          expect(subject).to eq mock_namespace
+        end
+      end
+    end
+  end
+
+  describe '#build_kubernetes_namespace' do
+    let(:cluster) { create(:cluster, :project, :provided_by_gcp) }
+    let(:environment) { create(:environment) }
+    let(:project) { environment.project }
+
+    subject { cluster.build_kubernetes_namespace(environment) }
+
+    it 'initializes a new namespace and sets default values' do
+      expect(subject).to be_new_record
+      expect(subject.project).to eq project
+      expect(subject.cluster_project).to eq cluster.cluster_project
+      expect(subject.environment_slug).to eq environment.slug
+      expect(subject.cluster).to eq cluster
+    end
+
+    context 'namespace per environment is disabled' do
+      before do
+        stub_feature_flags(kubernetes_namespace_per_environment: false)
+      end
+
+      it 'initializes a new namespace with no environment slug' do
         expect(subject).to be_new_record
         expect(subject.project).to eq project
+        expect(subject.cluster_project).to eq cluster.cluster_project
+        expect(subject.environment_slug).to be_nil
         expect(subject.cluster).to eq cluster
-        expect(subject.namespace).to be_present
-        expect(subject.service_account_name).to be_present
       end
     end
 
-    context 'a custom scope is provided' do
-      let(:scope) { cluster.kubernetes_namespaces.has_service_account_token }
+    context 'group cluster' do
+      let(:cluster) { create(:cluster, :group, :provided_by_gcp) }
 
-      subject { cluster.find_or_initialize_kubernetes_namespace_for_project(project, scope: scope) }
-
-      context 'kubernetes namespace exists' do
-        context 'with no service account token' do
-          let!(:kubernetes_namespace) { create(:cluster_kubernetes_namespace, project: project, cluster: cluster) }
-
-          it 'initializes a new namespace and sets default values' do
-            expect(subject).to be_new_record
-            expect(subject.project).to eq project
-            expect(subject.cluster).to eq cluster
-            expect(subject.namespace).to be_present
-            expect(subject.service_account_name).to be_present
-          end
-        end
-
-        context 'with a service account token' do
-          let!(:kubernetes_namespace) { create(:cluster_kubernetes_namespace, :with_token, project: project, cluster: cluster) }
-
-          it { is_expected.to eq kubernetes_namespace }
-        end
+      it 'does not set a cluster_project' do
+        expect(subject.cluster_project).to be_nil
       end
     end
   end

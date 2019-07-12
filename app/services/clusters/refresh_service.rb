@@ -27,11 +27,18 @@ module Clusters
     private_class_method :clusters_with_missing_kubernetes_namespaces_for_project
 
     def self.create_or_update_namespace(cluster, project)
-      kubernetes_namespace = cluster.find_or_initialize_kubernetes_namespace_for_project(project)
+      # This code isn't called from anywhere, and will be removed in
+      # https://gitlab.com/gitlab-org/gitlab-ce/issues/59319
+      kubernetes_namespace = Clusters::KubernetesNamespaceFinder.new(
+        cluster,
+        project: project,
+        environment_slug: project.default_environment&.slug,
+        allow_blank_token: true
+      ).execute
 
       ::Clusters::Gcp::Kubernetes::CreateOrUpdateNamespaceService.new(
         cluster: cluster,
-        kubernetes_namespace: kubernetes_namespace
+        kubernetes_namespace: kubernetes_namespace || cluster.build_kubernetes_namespace(project.default_environment)
       ).execute
     end
 

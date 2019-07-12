@@ -37,7 +37,11 @@ module Projects
           environment_scope == c.environment_scope
         end
 
-        func = ::Serverless::Function.new(project, name, cluster.kubernetes_namespace_for(project))
+        # TODO: Pass a nil environment_slug here to force a namespace that doesn't include
+        # an environment. When this finder becomes environment-aware we can switch to
+        # Environment#deployment_namespace.
+        kubernetes_namespace = cluster.default_namespace_for(project, environment_slug: nil)
+        func = ::Serverless::Function.new(project, name, kubernetes_namespace)
         prometheus_adapter.query(:knative_invocation, func)
       end
 

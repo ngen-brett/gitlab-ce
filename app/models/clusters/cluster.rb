@@ -53,6 +53,7 @@ module Clusters
     validates :name, cluster_name: true
     validates :cluster_type, presence: true
     validates :domain, allow_blank: true, hostname: { allow_numeric_hostname: true }
+    validates :namespace_per_environment, inclusion: { in: [true, false] }
 
     validate :restrict_modification, on: :update
     validate :no_groups, unless: :group_type?
@@ -193,36 +194,34 @@ module Clusters
       platform_kubernetes.kubeclient if kubernetes?
     end
 
-    ##
-    # This is subtly different to #find_or_initialize_kubernetes_namespace_for_project
-    # below because it will ignore any namespaces that have not got a service account
-    # token. This provides a guarantee that any namespace selected here can be used
-    # for cluster operations - a namespace needs to have a service account configured
-    # before it it can be used.
-    #
-    # This is used for selecting a namespace to use when querying a cluster, or
-    # generating variables to pass to CI.
-    def kubernetes_namespace_for(project)
-      find_or_initialize_kubernetes_namespace_for_project(
-        project, scope: kubernetes_namespaces.has_service_account_token
-      ).namespace
+    def kubernetes_namespace_for(environment)
+      persisted_namespace = Clusters::KubernetesNamespaceFinder.new(
+        self,
+        project: environment.project,
+        environment_slug: environment.slug
+      ).execute
+
+      persisted_namespace&.namespace || default_namespace_for(environment.project, environment_slug: environment.slug)
+    end
+
+    def build_kubernetes_namespace(environment)
+      attributes = { project: environment.project }
+      attributes[:cluster_project] = cluster_project if project_type?
+      attributes[:environment_slug] = environment.slug if namespace_per_environment?
+
+      kubernetes_namespaces.build(attributes)
     end
 
     ##
-    # This is subtly different to #kubernetes_namespace_for because it will include
-    # namespaces that have yet to receive a service account token. This allows
-    # the namespace configuration process to be repeatable - if a namespace has
-    # already been created without a token we don't need to create another
-    # record entirely, just set the token on the pre-existing namespace.
-    #
-    # This is used for configuring cluster namespaces.
-    def find_or_initialize_kubernetes_namespace_for_project(project, scope: kubernetes_namespaces)
-      attributes = { project: project }
-      attributes[:cluster_project] = cluster_project if project_type?
+    # Ideally we would just use an environment record here instead of
+    # passing a project and slug separately, but we need to be able to
+    # look up namespaces before the environment has been persisted.
+    def default_namespace_for(project, environment_slug:)
+      default_platform_namespace(environment_slug) || default_project_namespace(project, environment_slug: environment_slug)
+    end
 
-      scope.find_or_initialize_by(attributes).tap do |namespace|
-        namespace.set_defaults
-      end
+    def namespace_per_environment?
+      super && Feature.enabled?(:kubernetes_namespace_per_environment)
     end
 
     def allow_user_defined_namespace?
@@ -276,6 +275,38 @@ module Clusters
       else
         :authentication_failure
       end
+    end
+
+    def default_platform_namespace(environment_slug)
+      return unless platform_kubernetes&.namespace.present?
+
+      # TODO: environment_slug would usually be present in all
+      # cases, but there are two places that still need their
+      # namespace generation logic moved to the environment
+      # level:
+      #   * app/finders/clusters/knative_services_finder.rb
+      #   * app/finders/projects/serverless/functions_finder.rb
+      if environment_slug.present? && namespace_per_environment?
+        "#{platform_kubernetes.namespace}-#{environment_slug}"
+      else
+        platform_kubernetes.namespace
+      end
+    end
+
+    def default_project_namespace(project, environment_slug:)
+      namespace_slug = "#{project.path}-#{project.id}".downcase
+
+      # TODO: environment_slug would usually be present in all
+      # cases, but there are two places that still need their
+      # namespace generation logic moved to the environment
+      # level:
+      #   * app/finders/clusters/knative_services_finder.rb
+      #   * app/finders/projects/serverless/functions_finder.rb
+      if environment_slug.present? && namespace_per_environment?
+        namespace_slug += "-#{environment_slug}"
+      end
+
+      Gitlab::NamespaceSanitizer.sanitize(namespace_slug)
     end
 
     # To keep backward compatibility with AUTO_DEVOPS_DOMAIN
