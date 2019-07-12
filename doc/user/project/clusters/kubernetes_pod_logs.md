@@ -6,7 +6,8 @@ GitLab makes it easy to view the logs of running pods in [connected Kubernetes c
 By displaying the logs directly in GitLab, developers can avoid having to manage console tools or jump to a different interface.
 
 NOTE: **Kubernetes + GitLab**
-    Everything you need to build, test, deploy, and run your app at scale. [Learn more](https://about.gitlab.com/solutions/kubernetes/)
+Everything you need to build, test, deploy, and run your app at scale.
+[Learn more](https://about.gitlab.com/solutions/kubernetes/).
 
 ## Overview
 
