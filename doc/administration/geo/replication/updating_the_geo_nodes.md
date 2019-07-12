@@ -20,7 +20,7 @@ By default, GitLab 12.1 will attempt to automatically upgrade the embedded Postg
 
 This can be temporarily disabled by running the following before ugprading:
 ```sh
-sudo touch /etc/gitlab/disable-postgresql-ugprade
+sudo touch /etc/gitlab/disable-postgresql-upgrade
 ```
 
 ## Upgrading to GitLab 10.8
