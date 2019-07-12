@@ -271,15 +271,14 @@ To approve or blacklist a license:
 1. Click the **Add a license** button.
 
    ![License Management Add License](img/license_management_add_license.png)
+
 1. In the **License name** dropdown, either:
-    - Select one of the available licenses. You can search for licenses in the field
-   at the top of the list.
-    - Enter arbitrary text in the field at the top of the list. This will cause the text to be
-    added as a license name to the list.
+   - Select one of the available licenses. You can search for licenses in the field
+     at the top of the list.
+   - Enter arbitrary text in the field at the top of the list. This will cause the text to be
+     added as a license name to the list.
 1. Select the **Approve** or **Blacklist** radio button to approve or blacklist respectively
    the selected license.
-
-
 
 To modify an existing license:
 
@@ -292,8 +291,6 @@ Searching for Licenses:
 1. Use the **Search** box to search for a specific license.
 
    ![License Management Search](img/license_management_search.png)
-
-
 
 ## License Management report under pipelines
 
