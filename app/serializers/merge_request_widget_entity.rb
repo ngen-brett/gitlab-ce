@@ -271,6 +271,10 @@ class MergeRequestWidgetEntity < IssuableEntity
     presenter(merge_request).merge_request_pipelines_docs_path
   end
 
+  expose :merge_train_when_pipeline_succeeds_docs_path do |merge_request|
+    presenter(merge_request).merge_train_when_pipeline_succeeds_docs_path
+  end
+
   private
 
   delegate :current_user, to: :request

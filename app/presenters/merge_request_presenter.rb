@@ -216,6 +216,10 @@ class MergeRequestPresenter < Gitlab::View::Presenter::Delegated
     help_page_path('ci/merge_request_pipelines/index.md')
   end
 
+  def merge_train_when_pipeline_succeeds_docs_path
+    help_page_path('ci/merge_request_pipelines/pipelines_for_merged_results/merge_trains/index.md', anchor: 'startadd-to-merge-train-when-pipeline-succeeds')
+  end
+
   def source_branch_link
     if source_branch_exists?
       link_to(source_branch, source_branch_commits_path, class: 'ref-name')
