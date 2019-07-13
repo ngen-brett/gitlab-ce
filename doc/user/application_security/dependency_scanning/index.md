@@ -163,6 +163,8 @@ using environment variables.
 | `DS_DOCKER_CLIENT_NEGOTIATION_TIMEOUT`  | Time limit for Docker client negotiation. Timeouts are parsed using Go's [`ParseDuration`](https://golang.org/pkg/time/#ParseDuration). Valid time units are `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. For example, `300ms`, `1.5h`, or `2h45m`. |
 | `DS_PULL_ANALYZER_IMAGE_TIMEOUT`        | Time limit when pulling the image of an analyzer. Timeouts are parsed using Go's [`ParseDuration`](https://golang.org/pkg/time/#ParseDuration). Valid time units are `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. For example, `300ms`, `1.5h`, or `2h45m`. |
 | `DS_RUN_ANALYZER_TIMEOUT`               | Time limit when running an analyzer. Timeouts are parsed using Go's [`ParseDuration`](https://golang.org/pkg/time/#ParseDuration). Valid time units are `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. For example, `300ms`, `1.5h`, or `2h45m`. |
+| `PIP_INDEX_URL`                         | Base URL of Python Package Index (default https://pypi.org/simple). |
+| `PIP_EXTRA_INDEX_URL`                   | Extra URLs of package indexes to use in addition to `PIP_INDEX_URL` |
 
 ### Manual job definition for GitLab 11.5 and later
 
@@ -185,10 +187,13 @@ dependency_scanning:
       --env DS_ANALYZER_IMAGE_PREFIX \
       --env DS_ANALYZER_IMAGE_TAG \
       --env DS_DEFAULT_ANALYZERS \
+      --env DS_EXCLUDED_PATHS \
       --env DEP_SCAN_DISABLE_REMOTE_CHECKS \
       --env DS_DOCKER_CLIENT_NEGOTIATION_TIMEOUT \
       --env DS_PULL_ANALYZER_IMAGE_TIMEOUT \
       --env DS_RUN_ANALYZER_TIMEOUT \
+      --env PIP_INDEX_URL \
+      --env PIP_EXTRA_INDEX_URL \
       --volume "$PWD:/code" \
       --volume /var/run/docker.sock:/var/run/docker.sock \
       "registry.gitlab.com/gitlab-org/security-products/dependency-scanning:$DS_VERSION" /code
@@ -233,6 +238,8 @@ dependency_scanning:
       --env DS_DOCKER_CLIENT_NEGOTIATION_TIMEOUT \
       --env DS_PULL_ANALYZER_IMAGE_TIMEOUT \
       --env DS_RUN_ANALYZER_TIMEOUT \
+      --env PIP_INDEX_URL \
+      --env PIP_EXTRA_INDEX_URL \
       --volume "$PWD:/code" \
       --volume /var/run/docker.sock:/var/run/docker.sock \
       "registry.gitlab.com/gitlab-org/security-products/dependency-scanning:$DS_VERSION" /code
