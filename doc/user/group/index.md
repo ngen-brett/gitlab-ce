@@ -80,7 +80,7 @@ together in a single list view.
 
 ### Bulk editing issues
 
-Find out about [bulk editing issues](../group/bulk_editing/index.md).
+For details, see [bulk editing issues](../group/bulk_editing/index.md).
 
 ## Create a new group
 

@@ -14,13 +14,14 @@ by using the bulk editing feature.
 
 NOTE: **Note:**
 Bulk editing of merge requests is only available at the project level.
-See [more information](../group/bulk_editing/index.md) on bulk editing group issues.
+For more details, see [bulk editing group issues](../group/bulk_editing/index.md).
 
-To update multiple project issues or merge requests at the same time, navigate to
-their respective lists and click **Edit issues** or **Edit merge requests** available
-in the tab bar. This will open a sidebar on the right-hand side of your screen
-where editable fields will be displayed. Checkboxes will also appear to the left-hand
-side of each issue or merge request for you to select the items you want to update.
-
-Once you have selected all relevant items, choose the appropriate fields and their
-values from the sidebar and click **Update all** to apply your changes.
+To update multiple project issues or merge requests at the same time:
+1. Navigate to their respective list.
+1. Click **Edit issues** or **Edit merge requests**.
+    - This will open a sidebar on the right-hand side of your screen
+where editable fields will be displayed.
+    - Checkboxes will also appear beside each issue or merge request.
+1. Check the checkboxes of each items to be edited.
+1. Choose the appropriate fields and their values from the sidebar.
+1. Click **Update all**.
