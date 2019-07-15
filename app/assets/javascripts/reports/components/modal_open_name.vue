@@ -2,6 +2,12 @@
 import { mapActions } from 'vuex';
 
 export default {
+  inject: {
+    handleIssueClick: {
+      from: 'handleIssueClick',
+      default: () => () => {},
+    },
+  },
   props: {
     issue: {
       type: Object,
@@ -15,10 +21,6 @@ export default {
   },
   methods: {
     ...mapActions(['openModal']),
-    handleIssueClick() {
-      const { issue, status, openModal } = this;
-      openModal({ issue, status });
-    },
   },
 };
 </script>
@@ -26,7 +28,7 @@ export default {
   <button
     type="button"
     class="btn-link btn-blank text-left break-link vulnerability-name-button"
-    @click="handleIssueClick()"
+    @click="() => handleIssueClick({ issue, status })"
   >
     {{ issue.title }}
   </button>
