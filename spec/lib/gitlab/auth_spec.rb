@@ -322,14 +322,23 @@ describe Gitlab::Auth do
       end
 
       context 'when deploy tokens have the same username' do
-        it 'succeeds for the right token' do
-          stub_container_registry_config(enabled: true)
-          deploy_token = create(:deploy_token, username: 'deployer', read_registry: false, projects: [project])
-          deploy_token_with_duplicate_username = create(:deploy_token, username: deploy_token.username, read_repository: false, projects: [project])
-          auth_success = Gitlab::Auth::Result.new(deploy_token_with_duplicate_username, project, :deploy_token, [:read_container_image])
+        it 'succeeds for the right token when tokens belong to the same project' do
+          read_registry = create(:deploy_token, username: 'deployer', read_repository: false, projects: [project])
+          read_repository = create(:deploy_token, username: read_registry.username, read_registry: false, projects: [project])
+          auth_success = Gitlab::Auth::Result.new(read_repository, project, :deploy_token, [:download_code])
 
           expect(gl_auth).to receive(:rate_limit!).with('ip', success: true, login: 'deployer')
-          expect(gl_auth.find_for_git_client('deployer', deploy_token_with_duplicate_username.token, project: project, ip: 'ip'))
+          expect(gl_auth.find_for_git_client('deployer', read_repository.token, project: project, ip: 'ip'))
+            .to eq(auth_success)
+        end
+
+        it 'succeeds for the right token when tokens belong to different projects' do
+          read_registry = create(:deploy_token, username: 'deployer', read_repository: false, projects: [create(:project)])
+          read_repository = create(:deploy_token, username: read_registry.username, read_registry: false, projects: [project])
+          auth_success = Gitlab::Auth::Result.new(read_repository, project, :deploy_token, [:download_code])
+
+          expect(gl_auth).to receive(:rate_limit!).with('ip', success: true, login: 'deployer')
+          expect(gl_auth.find_for_git_client('deployer', read_repository.token, project: project, ip: 'ip'))
             .to eq(auth_success)
         end
       end
