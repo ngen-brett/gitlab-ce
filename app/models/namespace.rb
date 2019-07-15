@@ -123,6 +123,13 @@ class Namespace < ApplicationRecord
       uniquify = Uniquify.new
       uniquify.string(path) { |s| Namespace.find_by_path_or_name(s) }
     end
+
+    def find_by_pages_host(host)
+      gitlab_host = "." + Settings.pages.host.downcase
+      name = host.downcase.delete_suffix(gitlab_host)
+
+      Namespace.find_by_full_path(name)
+    end
   end
 
   def visibility_level_field

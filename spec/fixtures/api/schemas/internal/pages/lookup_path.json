@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "required": [
+    "project_id",
+    "https_only",
+    "access_control",
+    "path",
+    "prefix"
+  ],
+  "properties": {
+    "project_id": { "type": "integer" },
+    "https_only": { "type": "boolean" },
+    "access_control": { "type": "boolean" },
+    "path": { "type": "string" },
+    "prefix": { "type": "string" }
+  },
+  "additionalProperties": false
+}
+

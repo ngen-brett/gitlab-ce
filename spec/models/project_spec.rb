@@ -4845,6 +4845,15 @@ describe Project do
     end
   end
 
+  describe '.with_pages' do
+    it 'find projects with successful pages deployment' do
+      create(:project)
+      pages_deploy = create(:generic_commit_status, :success, stage: 'deploy', name: 'pages:deploy')
+
+      expect(described_class.with_pages).to contain_exactly(pages_deploy.project)
+    end
+  end
+
   describe '#has_pool_repsitory?' do
     it 'returns false when it does not have a pool repository' do
       subject = create(:project, :repository)

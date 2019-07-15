@@ -61,7 +61,7 @@ class Project < ApplicationRecord
   cache_markdown_field :description, pipeline: :description
 
   delegate :feature_available?, :builds_enabled?, :wiki_enabled?,
-           :merge_requests_enabled?, :issues_enabled?, :pages_enabled?, :public_pages?,
+    :merge_requests_enabled?, :issues_enabled?, :pages_enabled?, :public_pages?, :private_pages?,
            to: :project_feature, allow_nil: true
 
   delegate :base_dir, :disk_path, :ensure_storage_path_exists, to: :storage
@@ -421,6 +421,12 @@ class Project < ApplicationRecord
     subquery = kubernetes_namespaces.select('1').where('clusters_kubernetes_namespaces.project_id = projects.id')
 
     where('NOT EXISTS (?)', subquery)
+  end
+
+  scope :with_pages, -> do
+    subquery = GenericCommitStatus.successful_pages_deploy.select(1).where("ci_builds.project_id = projects.id")
+
+    where('EXISTS (?)', subquery)
   end
 
   enum auto_cancel_pending_pipelines: { disabled: 0, enabled: 1 }
@@ -1612,6 +1618,10 @@ class Project < ApplicationRecord
     return url if url == "#{Settings.pages.protocol}://#{url_path}"
 
     "#{url}/#{url_path}"
+  end
+
+  def pages_group_root?
+    pages_group_url == pages_url
   end
 
   def pages_subdomain
