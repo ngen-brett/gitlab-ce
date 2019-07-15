@@ -29,6 +29,26 @@ describe Gitlab::SearchResults do
       end
     end
 
+    describe '#formatted_count' do
+      it 'returns a limited count below the limit' do
+        expect(results).to receive(:limited_projects_count).and_return(23)
+
+        expect(results.formatted_count(:projects)).to eq('23')
+      end
+
+      it 'returns a limited count above the limit' do
+        expect(results).to receive(:limited_projects_count).and_return(1001)
+
+        expect(results.formatted_count(:projects)).to eq('1000+')
+      end
+
+      it 'returns an unlimited count' do
+        expect(results).to receive(:commits_count).and_return(23)
+
+        expect(results.formatted_count(:commits)).to eq('23')
+      end
+    end
+
     context "when count_limit is lower than total amount" do
       before do
         allow(results).to receive(:count_limit).and_return(1)

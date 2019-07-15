@@ -43,6 +43,21 @@ module Gitlab
       without_count ? collection.without_count : collection
     end
 
+    # rubocop:disable GitlabSecurity/PublicSend
+    def formatted_count(scope)
+      if respond_to?("limited_#{scope}_count")
+        count = public_send("limited_#{scope}_count")
+        if count == COUNT_LIMIT
+          "#{count - 1}+"
+        else
+          count.to_s
+        end
+      else
+        public_send("#{scope}_count").to_s
+      end
+    end
+    # rubocop:enable GitlabSecurity/PublicSend
+
     def limited_projects_count
       @limited_projects_count ||= limited_count(projects)
     end

@@ -68,22 +68,38 @@ describe SearchController do
                           .with(user, :read_cross_project, :global) { false }
     end
 
-    it 'still allows accessing the search page' do
-      get :show
+    describe 'GET #show' do
+      it 'still allows accessing the search page' do
+        get :show
 
-      expect(response).to have_gitlab_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
+      end
+
+      it 'still blocks searches without a project_id' do
+        get :show, params: { search: 'hello' }
+
+        expect(response).to have_gitlab_http_status(403)
+      end
+
+      it 'allows searches with a project_id' do
+        get :show, params: { search: 'hello', project_id: create(:project, :public).id }
+
+        expect(response).to have_gitlab_http_status(200)
+      end
     end
 
-    it 'still blocks searches without a project_id' do
-      get :show, params: { search: 'hello' }
+    describe 'GET #count' do
+      it 'still blocks loading result counts without a project_id' do
+        get :count, params: { search: 'hello', scope: 'projects' }
 
-      expect(response).to have_gitlab_http_status(403)
-    end
+        expect(response).to have_gitlab_http_status(403)
+      end
 
-    it 'allows searches with a project_id' do
-      get :show, params: { search: 'hello', project_id: create(:project, :public).id }
+      it 'allows loading result counts with a project_id' do
+        get :count, params: { search: 'hello', scope: 'projects', project_id: create(:project, :public).id }
 
-      expect(response).to have_gitlab_http_status(200)
+        expect(response).to have_gitlab_http_status(200)
+      end
     end
   end
 
@@ -144,6 +160,20 @@ describe SearchController do
       end
     end
 
+    describe 'GET #count' do
+      it 'renders a 403 when no project is given' do
+        get :count, params: { scope: 'notes', search: note.note }
+
+        expect(response).to have_gitlab_http_status(403)
+      end
+
+      it 'renders a 200 when a project was set' do
+        get :count, params: { project_id: project.id, scope: 'notes', search: note.note }
+
+        expect(response).to have_gitlab_http_status(200)
+      end
+    end
+
     describe 'GET #autocomplete' do
       it 'renders a 403 when no project is given' do
         get :autocomplete, params: { term: 'hello' }
@@ -156,6 +186,30 @@ describe SearchController do
 
         expect(response).to have_gitlab_http_status(200)
       end
+    end
+  end
+
+  describe 'GET #count' do
+    it 'returns the result count for the given term and scope' do
+      create(:project, :public, name: 'hello world')
+      create(:project, :public, name: 'foo bar')
+
+      get :count, params: { search: 'hello', scope: 'projects' }
+
+      expect(response).to have_gitlab_http_status(200)
+      expect(json_response).to eq({ 'count' => '1' })
+    end
+
+    it 'raises an error if search term is missing' do
+      expect do
+        get :count, params: { scope: 'projects' }
+      end.to raise_error(ActionController::ParameterMissing)
+    end
+
+    it 'raises an error if search scope is missing' do
+      expect do
+        get :count, params: { search: 'hello' }
+      end.to raise_error(ActionController::ParameterMissing)
     end
   end
 end
