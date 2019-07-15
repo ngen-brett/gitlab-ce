@@ -1194,7 +1194,7 @@ ActiveRecord::Schema.define(version: 2019_08_06_071559) do
   create_table "epic_issues", id: :serial, force: :cascade do |t|
     t.integer "epic_id", null: false
     t.integer "issue_id", null: false
-    t.integer "relative_position"
+    t.integer "relative_position", default: 1073741823, null: false
     t.index ["epic_id"], name: "index_epic_issues_on_epic_id"
     t.index ["issue_id"], name: "index_epic_issues_on_issue_id", unique: true
   end
@@ -1429,10 +1429,6 @@ ActiveRecord::Schema.define(version: 2019_08_06_071559) do
     t.integer "repositories_retrying_verification_count"
     t.integer "wikis_retrying_verification_count"
     t.integer "projects_count"
-    t.integer "container_repositories_count"
-    t.integer "container_repositories_synced_count"
-    t.integer "container_repositories_failed_count"
-    t.integer "container_repositories_registry_count"
     t.index ["geo_node_id"], name: "index_geo_node_statuses_on_geo_node_id", unique: true
   end
 
@@ -1456,6 +1452,7 @@ ActiveRecord::Schema.define(version: 2019_08_06_071559) do
     t.integer "container_repositories_max_capacity", default: 10, null: false
     t.datetime_with_timezone "created_at"
     t.datetime_with_timezone "updated_at"
+    t.boolean "sync_object_storage", default: false, null: false
     t.index ["access_key"], name: "index_geo_nodes_on_access_key"
     t.index ["name"], name: "index_geo_nodes_on_name", unique: true
     t.index ["primary"], name: "index_geo_nodes_on_primary"
@@ -1782,7 +1779,6 @@ ActiveRecord::Schema.define(version: 2019_08_06_071559) do
     t.boolean "public", default: false, null: false
     t.datetime "last_used_at"
     t.index ["fingerprint"], name: "index_keys_on_fingerprint", unique: true
-    t.index ["id", "type"], name: "index_on_deploy_keys_id_and_type_and_public", unique: true, where: "(public = true)"
     t.index ["user_id"], name: "index_keys_on_user_id"
   end
 
@@ -1992,12 +1988,6 @@ ActiveRecord::Schema.define(version: 2019_08_06_071559) do
     t.integer "merged_by_id"
     t.integer "latest_closed_by_id"
     t.datetime_with_timezone "latest_closed_at"
-    t.datetime_with_timezone "first_comment_at"
-    t.datetime_with_timezone "first_commit_at"
-    t.datetime_with_timezone "last_commit_at"
-    t.integer "diff_size"
-    t.integer "modified_paths_size"
-    t.integer "commits_count"
     t.index ["first_deployed_to_production_at"], name: "index_merge_request_metrics_on_first_deployed_to_production_at"
     t.index ["latest_closed_at"], name: "index_merge_request_metrics_on_latest_closed_at", where: "(latest_closed_at IS NOT NULL)"
     t.index ["latest_closed_by_id"], name: "index_merge_request_metrics_on_latest_closed_by_id"
@@ -3631,7 +3621,6 @@ ActiveRecord::Schema.define(version: 2019_08_06_071559) do
 
   add_foreign_key "application_settings", "namespaces", column: "custom_project_templates_group_id", on_delete: :nullify
   add_foreign_key "application_settings", "projects", column: "file_template_project_id", name: "fk_ec757bd087", on_delete: :nullify
-  add_foreign_key "application_settings", "projects", column: "instance_administration_project_id", on_delete: :nullify
   add_foreign_key "application_settings", "users", column: "usage_stats_set_by_user_id", name: "fk_964370041d", on_delete: :nullify
   add_foreign_key "approval_merge_request_rule_sources", "approval_merge_request_rules", on_delete: :cascade
   add_foreign_key "approval_merge_request_rule_sources", "approval_project_rules", on_delete: :cascade
@@ -3724,7 +3713,6 @@ ActiveRecord::Schema.define(version: 2019_08_06_071559) do
   add_foreign_key "clusters_applications_runners", "clusters", on_delete: :cascade
   add_foreign_key "clusters_kubernetes_namespaces", "cluster_projects", on_delete: :nullify
   add_foreign_key "clusters_kubernetes_namespaces", "clusters", on_delete: :cascade
-  add_foreign_key "clusters_kubernetes_namespaces", "environments", on_delete: :nullify
   add_foreign_key "clusters_kubernetes_namespaces", "projects", on_delete: :nullify
   add_foreign_key "container_repositories", "projects"
   add_foreign_key "dependency_proxy_blobs", "namespaces", column: "group_id", name: "fk_db58bbc5d7", on_delete: :cascade
