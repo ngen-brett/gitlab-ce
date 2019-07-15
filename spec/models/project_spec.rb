@@ -2340,6 +2340,34 @@ describe Project do
     end
   end
 
+  describe '#emails_enabled?' do
+    let(:project) { create(:project, emails_disabled: false) }
+
+    context 'emails disabled in group' do
+      it 'returns false' do
+        allow(project.namespace).to receive(:emails_disabled?) { true }
+
+        expect(project.emails_enabled?).to be_falsey
+      end
+    end
+
+    context 'emails enabled in group' do
+      before do
+        allow(project.namespace).to receive(:emails_disabled?) { false }
+      end
+
+      it 'returns true' do
+        expect(project.emails_enabled?).to be_truthy
+      end
+
+      it 'returns false' do
+        project.update_attribute(:emails_disabled, true)
+
+        expect(project.emails_enabled?).to be_falsey
+      end
+    end
+  end
+
   describe '#lfs_enabled?' do
     let(:project) { create(:project) }
 

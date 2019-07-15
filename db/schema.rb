@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_07_03_130053) do
+ActiveRecord::Schema.define(version: 2019_07_15_215549) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -2117,6 +2117,7 @@ ActiveRecord::Schema.define(version: 2019_07_03_130053) do
     t.string "ldap_sync_status", default: "ready", null: false
     t.boolean "membership_lock", default: false
     t.integer "last_ci_minutes_usage_notification_level"
+    t.boolean "emails_disabled"
     t.index ["created_at"], name: "index_namespaces_on_created_at", using: :btree
     t.index ["custom_project_templates_group_id", "type"], name: "index_namespaces_on_custom_project_templates_group_id_and_type", where: "(custom_project_templates_group_id IS NOT NULL)", using: :btree
     t.index ["file_template_project_id"], name: "index_namespaces_on_file_template_project_id", using: :btree
@@ -2687,6 +2688,7 @@ ActiveRecord::Schema.define(version: 2019_07_03_130053) do
     t.boolean "reset_approvals_on_push", default: true
     t.boolean "service_desk_enabled", default: true
     t.integer "approvals_before_merge", default: 0, null: false
+    t.boolean "emails_disabled"
     t.index ["archived", "pending_delete", "merge_requests_require_code_owner_approval"], name: "projects_requiring_code_owner_approval", where: "((pending_delete = false) AND (archived = false) AND (merge_requests_require_code_owner_approval = true))", using: :btree
     t.index ["created_at"], name: "index_projects_on_created_at", using: :btree
     t.index ["creator_id"], name: "index_projects_on_creator_id", using: :btree

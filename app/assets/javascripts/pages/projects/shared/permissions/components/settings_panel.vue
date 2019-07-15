@@ -27,6 +27,11 @@ export default {
       type: Object,
       required: true,
     },
+    canChangeEmailsDisabled: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     canChangeVisibilityLevel: {
       type: Boolean,
       required: false,
@@ -103,6 +108,8 @@ export default {
       lfsEnabled: true,
       requestAccessEnabled: true,
       highlightChangesClass: false,
+      emailsDisabled: false,
+      groupEmailsDisabled: false,
     };
 
     return { ...defaults, ...this.currentSettings };
@@ -340,5 +347,16 @@ export default {
         />
       </project-setting-row>
     </div>
+    <project-setting-row
+      label="Disable Email Notifications"
+      v-if="canChangeEmailsDisabled"
+      help-text="This setting will override user notification preferences for all project members"
+    >
+      <project-feature-toggle
+        v-model="emailsDisabled"
+        :disabled-input="groupEmailsDisabled"
+        name="project[emails_disabled]"
+      />
+    </project-setting-row>
   </div>
 </template>

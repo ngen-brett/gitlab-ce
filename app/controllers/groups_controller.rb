@@ -180,6 +180,7 @@ class GroupsController < Groups::ApplicationController
     [
       :avatar,
       :description,
+      :emails_disabled,
       :lfs_enabled,
       :name,
       :path,

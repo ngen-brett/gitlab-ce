@@ -4,6 +4,7 @@ class NotificationRecipient
   include Gitlab::Utils::StrongMemoize
 
   attr_reader :user, :type, :reason
+
   def initialize(user, type, **opts)
     unless NotificationSetting.levels.key?(type) || type == :subscription
       raise ArgumentError, "invalid type: #{type.inspect}"
@@ -31,6 +32,7 @@ class NotificationRecipient
   def notifiable?
     return false unless has_access?
     return false if own_activity?
+    return false if emails_disabled?
 
     # even users with :disabled notifications receive manual subscriptions
     return !unsubscribed? if @type == :subscription
@@ -108,6 +110,11 @@ class NotificationRecipient
   end
 
   private
+
+  # they are disabled if the group or project has disallowed it
+  def emails_disabled?
+    @group&.emails_disabled? || @project&.emails_disabled?
+  end
 
   def read_ability
     return if @skip_read_ability

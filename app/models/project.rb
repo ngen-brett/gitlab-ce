@@ -656,6 +656,15 @@ class Project < ApplicationRecord
 
   alias_method :ancestors, :ancestors_upto
 
+  def emails_enabled?
+    !emails_disabled?
+  end
+
+  def emails_disabled?
+    # disabling in the namespace overrides the project setting
+    namespace.emails_disabled? || !!self[:emails_disabled]
+  end
+
   def lfs_enabled?
     return namespace.lfs_enabled? if self[:lfs_enabled].nil?
 
