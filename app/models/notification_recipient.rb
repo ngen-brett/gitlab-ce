@@ -32,6 +32,10 @@ class NotificationRecipient
     return false unless has_access?
     return false if own_activity?
 
+    # don't notify if the project has disallowed it
+    return false if @group && !@group.emails_enabled?
+    return false if @project && !@project.emails_enabled?
+
     # even users with :disabled notifications receive manual subscriptions
     return !unsubscribed? if @type == :subscription
 

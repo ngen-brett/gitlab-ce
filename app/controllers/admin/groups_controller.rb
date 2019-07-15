@@ -83,6 +83,7 @@ class Admin::GroupsController < Admin::ApplicationController
     [
       :avatar,
       :description,
+      :emails_enabled,
       :lfs_enabled,
       :name,
       :path,

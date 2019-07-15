@@ -83,4 +83,10 @@ class NotificationSetting < ApplicationRecord
   def event_enabled?(event)
     respond_to?(event) && !!public_send(event) # rubocop:disable GitlabSecurity/PublicSend
   end
+
+  def emails_enabled?
+    return true unless source.respond_to?(:emails_enabled?)
+
+    source.emails_enabled?
+  end
 end

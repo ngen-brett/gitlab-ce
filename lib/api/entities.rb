@@ -246,6 +246,7 @@ module API
       expose :owner, using: Entities::UserBasic, unless: ->(project, options) { project.group }
       expose :resolve_outdated_diff_discussions
       expose :container_registry_enabled
+      expose :emails_enabled?, as: :emails_enabled
 
       # Expose old field names with the new permissions methods to keep API compatible
       # TODO: remove in API v5, replaced by *_access_level
@@ -361,6 +362,7 @@ module API
 
     class Group < BasicGroupDetails
       expose :path, :description, :visibility
+      expose :emails_enabled?, as: :emails_enabled
       expose :lfs_enabled?, as: :lfs_enabled
       expose :avatar_url do |group, options|
         group.avatar_url(only_path: false)

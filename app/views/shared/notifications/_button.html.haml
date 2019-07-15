@@ -1,6 +1,6 @@
 - btn_class = local_assigns.fetch(:btn_class, nil)
 
-- if notification_setting
+- if notification_setting && notification_setting.emails_enabled?
   .js-notification-dropdown.notification-dropdown.mr-md-2.home-panel-action-button.dropdown.inline
     = form_for notification_setting, remote: true, html: { class: "inline notification-form" } do |f|
       = hidden_setting_source_input(notification_setting)

@@ -541,7 +541,9 @@ module ProjectsHelper
       snippetsAccessLevel: feature.snippets_access_level,
       pagesAccessLevel: feature.pages_access_level,
       containerRegistryEnabled: !!project.container_registry_enabled,
-      lfsEnabled: !!project.lfs_enabled
+      lfsEnabled: !!project.lfs_enabled,
+      emailsEnabled: !!project.emails_enabled?,
+      groupEmailsEnabled: !!project.namespace.emails_enabled?
     }
   end
 

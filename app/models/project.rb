@@ -664,6 +664,13 @@ class Project < ApplicationRecord
 
   alias_method :lfs_enabled, :lfs_enabled?
 
+  def emails_enabled?
+    # only allow emails at project level if enabled in namespace
+    return false unless namespace.emails_enabled?
+
+    self[:emails_enabled]
+  end
+
   def auto_devops_enabled?
     if auto_devops&.enabled.nil?
       has_auto_devops_implicitly_enabled?

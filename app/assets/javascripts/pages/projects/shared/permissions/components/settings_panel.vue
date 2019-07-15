@@ -103,6 +103,8 @@ export default {
       lfsEnabled: true,
       requestAccessEnabled: true,
       highlightChangesClass: false,
+      emailsEnabled: true,
+      groupEmailsEnabled: true,
     };
 
     return { ...defaults, ...this.currentSettings };
@@ -325,6 +327,16 @@ export default {
           v-model="snippetsAccessLevel"
           :options="featureAccessLevelOptions"
           name="project[project_feature_attributes][snippets_access_level]"
+        />
+      </project-setting-row>
+      <project-setting-row
+        label="Email Notifications"
+        help-text="Allow users to receive email notifications from this project"
+      >
+        <project-feature-toggle
+          v-model="emailsEnabled"
+          :disabled-input="!groupEmailsEnabled"
+          name="project[emails_enabled]"
         />
       </project-setting-row>
       <project-setting-row

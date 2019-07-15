@@ -180,6 +180,11 @@ class Namespace < ApplicationRecord
     Gitlab.config.lfs.enabled
   end
 
+  def emails_enabled?
+    # Consistent with project method of same name, used by notifications
+    self[:emails_enabled]
+  end
+
   def shared_runners_enabled?
     projects.with_shared_runners.any?
   end
