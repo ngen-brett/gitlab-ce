@@ -330,6 +330,9 @@ describe Gitlab::Auth do
           expect(gl_auth).to receive(:rate_limit!).with('ip', success: true, login: 'deployer')
           expect(gl_auth.find_for_git_client('deployer', read_repository.token, project: project, ip: 'ip'))
             .to eq(auth_success)
+
+          expect(gl_auth).to receive(:rate_limit!).with('ip', success: false, login: 'deployer')
+          expect(gl_auth.find_for_git_client('deployer', read_registry.token, project: project, ip: 'ip'))
         end
 
         it 'succeeds for the right token when tokens belong to different projects' do
@@ -340,6 +343,9 @@ describe Gitlab::Auth do
           expect(gl_auth).to receive(:rate_limit!).with('ip', success: true, login: 'deployer')
           expect(gl_auth.find_for_git_client('deployer', read_repository.token, project: project, ip: 'ip'))
             .to eq(auth_success)
+
+          expect(gl_auth).to receive(:rate_limit!).with('ip', success: false, login: 'deployer')
+          expect(gl_auth.find_for_git_client('deployer', read_registry.token, project: project, ip: 'ip'))
         end
       end
 
