@@ -14,7 +14,7 @@ module Gitlab
       end
 
       def self.find(name)
-        file_path = "#{PROFILES_DIR}/#{name}"
+        file_path = File.join(PROFILES_DIR, name)
         return unless File.exist?(file_path)
 
         new(name)
