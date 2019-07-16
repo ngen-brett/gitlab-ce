@@ -470,3 +470,15 @@ incident_management_setting:
 merge_trains:
 - project
 - merge_request
+designs:
+- issue
+- design_versions
+- versions
+- notes
+design_versions:
+- design
+- version
+version:
+- issue
+- design_versions
+- designs

@@ -221,6 +221,14 @@ methods:
 # into the previous structures if EE is used.
 ee:
   project_tree:
+    - issues:
+      - designs:
+        - design_versions:
+          - :version
+        - notes:
+          - :author
+          - events:
+            - :push_event_payload
     - protected_branches:
       - :unprotect_access_levels
     - protected_environments:
