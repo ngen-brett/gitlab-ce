@@ -106,6 +106,30 @@ for a rundown of all the fields and information in an issue.
 
 For sorting by issue priority, see [Label Priority](../labels.md#label-priority).
 
+#### Ordering issues
+
+You can order the list of issues several ways, including by issue creation date, milestone due date,
+etc. For ordering by issue priority, see [Label Priority](../labels.md#label-priority).
+
+In group and project issue lists, it is also possible to sort issues manually,
+similar to [issue boards](../issue_board.md#issue-ordering-in-a-list).
+
+When you select "Manual" ordering, you are able to change
+the order simply by dragging and dropping the issues. The changed order will be saved
+to the system so that anybody who visits the same list later will see the reordering,
+with some exceptions.
+
+Issues are assigned a relative order value by the system representing its relative
+order with respect to the other issues in the list. Any time you drag-and-drop reorder 
+an issue, its relative order value will change accordingly.
+
+Also, any time that issue appears in any list when it is loaded by a user,
+the updated relative order value will be used for the ordering.  This means that
+if issue `A` is drag-and-drop reordered to be above issue `B` by any user in
+a given list inside your GitLab instance, any time those two issues are subsequently
+loaded in any list in the same instance (could be a different project issue list or a 
+different group issue list, for example), that ordering will be maintained.
+
 ### Issue boards
 
 ![Issue board](img/issue_board.png)
