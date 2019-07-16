@@ -50,6 +50,15 @@ export default {
       type: String,
       required: true,
     },
+    pipelineMustSucceed: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    pipelineMustSucceedDocsPath: {
+      type: String,
+      required: true,
+    }
   },
   computed: {
     hasPipeline() {
@@ -57,6 +66,9 @@ export default {
     },
     hasCIError() {
       return this.hasCi && !this.ciStatus;
+    },
+    hasPipelineMustSucceedConflict() {
+      return this.pipelineMustSucceed && !this.hasCi;
     },
     status() {
       return this.pipeline.details && this.pipeline.details.status
@@ -70,6 +82,18 @@ export default {
     },
     hasCommitInfo() {
       return this.pipeline.commit && Object.keys(this.pipeline.commit).length > 0;
+    },
+    pipelineMustSucceedText() {
+      return sprintf(
+        __(
+          'Only merge requests with pipelines that succeed are allowed to be merged. For more information, see the %{linkStart}documentation.%{linkEnd}',
+        ),
+        {
+          linkStart: `<a href="${this.pipelineMustSucceedDocsPath}">`,
+          linkEnd: '</a>',
+        },
+        false,
+      );
     },
     errorText() {
       return sprintf(
@@ -95,7 +119,15 @@ export default {
 
 <template>
   <div class="ci-widget media js-ci-widget">
-    <template v-if="!hasPipeline || hasCIError">
+    <template v-if="hasPipelineMustSucceedConflict">
+      <div
+        class="add-border ci-status-icon ci-status-icon-failed ci-error js-ci-error append-right-default"
+      >
+        <icon :size="32" name="status_failed_borderless" />
+      </div>
+      <div class="media-body" v-html="pipelineMustSucceedText"></div>
+    </template>
+    <template v-else-if="!hasPipeline || hasCIError">
       <div
         class="add-border ci-status-icon ci-status-icon-failed ci-error js-ci-error append-right-default"
       >

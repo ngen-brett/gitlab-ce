@@ -77,6 +77,8 @@ export default {
       :source-branch="branch"
       :source-branch-link="branchLink"
       :troubleshooting-docs-path="mr.troubleshootingDocsPath"
+      :pipeline-must-succeed="mr.onlyAllowMergeIfPipelineSucceeds"
+      :pipeline-must-succeed-docs-path="mr.pipelineMustSucceedDocsPath"
     />
     <template v-slot:footer>
       <div v-if="deployments.length" class="mr-widget-extension">
