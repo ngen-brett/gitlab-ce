@@ -11,6 +11,9 @@ class ContainerRepository < ApplicationRecord
   delegate :client, to: :registry
 
   scope :ordered, -> { order(:name) }
+  scope :in_group, ->(group) {
+    joins(:project).where('projects.namespace_id = ?', group.id)
+  }
 
   # rubocop: disable CodeReuse/ServiceClass
   def registry

@@ -98,6 +98,7 @@ class GroupPolicy < BasePolicy
     enable :read_group_labels
     enable :read_group_milestones
     enable :read_group_merge_requests
+    enable :read_container_image
   end
 
   rule { can?(:read_cross_project) & can?(:read_group) }.policy do

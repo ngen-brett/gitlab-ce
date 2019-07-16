@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe API::ContainerRegistry do
+describe API::ProjectContainerRepositories do
   include ExclusiveLeaseHelpers
 
   set(:project) { create(:project, :private) }

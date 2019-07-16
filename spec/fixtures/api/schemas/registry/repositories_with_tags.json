@@ -1,0 +1,6 @@
+{
+  "type": "array",
+  "items": {
+    "$ref": "repository_with_tags.json"
+  }
+}

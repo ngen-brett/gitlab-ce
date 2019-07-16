@@ -7,6 +7,7 @@ module API
         expose :id
         expose :name
         expose :path
+        expose :project_id
         expose :location
         expose :created_at
       end
@@ -23,6 +24,18 @@ module API
         expose :digest
         expose :created_at
         expose :total_size
+      end
+
+      class RepositoryWithTags < Repository
+        expose :tags, using: Tag do |respository|
+          respository.tags.map do |tag|
+            {
+              name: tag.name,
+              path: tag.path,
+              location: tag.location
+            }
+          end
+        end
       end
     end
   end

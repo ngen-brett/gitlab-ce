@@ -134,6 +134,19 @@ describe ContainerRepository do
     end
   end
 
+  describe '.in_group' do
+    let(:project2) { create(:project, path: 'test2', group: group) }
+
+    let(:repository2) do
+      create(:container_repository, name: 'my_2nd_image', project: project2)
+    end
+
+    it 'returns all repositories within a group' do
+      expect(described_class.all.in_group(group))
+        .to match_array [repository, repository2]
+    end
+  end
+
   describe '.build_from_path' do
     let(:registry_path) do
       ContainerRegistry::Path.new(project.full_path + '/some/image')
