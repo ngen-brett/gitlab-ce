@@ -11,6 +11,8 @@
       %p= _('The following items will be exported:')
       %ul
         %li= _('Project and wiki repositories')
+        - if Gitlab.ee?
+          %li= _('Design management files')
         %li= _('Project uploads')
         %li= _('Project configuration, including services')
         %li= _('Issues with comments, merge requests with diffs and comments, labels, milestones, snippets, and other project entities')
