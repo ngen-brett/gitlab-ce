@@ -23,7 +23,8 @@ describe Gitlab::SidekiqLogging::StructuredLogger do
         'job_status' => 'start',
         'pid' => Process.pid,
         'created_at' => timestamp.iso8601(3),
-        'enqueued_at' => timestamp.iso8601(3)
+        'enqueued_at' => timestamp.iso8601(3),
+        'scheduling_latency_s' => 31536000.0
       )
     end
     let(:end_payload) do
