@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_07_03_130053) do
+ActiveRecord::Schema.define(version: 2019_07_15_044501) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -1100,7 +1100,9 @@ ActiveRecord::Schema.define(version: 2019_07_03_130053) do
 
   create_table "design_management_versions", force: :cascade do |t|
     t.binary "sha", null: false
-    t.index ["sha"], name: "index_design_management_versions_on_sha", unique: true, using: :btree
+    t.bigint "issue_id"
+    t.index ["issue_id"], name: "index_design_management_versions_on_issue_id", using: :btree
+    t.index ["sha", "issue_id"], name: "index_design_management_versions_on_sha_and_issue_id", unique: true, using: :btree
   end
 
   create_table "draft_notes", force: :cascade do |t|
@@ -3675,6 +3677,7 @@ ActiveRecord::Schema.define(version: 2019_07_03_130053) do
   add_foreign_key "design_management_designs", "projects", on_delete: :cascade
   add_foreign_key "design_management_designs_versions", "design_management_designs", column: "design_id", name: "fk_03c671965c", on_delete: :cascade
   add_foreign_key "design_management_designs_versions", "design_management_versions", column: "version_id", name: "fk_f4d25ba00c", on_delete: :cascade
+  add_foreign_key "design_management_versions", "issues", on_delete: :cascade
   add_foreign_key "draft_notes", "merge_requests", on_delete: :cascade
   add_foreign_key "draft_notes", "users", column: "author_id", on_delete: :cascade
   add_foreign_key "elasticsearch_indexed_namespaces", "namespaces", on_delete: :cascade
