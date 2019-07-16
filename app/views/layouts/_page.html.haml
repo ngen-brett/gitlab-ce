@@ -17,4 +17,5 @@
       .d-flex
     %div{ class: "#{(container_class unless @no_container)} #{@content_class}" }
       .content{ id: "content-body" }
+        = render "layouts/privacy_policy_update_callout"
         = yield
