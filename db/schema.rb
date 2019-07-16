@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_07_03_130053) do
+ActiveRecord::Schema.define(version: 2019_07_16_194139) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -2049,10 +2049,12 @@ ActiveRecord::Schema.define(version: 2019_07_03_130053) do
     t.date "start_date"
     t.integer "cached_markdown_version"
     t.integer "group_id"
+    t.bigint "release_id"
     t.index ["description"], name: "index_milestones_on_description_trigram", using: :gin, opclasses: {"description"=>"gin_trgm_ops"}
     t.index ["due_date"], name: "index_milestones_on_due_date", using: :btree
     t.index ["group_id"], name: "index_milestones_on_group_id", using: :btree
     t.index ["project_id", "iid"], name: "index_milestones_on_project_id_and_iid", unique: true, using: :btree
+    t.index ["release_id"], name: "index_milestones_on_release_id", using: :btree
     t.index ["title"], name: "index_milestones_on_title", using: :btree
     t.index ["title"], name: "index_milestones_on_title_trigram", using: :gin, opclasses: {"title"=>"gin_trgm_ops"}
   end
@@ -3788,6 +3790,7 @@ ActiveRecord::Schema.define(version: 2019_07_03_130053) do
   add_foreign_key "merge_trains", "users", on_delete: :cascade
   add_foreign_key "milestones", "namespaces", column: "group_id", name: "fk_95650a40d4", on_delete: :cascade
   add_foreign_key "milestones", "projects", name: "fk_9bd0a0c791", on_delete: :cascade
+  add_foreign_key "milestones", "releases", on_delete: :cascade
   add_foreign_key "namespace_aggregation_schedules", "namespaces", on_delete: :cascade
   add_foreign_key "namespace_root_storage_statistics", "namespaces", on_delete: :cascade
   add_foreign_key "namespace_statistics", "namespaces", on_delete: :cascade
