@@ -3,7 +3,7 @@
 module Gitlab
   module RequestProfiler
     class Profile
-      attr_reader :name, :time, :request_path, :type
+      attr_reader :name, :time, :file_path, :request_path, :profile_mode, :type
 
       alias_method :to_param, :name
 
@@ -22,6 +22,7 @@ module Gitlab
 
       def initialize(name)
         @name = name
+        @file_path = File.join(PROFILES_DIR, name)
 
         set_attributes
       end
@@ -30,13 +31,23 @@ module Gitlab
         File.read("#{PROFILES_DIR}/#{name}")
       end
 
+      def content_type
+        case type
+        when 'html'
+          'text/html'
+        when 'txt'
+          'text/plain'
+        end
+      end
+
       private
 
       def set_attributes
-        _, path, timestamp, type = name.split(/(.*)_(\d+)_(.*)\.(html|txt)$/)
-        @request_path            = path.tr('|', '/')
-        @time                    = Time.at(timestamp.to_i).utc
-        @type                    = type
+        _, path, timestamp, profile_mode, type = name.split(/(.*)_(\d+)_(.*)\.(html|txt)$/)
+        @request_path      = path.tr('|', '/')
+        @time              = Time.at(timestamp.to_i).utc
+        @profile_mode      = profile_mode
+        @type              = type
       end
     end
   end
