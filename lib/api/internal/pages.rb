@@ -4,6 +4,14 @@ module API
   # Internal access API
   module Internal
     class Pages < Grape::API
+      before { authenticate_gitlab_pages_request! }
+
+      helpers do
+        def authenticate_gitlab_pages_request!
+          unauthorized! unless Gitlab::Pages.verify_api_request(headers)
+        end
+      end
+
       namespace 'internal' do
         namespace 'pages' do
           desc 'Get GitLab Pages domain configuration by hostname' do
