@@ -17,20 +17,36 @@ class SubmitUsagePingService
     return false unless Gitlab::CurrentSettings.usage_ping_enabled?
     return false if User.single_user&.requires_usage_stats_consent?
 
-    response = Gitlab::HTTP.post(
-      URL,
-      body: Gitlab::UsageData.to_json(force_refresh: true),
-      allow_local_requests: true,
-      headers: { 'Content-type' => 'application/json' }
-    )
+    retries = 0
+    ok_result = false
+    wait_time = 60.0
+    begin
+      # Splay the request over some amount of time with exponential backoff.
+      sleep(rand(0.0..wait_time).round(3))
 
-    store_metrics(response)
+      response = Gitlab::HTTP.post(
+        URL,
+        body: Gitlab::UsageData.to_json(force_refresh: true),
+        allow_local_requests: true,
+        headers: { 'Content-type' => 'application/json' }
+      )
+    rescue Gitlab::HTTP::Error => e
+      if retries < 5
+        retries += 1
+        # Exponential backoff.
+        wait_time *= 3.0
+        Rails.logger.debug "Error sending usage ping, retrying: #{e}" # rubocop:disable Gitlab/RailsLogger
+        retry
+      else
+        store_metrics(response)
+        ok_result = true
+      end
+    end
 
-    true
-  rescue Gitlab::HTTP::Error => e
-    Rails.logger.info "Unable to contact GitLab, Inc.: #{e}" # rubocop:disable Gitlab/RailsLogger
-
-    false
+    unless ok_result
+      Rails.logger.info "Unable to contact GitLab, Inc.: #{e}" # rubocop:disable Gitlab/RailsLogger
+    end
+    result
   end
 
   private

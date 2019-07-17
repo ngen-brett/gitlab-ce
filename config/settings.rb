@@ -170,14 +170,13 @@ class Settings < Settingslogic
       URI.parse(url_without_path).host
     end
 
-    # Runs every minute in a random ten-minute period on Sundays, to balance the
-    # load on the server receiving these pings. The usage ping is safe to run
-    # multiple times because of a 24 hour exclusive lock.
+    # Runs in a random time on Sundays to balance the load on the service
+    # receiving these pings. The job handles temporary http failures.
     def cron_for_usage_ping
       hour = rand(24)
-      minute = rand(6)
+      minute = rand(60)
 
-      "#{minute}0-#{minute}9 #{hour} * * 0"
+      "#{minute} #{hour} * * 0"
     end
   end
 end
