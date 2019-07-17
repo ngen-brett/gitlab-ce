@@ -7,19 +7,15 @@ describe API::GroupContainerRepositories do
 
   set(:group) { create(:group, :private) }
   set(:project) { create(:project, :private, group: group) }
-  set(:maintainer) { create(:user) }
-  set(:developer) { create(:user) }
   set(:reporter) { create(:user) }
   set(:guest) { create(:user) }
 
   let(:root_repository) { create(:container_repository, :root, project: project) }
   let(:test_repository) { create(:container_repository, project: project) }
 
-  let(:api_user) { maintainer }
+  let(:api_user) { reporter }
 
   before do
-    project.add_maintainer(maintainer)
-    project.add_developer(developer)
     project.add_reporter(reporter)
     project.add_guest(guest)
 
@@ -34,7 +30,7 @@ describe API::GroupContainerRepositories do
     context "for #{param}" do
       let(:api_user) { public_send(param) }
 
-      xit 'returns access denied' do
+      it 'returns access denied' do
         subject
 
         expect(response).to have_gitlab_http_status(:forbidden)
@@ -58,8 +54,6 @@ describe API::GroupContainerRepositories do
     it_behaves_like 'being disallowed', :guest
 
     context 'for reporter' do
-      let(:api_user) { reporter }
-
       it 'returns a list of repositories' do
         subject
 
@@ -83,8 +77,6 @@ describe API::GroupContainerRepositories do
     it_behaves_like 'being disallowed', :guest
 
     context 'for reporter' do
-      let(:api_user) { reporter }
-
       it 'returns a list of repositories and their tags' do
         subject
 
