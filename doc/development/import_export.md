@@ -194,7 +194,8 @@ and it is useful for knowing which versions won't be compatible between them.
 
 | GitLab version   | Import/Export version |
 | ---------------- | --------------------- |
-| 11.1 to current  | 0.2.4                 |
+| 12.2 to current  | 0.2.5                 |
+| 11.1             | 0.2.4                 |
 | 10.8             | 0.2.3                 |
 | 10.4             | 0.2.2                 |
 | ...              | ...                   |
