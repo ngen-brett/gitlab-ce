@@ -28,6 +28,14 @@ module Gitlab
       "project.bundle"
     end
 
+    def lfs_objects_filename
+      "lfs-objects.json"
+    end
+
+    def lfs_objects_storage
+      "lfs-objects"
+    end
+
     def config_file
       Rails.root.join('lib/gitlab/import_export/import_export.yml')
     end

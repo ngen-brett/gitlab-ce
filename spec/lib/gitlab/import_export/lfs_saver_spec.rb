@@ -20,6 +20,12 @@ describe Gitlab::ImportExport::LfsSaver do
     context 'when the project has LFS objects locally stored' do
       let(:lfs_object) { create(:lfs_object, :with_file) }
 
+      def lfs_json
+        JSON.parse(
+          IO.read(File.join(shared.export_path, Gitlab::ImportExport.lfs_objects_filename))
+        )
+      end
+
       before do
         project.lfs_objects << lfs_object
       end
@@ -34,6 +40,22 @@ describe Gitlab::ImportExport::LfsSaver do
         saver.save
 
         expect(File).to exist("#{shared.export_path}/lfs-objects/#{lfs_object.oid}")
+      end
+
+      it 'saves a json file correctly' do
+        # Create two more LfsObjectProject records with different `repository_type`s
+        %w(wiki design).each do |respostory_type|
+          create(
+            :lfs_objects_project,
+            project: project,
+            repository_type: respostory_type,
+            lfs_object: lfs_object
+          )
+        end
+
+        saver.save
+
+        expect(lfs_json).to eq({ lfs_object.oid => [nil, 'wiki', 'design'] })
       end
     end
 
