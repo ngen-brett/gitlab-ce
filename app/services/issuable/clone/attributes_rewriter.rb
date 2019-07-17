@@ -11,8 +11,7 @@ module Issuable
 
       def execute
         attributes = { labels: cloneable_labels }
-        attributes[:milestone] = cloneable_milestone unless new_entity.is_a?(Epic)
-
+        attributes[:milestone] = cloneable_milestone if new_entity.supports_milestone?
         new_entity.update(attributes)
 
         copy_resource_label_events
