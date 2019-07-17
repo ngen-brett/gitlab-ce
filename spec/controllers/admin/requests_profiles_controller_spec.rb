@@ -10,88 +10,63 @@ describe Admin::RequestsProfilesController do
   end
 
   describe '#show' do
-    def generate_basename(profile_type, extension)
-      "profile_#{Time.now.to_i}_#{profile_type}.#{extension}"
-    end
+    let(:tmpdir) { Dir.mktmpdir('profiler-test') }
+    let(:test_file) { File.join(tmpdir, basename) }
 
-    def prepare_profile_report_file(basename, sample_data)
-      tmpdir = Dir.mktmpdir('profiler-test')
-      test_file = File.join(tmpdir, basename)
-
-      create_file(tmpdir, test_file, sample_data)
-    end
-
-    def create_file(dir, file_path, data)
-      stub_const('Gitlab::RequestProfiler::PROFILES_DIR', dir)
-      output = File.open(file_path, 'w')
-      output.write(data)
-      output.close
-
-      file_path
-    end
-
-    def delete_file(file_path)
-      File.unlink(file_path)
-    end
-
-    it 'loads an HTML profile' do
-      sample_data =
-        <<~HTML
-          <!DOCTYPE html>
-          <html>
-          <body>
-          <h1>My First Heading</h1>
-          <p>My first paragraph.</p>
-          </body>
-          </html>
-        HTML
-
-      basename = generate_basename('execution', 'html')
-      test_file = prepare_profile_report_file(basename, sample_data)
-
+    subject do
       get :show, params: { name: basename }
-
-      expect(response).to have_gitlab_http_status(200)
-      expect(response.body).to eq(sample_data)
-
-      delete_file(test_file)
     end
 
-    it 'loads a TXT profile' do
-      sample_data =
+    before do
+      stub_const('Gitlab::RequestProfiler::PROFILES_DIR', tmpdir)
+      File.write(test_file, sample_data)
+    end
+
+    after do
+      File.unlink(test_file)
+    end
+
+    context 'when loading HTML profile' do
+      let(:basename) { "profile_#{Time.now.to_i}_execution.html" }
+
+      let(:sample_data) do
+        '<html> <body> <h1>Heading</h1> <p>paragraph.</p> </body> </html>'
+      end
+
+      it 'renders the data' do
+        subject
+
+        expect(response).to have_gitlab_http_status(200)
+        expect(response.body).to eq(sample_data)
+      end
+    end
+
+    context 'when loading TXT profile' do
+      let(:basename) { "profile_#{Time.now.to_i}_memory.txt" }
+
+      let(:sample_data) do
         <<~TXT
           Total allocated: 112096396 bytes (1080431 objects)
           Total retained:  10312598 bytes (53567 objects)
-
-          allocated memory by gem
-          -----------------------------------
-              12416994  sprockets-3.7.2
-            11530224  json-1.8.6
         TXT
+      end
 
-      basename = generate_basename('memory', 'txt')
-      test_file = prepare_profile_report_file(basename, sample_data)
+      it 'renders the data' do
+        subject
 
-      get :show, params: { name: basename }
-
-      expect(response).to have_gitlab_http_status(200)
-      expect(response.body).to eq(sample_data)
-
-      delete_file(test_file)
+        expect(response).to have_gitlab_http_status(200)
+        expect(response.body).to eq(sample_data)
+      end
     end
 
-    it 'loads a PDF profile' do
-      sample_data =
-        <<~PDF
-          Sample content of a PDF file.
-        PDF
+    context 'when loading PDF profile' do
+      let(:basename) { "profile_#{Time.now.to_i}_anything.pdf" }
 
-      basename = generate_basename('memory', 'pdf')
-      test_file = prepare_profile_report_file(basename, sample_data)
+      let(:sample_data) { 'mocked pdf content' }
 
-      expect { get :show, params: { name: basename } }.to raise_error(ActionController::UrlGenerationError, /No route matches.*unmatched constraints:/)
-
-      delete_file(test_file)
+      it 'fails to render the data' do
+        expect { subject }.to raise_error(ActionController::UrlGenerationError, /No route matches.*unmatched constraints:/)
+      end
     end
   end
 end
