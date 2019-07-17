@@ -47,6 +47,16 @@ module Releases
           project.repository
         end
       end
+
+      def milestone_title
+        params[:milestone_title]
+      end
+
+      def milestone
+        strong_memoize(:milestone) do
+          project.milesones.find_by_title(milestone_title)
+        end
+      end
     end
   end
 end

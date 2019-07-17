@@ -42,9 +42,13 @@ module Releases
     end
 
     def create_release(tag)
+      return error('Milestone does not exist', 404) if milestone_not_found?
+
       release = build_release(tag)
 
       release.save!
+
+      link_milestone(release) if milestone
 
       success(tag: tag, release: release)
     rescue => e
@@ -61,6 +65,16 @@ module Releases
         released_at: released_at,
         links_attributes: params.dig(:assets, 'links') || []
       )
+    end
+
+    def milestone_not_found?
+      return false unless milestone_title
+
+      milestone.nil?
+    end
+
+    def link_milestone(release)
+      milestone.update!(release: release)
     end
   end
 end
