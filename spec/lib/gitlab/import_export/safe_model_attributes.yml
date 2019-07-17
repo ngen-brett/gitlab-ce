@@ -101,6 +101,7 @@ Milestone:
 - updated_at
 - state
 - iid
+- release_id
 ProjectSnippet:
 - id
 - title
