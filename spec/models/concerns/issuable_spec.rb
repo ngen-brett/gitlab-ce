@@ -780,7 +780,7 @@ describe Issuable do
     let(:project) { create(:project, group: group) }
 
     context "for issues" do
-      let(:issue) { create(:issue, project: project) }
+      let(:issue) { build(:issue, project: project) }
 
       it 'returns true' do
         expect(issue.supports_milestone?).to be_truthy
@@ -788,7 +788,7 @@ describe Issuable do
     end
 
     context "for merge requests" do
-      let(:merge_request) { create(:merge_request, target_project: project, source_project: project) }
+      let(:merge_request) { build(:merge_request, target_project: project, source_project: project) }
 
       it 'returns true' do
         expect(merge_request.supports_milestone?).to be_truthy
