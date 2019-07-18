@@ -12,8 +12,8 @@ module API
           project.pages_https_only? && domain_https
         end
 
-        expose :path do |project|
-          File.join(project.full_path, 'public/')
+        expose :source do |project|
+          { type: 'file', path: File.join(project.full_path, 'public/') }
         end
 
         expose :prefix do |project, opts|

@@ -37,7 +37,7 @@ describe API::Internal::Pages do
 
           lookup_path = json_response['lookup_paths'][0]
           expect(lookup_path['prefix']).to eq('/')
-          expect(lookup_path['path']).to eq('gitlab-org/gitlab-ce/public/')
+          expect(lookup_path['source']['path']).to eq('gitlab-org/gitlab-ce/public/')
         end
       end
 
@@ -66,7 +66,7 @@ describe API::Internal::Pages do
 
             lookup_path = json_response['lookup_paths'][0]
             expect(lookup_path['prefix']).to eq('/myproject/')
-            expect(lookup_path['path']).to eq('mygroup/myproject/public/')
+            expect(lookup_path['source']['path']).to eq('mygroup/myproject/public/')
           end
         end
 
@@ -82,7 +82,7 @@ describe API::Internal::Pages do
 
             lookup_path = json_response['lookup_paths'][0]
             expect(lookup_path['prefix']).to eq('/')
-            expect(lookup_path['path']).to eq('mygroup/mygroup.gitlab-pages.io/public/')
+            expect(lookup_path['source']['path']).to eq('mygroup/mygroup.gitlab-pages.io/public/')
           end
         end
       end
