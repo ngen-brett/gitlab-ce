@@ -432,6 +432,6 @@ module Issuable
   # Overridden on EE module
   #
   def supports_milestone?
-    true
+    respond_to?(:milestone_id)
   end
 end
