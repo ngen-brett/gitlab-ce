@@ -973,5 +973,8 @@ Backup failed
 ```
 
 Check the following
+
 1. Confirm there is sufficent diskspace for the gzip operation.
 1. If NFS is being used check if mount option `timeo` is set, it's default is `600` and smaller values have resulted in this error.
+
+
