@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import timeago from 'timeago.js';
 import dateFormat from 'dateformat';
-import { languageCode, s__, __, n__ } from '../../locale';
+import { languageCode, s__, __, n__, sprintf } from '../../locale';
 
 window.timeago = timeago;
 
@@ -230,18 +230,10 @@ export const timeIntervalInWords = intervalInSeconds => {
   const secondsInteger = parseInt(intervalInSeconds, 10);
   const minutes = Math.floor(secondsInteger / 60);
   const seconds = secondsInteger - minutes * 60;
-  let text = '';
-
-  if (minutes >= 1) {
-    text = `${minutes} ${n__('minute', 'minutes', minutes)} ${seconds} ${n__(
-      'second',
-      'seconds',
-      seconds,
-    )}`;
-  } else {
-    text = `${seconds} ${n__('second', 'seconds', seconds)}`;
-  }
-  return text;
+  const secondsText = sprintf(n__('%d second', '%d seconds', seconds), { seconds });
+  return minutes >= 1
+    ? [sprintf(n__('%d minute', '%d minutes', minutes), { minutes }), ' ', secondsText].join('')
+    : secondsText;
 };
 
 export const dateInWords = (date, abbreviated = false, hideYear = false) => {
