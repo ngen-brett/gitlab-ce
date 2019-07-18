@@ -5,8 +5,12 @@ module API
     module Internal
       class PagesLookupPath < Grape::Entity
         expose :id, as: :project_id
-        expose :pages_https_only?, as: :https_only
         expose :private_pages?, as: :access_control
+
+        expose :https_only do |project, opts|
+          domain_https = opts[:domain] ? opts[:domain].https? : true
+          project.pages_https_only? && domain_https
+        end
 
         expose :path do |project|
           File.join(project.full_path, 'public/')
@@ -24,8 +28,8 @@ module API
       class PagesDomain < Grape::Entity
         expose :certificate
         expose :key
-        expose :lookup_paths, using: PagesLookupPath do |domain|
-          [domain.project]
+        expose :lookup_paths do |domain, opts|
+          PagesLookupPath.represent([domain.project], opts.merge(domain: domain))
         end
       end
 
