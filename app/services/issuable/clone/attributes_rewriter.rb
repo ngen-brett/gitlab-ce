@@ -10,16 +10,15 @@ module Issuable
       end
 
       def execute
-        attributes = { labels: cloneable_labels }
-        attributes[:milestone] = cloneable_milestone if new_entity.supports_milestone?
-        new_entity.update(attributes)
-
+        new_entity.update(milestone: cloneable_milestone, labels: cloneable_labels)
         copy_resource_label_events
       end
 
       private
 
       def cloneable_milestone
+        return unless new_entity.supports_milestone?
+
         title = original_entity.milestone&.title
         return unless title
 
