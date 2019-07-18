@@ -4,7 +4,7 @@ class Admin::LabelsController < Admin::ApplicationController
   before_action :set_label, only: [:show, :edit, :update, :destroy]
 
   def index
-    @labels = Label.templates.page(params[:page])
+    @labels = Label.templates.where(type: nil).page(params[:page])
   end
 
   def show
