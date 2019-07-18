@@ -9,6 +9,9 @@ module Gitlab
         def initialize(interval)
           metrics[:process_start_time_seconds].set(labels.merge(worker_label), Time.now.to_i)
 
+          @last_minor_gc = Delta.new(GC.stat[:minor_gc_count])
+          @last_major_gc = Delta.new(GC.stat[:major_gc_count])
+
           super
         end
 
@@ -57,8 +60,6 @@ module Gitlab
           sample_gc
 
           metrics[:sampler_duration].increment(labels, System.monotonic_time - start_time)
-        ensure
-          GC::Profiler.clear
         end
 
         private
@@ -69,8 +70,19 @@ module Gitlab
             metrics[key].set(labels, value)
           end
 
+          # We want the difference of GC runs compared to the last sample, not the
+          # total amount since the process started.
+          stats[:minor_gc_count_since_last_sample] = @last_minor_gc.compared_with(stats[:minor_gc_count])
+          stats[:major_gc_count_since_last_sample] = @last_major_gc.compared_with(stats[:major_gc_count])
+          stats[:total_gc_count_since_last_sample] = stats[:minor_gc_count] + stats[:major_gc_count]
+
+          # TODO:
+          add_metric('gc_statistics', stats)
+
           # Collect the GC time since last sample in float seconds.
           metrics[:total_time].increment(labels, GC::Profiler.total_time)
+
+          GC::Profiler.clear
         end
 
         def set_memory_usage_metrics
