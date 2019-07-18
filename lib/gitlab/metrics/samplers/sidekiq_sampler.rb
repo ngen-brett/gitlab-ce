@@ -4,10 +4,6 @@ module Gitlab
   module Metrics
     module Samplers
       class SidekiqSampler < BaseSampler
-        def enabled?
-          ::Gitlab::Metrics.metrics_folder_present? && Settings.monitoring.sidekiq_exporter
-        end
-
         def init_metrics
           {
             sidekiq_jobs_started_total: ::Gitlab::Metrics.gauge(:sidekiq_jobs_started_total, 'Sidekiq jobs started'),
