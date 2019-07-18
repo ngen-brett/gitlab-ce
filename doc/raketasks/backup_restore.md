@@ -960,3 +960,18 @@ want to run the chown against your custom location instead of
 
 [reconfigure GitLab]: ../administration/restart_gitlab.md#omnibus-gitlab-reconfigure
 [restart GitLab]: ../administration/restart_gitlab.md#installations-from-source
+
+### Backup fails to complete with Gzip error
+
+```sh
+sudo /opt/gitlab/bin/gitlab-rake gitlab:backup:create
+Dumping ...
+...
+gzip: stdout: Input/output error
+
+Backup failed
+```
+
+Check the following
+1. Confirm there is sufficent diskspace for the gzip operation.
+1. If NFS is being used check if mount option `timeo` is set, it's default is `600` and smaller values have resulted in this error.
