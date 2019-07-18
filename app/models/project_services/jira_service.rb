@@ -96,11 +96,11 @@ class JiraService < IssueTrackerService
   end
 
   def issues_url
-    "#{url}/browse/:id"
+    url.chomp('/') + "/browse/:id"
   end
 
   def new_issue_url
-    "#{url}/secure/CreateIssue.jspa"
+    url.chomp('/') + "/secure/CreateIssue.jspa"
   end
 
   def execute(push)
