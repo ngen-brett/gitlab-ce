@@ -2743,7 +2743,7 @@ describe Ci::Pipeline, :mailer do
 
     shared_examples 'sending a notification' do
       it 'sends an email' do
-        should_only_email(pipeline.user, kind: :bcc)
+        should_only_email(pipeline.user)
       end
     end
 

@@ -65,7 +65,7 @@ describe PipelinesEmailService, :mailer do
     it 'sends email' do
       emails = receivers.map { |r| double(notification_email: r) }
 
-      should_only_email(*emails, kind: :bcc)
+      should_only_email(*emails)
     end
   end
 

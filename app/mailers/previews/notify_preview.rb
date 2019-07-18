@@ -138,11 +138,11 @@ class NotifyPreview < ActionMailer::Preview
   end
 
   def pipeline_success_email
-    Notify.pipeline_success_email(pipeline, pipeline.user.try(:email))
+    Notify.pipeline_success_email(pipeline, pipeline.user)
   end
 
   def pipeline_failed_email
-    Notify.pipeline_failed_email(pipeline, pipeline.user.try(:email))
+    Notify.pipeline_failed_email(pipeline, pipeline.user)
   end
 
   def autodevops_disabled_email

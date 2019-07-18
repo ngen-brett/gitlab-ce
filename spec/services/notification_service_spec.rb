@@ -2069,7 +2069,7 @@ describe NotificationService, :mailer do
           end
 
           it 'emails only the creator' do
-            should_only_email(u_custom_notification_enabled, kind: :bcc)
+            should_only_email(u_custom_notification_enabled)
           end
         end
       end
@@ -2082,7 +2082,7 @@ describe NotificationService, :mailer do
           end
 
           it 'emails only the creator' do
-            should_only_email(u_member, kind: :bcc)
+            should_only_email(u_member)
           end
         end
 
@@ -2093,7 +2093,7 @@ describe NotificationService, :mailer do
           end
 
           it 'emails only the creator' do
-            should_only_email(u_watcher, kind: :bcc)
+            should_only_email(u_watcher)
           end
         end
 
@@ -2104,7 +2104,7 @@ describe NotificationService, :mailer do
           end
 
           it 'emails only the creator' do
-            should_only_email(u_custom_notification_unset, kind: :bcc)
+            should_only_email(u_custom_notification_unset)
           end
         end
 
@@ -2126,7 +2126,7 @@ describe NotificationService, :mailer do
           end
 
           it 'emails only the creator' do
-            should_only_email(u_custom_notification_enabled, kind: :bcc)
+            should_only_email(u_custom_notification_enabled)
           end
         end
 

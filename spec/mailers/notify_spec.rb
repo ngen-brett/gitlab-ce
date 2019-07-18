@@ -1541,4 +1541,24 @@ describe Notify do
       is_expected.to have_body_text personal_snippet_note.note
     end
   end
+
+  describe 'pipeline emails' do
+    let(:recipient) { user }
+
+    context 'for successful pipelines' do
+      let(:pipeline) { create(:ci_pipeline, :success, project: project, ref: project.default_branch, sha: project.commit.sha) }
+
+      subject { described_class.pipeline_success_email(pipeline, user) }
+
+      it_behaves_like 'an email sent to a user'
+    end
+
+    context 'for failed pipelines' do
+      let(:pipeline) { create(:ci_pipeline, :failed, project: project, ref: project.default_branch, sha: project.commit.sha) }
+
+      subject { described_class.pipeline_failed_email(pipeline, user) }
+
+      it_behaves_like 'an email sent to a user'
+    end
+  end
 end
