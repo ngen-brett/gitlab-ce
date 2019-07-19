@@ -103,6 +103,39 @@ describe('IDE store file mutations', () => {
       expect(localState.openFiles[0].rawPath).toEqual(rawPath);
       expect(localFile.rawPath).toEqual(rawPath);
     });
+
+    it('does not mutate certain props on the file', () => {
+      const path = 'New Path';
+      const name = 'New Name';
+      localFile.path = path;
+      localFile.name = name;
+
+      localState.stagedFiles = [localFile];
+      localState.changedFiles = [localFile];
+      localState.openFiles = [localFile];
+
+      mutations.SET_FILE_DATA(localState, {
+        data: {
+          path: 'Old Path',
+          name: 'Old Name',
+          raw: 'Old Raw',
+          base_raw: 'Old Base Raw',
+        },
+        file: localFile,
+      });
+
+      [
+        localState.stagedFiles[0],
+        localState.changedFiles[0],
+        localState.openFiles[0],
+        localFile,
+      ].forEach(f => {
+        expect(f.path).toEqual(path);
+        expect(f.name).toEqual(name);
+        expect(f.raw).toBeNull();
+        expect(f.baseRaw).toBeNull();
+      });
+    });
   });
 
   describe('SET_FILE_RAW_DATA', () => {
