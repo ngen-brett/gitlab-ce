@@ -16,8 +16,8 @@ describe API::GroupContainerRepositories do
   let(:api_user) { reporter }
 
   before do
-    project.add_reporter(reporter)
-    project.add_guest(guest)
+    group.add_reporter(reporter)
+    group.add_guest(guest)
 
     stub_feature_flags(container_registry_api: true)
     stub_container_registry_config(enabled: true)
