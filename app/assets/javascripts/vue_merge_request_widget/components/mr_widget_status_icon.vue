@@ -32,7 +32,7 @@ export default {
 };
 </script>
 <template>
-  <div class="d-flex widget-status-icon">
+  <div class="d-flex widget-status-icon append-right-default">
     <div v-if="isLoading" class="mr-widget-icon"><gl-loading-icon size="sm" /></div>
 
     <ci-icon v-else :status="statusObj" :size="24" />

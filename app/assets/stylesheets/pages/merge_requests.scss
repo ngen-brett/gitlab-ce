@@ -527,7 +527,7 @@
 }
 
 .mr-links {
-  padding-left: $status-icon-size + $gl-btn-padding;
+  padding-left: $gl-padding-8 + $status-icon-size + $gl-btn-padding;
 
   &:last-child {
     padding-bottom: $gl-padding;
