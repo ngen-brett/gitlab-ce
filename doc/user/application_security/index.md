@@ -135,3 +135,34 @@ If this action is available there will be a **Create merge request** button in t
 Clicking on this button will create a merge request to apply the solution onto the source branch.
 
 ![Create merge request from vulnerability](img/create_issue_with_list_hover.png)
+
+### Security approvals in merge requests
+
+> Introduced in [GitLab Ultimate](https://about.gitlab.com/pricing) 12.1.
+
+Merge Request Approvals can be automatically configured to require approval
+from a member of your security team when introducing vulnerabilities of a
+specified severity. This threshold is defined as `high`, `critical`, or `unknown`
+severity and when any vulnerabilities are present within a Merge Request, an
+approval will be required from the `Vulnerability-Check` approver group.
+
+#### Enabling Security Approvals within a project
+
+To enable Security Approvals, a project approval group must be created with
+the case-sensitive name `Vulnerability-Check`. This approval group must be set
+with an "Approvals required" count greater than zero.
+
+Once this group has been added to your project, the approval rule will be enabled
+for all Merge Requests and approval will *be required by default.*
+
+Any code changes made will cause approvals to be reset to a default state of required.
+
+An approval will be required under the following conditions:
+
+1. A security report contains a new vulnerability of `high`, `critical`, or `unknown` severity
+1. A security report is not generated during pipeline execution
+
+An approval will become optional under the following conditions:
+
+1. A security report contains no new vulnerabilities
+1. A security report contains only new vulnerabilities of `low` or `medium` severity
