@@ -46,6 +46,7 @@ For the:
 
 - Blacklist, you can enter the list manually, or upload a `.txt` file that contains
 list entries.
+
 - Whitelist you must enter the list manually.
 
 Both the whitelist and blacklist accept wildcards. For example, you can use
