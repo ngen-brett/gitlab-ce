@@ -6,6 +6,8 @@ This is the API docs of the [GitLab Container Registry](../user/project/containe
 
 ## List registry repositories
 
+### Within a project
+
 Get a list of registry repositories in a project.
 
 ```
@@ -28,6 +30,7 @@ Example response:
     "id": 1,
     "name": "",
     "path": "group/project",
+    "project_id": 9,
     "location": "gitlab.example.com:5000/group/project",
     "created_at": "2019-01-10T13:38:57.391Z"
   },
@@ -35,7 +38,48 @@ Example response:
     "id": 2,
     "name": "releases",
     "path": "group/project/releases",
+    "project_id": 9,
     "location": "gitlab.example.com:5000/group/project/releases",
+    "created_at": "2019-01-10T13:39:08.229Z"
+  }
+]
+```
+
+### Within a group
+
+
+Get a list of registry repositories in a group.
+
+```
+GET /groups/:id/registry/repositories
+```
+
+| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `id`      | integer/string | yes | The ID or [URL-encoded path of the group](README.md#namespaced-path-encoding) owned by the authenticated user. |
+
+```bash
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/groups/2/registry/repositories"
+```
+
+Example response:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "",
+    "path": "group/project",
+    "project_id": 9,
+    "location": "gitlab.example.com:5000/group/project",
+    "created_at": "2019-01-10T13:38:57.391Z"
+  },
+  {
+    "id": 2,
+    "name": "",
+    "path": "group/other_project",
+    "project_id": 11,
+    "location": "gitlab.example.com:5000/group/other_project",
     "created_at": "2019-01-10T13:39:08.229Z"
   }
 ]
@@ -61,6 +105,8 @@ curl --request DELETE --header "PRIVATE-TOKEN: <your_access_token>" "https://git
 ```
 
 ## List repository tags
+
+### Within a project
 
 Get a list of tags for given registry repository.
 
@@ -90,6 +136,64 @@ Example response:
     "name": "latest",
     "path": "group/project:latest",
     "location": "gitlab.example.com:5000/group/project:latest"
+  }
+]
+```
+
+### Within a group
+
+Get a list of all repositories and all of their tags within a group.
+
+```
+GET /groups/:id/registry/repositories/tags
+```
+
+| Attribute | Type | Required | Description |
+| --------- | ---- | -------- | ----------- |
+| `id`      | integer/string | yes | The ID or [URL-encoded path of the group](README.md#namespaced-path-encoding) owned by the authenticated user. |
+
+```bash
+curl --header "PRIVATE-TOKEN: <your_access_token>" "https://gitlab.example.com/api/v4/groups/5/registry/repositories/tags"
+```
+
+Example response:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "",
+    "path": "group/project",
+    "project_id": 9,
+    "location": "gitlab.example.com:5000/group/project",
+    "created_at": "2019-01-10T13:38:57.391Z",
+    "tags": [
+      {
+        "name": "A",
+        "path": "group/project:A",
+        "location": "gitlab.example.com:5000/group/project:A"
+      },
+      {
+        "name": "latest",
+        "path": "group/project:latest",
+        "location": "gitlab.example.com:5000/group/project:latest"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "",
+    "path": "group/other_project",
+    "project_id": 11,
+    "location": "gitlab.example.com:5000/group/other_project",
+    "created_at": "2019-01-10T13:39:08.229Z",
+    "tags": [
+      {
+        "name": "latest",
+        "path": "group/other_project:latest",
+        "location": "gitlab.example.com:5000/group/other_project:latest"
+      }
+    ]
   }
 ]
 ```
