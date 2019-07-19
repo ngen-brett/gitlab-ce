@@ -30,6 +30,7 @@ describe SelfMonitoring::Project::CreateService do
 
     context 'with admin users' do
       let(:project) { result[:project] }
+      let(:group) { result[:group] }
 
       let!(:user) { create(:user, :admin) }
 
@@ -55,6 +56,14 @@ describe SelfMonitoring::Project::CreateService do
 
       it_behaves_like 'has prometheus service', 'http://localhost:9090'
 
+      it 'creates group' do
+        expect(result[:status]).to eq(:success)
+        expect(group).to be_persisted
+        expect(group.name).to eq(described_class::GROUP_NAME)
+        expect(group.path).to eq(described_class::GROUP_PATH)
+        expect(group.visibility_level).to eq(described_class::VISIBILITY_LEVEL)
+      end
+
       it 'creates project with internal visibility' do
         expect(result[:status]).to eq(:success)
         expect(project.visibility_level).to eq(Gitlab::VisibilityLevel::INTERNAL)
@@ -71,8 +80,8 @@ describe SelfMonitoring::Project::CreateService do
 
       it 'creates project with correct name and description' do
         expect(result[:status]).to eq(:success)
-        expect(project.name).to eq(described_class::DEFAULT_NAME)
-        expect(project.description).to eq(described_class::DEFAULT_DESCRIPTION)
+        expect(project.name).to eq(described_class::PROJECT_NAME)
+        expect(project.description).to eq(described_class::PROJECT_DESCRIPTION)
       end
 
       it 'adds all admins as maintainers' do
@@ -81,10 +90,10 @@ describe SelfMonitoring::Project::CreateService do
         create(:user)
 
         expect(result[:status]).to eq(:success)
-        expect(project.owner).to eq(user)
-        expect(project.members.collect(&:user)).to contain_exactly(user, admin1, admin2)
-        expect(project.members.collect(&:access_level)).to contain_exactly(
-          Gitlab::Access::MAINTAINER,
+        expect(project.owner).to eq(group)
+        expect(group.members.collect(&:user)).to contain_exactly(user, admin1, admin2)
+        expect(group.members.collect(&:access_level)).to contain_exactly(
+          Gitlab::Access::OWNER,
           Gitlab::Access::MAINTAINER,
           Gitlab::Access::MAINTAINER
         )
@@ -177,7 +186,7 @@ describe SelfMonitoring::Project::CreateService do
           expect(result).to eq({
             status: :error,
             message: 'Could not add admins as members',
-            failed_step: :add_project_members
+            failed_step: :add_group_members
           })
         end
       end
