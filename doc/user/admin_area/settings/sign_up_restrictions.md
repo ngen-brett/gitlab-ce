@@ -42,12 +42,10 @@ To access this feature:
 1. Navigate to the **Settings > General** in the Admin area.
 1. Expand the **Sign-up restrictions** section.
 
-For the:
+For the blacklist, you can enter the list manually or upload a `.txt` file that
+contains list entries.
 
-- Blacklist, you can enter the list manually, or upload a `.txt` file that contains
-list entries.
-
-- Whitelist you must enter the list manually.
+For the whitelist, you must enter the list manually.
 
 Both the whitelist and blacklist accept wildcards. For example, you can use
 `*.company.com` to accept every `company.com` subdomain, or `*.io` to block all
