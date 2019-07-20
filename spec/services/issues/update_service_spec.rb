@@ -226,6 +226,15 @@ describe Issues::UpdateService, :mailer do
       end
     end
 
+    it 'creates zoom_link_added system note when a zoom link is added to the description' do
+      update_issue(description: 'Changed description https://zoom.us/j/5873603787')
+
+      note = find_note('a zoom call was added')
+
+      expect(note).not_to be_nil
+      expect(note.note).to eq('a zoom call was added from this issue')
+    end
+
     context 'when issue turns confidential' do
       let(:opts) do
         {
