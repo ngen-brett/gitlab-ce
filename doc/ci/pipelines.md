@@ -8,7 +8,7 @@ type: reference
 
 NOTE: **Tip:**
 Watch our
-["Mastering continuous software development"](https://about.gitlab.com/resources/whitepaper-seismic-shift-application-security/)
+["Mastering continuous software development"](https://about.gitlab.com/webcast/mastering-ci-cd/)
 webcast to see a comprehensive demo of GitLab CI/CD pipeline.
 
 ## Introduction
