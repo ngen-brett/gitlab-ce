@@ -100,9 +100,17 @@ module ContainerRegistry
     # rubocop: enable CodeReuse/ActiveRecord
 
     def delete
+      put_dummy
+
+      @digest = nil
+      remove_instance_variable(:@digest)
       return unless digest
 
       client.delete_repository_tag(repository.path, digest)
+    end
+
+    def put_dummy
+      client.put_dummy_tag(repository.path, name)
     end
   end
 end
