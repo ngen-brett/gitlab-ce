@@ -137,7 +137,8 @@ module Gitlab
 
       # @return [Array<#totals>] An array of objects that respond to `#totals`
       def usage_data_counters
-        [Gitlab::UsageDataCounters::WikiPageCounter,
+        [Gitlab::UsageDataCounters::SnippetPageCounter,
+         Gitlab::UsageDataCounters::WikiPageCounter,
          Gitlab::UsageDataCounters::WebIdeCounter]
       end
 

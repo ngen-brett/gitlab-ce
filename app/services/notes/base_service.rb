@@ -9,5 +9,12 @@ module Notes
         note.noteable.diffs.clear_cache
       end
     end
+
+    def increment_usage_counter(note)
+      case note.noteable_type
+      when 'Snippet'
+        Gitlab::UsageDataCounters::SnippetPageCounter.count(:comment)
+      end
+    end
   end
 end
