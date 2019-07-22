@@ -14,10 +14,14 @@ export default () =>
     },
     mixins: [canaryCalloutMixin],
     data() {
-      const environmentsData = document.querySelector(this.$options.el).dataset;
+      const domEl = document.querySelector(this.$options.el)
+
+      let environmentsData = domEl.dataset;
+      environmentsData.projectId = domEl.getAttribute('data-project-id');
 
       return {
         endpoint: environmentsData.environmentsDataEndpoint,
+        projectId: environmentsData.projectId,
         newEnvironmentPath: environmentsData.newEnvironmentPath,
         helpPagePath: environmentsData.helpPagePath,
         deployBoardsHelpPath: environmentsData.deployBoardsHelpPath,
@@ -30,6 +34,7 @@ export default () =>
       return createElement('environments-component', {
         props: {
           endpoint: this.endpoint,
+          projectId: this.projectId,
           newEnvironmentPath: this.newEnvironmentPath,
           helpPagePath: this.helpPagePath,
           deployBoardsHelpPath: this.deployBoardsHelpPath,

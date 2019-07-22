@@ -24,6 +24,7 @@ const Api = {
   issuableTemplatePath: '/:namespace_path/:project_path/templates/:type/:key',
   projectTemplatePath: '/api/:version/projects/:id/templates/:type/:key',
   projectTemplatesPath: '/api/:version/projects/:id/templates/:type',
+  projectEnvironmentPath: '/api/:version/projects/:id/environments/:environment_id',
   userCountsPath: '/api/:version/user_counts',
   usersPath: '/api/:version/users.json',
   userPath: '/api/:version/users/:id',

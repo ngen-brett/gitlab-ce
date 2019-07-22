@@ -2,6 +2,7 @@
  * Common code between environmets app and folder view
  */
 import _ from 'underscore';
+import Api from '../../api';
 import Visibility from 'visibilityjs';
 import EnvironmentsStore from 'ee_else_ce/environments/stores/environments_store';
 import Poll from '../../lib/utils/poll';
@@ -36,6 +37,7 @@ export default {
       page: getParameterByName('page') || '1',
       requestData: {},
       environmentInStopModal: {},
+      environmentInDeleteModal: {},
       environmentInRollbackModal: {},
     };
   },
@@ -104,6 +106,20 @@ export default {
       }
     },
 
+    deleteAction({ endpoint, errorMessage }) {
+      if (!this.isMakingRequest) {
+        this.isLoading = true;
+
+        this.service
+          .deleteAction(endpoint)
+          .then(() => this.fetchEnvironments())
+          .catch(() => {
+            this.isLoading = false;
+            Flash(errorMessage || s__('Environments|An error occurred while making the request.'));
+          });
+      }
+    },
+
     fetchEnvironments() {
       this.isLoading = true;
 
@@ -116,6 +132,10 @@ export default {
     updateStopModal(environment) {
       this.environmentInStopModal = environment;
     },
+    
+    updateDeleteModal(environment) {
+      this.environmentInDeleteModal = environment;
+    },
 
     updateRollbackModal(environment) {
       this.environmentInRollbackModal = environment;
@@ -127,6 +147,20 @@ export default {
         'Environments|An error occurred while stopping the environment, please try again',
       );
       this.postAction({ endpoint, errorMessage });
+    },
+
+    deleteEnvironment(environment) {
+      const deleteUrl = Api.buildUrl(Api.projectEnvironmentPath).replace(
+        ':id',
+        this.projectId
+      ).replace(
+        ':environment_id',
+        environment.id
+      );
+      const errorMessage = s__(
+        'Environments|An error occurred while deleting the environment, please try again',
+      );
+      this.deleteAction({ endpoint: deleteUrl, errorMessage });
     },
 
     rollbackEnvironment(environment) {
@@ -194,8 +228,12 @@ export default {
     });
 
     eventHub.$on('postAction', this.postAction);
+
     eventHub.$on('requestStopEnvironment', this.updateStopModal);
     eventHub.$on('stopEnvironment', this.stopEnvironment);
+    
+    eventHub.$on('requestDeleteEnvironment', this.updateDeleteModal);
+    eventHub.$on('deleteEnvironment', this.deleteEnvironment);
 
     eventHub.$on('requestRollbackEnvironment', this.updateRollbackModal);
     eventHub.$on('rollbackEnvironment', this.rollbackEnvironment);
@@ -203,8 +241,12 @@ export default {
 
   beforeDestroy() {
     eventHub.$off('postAction', this.postAction);
+
     eventHub.$off('requestStopEnvironment', this.updateStopModal);
     eventHub.$off('stopEnvironment', this.stopEnvironment);
+
+    eventHub.$off('requestDeleteEnvironment', this.updateDeleteModal);
+    eventHub.$off('deleteEnvironment', this.deleteEnvironment);
 
     eventHub.$off('requestRollbackEnvironment', this.updateRollbackModal);
     eventHub.$off('rollbackEnvironment', this.rollbackEnvironment);
