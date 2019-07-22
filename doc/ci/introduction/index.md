@@ -11,7 +11,7 @@ GitLab CI/CD.
 
 NOTE: **Out-of-the-box management systems can decrease hours spent on maintaining toolchains by 10% or more.**
 Watch our
-["Mastering continuous software development"](https://about.gitlab.com/resources/whitepaper-seismic-shift-application-security/)
+["Mastering continuous software development"](https://about.gitlab.com/webcast/mastering-ci-cd/)
 webcast to learn about continuous methods and how GitLab’s built-in CI can help you simplify and scale software development.
 
 ## Introduction to CI/CD methodologies
