@@ -9,7 +9,7 @@ class CreateAllowedEmailDomainsForGroups < ActiveRecord::Migration[5.2]
   # Set this constant to true if this migration requires downtime.
   DOWNTIME = false
 
-  def change
+  def up
     create_table :allowed_email_domains do |t|
       t.references :group, references: :namespace,
         column: :group_id,
@@ -20,5 +20,12 @@ class CreateAllowedEmailDomainsForGroups < ActiveRecord::Migration[5.2]
 
       t.timestamps_with_timezone null: false
     end
+
+    add_foreign_key :allowed_email_domains, :namespaces, column: :group_id, on_delete: :cascade
+  end
+
+  def down
+    remove_foreign_key :allowed_email_domains, :namespaces
+    drop_table :allowed_email_domains
   end
 end
