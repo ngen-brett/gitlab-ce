@@ -77,8 +77,6 @@ export default () => {
       // variable itself can be completely removed.
       // Follow up issue: https://gitlab.com/gitlab-org/gitlab-ce/issues/64490
       if (cycleAnalyticsEl.dataset.requestPath) this.fetchCycleAnalyticsData();
-      // TODO: remove
-      this.addStageForm = true;
     },
     methods: {
       handleError() {
