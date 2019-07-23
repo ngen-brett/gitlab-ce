@@ -168,7 +168,7 @@ module Banzai
 
           parent = from_ref_cached(parent_path)
 
-          if parent
+          if parent && object.nil?
             object =
               if link_reference
                 find_object_from_link_cached(parent, id)
