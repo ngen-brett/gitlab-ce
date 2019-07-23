@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_07_15_114644) do
+ActiveRecord::Schema.define(version: 2019_07_23_153247) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -24,6 +24,14 @@ ActiveRecord::Schema.define(version: 2019_07_15_114644) do
     t.datetime "updated_at"
     t.text "message_html"
     t.integer "cached_markdown_version"
+  end
+
+  create_table "allowed_email_domains", force: :cascade do |t|
+    t.integer "group_id", null: false
+    t.string "domain", null: false
+    t.datetime_with_timezone "created_at", null: false
+    t.datetime_with_timezone "updated_at", null: false
+    t.index ["group_id"], name: "index_allowed_email_domains_on_group_id", using: :btree
   end
 
   create_table "appearances", id: :serial, force: :cascade do |t|
