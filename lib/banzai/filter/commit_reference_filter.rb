@@ -46,7 +46,7 @@ module Banzai
             commit:    $~[:commit],
             project:   $~[:project],
             namespace: $~[:namespace],
-            matches:   $~,
+            matches:   $~
           }
         end
 
