@@ -29,7 +29,7 @@ module Gitlab
         end
 
         def self.enabled?
-          Gitlab::Database.postgresql? && Feature.enabled?(:tablesample_counts)
+          true
         end
 
         private
