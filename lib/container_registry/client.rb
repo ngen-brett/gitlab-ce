@@ -106,16 +106,6 @@ module ContainerRegistry
 
     private
 
-    class MyEncoder
-      def self.encode(params)
-        Faraday::FlatParamsEncoder.encode(params).gsub("%3A", ":")
-      end
-
-      def self.decode(query)
-        Faraday::FlatParamsEncoder.decode(query)
-      end
-    end
-
     def initialize_connection(conn, options)
       conn.request :json
 
@@ -124,8 +114,6 @@ module ContainerRegistry
       elsif options[:token]
         conn.request(:authorization, :bearer, options[:token].to_s)
       end
-
-      conn.options.params_encoder = MyEncoder
 
       yield(conn) if block_given?
 
