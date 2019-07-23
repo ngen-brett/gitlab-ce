@@ -1,0 +1,6 @@
+---
+title: 'Resolve #21405: "registry: deleting image tag deletes all tags with same image
+  id"'
+merge_request: 30987
+author:
+type: fixed
