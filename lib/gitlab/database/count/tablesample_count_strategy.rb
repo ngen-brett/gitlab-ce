@@ -28,10 +28,6 @@ module Gitlab
           {}
         end
 
-        def self.enabled?
-          true
-        end
-
         private
 
         def perform_count(model, estimate)

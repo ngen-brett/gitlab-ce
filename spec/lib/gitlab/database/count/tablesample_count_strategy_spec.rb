@@ -56,10 +56,4 @@ describe Gitlab::Database::Count::TablesampleCountStrategy do
       end
     end
   end
-
-  describe '.enabled?' do
-    it 'is enabled' do
-      expect(described_class.enabled?).to be_truthy
-    end
-  end
 end
