@@ -102,8 +102,11 @@ module ContainerRegistry
     def delete
       put_dummy
 
+      # put_dummy changes the tag digest,
+      # so we make sure we're fetching the up to date one
       @digest = nil
       remove_instance_variable(:@digest)
+
       return unless digest
 
       client.delete_repository_tag(repository.path, digest)

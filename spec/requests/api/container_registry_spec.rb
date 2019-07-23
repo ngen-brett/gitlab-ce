@@ -233,6 +233,8 @@ describe API::ContainerRegistry do
 
       it 'properly removes tag' do
         expect_any_instance_of(ContainerRegistry::Client)
+          .to receive(:put_dummy_tag).with(root_repository.path, "rootA")
+        expect_any_instance_of(ContainerRegistry::Client)
           .to receive(:delete_repository_tag).with(root_repository.path,
             'sha256:4c8e63ca4cb663ce6c688cb06f1c372b088dac5b6d7ad7d49cd620d85cf72a15')
 

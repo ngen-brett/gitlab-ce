@@ -56,7 +56,7 @@ describe Projects::ContainerRepository::CleanupTagsService do
         # The :A cannot be removed as config is shared with :latest
         # The :E cannot be removed as it does not have valid manifest
 
-        expect_delete('sha256:configB').twice
+        expect_delete('sha256:configB', :twice)
         expect_delete('sha256:configC')
         expect_delete('sha256:configD')
 
@@ -109,7 +109,7 @@ describe Projects::ContainerRepository::CleanupTagsService do
       end
 
       it 'does remove B* and C as they are older than 1 day' do
-        expect_delete('sha256:configB').twice
+        expect_delete('sha256:configB', :twice)
         expect_delete('sha256:configC')
 
         is_expected.to include(status: :success, deleted: %w(Bb Ba C))
@@ -124,7 +124,7 @@ describe Projects::ContainerRepository::CleanupTagsService do
       end
 
       it 'does remove B* and C' do
-        expect_delete('sha256:configB').twice
+        expect_delete('sha256:configB', :twice)
         expect_delete('sha256:configC')
 
         is_expected.to include(status: :success, deleted: %w(Bb Ba C))
@@ -154,9 +154,13 @@ describe Projects::ContainerRepository::CleanupTagsService do
     end
   end
 
-  def expect_delete(digest)
+  def expect_delete(digest, frequency = nil)
     expect_any_instance_of(ContainerRegistry::Client)
       .to receive(:delete_repository_tag)
-      .with(repository.path, digest)
+      .with(repository.path, digest).tap { |x| x.send(frequency) if frequency.present? }
+
+    expect_any_instance_of(ContainerRegistry::Client)
+      .to receive(:put_dummy_tag)
+      .with(repository.path, anything).tap { |x| x.send(frequency) if frequency.present? }
   end
 end

@@ -182,6 +182,22 @@ describe ContainerRegistry::Tag do
         stub_request(:delete, 'http://registry.gitlab/v2/group/test/manifests/sha256:digest')
           .with(headers: headers)
           .to_return(status: 200)
+
+        stub_request(:post, "http://registry.gitlab/v2/group/test/blobs/uploads/")
+          .with(headers: headers)
+          .to_return(status: 200, headers: { 'Location' => "http://registry.gitlab/v2/group/test/blobs/uploads/foobar123" })
+
+        stub_request(:put, "http://registry.gitlab/v2/group/test/blobs/uploads/foobar123?digest=sha256:b6b5b6732c882d81b07e53d63ea22229c6f745b3913584533308e2da4e08c51a")
+         .with(headers: headers)
+         .to_return(status: 201, headers: {})
+
+        stub_request(:put, "http://registry.gitlab/v2/group/test/blobs/uploads/foobar123?digest=sha256:667025450f9aa4b82178bbd84d3c8fd2a2b56d12b64b2ec6a41fc65ace77a625")
+         .with(headers: headers)
+         .to_return(status: 201, headers: {})
+
+        stub_request(:put, "http://registry.gitlab/v2/group/test/manifests/tag")
+         .with(headers: headers)
+         .to_return(status: 200, headers: {})
       end
 
       it 'correctly deletes the tag' do
