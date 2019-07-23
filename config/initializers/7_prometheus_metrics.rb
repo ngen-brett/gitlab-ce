@@ -51,7 +51,6 @@ if !Rails.env.test? && Gitlab::Metrics.prometheus_metrics_enabled?
       Gitlab::Metrics::Samplers::PumaSampler.initialize_instance(Settings.monitoring.puma_sampler_interval).start
     end
 
-    Gitlab::Metrics::Samplers::SidekiqSampler.initialize_instance(Settings.monitoring.sidekiq_sampler_interval).start
   end
 end
 

@@ -3,33 +3,31 @@
 module Gitlab
   module SidekiqMiddleware
     class Metrics
+      def initialize
+        @metrics = init_metrics
+      end
+
       def call(worker, job, queue)
-        start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        benchmark = Benchmark.measure do
+          yield
+        end
 
-        yield
-
-        end_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
-        Gitlab::Metrics.histogram(:sidekiq_jobs_completion_time, "Time to complete sidekiq job").observe(labels(worker), end_time - start_time)
-        Gitlab::Metrics.histogram(:sidekiq_jobs_memory_allocated_bytes, "Memory allocted for job in bytes").observe(labels(worker), get_rss)
+        @metrics[:sidekiq_jobs_completion_seconds].observe(labels(queue).merge(type: "user"), benchmark.utime + benchmark.cutime)
+        @metrics[:sidekiq_jobs_completion_seconds].observe(labels(queue).merge(type: "system"), benchmark.stime + benchmark.cstime)
+        @metrics[:sidekiq_jobs_completion_seconds].observe(labels(queue).merge(type: "real"), benchmark.real)
       end
 
       private
 
-      def get_rss
-        output, status = Gitlab::Popen.popen(%W(ps -o rss= -p #{pid}), Rails.root.to_s)
-        return 0 unless status.zero?
-
-        output.to_i
-      end
-
-      def pid
-        Process.pid
-      end
-
-      def labels(worker)
+      def init_metrics
         {
-          class: worker.class.to_s
+          sidekiq_jobs_completion_seconds: ::Gitlab::Metrics.histogram(:sidekiq_jobs_completion_seconds, "Seconds to complete sidekiq job")
+        }
+      end
+
+      def labels(queue)
+        {
+          queue: queue
         }
       end
     end
