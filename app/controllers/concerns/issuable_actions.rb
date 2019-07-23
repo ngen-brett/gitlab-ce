@@ -101,9 +101,6 @@ module IssuableActions
   # rubocop:disable CodeReuse/ActiveRecord
   def discussions
     notes = NotesFinder.new(project, current_user, finder_params_for_issuable).execute
-                .inc_relations_for_view
-                .includes(:noteable)
-                .fresh
 
     if notes_filter != UserPreference::NOTES_FILTERS[:only_comments]
       notes = ResourceEvents::MergeIntoNotesService.new(issuable, current_user).execute(notes)
