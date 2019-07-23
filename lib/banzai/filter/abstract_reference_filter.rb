@@ -159,7 +159,7 @@ module Banzai
       # Returns a String with references replaced with links. All links
       # have `gfm` and `gfm-OBJECT_NAME` class names attached for styling.
       def object_link_filter(text, pattern, link_content: nil, link_reference: false)
-        references_in(text, pattern) do |match, id, project_ref, namespace_ref, matches|
+        references_in(text, pattern) do |match, id, project_ref, namespace_ref, matches, object|
           parent_path = if parent_type == :group
                           full_group_path(namespace_ref)
                         else

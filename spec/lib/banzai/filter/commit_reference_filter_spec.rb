@@ -103,6 +103,16 @@ describe Banzai::Filter::CommitReferenceFilter do
 
         expect(doc.css('a').first[:href]).to eq(url)
       end
+
+      context "kerri refactoring" do
+        let!(:oids) { noteable.commits.collect(&:id) }
+
+        it 'existing behavior: it calls Gitaly 29 times, once for each OID' do
+          expect(Gitlab::GitalyClient).to receive(:allow_n_plus_1_calls).exactly(29).times
+
+          doc = reference_filter("A big list of SHAs #{oids.join(", ")}", noteable: noteable)
+        end
+      end
     end
   end
 

@@ -12,6 +12,62 @@ module Banzai
         Commit
       end
 
+      def references_in(*args, &block)
+        text, pattern = args
+
+        matches = extract_valid_commit_references(text, pattern)
+
+        text.gsub(pattern) do |match|
+          if matches[match]
+            yield(
+              match,
+              matches[match][:commit],
+              matches[match][:project],
+              matches[match][:namespace],
+              matches[match][:matches],
+              matches[match][:commit_object]
+            )
+          else
+            yield match, $~[:commit], $~[:project], $~[:namespace], $~
+          end
+        end
+      end
+
+      def extract_valid_commit_references(text, pattern = Commit.reference_pattern)
+        return {} unless parent&.repository
+
+        matches = {}
+
+        # FIXME: we don't want gsub here, we want to iterate over each match but
+        #   I'm tired right now and can't remember the method I actually want.
+        #
+        text.gsub(pattern) do |match|
+          matches[match] = {
+            commit:    $~[:commit],
+            project:   $~[:project],
+            namespace: $~[:namespace],
+            matches:   $~,
+          }
+        end
+
+        # Select the matches that are local to the current parent
+        #
+        # OPTIMIZE: Just collect the commit_ids into an array
+        local_matches = matches.select { |k, v| v[:project].nil? && v[:namespace].nil? }
+
+        # Lookup the objects for local commit references
+        #
+        commit_objects = Gitlab::Git::Commit.batch_by_oid(parent&.repository, local_matches.keys)
+
+        commit_objects.each do |commit_object|
+          if matches[commit_object.id]
+            matches[commit_object.id][:commit_object] = commit_object
+          end
+        end
+
+        matches
+      end
+
       def self.references_in(text, pattern = Commit.reference_pattern)
         text.gsub(pattern) do |match|
           yield match, $~[:commit], $~[:project], $~[:namespace], $~
