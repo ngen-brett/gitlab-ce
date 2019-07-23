@@ -61,7 +61,7 @@ module Banzai
 
         commit_objects.each do |commit_object|
           if matches[commit_object.id]
-            matches[commit_object.id][:commit_object] = commit_object
+            matches[commit_object.id][:commit_object] = ::Commit.new(commit_object, project)
           end
         end
 
