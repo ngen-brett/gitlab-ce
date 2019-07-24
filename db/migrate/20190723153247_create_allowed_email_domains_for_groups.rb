@@ -17,11 +17,10 @@ class CreateAllowedEmailDomainsForGroups < ActiveRecord::Migration[5.2]
         null: false,
         index: true
       t.string :domain, null: false
+      t.foreign_key :namespaces, column: :group_id, on_delete: :cascade
 
       t.timestamps_with_timezone null: false
     end
-
-    add_foreign_key :allowed_email_domains, :namespaces, column: :group_id, on_delete: :cascade
   end
 
   def down
