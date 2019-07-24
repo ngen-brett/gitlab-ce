@@ -25,7 +25,10 @@ class AuditEventService
 
   def base_payload
     {
-      author_id: @author.id,
+      author_id: @author.respond_to?(:id) ? @author.id : -1,
+      # `@author.respond_to?(:id)` is to support cases where we need to log events
+      # that could take place even when a user is unathenticated, Eg: downloading a public repo.
+      # For such events, it is not mandatory that an author is always present.
       entity_id: @entity.id,
       entity_type: @entity.class.name
     }
