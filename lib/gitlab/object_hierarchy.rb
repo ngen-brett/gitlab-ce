@@ -136,7 +136,8 @@ module Gitlab
     private
 
     def hierarchy_supported?
-      Gitlab::Database.postgresql?
+      # TODO: Refactor and remove unused method
+      true
     end
 
     # rubocop: disable CodeReuse/ActiveRecord

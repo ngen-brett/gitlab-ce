@@ -15,11 +15,8 @@ module Projects
 
     # rubocop: disable CodeReuse/ActiveRecord
     def prepare_relation(relation, id_param = :id)
-      if Gitlab::Database.postgresql?
-        relation
-      else
-        relation.model.where("#{id_param}": relation.pluck(id_param))
-      end
+      # TODO: this method can probably be removed now
+      relation
     end
     # rubocop: enable CodeReuse/ActiveRecord
   end

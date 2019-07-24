@@ -5,7 +5,7 @@ module Descendant
 
   class_methods do
     def supports_nested_objects?
-      Gitlab::Database.postgresql?
+      true
     end
   end
 end
