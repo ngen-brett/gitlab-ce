@@ -17,7 +17,7 @@ Pipelines are the top-level component of continuous integration, delivery, and d
 
 Pipelines comprise:
 
-Jobs that define what to run. For example, code compilation or test runs, such as [automated security testing](https://about.gitlab.com/resources/whitepaper-seismic-shift-application-security/).
+- Jobs that define what to run. For example, code compilation or test runs.
 - Stages that define when and how to run. For example, that tests run only after code compilation.
 
 Multiple jobs in the same stage are executed by [Runners](runners/README.md) in parallel, if there are enough concurrent [Runners](runners/README.md).
