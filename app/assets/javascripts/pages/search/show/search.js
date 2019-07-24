@@ -38,7 +38,7 @@ export default class Search {
         return obj.full_name;
       },
       toggleLabel(obj) {
-        return `${$groupDropdown.data('defaultLabel')} ${obj.full_name}`;
+        return `${obj.full_name}`;
       },
       clicked: () => Search.submitSearch(),
     });
@@ -71,7 +71,7 @@ export default class Search {
         return obj.name_with_namespace;
       },
       toggleLabel(obj) {
-        return `${$projectDropdown.data('defaultLabel')} ${obj.name_with_namespace}`;
+        return `${obj.name_with_namespace}`;
       },
       clicked: () => Search.submitSearch(),
     });
