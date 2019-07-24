@@ -42,5 +42,32 @@ describe 'Issues > User uses quick actions', :js do
 
     it_behaves_like 'create_merge_request quick action'
     it_behaves_like 'move quick action'
+
+    context 'move the issue to another project' do
+      let(:target_project) { create(:project, :public) }
+
+      context 'when the project is valid' do
+        before do
+          target_project.add_maintainer(user)
+        end
+
+        it 'moves the issue after quickcommand note was updated' do
+          # missspelled quick action
+          add_note("/mvoe #{target_project.full_path}")
+
+          expect(page).not_to have_content 'Commands applied'
+          expect(issue.reload).not_to be_closed
+
+          edit_note("/mvoe #{target_project.full_path}", "/move #{target_project.full_path}")
+
+          expect(page).to have_content 'Commands applied'
+          expect(issue.reload).to be_closed
+
+          visit project_issue_path(target_project, issue)
+
+          expect(page).to have_content 'Issues 1'
+        end
+      end
+    end
   end
 end
