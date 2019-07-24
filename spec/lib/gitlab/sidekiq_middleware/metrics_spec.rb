@@ -4,16 +4,24 @@ require 'spec_helper'
 
 describe Gitlab::SidekiqMiddleware::Metrics do
   describe '#call' do
-    let(:completion_time_metric) { double('completion time metric') }
     let(:middleware) { described_class.new }
     let(:worker) { double(:worker) }
 
+    let(:completion_seconds_metric) { double('completion seconds metric') }
+    let(:failed_total_metric) { double('failed total metric') }
+    let(:retried_total_metric) { double('retried total metric') }
+    let(:started_total_metric) { double('started total metric') }
+
     before do
-      expect(Gitlab::Metrics).to receive(:histogram).with(:sidekiq_jobs_completion_seconds, anything).and_return(completion_time_metric)
+      allow(Gitlab::Metrics).to receive(:histogram).with(:sidekiq_jobs_completion_seconds, anything).and_return(completion_seconds_metric)
+      allow(Gitlab::Metrics).to receive(:counter).with(:sidekiq_jobs_failed_total, anything).and_return(failed_total_metric)
+      allow(Gitlab::Metrics).to receive(:counter).with(:sidekiq_jobs_retried_total, anything).and_return(retried_total_metric)
+      allow(Gitlab::Metrics).to receive(:counter).with(:sidekiq_jobs_started_total, anything).and_return(started_total_metric)
     end
 
     it 'yields block' do
-      allow(completion_time_metric).to receive(:observe)
+      allow(started_total_metric).to receive(:increment)
+      allow(completion_seconds_metric).to receive(:observe)
 
       expect { |b| middleware.call(worker, {}, :test, &b) }.to yield_control.once
     end
@@ -21,16 +29,30 @@ describe Gitlab::SidekiqMiddleware::Metrics do
     it 'sets metrics' do
       labels = { queue: :test }
 
-      expect(completion_time_metric).to receive(:observe).with(labels.merge(type: 'user'), kind_of(Numeric))
-      expect(completion_time_metric).to receive(:observe).with(labels.merge(type: 'system'), kind_of(Numeric))
-      expect(completion_time_metric).to receive(:observe).with(labels.merge(type: 'real'), kind_of(Numeric))
+      expect(started_total_metric).to receive(:increment)
+      expect(completion_seconds_metric).to receive(:observe).with(labels.merge(type: 'user'), kind_of(Numeric))
+      expect(completion_seconds_metric).to receive(:observe).with(labels.merge(type: 'system'), kind_of(Numeric))
+      expect(completion_seconds_metric).to receive(:observe).with(labels.merge(type: 'real'), kind_of(Numeric))
 
       middleware.call(worker, {}, :test) { nil }
     end
 
-    context 'yield raises exception' do
-      it 'does not set metrics' do
-        expect(completion_time_metric).not_to receive(:observe)
+    context 'when job is retried' do
+      it 'sets sidekiq_jobs_retried_total metric' do
+        allow(started_total_metric).to receive(:increment)
+        allow(completion_seconds_metric).to receive(:observe)
+
+        expect(retried_total_metric).to receive(:increment)
+
+        middleware.call(worker, { 'retry_count' => 1 }, :test) { nil }
+      end
+    end
+
+    context 'when error is raised' do
+      it 'sets sidekiq_jobs_failed_total and reraises' do
+        allow(started_total_metric).to receive(:increment)
+
+        expect(failed_total_metric).to receive(:increment)
         expect { middleware.call(worker, {}, :test) { raise } }.to raise_error
       end
     end

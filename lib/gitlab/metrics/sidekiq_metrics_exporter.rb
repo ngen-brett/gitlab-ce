@@ -42,8 +42,6 @@ module Gitlab
           use Rack::Deflater
           use ::Prometheus::Client::Rack::Exporter
           run -> (env) { [404, {}, ['']] }
-
-          Gitlab::Metrics::Samplers::SidekiqSampler.initialize_instance(Settings.monitoring.sidekiq_sampler_interval).start
         end
       end
     end
