@@ -366,7 +366,7 @@ describe Notes::CreateService do
       end
     end
 
-    context "usage counter" do
+    describe "usage counter" do
       context 'snippet note' do
         let(:snippet) { create(:project_snippet, project: project) }
         let(:counter) { Gitlab::UsageDataCounters::SnippetPageCounter }

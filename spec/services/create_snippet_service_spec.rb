@@ -36,7 +36,7 @@ describe CreateSnippetService do
     end
   end
 
-  context 'usage counter' do
+  describe 'usage counter' do
     let(:counter) { Gitlab::UsageDataCounters::SnippetPageCounter }
 
     it 'increments count' do
