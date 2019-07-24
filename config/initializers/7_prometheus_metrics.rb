@@ -50,7 +50,6 @@ if !Rails.env.test? && Gitlab::Metrics.prometheus_metrics_enabled?
     elsif defined?(::Puma)
       Gitlab::Metrics::Samplers::PumaSampler.initialize_instance(Settings.monitoring.puma_sampler_interval).start
     end
-
   end
 end
 
