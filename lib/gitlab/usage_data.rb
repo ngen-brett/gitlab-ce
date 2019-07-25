@@ -132,14 +132,23 @@ module Gitlab
 
       # @return [Hash<Symbol, Integer>]
       def usage_counters
-        usage_data_counters.map(&:totals).reduce({}) { |a, b| a.merge(b) }
+        counts = {
+          wiki_create: WikiPages::CreateService.usage_total_count,
+          wiki_update: WikiPages::UpdateService.usage_total_count,
+          wiki_delete: WikiPages::DestroyService.usage_total_count,
+          snippet_create: CreateSnippetService.usage_total_count,
+          snippet_update: UpdateSnippetService.usage_total_count,
+          snippet_comment: Notes::CreateService.usage_total_count(:snippet),
+          web_ide_views: total_views_count,
+          web_ide_merge_requests: total_merge_requests_count
+        }
+
+        usage_data_counters.map(&:totals).reduce(counts) { |a, b| a.merge(b) }
       end
 
       # @return [Array<#totals>] An array of objects that respond to `#totals`
       def usage_data_counters
-        [Gitlab::UsageDataCounters::SnippetPageCounter,
-         Gitlab::UsageDataCounters::WikiPageCounter,
-         Gitlab::UsageDataCounters::WebIdeCounter]
+        [Gitlab::UsageDataCounters::WebIdeCounter]
       end
 
       def components_usage_data

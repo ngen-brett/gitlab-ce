@@ -2,6 +2,7 @@
 
 class UpdateSnippetService < BaseService
   include SpamCheckService
+  include ServiceCounter
 
   attr_accessor :snippet
 
@@ -26,7 +27,13 @@ class UpdateSnippetService < BaseService
     spam_check(snippet, current_user)
 
     snippet.save.tap do |succeeded|
-      Gitlab::UsageDataCounters::SnippetPageCounter.count(:update) if succeeded
+      usage_log if succeeded
+    end
+  end
+
+  class << self
+    def usage_key
+      'snippets/update_service'
     end
   end
 end

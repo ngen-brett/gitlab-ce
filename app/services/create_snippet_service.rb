@@ -2,6 +2,7 @@
 
 class CreateSnippetService < BaseService
   include SpamCheckService
+  include ::ServiceCounter
 
   def execute
     filter_spam_check_params
@@ -23,9 +24,15 @@ class CreateSnippetService < BaseService
 
     if snippet.save
       UserAgentDetailService.new(snippet, @request).create
-      Gitlab::UsageDataCounters::SnippetPageCounter.count(:create)
+      usage_log
     end
 
     snippet
+  end
+
+  class << self
+    def usage_key
+      'snippets/create_service'
+    end
   end
 end

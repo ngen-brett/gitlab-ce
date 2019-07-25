@@ -2,6 +2,8 @@
 
 module Notes
   class CreateService < ::Notes::BaseService
+    include ::Notes::ServiceCounter
+
     def execute
       merge_request_diff_head_sha = params.delete(:merge_request_diff_head_sha)
 
@@ -41,7 +43,7 @@ module Notes
         todo_service.new_note(note, current_user)
         clear_noteable_diffs_cache(note)
         Suggestions::CreateService.new(note).execute
-        increment_usage_counter(note)
+        usage_log(note)
       end
 
       if quick_actions_service.commands_executed_count.to_i > 0
