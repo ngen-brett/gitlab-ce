@@ -364,8 +364,16 @@ class IssuableFinder
   def by_negation(items)
     return items unless params[:not].present?
 
-    items_to_negate = self.class.new(current_user, params[:not]).execute
-    items.where.not(id: items_to_negate)
+    # items_to_negate = self.class.new(current_user, params[:not]).execute
+    # items.where.not(id: items_to_negate)
+
+    params[:not].each do |arr|
+      items_to_negate = self.class.new(current_user, [arr].to_h.with_indifferent_access).execute
+
+      items = items.where.not(id: items_to_negate)
+    end
+
+    items
   end
   # rubocop: enable CodeReuse/ActiveRecord
 
