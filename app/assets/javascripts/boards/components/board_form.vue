@@ -1,4 +1,7 @@
 <script>
+/* eslint-disable @gitlab/i18n/no-non-i18n-strings */
+/* eslint-disable @gitlab/vue-i18n/no-bare-attribute-strings */
+/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
 import Flash from '~/flash';
 import DeprecatedModal from '~/vue_shared/components/deprecated_modal.vue';
 import { visitUrl } from '~/lib/utils/url_utility';

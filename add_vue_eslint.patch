@@ -1,0 +1,644 @@
+diff --git a/.eslintrc.yml b/.eslintrc.yml
+index 2612fd3371d..95cbc602d5b 100644
+--- a/.eslintrc.yml
++++ b/.eslintrc.yml
+@@ -10,12 +10,15 @@ plugins:
+   - import
+   - html
+   - "@gitlab/i18n"
++  - "@gitlab/vue-i18n"
+ settings:
+   import/resolver:
+     webpack:
+       config: './config/webpack.config.js'
+ rules:
+   "@gitlab/i18n/no-non-i18n-strings": error
++  "@gitlab/vue-i18n/no-bare-strings": error
++  "@gitlab/vue-i18n/no-bare-attribute-strings": error
+   import/no-commonjs: error
+   no-underscore-dangle:
+     - error
+@@ -36,9 +39,6 @@ rules:
+   vue/use-v-on-exact: off
+ overrides:
+   files:
+-    # Vue is temporarily being disabled until the autofix errors are resolved
+-    # Follow up issue https://gitlab.com/gitlab-org/gitlab-ce/issues/57969
+-    - '*.vue'
+     - '**/spec/**/*'
+   rules:
+     "@gitlab/i18n/no-non-i18n-strings": off
+diff --git a/app/assets/javascripts/badges/components/badge.vue b/app/assets/javascripts/badges/components/badge.vue
+index ae2916e3a3b..eb720f5380b 100644
+--- a/app/assets/javascripts/badges/components/badge.vue
++++ b/app/assets/javascripts/badges/components/badge.vue
+@@ -3,6 +3,8 @@ import Icon from '~/vue_shared/components/icon.vue';
+ import { GlLoadingIcon, GlTooltipDirective } from '@gitlab/ui';
+ 
+ export default {
++  // name: 'Badge' is a false positive: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/25
++  // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+   name: 'Badge',
+   components: {
+     Icon,
+
+diff --git a/app/assets/javascripts/boards/components/board_list.vue b/app/assets/javascripts/boards/components/board_list.vue
+index 787ff110bf8..03a8a92575e 100644
+--- a/app/assets/javascripts/boards/components/board_list.vue
++++ b/app/assets/javascripts/boards/components/board_list.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import Sortable from 'sortablejs';
+ import { GlLoadingIcon } from '@gitlab/ui';
+ import boardNewIssue from './board_new_issue.vue';
+diff --git a/app/assets/javascripts/boards/components/modal/header.vue b/app/assets/javascripts/boards/components/modal/header.vue
+index 7a696035dc8..8cd4840d3d6 100644
+--- a/app/assets/javascripts/boards/components/modal/header.vue
++++ b/app/assets/javascripts/boards/components/modal/header.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { __ } from '~/locale';
+ import ModalFilters from './filters';
+ import ModalTabs from './tabs.vue';
+diff --git a/app/assets/javascripts/boards/components/modal/tabs.vue b/app/assets/javascripts/boards/components/modal/tabs.vue
+index 2d2920e312e..7430fc96654 100644
+--- a/app/assets/javascripts/boards/components/modal/tabs.vue
++++ b/app/assets/javascripts/boards/components/modal/tabs.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import ModalStore from '../../stores/modal_store';
+ import modalMixin from '../../mixins/modal_mixins';
+ 
+diff --git a/app/assets/javascripts/clusters/components/application_row.vue b/app/assets/javascripts/clusters/components/application_row.vue
+index cd2121db3b2..64364092016 100644
+--- a/app/assets/javascripts/clusters/components/application_row.vue
++++ b/app/assets/javascripts/clusters/components/application_row.vue
+@@ -1,5 +1,6 @@
+ <script>
+ /* eslint-disable vue/require-default-prop */
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { GlLink, GlModalDirective } from '@gitlab/ui';
+ import TimeagoTooltip from '../../vue_shared/components/time_ago_tooltip.vue';
+ import { s__, __, sprintf } from '~/locale';
+diff --git a/app/assets/javascripts/diffs/components/commit_item.vue b/app/assets/javascripts/diffs/components/commit_item.vue
+index 58d5b658b17..c82b4a7abc6 100644
+--- a/app/assets/javascripts/diffs/components/commit_item.vue
++++ b/app/assets/javascripts/diffs/components/commit_item.vue
+@@ -49,8 +49,8 @@ export default {
+       return this.author.id ? this.author.id : '';
+     },
+     authorUrl() {
+-      // TODO: when the vue i18n rules are merged need to disable @gitlab/i18n/no-non-i18n-strings
+       // name: 'mailto:' is a false positive: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/26#possible-false-positives
++      // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+       return this.author.web_url || `mailto:${this.commit.author_email}`;
+     },
+     authorAvatar() {
+diff --git a/app/assets/javascripts/diffs/components/compare_versions.vue b/app/assets/javascripts/diffs/components/compare_versions.vue
+index 363ebad1594..2e57a47f2f7 100644
+--- a/app/assets/javascripts/diffs/components/compare_versions.vue
++++ b/app/assets/javascripts/diffs/components/compare_versions.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { mapActions, mapGetters, mapState } from 'vuex';
+ import { GlTooltipDirective, GlLink, GlButton } from '@gitlab/ui';
+ import { __ } from '~/locale';
+diff --git a/app/assets/javascripts/diffs/components/hidden_files_warning.vue b/app/assets/javascripts/diffs/components/hidden_files_warning.vue
+index 119e139de21..035c2b3b11e 100644
+--- a/app/assets/javascripts/diffs/components/hidden_files_warning.vue
++++ b/app/assets/javascripts/diffs/components/hidden_files_warning.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ export default {
+   props: {
+     total: {
+diff --git a/app/assets/javascripts/environments/components/environment_item.vue b/app/assets/javascripts/environments/components/environment_item.vue
+index 813045cb5e4..95e1e8af9b3 100644
+--- a/app/assets/javascripts/environments/components/environment_item.vue
++++ b/app/assets/javascripts/environments/components/environment_item.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { __, sprintf } from '~/locale';
+ import Timeago from 'timeago.js';
+ import _ from 'underscore';
+@@ -286,9 +287,9 @@ export default {
+      * @returns {Boolean|Undefined}
+      */
+     isLastDeployment() {
+-      // TODO: when the vue i18n rules are merged need to disable @gitlab/i18n/no-non-i18n-strings
+       // name: 'last?' is a false positive: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/26#possible-false-positives
+       // Vue i18n ESLint rules issue: https://gitlab.com/gitlab-org/gitlab-ce/issues/63560
++      // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+       return this.model && this.model.last_deployment && this.model.last_deployment['last?'];
+     },
+ 
+diff --git a/app/assets/javascripts/environments/components/stop_environment_modal.vue b/app/assets/javascripts/environments/components/stop_environment_modal.vue
+index c78d86e9b97..2cc3412e075 100644
+--- a/app/assets/javascripts/environments/components/stop_environment_modal.vue
++++ b/app/assets/javascripts/environments/components/stop_environment_modal.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { GlTooltipDirective } from '@gitlab/ui';
+ import GlModal from '~/vue_shared/components/gl_modal.vue';
+ import { s__, sprintf } from '~/locale';
+diff --git a/app/assets/javascripts/error_tracking_settings/components/error_tracking_form.vue b/app/assets/javascripts/error_tracking_settings/components/error_tracking_form.vue
+index ef1d1e49320..a734e8527dd 100644
+--- a/app/assets/javascripts/error_tracking_settings/components/error_tracking_form.vue
++++ b/app/assets/javascripts/error_tracking_settings/components/error_tracking_form.vue
+@@ -36,12 +36,14 @@ export default {
+       <label class="label-bold" for="error-tracking-api-host">{{ __('Sentry API URL') }}</label>
+       <div class="row">
+         <div class="col-8 col-md-9 gl-pr-0">
++          <!-- eslint-disable @gitlab/vue-i18n/no-bare-attribute-strings -->
+           <gl-form-input
+             id="error-tracking-api-host"
+             :value="apiHost"
+             placeholder="https://mysentryserver.com"
+             @input="$emit('update-api-host', $event)"
+           />
++          <!-- eslint-enable @gitlab/vue-i18n/no-bare-attribute-strings -->
+         </div>
+       </div>
+       <p class="form-text text-muted">
+diff --git a/app/assets/javascripts/ide/components/branches/item.vue b/app/assets/javascripts/ide/components/branches/item.vue
+index 4dff3f7e755..5c048749060 100644
+--- a/app/assets/javascripts/ide/components/branches/item.vue
++++ b/app/assets/javascripts/ide/components/branches/item.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import Icon from '~/vue_shared/components/icon.vue';
+ import Timeago from '~/vue_shared/components/time_ago_tooltip.vue';
+ import router from '../../ide_router';
+diff --git a/app/assets/javascripts/ide/components/commit_sidebar/list_item.vue b/app/assets/javascripts/ide/components/commit_sidebar/list_item.vue
+index c8fbc3cb9f1..302adccd759 100644
+--- a/app/assets/javascripts/ide/components/commit_sidebar/list_item.vue
++++ b/app/assets/javascripts/ide/components/commit_sidebar/list_item.vue
+@@ -45,6 +45,8 @@ export default {
+   },
+   computed: {
+     iconName() {
++      // name: '-solid' is a false positive: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/26#possible-false-positives
++      // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+       const suffix = this.stagedList ? '-solid' : '';
+ 
+       return `${getCommitIconMap(this.file).icon}${suffix}`;
+diff --git a/app/assets/javascripts/ide/components/commit_sidebar/success_message.vue b/app/assets/javascripts/ide/components/commit_sidebar/success_message.vue
+index b1d5de8682d..753913534f5 100644
+--- a/app/assets/javascripts/ide/components/commit_sidebar/success_message.vue
++++ b/app/assets/javascripts/ide/components/commit_sidebar/success_message.vue
+@@ -10,7 +10,7 @@ export default {
+ 
+ <template>
+   <div class="multi-file-commit-panel-success-message" aria-live="assertive">
+-    <div class="svg-content svg-80"><img :src="committedStateSvgPath" alt="" /></div>
++    <div class="svg-content svg-80"><img :src="committedStateSvgPath" /></div>
+     <div class="append-right-default prepend-left-default">
+       <div class="text-content text-center">
+         <h4>{{ __('All changes are committed') }}</h4>
+diff --git a/app/assets/javascripts/ide/components/ide_status_bar.vue b/app/assets/javascripts/ide/components/ide_status_bar.vue
+index 206b8341aad..326589fa50f 100644
+--- a/app/assets/javascripts/ide/components/ide_status_bar.vue
++++ b/app/assets/javascripts/ide/components/ide_status_bar.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { mapActions, mapState, mapGetters } from 'vuex';
+ import IdeStatusList from 'ee_else_ce/ide/components/ide_status_list.vue';
+ import icon from '~/vue_shared/components/icon.vue';
+diff --git a/app/assets/javascripts/issuable_suggestions/components/item.vue b/app/assets/javascripts/issuable_suggestions/components/item.vue
+index 9a16b486bf5..7629e04684c 100644
+--- a/app/assets/javascripts/issuable_suggestions/components/item.vue
++++ b/app/assets/javascripts/issuable_suggestions/components/item.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import _ from 'underscore';
+ import { GlLink, GlTooltip, GlTooltipDirective } from '@gitlab/ui';
+ import { __ } from '~/locale';
+diff --git a/app/assets/javascripts/issue_show/components/edit_actions.vue b/app/assets/javascripts/issue_show/components/edit_actions.vue
+index b2f9296c68b..eb51a074f84 100644
+--- a/app/assets/javascripts/issue_show/components/edit_actions.vue
++++ b/app/assets/javascripts/issue_show/components/edit_actions.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { __, sprintf } from '~/locale';
+ import updateMixin from '../mixins/update';
+ import eventHub from '../event_hub';
+diff --git a/app/assets/javascripts/issue_show/components/edited.vue b/app/assets/javascripts/issue_show/components/edited.vue
+index 14ad8d3b7c9..2c92324d292 100644
+--- a/app/assets/javascripts/issue_show/components/edited.vue
++++ b/app/assets/javascripts/issue_show/components/edited.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import timeAgoTooltip from '../../vue_shared/components/time_ago_tooltip.vue';
+ 
+ export default {
+diff --git a/app/assets/javascripts/issue_show/components/fields/description_template.vue b/app/assets/javascripts/issue_show/components/fields/description_template.vue
+index 6f955928d8e..bc3c81d479e 100644
+--- a/app/assets/javascripts/issue_show/components/fields/description_template.vue
++++ b/app/assets/javascripts/issue_show/components/fields/description_template.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import $ from 'jquery';
+ import IssuableTemplateSelectors from '../../../templates/issuable_template_selectors';
+ 
+diff --git a/app/assets/javascripts/jobs/components/commit_block.vue b/app/assets/javascripts/jobs/components/commit_block.vue
+index b651a6e4bfb..9fac880c5f8 100644
+--- a/app/assets/javascripts/jobs/components/commit_block.vue
++++ b/app/assets/javascripts/jobs/components/commit_block.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { GlLink } from '@gitlab/ui';
+ import ClipboardButton from '~/vue_shared/components/clipboard_button.vue';
+ 
+diff --git a/app/assets/javascripts/mr_popover/components/mr_popover.vue b/app/assets/javascripts/mr_popover/components/mr_popover.vue
+index c203cb0667c..9478e55982e 100644
+--- a/app/assets/javascripts/mr_popover/components/mr_popover.vue
++++ b/app/assets/javascripts/mr_popover/components/mr_popover.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { GlPopover, GlSkeletonLoading } from '@gitlab/ui';
+ import Icon from '../../vue_shared/components/icon.vue';
+ import CiIcon from '../../vue_shared/components/ci_icon.vue';
+@@ -7,7 +8,7 @@ import query from '../queries/merge_request.query.graphql';
+ import { mrStates, humanMRStates } from '../constants';
+ 
+ export default {
+-  name: 'MRPopover',
++  name: 'MRPopover', // eslint-disable-line @gitlab/i18n/no-non-i18n-strings
+   components: {
+     GlPopover,
+     GlSkeletonLoading,
+@@ -103,7 +104,9 @@ export default {
+       </div>
+       <h5 class="my-2">{{ mergeRequestTitle }}</h5>
+       <div class="text-secondary">
++        <!-- eslint-disable @gitlab/vue-i18n/no-bare-strings -->
+         {{ `${projectPath}!${mergeRequestIID}` }}
++        <!-- eslint-enable @gitlab/vue-i18n/no-bare-strings -->
+       </div>
+     </div>
+   </gl-popover>
+diff --git a/app/assets/javascripts/notebook/cells/markdown.vue b/app/assets/javascripts/notebook/cells/markdown.vue
+index 61eabbcb8b2..9e4a92426ee 100644
+--- a/app/assets/javascripts/notebook/cells/markdown.vue
++++ b/app/assets/javascripts/notebook/cells/markdown.vue
+@@ -43,7 +43,7 @@ renderer.paragraph = t => {
+   if (typeof katex !== 'undefined') {
+     const katexString = text
+       .replace(/&amp;/g, '&')
+-      .replace(/&=&/g, '\\space=\\space')
++      .replace(/&=&/g, '\\space=\\space') // eslint-disable-line @gitlab/i18n/no-non-i18n-strings
+       .replace(/<(\/?)em>/g, '_');
+     const regex = new RegExp(katexRegexString, 'gi');
+     const matchLocation = katexString.search(regex);
+diff --git a/app/assets/javascripts/notebook/cells/output/image.vue b/app/assets/javascripts/notebook/cells/output/image.vue
+index f1130275525..842d9e8da0d 100644
+--- a/app/assets/javascripts/notebook/cells/output/image.vue
++++ b/app/assets/javascripts/notebook/cells/output/image.vue
+@@ -25,7 +25,7 @@ export default {
+   },
+   computed: {
+     imgSrc() {
+-      return `data:${this.outputType};base64,${this.rawCode}`;
++      return `data:${this.outputType};base64,${this.rawCode}`; // eslint-disable-line @gitlab/i18n/no-non-i18n-strings
+     },
+     showOutput() {
+       return this.index === 0;
+diff --git a/app/assets/javascripts/notebook/index.vue b/app/assets/javascripts/notebook/index.vue
+index e7056c03e4a..4a3c1a28279 100644
+--- a/app/assets/javascripts/notebook/index.vue
++++ b/app/assets/javascripts/notebook/index.vue
+@@ -39,7 +39,7 @@ export default {
+   },
+   methods: {
+     cellType(type) {
+-      return `${type}-cell`;
++      return `${type}-cell`; // eslint-disable-line @gitlab/i18n/no-non-i18n-strings
+     },
+   },
+ };
+diff --git a/app/assets/javascripts/notes/components/diff_with_note.vue b/app/assets/javascripts/notes/components/diff_with_note.vue
+index 164e79c6294..df537ba1ed2 100644
+--- a/app/assets/javascripts/notes/components/diff_with_note.vue
++++ b/app/assets/javascripts/notes/components/diff_with_note.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { mapState, mapActions } from 'vuex';
+ import DiffFileHeader from '~/diffs/components/diff_file_header.vue';
+ import DiffViewer from '~/vue_shared/components/diff_viewer/diff_viewer.vue';
+diff --git a/app/assets/javascripts/notes/components/note_edited_text.vue b/app/assets/javascripts/notes/components/note_edited_text.vue
+index 15ce49d7c31..1af5af5c470 100644
+--- a/app/assets/javascripts/notes/components/note_edited_text.vue
++++ b/app/assets/javascripts/notes/components/note_edited_text.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import timeAgoTooltip from '../../vue_shared/components/time_ago_tooltip.vue';
+ 
+ export default {
+diff --git a/app/assets/javascripts/operation_settings/components/external_dashboard.vue b/app/assets/javascripts/operation_settings/components/external_dashboard.vue
+index ed518611d0b..135c1208413 100644
+--- a/app/assets/javascripts/operation_settings/components/external_dashboard.vue
++++ b/app/assets/javascripts/operation_settings/components/external_dashboard.vue
+@@ -52,11 +52,13 @@ export default {
+           :label="s__('ExternalMetrics|Full dashboard URL')"
+           :description="s__('ExternalMetrics|Enter the URL of the dashboard you want to link to')"
+         >
++          <!-- eslint-disable @gitlab/vue-i18n/no-bare-strings -->
+           <gl-form-input
+             v-model="userDashboardUrl"
+             placeholder="https://my-org.gitlab.io/my-dashboards"
+             @keydown.enter.native.prevent="updateExternalDashboardUrl"
+           />
++          <!-- eslint-enable @gitlab/vue-i18n/no-bare-strings -->
+         </gl-form-group>
+         <gl-button variant="success" @click="updateExternalDashboardUrl">
+           {{ __('Save Changes') }}
+diff --git a/app/assets/javascripts/pages/projects/shared/permissions/components/settings_panel.vue b/app/assets/javascripts/pages/projects/shared/permissions/components/settings_panel.vue
+index b4d24f3aa36..627d37bac68 100644
+--- a/app/assets/javascripts/pages/projects/shared/permissions/components/settings_panel.vue
++++ b/app/assets/javascripts/pages/projects/shared/permissions/components/settings_panel.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import settingsMixin from 'ee_else_ce/pages/projects/shared/permissions/mixins/settings_pannel_mixin';
+ import { __ } from '~/locale';
+ import projectFeatureSetting from './project_feature_setting.vue';
+diff --git a/app/assets/javascripts/performance_bar/components/detailed_metric.vue b/app/assets/javascripts/performance_bar/components/detailed_metric.vue
+index d5f1cea8356..5763c3d92a0 100644
+--- a/app/assets/javascripts/performance_bar/components/detailed_metric.vue
++++ b/app/assets/javascripts/performance_bar/components/detailed_metric.vue
+@@ -63,6 +63,8 @@ export default {
+         <template v-if="detailsList.length">
+           <tr v-for="(item, index) in detailsList" :key="index">
+             <td>
++              <!-- NOTE: we probably dont want to translate units -->
++              <!-- eslint-disable-next-line @gitlab/vue-i18n/no-bare-strings -->
+               <span>{{ item.duration }}ms</span>
+             </td>
+             <td>
+diff --git a/app/assets/javascripts/performance_bar/components/performance_bar_app.vue b/app/assets/javascripts/performance_bar/components/performance_bar_app.vue
+index f05db8376a4..0269be54be6 100644
+--- a/app/assets/javascripts/performance_bar/components/performance_bar_app.vue
++++ b/app/assets/javascripts/performance_bar/components/performance_bar_app.vue
+@@ -134,10 +134,13 @@ export default {
+         <a v-else :href="profileUrl">{{ s__('PerformanceBar|profile') }}</a>
+       </div>
+       <div id="peek-view-gc" class="view">
++        <!-- NOTE: we probably don't want to translate units of measure? -->
++        <!-- eslint-disable @gitlab/vue-i18n/no-bare-strings -->
+         <span v-if="currentRequest.details" class="bold">
+           <span title="Invoke Time">{{ currentRequest.details.gc.gc_time }}</span
+           >ms / <span title="Invoke Count">{{ currentRequest.details.gc.invokes }}</span> gc
+         </span>
++        <!-- eslint-enable @gitlab/vue-i18n/no-bare-strings -->
+       </div>
+       <div
+         v-if="currentRequest.details && currentRequest.details.tracing"
+diff --git a/app/assets/javascripts/pipelines/components/pipelines_artifacts.vue b/app/assets/javascripts/pipelines/components/pipelines_artifacts.vue
+index 2ab0ad4d013..3f07b77ed32 100644
+--- a/app/assets/javascripts/pipelines/components/pipelines_artifacts.vue
++++ b/app/assets/javascripts/pipelines/components/pipelines_artifacts.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { GlLink, GlTooltipDirective } from '@gitlab/ui';
+ import Icon from '~/vue_shared/components/icon.vue';
+ 
+diff --git a/app/assets/javascripts/registry/components/app.vue b/app/assets/javascripts/registry/components/app.vue
+index 38519c220c5..efbf0a4e3cf 100644
+--- a/app/assets/javascripts/registry/components/app.vue
++++ b/app/assets/javascripts/registry/components/app.vue
+@@ -81,9 +81,11 @@ export default {
+       );
+     },
+     dockerBuildCommand() {
++      // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+       return `docker build -t ${this.repositoryUrl} .`;
+     },
+     dockerPushCommand() {
++      // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+       return `docker push ${this.repositoryUrl}`;
+     },
+   },
+diff --git a/app/assets/javascripts/releases/components/release_block.vue b/app/assets/javascripts/releases/components/release_block.vue
+index 0031ba04d78..7580c2d0ad0 100644
+--- a/app/assets/javascripts/releases/components/release_block.vue
++++ b/app/assets/javascripts/releases/components/release_block.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import _ from 'underscore';
+ import { GlTooltipDirective, GlLink, GlBadge } from '@gitlab/ui';
+ import Icon from '~/vue_shared/components/icon.vue';
+diff --git a/app/assets/javascripts/reports/components/modal.vue b/app/assets/javascripts/reports/components/modal.vue
+index 162421b037f..902efd3b142 100644
+--- a/app/assets/javascripts/reports/components/modal.vue
++++ b/app/assets/javascripts/reports/components/modal.vue
+@@ -48,6 +48,8 @@ export default {
+           </template>
+ 
+           <template v-else-if="field.type === $options.fieldTypes.miliseconds">
++            <!-- NOTE: We probably dont want to translate units of measure? -->
++            <!-- eslint-disable-next-line @gitlab/vue-i18n/no-bare-strings  -->
+             {{ field.value }} ms
+           </template>
+ 
+diff --git a/app/assets/javascripts/reports/components/report_link.vue b/app/assets/javascripts/reports/components/report_link.vue
+index 052bc53d610..e32e1ac49ca 100644
+--- a/app/assets/javascripts/reports/components/report_link.vue
++++ b/app/assets/javascripts/reports/components/report_link.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ export default {
+   name: 'ReportIssueLink',
+   props: {
+diff --git a/app/assets/javascripts/repository/components/last_commit.vue b/app/assets/javascripts/repository/components/last_commit.vue
+index 26493556063..e2060d4aeec 100644
+--- a/app/assets/javascripts/repository/components/last_commit.vue
++++ b/app/assets/javascripts/repository/components/last_commit.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import { GlTooltipDirective, GlLink, GlButton, GlLoadingIcon } from '@gitlab/ui';
+ import { sprintf, s__ } from '~/locale';
+ import Icon from '../../vue_shared/components/icon.vue';
+diff --git a/app/assets/javascripts/repository/components/table/row.vue b/app/assets/javascripts/repository/components/table/row.vue
+index 6029460d975..171841178a3 100644
+--- a/app/assets/javascripts/repository/components/table/row.vue
++++ b/app/assets/javascripts/repository/components/table/row.vue
+@@ -115,6 +115,7 @@ export default {
+       <component :is="linkComponent" :to="routerLinkTo" :href="url" class="str-truncated">
+         {{ fullPath }}
+       </component>
++      <!-- eslint-disable-next-line @gitlab/vue-i18n/no-bare-strings -->
+       <gl-badge v-if="lfsOid" variant="default" class="label-lfs ml-1">LFS</gl-badge>
+       <template v-if="isSubmodule">
+         @ <gl-link :href="submoduleTreeUrl" class="commit-sha">{{ shortSha }}</gl-link>
+diff --git a/app/assets/javascripts/sidebar/components/assignees/assignees.vue b/app/assets/javascripts/sidebar/components/assignees/assignees.vue
+index 805c21d0965..631e2e28d4d 100644
+--- a/app/assets/javascripts/sidebar/components/assignees/assignees.vue
++++ b/app/assets/javascripts/sidebar/components/assignees/assignees.vue
+@@ -3,6 +3,8 @@ import { __, sprintf } from '~/locale';
+ import tooltip from '~/vue_shared/directives/tooltip';
+ 
+ export default {
++  // name: 'Assignees' is a false positive: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/26#possible-false-positives
++  // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+   name: 'Assignees',
+   directives: {
+     tooltip,
+diff --git a/app/assets/javascripts/vue_merge_request_widget/components/deployment.vue b/app/assets/javascripts/vue_merge_request_widget/components/deployment.vue
+index 5c7859828d8..bb6921225c2 100644
+--- a/app/assets/javascripts/vue_merge_request_widget/components/deployment.vue
++++ b/app/assets/javascripts/vue_merge_request_widget/components/deployment.vue
+@@ -14,6 +14,8 @@ import ReviewAppLink from './review_app_link.vue';
+ import MRWidgetService from '../services/mr_widget_service';
+ 
+ export default {
++  // name: 'Deployment' is a false positive: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/26#possible-false-positives
++  // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+   name: 'Deployment',
+   components: {
+     LoadingButton,
+diff --git a/app/assets/javascripts/vue_merge_request_widget/components/states/mr_widget_merged.vue b/app/assets/javascripts/vue_merge_request_widget/components/states/mr_widget_merged.vue
+index b9562fbc260..fb07c03e34d 100644
+--- a/app/assets/javascripts/vue_merge_request_widget/components/states/mr_widget_merged.vue
++++ b/app/assets/javascripts/vue_merge_request_widget/components/states/mr_widget_merged.vue
+@@ -1,4 +1,5 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
+ import Flash from '~/flash';
+ import tooltip from '~/vue_shared/directives/tooltip';
+ import { s__, __ } from '~/locale';
+@@ -84,6 +85,8 @@ export default {
+         .removeSourceBranch()
+         .then(res => res.data)
+         .then(data => {
++          // False positive i18n lint: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/26
++          // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+           if (data.message === 'Branch was deleted') {
+             eventHub.$emit('MRWidgetUpdateRequested', () => {
+               this.isMakingRequest = false;
+diff --git a/app/assets/javascripts/vue_merge_request_widget/mr_widget_options.vue b/app/assets/javascripts/vue_merge_request_widget/mr_widget_options.vue
+index 8d415c1bbea..f7848a5fced 100644
+--- a/app/assets/javascripts/vue_merge_request_widget/mr_widget_options.vue
++++ b/app/assets/javascripts/vue_merge_request_widget/mr_widget_options.vue
+@@ -40,6 +40,8 @@ import { setFaviconOverlay } from '../lib/utils/common_utils';
+ 
+ export default {
+   el: '#js-vue-mr-widget',
++  // False positive i18n lint: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/25
++  // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+   name: 'MRWidget',
+   components: {
+     'mr-widget-header': WidgetHeader,
+diff --git a/app/assets/javascripts/vue_shared/components/changed_file_icon.vue b/app/assets/javascripts/vue_shared/components/changed_file_icon.vue
+index 15cb0bd9792..cdf2d1020ba 100644
+--- a/app/assets/javascripts/vue_shared/components/changed_file_icon.vue
++++ b/app/assets/javascripts/vue_shared/components/changed_file_icon.vue
+@@ -44,6 +44,8 @@ export default {
+   },
+   computed: {
+     changedIcon() {
++      // False positive i18n lint: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/26
++      // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+       const suffix = !this.file.changed && this.file.staged && !this.showStagedIcon ? '-solid' : '';
+ 
+       if (this.forceModifiedIcon) return `file-modified${suffix}`;
+diff --git a/app/assets/javascripts/vue_shared/components/deprecated_modal.vue b/app/assets/javascripts/vue_shared/components/deprecated_modal.vue
+index d5558d93219..5345c2f9473 100644
+--- a/app/assets/javascripts/vue_shared/components/deprecated_modal.vue
++++ b/app/assets/javascripts/vue_shared/components/deprecated_modal.vue
+@@ -1,5 +1,6 @@
+ <script>
+ /* eslint-disable vue/require-default-prop */
++
+ import { __ } from '~/locale';
+ 
+ export default {
+diff --git a/app/assets/javascripts/vue_shared/components/markdown/header.vue b/app/assets/javascripts/vue_shared/components/markdown/header.vue
+index 56a16c9e4d6..870d3745632 100644
+--- a/app/assets/javascripts/vue_shared/components/markdown/header.vue
++++ b/app/assets/javascripts/vue_shared/components/markdown/header.vue
+@@ -38,10 +38,11 @@ export default {
+   computed: {
+     mdTable() {
+       return [
+-        '| header | header |',
++        // False positive i18n lint: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/26
++        '| header | header |', // eslint-disable-line @gitlab/i18n/no-non-i18n-strings
+         '| ------ | ------ |',
+-        '| cell | cell |',
+-        '| cell | cell |',
++        '| cell | cell |', // eslint-disable-line @gitlab/i18n/no-non-i18n-strings
++        '| cell | cell |', // eslint-disable-line @gitlab/i18n/no-non-i18n-strings
+       ].join('\n');
+     },
+     mdSuggestion() {
+diff --git a/app/assets/javascripts/vue_shared/components/markdown/toolbar.vue b/app/assets/javascripts/vue_shared/components/markdown/toolbar.vue
+index 8ce5b615795..84508170364 100644
+--- a/app/assets/javascripts/vue_shared/components/markdown/toolbar.vue
++++ b/app/assets/javascripts/vue_shared/components/markdown/toolbar.vue
+@@ -1,4 +1,6 @@
+ <script>
++/* eslint-disable @gitlab/vue-i18n/no-bare-strings */
++
+ import { GlLink } from '@gitlab/ui';
+ 
+ export default {
+diff --git a/app/assets/javascripts/vue_shared/components/select2_select.vue b/app/assets/javascripts/vue_shared/components/select2_select.vue
+index 6d2612556ff..eb741d238b5 100644
+--- a/app/assets/javascripts/vue_shared/components/select2_select.vue
++++ b/app/assets/javascripts/vue_shared/components/select2_select.vue
+@@ -3,6 +3,8 @@ import $ from 'jquery';
+ import 'select2';
+ 
+ export default {
++  // False positive i18n lint: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/26
++  // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+   name: 'Select2Select',
+   props: {
+     options: {
+diff --git a/app/assets/javascripts/vue_shared/components/stacked_progress_bar.vue b/app/assets/javascripts/vue_shared/components/stacked_progress_bar.vue
+index 8ba6b73f928..af4eb2de7f8 100644
+--- a/app/assets/javascripts/vue_shared/components/stacked_progress_bar.vue
++++ b/app/assets/javascripts/vue_shared/components/stacked_progress_bar.vue
+@@ -78,6 +78,8 @@ export default {
+       return percent;
+     },
+     barStyle(percent) {
++      // False positive i18n lint: https://gitlab.com/gitlab-org/frontend/eslint-plugin-i18n/issues/26
++      // eslint-disable-next-line @gitlab/i18n/no-non-i18n-strings
+       return `width: ${percent}%;`;
+     },
+     getTooltip(label, count) {
+diff --git a/package.json b/package.json
+index 4264064c93d..0c12e8522f3 100644
+--- a/package.json
++++ b/package.json
+@@ -147,6 +147,7 @@
+     "@babel/plugin-transform-modules-commonjs": "^7.2.0",
+     "@gitlab/eslint-config": "^1.6.0",
+     "@gitlab/eslint-plugin-i18n": "^1.1.0",
++    "@gitlab/eslint-plugin-vue-i18n": "^1.2.0",
+     "@vue/test-utils": "^1.0.0-beta.25",
+     "axios-mock-adapter": "^1.15.0",
+     "babel-jest": "^24.1.0",
+     

@@ -52,11 +52,14 @@ export default {
           :label="s__('ExternalMetrics|Full dashboard URL')"
           :description="s__('ExternalMetrics|Enter the URL of the dashboard you want to link to')"
         >
+          <!-- placeholder with a url is a false positive  -->
+          <!-- eslint-disable @gitlab/vue-i18n/no-bare-attribute-strings -->
           <gl-form-input
             v-model="userDashboardUrl"
             placeholder="https://my-org.gitlab.io/my-dashboards"
             @keydown.enter.native.prevent="updateExternalDashboardUrl"
           />
+          <!-- eslint-enable @gitlab/vue-i18n/no-bare-attribute-strings -->
         </gl-form-group>
         <gl-button variant="success" @click="updateExternalDashboardUrl">
           {{ __('Save Changes') }}

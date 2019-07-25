@@ -1,5 +1,6 @@
 <script>
 /* eslint-disable vue/require-default-prop */
+
 import { __ } from '~/locale';
 
 export default {
