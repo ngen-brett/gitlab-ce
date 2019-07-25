@@ -90,8 +90,6 @@ describe SelfMonitoring::Project::CreateService do
         )
       end
 
-      # This should pass when https://gitlab.com/gitlab-org/gitlab-ce/issues/44496
-      # is complete and the prometheus listen address is added to the whitelist.
       context 'when local requests from hooks and services are not allowed' do
         before do
           allow(ApplicationSetting)
