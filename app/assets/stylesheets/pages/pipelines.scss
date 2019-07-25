@@ -453,6 +453,14 @@
   overflow: auto;
 }
 
+@media (min-width: 1330px) {
+  .tab-pane.full-width {
+    position: absolute;
+    left: 0;
+    width: 100vw;
+  }
+}
+
 // Pipeline graph
 .pipeline-graph {
   white-space: nowrap;
