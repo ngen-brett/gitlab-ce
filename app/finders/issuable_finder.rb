@@ -66,8 +66,13 @@ class IssuableFinder
     @array_params ||= { label_name: [], assignee_username: [] }
   end
 
+  def self.negatable_params
+    # tested working: author, SCALAR assignee, milestone, label, my_reaction_emoji, confidential, target_branch
+    @negatable_params ||= { not: scalar_params + [array_params] }
+  end
+
   def self.valid_params
-    @valid_params ||= scalar_params + [array_params]
+    @valid_params ||= scalar_params + [array_params] + [negatable_params]
   end
 
   def initialize(current_user, params = {})
@@ -78,6 +83,9 @@ class IssuableFinder
   def execute
     items = init_collection
     items = filter_items(items)
+
+    # Let's see if we have to negate anything
+    items = by_negation(items)
 
     # This has to be last as we use a CTE as an optimization fence
     # for counts by passing the force_cte param and enabling the
@@ -351,6 +359,15 @@ class IssuableFinder
   def count_key(value)
     Array(value).last.to_sym
   end
+
+  # rubocop: disable CodeReuse/ActiveRecord
+  def by_negation(items)
+    return items unless params[:not].present?
+
+    items_to_negate = self.class.new(current_user, params[:not]).execute
+    items.where.not(id: items_to_negate)
+  end
+  # rubocop: enable CodeReuse/ActiveRecord
 
   # rubocop: disable CodeReuse/ActiveRecord
   def by_scope(items)
