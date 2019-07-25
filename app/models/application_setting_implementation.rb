@@ -162,6 +162,8 @@ module ApplicationSettingImplementation
 
   def outbound_local_requests_whitelist_arrays
     strong_memoize(:outbound_local_requests_whitelist_arrays) do
+      next [[], []] unless self.outbound_local_requests_whitelist
+
       ip_whitelist = []
       domain_whitelist = []
 
@@ -283,6 +285,8 @@ module ApplicationSettingImplementation
   end
 
   def domain_strings_to_array(values)
+    return [] unless values
+
     values
       .split(DOMAIN_LIST_SEPARATOR)
       .reject(&:empty?)
