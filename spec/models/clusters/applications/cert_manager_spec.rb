@@ -13,7 +13,7 @@ describe Clusters::Applications::CertManager do
   describe '#can_uninstall?' do
     subject { cert_manager.can_uninstall? }
 
-    it { is_expected.to be_falsey }
+    it { is_expected.to be_truthy }
   end
 
   describe '#install_command' do
@@ -76,6 +76,41 @@ describe Clusters::Applications::CertManager do
 
       it 'is initialized with the locked version' do
         expect(subject.version).to eq('v0.5.2')
+      end
+    end
+  end
+
+  describe '#uninstall_command' do
+    subject { cert_manager.uninstall_command }
+
+    it { is_expected.to be_an_instance_of(Gitlab::Kubernetes::Helm::DeleteCommand) }
+
+    it 'is initialized with cert_manager arguments' do
+      expect(subject.name).to eq('certmanager')
+      expect(subject).to be_rbac
+      expect(subject.files).to eq(cert_manager.files)
+    end
+
+    it 'specifies a post delete command to remove custom resource definitions' do
+      expect(subject.postdelete).to eq([
+        "kubectl delete secret -n gitlab-managed-apps letsencrypt-prod",
+        'kubectl delete crd certificates.certmanager.k8s.io',
+        'kubectl delete crd clusterissuers.certmanager.k8s.io',
+        'kubectl delete crd issuers.certmanager.k8s.io'
+      ])
+    end
+
+    context 'secret key name is not found' do
+      before do
+        allow(cert_manager).to receive(:cluster_issuer_content).and_return({})
+      end
+
+      it 'does not try and delete the secret' do
+        expect(subject.postdelete).to eq([
+          'kubectl delete crd certificates.certmanager.k8s.io',
+          'kubectl delete crd clusterissuers.certmanager.k8s.io',
+          'kubectl delete crd issuers.certmanager.k8s.io'
+        ])
       end
     end
   end
