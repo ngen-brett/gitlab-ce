@@ -7,6 +7,7 @@ module Clusters
       REPOSITORY = 'https://storage.googleapis.com/triggermesh-charts'.freeze
       METRICS_CONFIG = 'https://storage.googleapis.com/triggermesh-charts/istio-metrics.yaml'.freeze
       FETCH_IP_ADDRESS_DELAY = 30.seconds
+      API_RESOURCES_PATH = 'config/knative/api_resources.yml'
 
       self.table_name = 'clusters_applications_knative'
 
@@ -104,10 +105,15 @@ module Clusters
       end
 
       def delete_knative_and_istio_crds
-        [
-          "kubectl api-resources -o name | grep knative | xargs kubectl delete crd",
-          "kubectl api-resources -o name | grep istio | xargs kubectl delete crd"
-        ]
+        api_resources.map do |crd|
+          "kubectl delete crd #{crd}"
+        end
+      end
+
+      # returns an array of CRDs to be postdelete since helm does not
+      # manage the CRDs it creates.
+      def api_resources
+        @api_resources ||= YAML.safe_load(File.read(Rails.root.join(API_RESOURCES_PATH)))
       end
 
       def install_knative_metrics

@@ -154,14 +154,18 @@ describe Clusters::Applications::Knative do
     end
 
     it "initializes command with all necessary postdelete script" do
+      api_resources = YAML.safe_load(File.read(Rails.root.join(Clusters::Applications::Knative::API_RESOURCES_PATH)))
+
       remove_knative_istio_leftovers_script = [
         "kubectl delete ns knative-serving",
-        "kubectl delete ns knative-build",
-        "kubectl api-resources -o name | grep knative | xargs kubectl delete crd",
-        "kubectl api-resources -o name | grep istio | xargs kubectl delete crd"
+        "kubectl delete ns knative-build"
       ]
 
-      expect(subject.postdelete).to eq(remove_knative_istio_leftovers_script)
+      full_delete_commands_size = api_resources.size + remove_knative_istio_leftovers_script.size
+
+      expect(subject.postdelete).to include(*remove_knative_istio_leftovers_script)
+      expect(subject.postdelete.size).to eq(full_delete_commands_size)
+      expect(subject.postdelete[2]).to eq("kubectl delete crd #{api_resources[0]}")
     end
   end
 
