@@ -58,6 +58,14 @@ RSpec.shared_examples 'application settings examples' do
 
   context 'outbound_local_requests_whitelist' do
     it_behaves_like 'string of domains', :outbound_local_requests_whitelist
+
+    it 'clears outbound_local_requests_whitelist_arrays memoization' do
+      setting.outbound_local_requests_whitelist_raw = 'example.com'
+      expect(setting.outbound_local_requests_whitelist_arrays).to contain_exactly([], ['example.com'])
+
+      setting.outbound_local_requests_whitelist_raw = 'gitlab.com'
+      expect(setting.outbound_local_requests_whitelist_arrays).to contain_exactly([], ['gitlab.com'])
+    end
   end
 
   context 'outbound_local_requests_whitelist_arrays' do
@@ -74,6 +82,38 @@ RSpec.shared_examples 'application settings examples' do
       domain_whitelist = ['www.example.com', 'example.com', 'subdomain.example.com']
 
       expect(setting.outbound_local_requests_whitelist_arrays).to contain_exactly(ip_whitelist, domain_whitelist)
+    end
+  end
+
+  context 'add_to_outbound_local_requests_whitelist' do
+    it 'adds entry to outbound_local_requests_whitelist' do
+      setting.outbound_local_requests_whitelist = ['example.com']
+
+      expect(setting.outbound_local_requests_whitelist).to contain_exactly('example.com')
+      expect(setting.outbound_local_requests_whitelist_arrays).to contain_exactly(
+        [],
+        ['example.com']
+      )
+
+      setting.add_to_outbound_local_requests_whitelist(['example.com', '127.0.0.1', 'gitlab.com'])
+
+      expect(setting.outbound_local_requests_whitelist).to contain_exactly(
+        'example.com',
+        '127.0.0.1',
+        'gitlab.com'
+      )
+      expect(setting.outbound_local_requests_whitelist_arrays).to contain_exactly(
+        [Gitlab::Utils.string_to_ip_object('127.0.0.1')],
+        ['example.com', 'gitlab.com']
+      )
+    end
+
+    it 'does not raise error with nil' do
+      setting.outbound_local_requests_whitelist = nil
+      setting.add_to_outbound_local_requests_whitelist(['gitlab.com'])
+
+      expect(setting.outbound_local_requests_whitelist).to contain_exactly('gitlab.com')
+      expect(setting.outbound_local_requests_whitelist_arrays).to contain_exactly([], ['gitlab.com'])
     end
   end
 
