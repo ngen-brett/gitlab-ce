@@ -56,3 +56,6 @@ of the design, and will replace the previous version.
 
 Images on the Design Management page can be enlarged by clicking on them.
 
+## Viewing versions
+
+Different versions of the design images can be viewed by clicking the **version** dropdown.
