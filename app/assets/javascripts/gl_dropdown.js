@@ -545,6 +545,14 @@ GitLabDropdown = (function() {
     if (group == null) {
       group = false;
     }
+    if (this.el.dataset.selected) {
+      const selectedAll = this.el.dataset.selected.split(',');
+      selectedAll.each(selected => {
+        const selectedIndex = data.findIndex(entry => entry.name_with_namespace === selected);
+        data.splice(2, 0, data[selectedIndex]);
+        data.splice(selectedIndex + 1, 1);
+      });
+    }
     return data.map(
       (function(_this) {
         return function(obj, index) {
