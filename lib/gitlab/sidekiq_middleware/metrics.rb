@@ -15,12 +15,11 @@ module Gitlab
           @metrics[:sidekiq_jobs_retried_total].increment(labels, 1)
         end
 
-        benchmark = Benchmark.measure do
+        realtime = Benchmark.realtime do
           yield
         end
 
-        @metrics[:sidekiq_jobs_completion_seconds].observe(labels, benchmark.real)
-        Sidekiq.logger.info(user_time: benchmark.utime + benchmark.cutime, system_time: benchmark.stime + benchmark.cstime)
+        @metrics[:sidekiq_jobs_completion_seconds].observe(labels, realtime)
       rescue Exception # rubocop: disable Lint/RescueException
         @metrics[:sidekiq_jobs_failed_total].increment(labels, 1)
         raise
