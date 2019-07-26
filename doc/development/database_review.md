@@ -96,6 +96,8 @@ and details for a database reviewer:
 - Check background migrations
   - Review queries (for example, make sure batch sizes are fine)
   - Establish a time estimate for execution
+  - It's recommended the background migration to be a post migration, located on `db/post_migrate` instead of `db/migrate`.
+    Post migrations are executed post-deployment in production.
 - Query performance
   - Check for any obviously complex queries and queries the author specifically
     points out for review (if any)
@@ -110,3 +112,6 @@ and details for a database reviewer:
     (eg indexes, columns), you can use a [one-off instance from the restore
     pipeline](https://ops.gitlab.net/gitlab-com/gl-infra/gitlab-restore/postgres-gprd)
     in order to establish a proper testing environment.
+- When updating records on a table:
+    - It's recommended to do it in a background migration, but if a single `update` is below than `1s`
+      the query can be placed directly in a regular migration  (inside `db/migrate`).
