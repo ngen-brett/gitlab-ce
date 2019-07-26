@@ -1,11 +1,21 @@
 <script>
 import { __, sprintf } from '~/locale';
 import tooltip from '~/vue_shared/directives/tooltip';
+import uncollapsedAssignee from '../assignees/uncollapsed_assignee.vue';
+import collapsedAssignee from '../assignees/collapsed_assignee.vue';
+import assigneeAvatar from '../assignees/assignee_avatar.vue';
+import uncollapsedSingleAssignee from '../assignees/uncollapsed_single_assignee.vue';
 
 export default {
   name: 'Assignees',
   directives: {
     tooltip,
+  },
+  components: {
+    uncollapsedAssignee,
+    collapsedAssignee,
+    assigneeAvatar,
+    uncollapsedSingleAssignee,
   },
   props: {
     rootPath: {
@@ -66,20 +76,38 @@ export default {
       return sprintf(__('+ %{numberOfHiddenAssignees} more'), { numberOfHiddenAssignees });
     },
     collapsedTooltipTitle() {
-      const maxRender = Math.min(this.defaultRenderCount, this.users.length);
-      const renderUsers = this.users.slice(0, maxRender);
+      const maxRender = Math.min(this.defaultRenderCount, this.sortedAssigness.length);
+      const renderUsers = this.sortedAssigness.slice(0, maxRender);
+
+      if (!renderUsers.length) {
+        return __('Assignee(s)');
+      }
+
+      if (renderUsers.length === 1) {
+        const [user] = renderUsers;
+        const mergeStatus = user.can_merge ? __('can merge') : __('cannot merge');
+        return sprintf(__('%{userName} (%{mergeStatus})'), { userName: user.name, mergeStatus });
+      }
+
       const names = renderUsers.map(u => u.name);
+      const mergeLength = this.users.filter(u => u.can_merge).length;
 
       if (this.users.length > maxRender) {
         names.push(`+ ${this.users.length - maxRender} more`);
       }
 
-      if (!this.users.length) {
-        const emptyTooltipLabel = __('Assignee(s)');
-        names.push(emptyTooltipLabel);
+      let mergeStatus = '';
+
+      if (mergeLength > 0) {
+        mergeStatus = sprintf(__('%{mergeLength}/%{usersLength} can merge'), {
+          mergeLength,
+          usersLength: this.sortedAssigness.length,
+        });
+      } else {
+        mergeStatus = __('no one can merge');
       }
 
-      return names.join(', ');
+      return `${names.join(', ')} (${mergeStatus})`;
     },
     sidebarAvatarCounter() {
       let counter = `+${this.users.length - 1}`;
@@ -90,29 +118,20 @@ export default {
 
       return counter;
     },
-    mergeNotAllowedTooltipMessage() {
+    moreThanTwoAssigneesCanMerge() {
       const assigneesCount = this.users.length;
 
-      if (this.issuableType !== 'merge_request' || assigneesCount === 0) {
-        return null;
+      if (this.issuableType !== 'merge_request' || assigneesCount <= 1) {
+        return false;
       }
 
-      const cannotMergeCount = this.users.filter(u => u.can_merge === false).length;
-      const canMergeCount = assigneesCount - cannotMergeCount;
+      return this.sortedAssigness.slice(1).some(user => !user.can_merge);
+    },
+    sortedAssigness() {
+      const canMergeUsers = this.users.filter(user => user.can_merge);
+      const canNotMergeUsers = this.users.filter(user => !user.can_merge);
 
-      if (canMergeCount === assigneesCount) {
-        // Everyone can merge
-        return null;
-      } else if (cannotMergeCount === assigneesCount && assigneesCount > 1) {
-        return __('No one can merge');
-      } else if (assigneesCount === 1) {
-        return __('Cannot merge');
-      }
-
-      return sprintf(__('%{canMergeCount}/%{assigneesCount} can merge'), {
-        canMergeCount,
-        assigneesCount,
-      });
+      return [...canMergeUsers, ...canNotMergeUsers];
     },
   },
   methods: {
@@ -121,26 +140,6 @@ export default {
     },
     toggleShowLess() {
       this.showLess = !this.showLess;
-    },
-    renderAssignee(index) {
-      return !this.showLess || (index < this.defaultRenderCount && this.showLess);
-    },
-    avatarUrl(user) {
-      return user.avatar || user.avatar_url || gon.default_avatar_url;
-    },
-    assigneeUrl(user) {
-      return `${this.rootPath}${user.username}`;
-    },
-    assigneeAlt(user) {
-      return sprintf(__("%{userName}'s avatar"), { userName: user.name });
-    },
-    assigneeUsername(user) {
-      return `@${user.username}`;
-    },
-    shouldRenderCollapsedAssignee(index) {
-      const firstTwo = this.users.length <= 2 && index <= 2;
-
-      return index === 0 || firstTwo;
     },
   },
 };
@@ -158,35 +157,24 @@ export default {
       data-boundary="viewport"
     >
       <i v-if="hasNoUsers" :aria-label="__('None')" class="fa fa-user"> </i>
-      <button
-        v-for="(user, index) in users"
-        v-if="shouldRenderCollapsedAssignee(index)"
+      <collapsed-assignee
+        v-for="(user, index) in sortedAssigness"
         :key="user.id"
-        type="button"
-        class="btn-link"
-      >
-        <img
-          :alt="assigneeAlt(user)"
-          :src="avatarUrl(user)"
-          width="24"
-          class="avatar avatar-inline s24"
-        />
-        <span class="author"> {{ user.name }} </span>
-      </button>
+        :user="user"
+        :index="index"
+        :length="sortedAssigness.length"
+      />
       <button v-if="hasMoreThanTwoAssignees" class="btn-link" type="button">
         <span class="avatar-counter sidebar-avatar-counter"> {{ sidebarAvatarCounter }} </span>
+        <i
+          v-if="moreThanTwoAssigneesCanMerge"
+          aria-hidden="true"
+          data-hidden="true"
+          class="fa fa-exclamation-triangle merge-icon"
+        ></i>
       </button>
     </div>
     <div class="value hide-collapsed">
-      <span
-        v-if="mergeNotAllowedTooltipMessage"
-        v-tooltip
-        :title="mergeNotAllowedTooltipMessage"
-        data-placement="left"
-        class="float-right cannot-be-merged"
-      >
-        <i aria-hidden="true" data-hidden="true" class="fa fa-exclamation-triangle"></i>
-      </span>
       <template v-if="hasNoUsers">
         <span class="assign-yourself no-value qa-assign-yourself">
           {{ __('None') }}
@@ -199,40 +187,19 @@ export default {
         </span>
       </template>
       <template v-else-if="hasOneUser">
-        <a :href="assigneeUrl(firstUser)" class="author-link bold">
-          <img
-            :alt="assigneeAlt(firstUser)"
-            :src="avatarUrl(firstUser)"
-            width="32"
-            class="avatar avatar-inline s32"
-          />
-          <span class="author"> {{ firstUser.name }} </span>
-          <span class="username"> {{ assigneeUsername(firstUser) }} </span>
-        </a>
+        <uncollapsed-single-assignee :user="firstUser" :root-path="rootPath" />
       </template>
       <template v-else>
         <div class="user-list">
-          <div
-            v-for="(user, index) in users"
-            v-if="renderAssignee(index)"
+          <uncollapsed-assignee
+            v-for="(user, index) in sortedAssigness"
             :key="user.id"
-            class="user-item"
-          >
-            <a
-              :href="assigneeUrl(user)"
-              :data-title="user.name"
-              class="user-link has-tooltip"
-              data-container="body"
-              data-placement="bottom"
-            >
-              <img
-                :alt="assigneeAlt(user)"
-                :src="avatarUrl(user)"
-                width="32"
-                class="avatar avatar-inline s32"
-              />
-            </a>
-          </div>
+            :user="user"
+            :index="index"
+            :default-render-count="defaultRenderCount"
+            :show-less="showLess"
+            :root-path="rootPath"
+          />
         </div>
         <div v-if="renderShowMoreSection" class="user-list-more">
           <button type="button" class="btn-link" @click="toggleShowLess">

@@ -126,6 +126,15 @@
   }
 }
 
+.assignee {
+  .merge-icon {
+    color: $orange-500;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+}
+
 .right-sidebar {
   position: fixed;
   top: $header-height;
@@ -202,19 +211,12 @@
     &.assignee {
       .author-link {
         display: block;
-        padding-left: 42px;
         position: relative;
 
         &:hover {
           .author {
             text-decoration: underline;
           }
-        }
-
-        .avatar {
-          left: 0;
-          position: absolute;
-          top: 0;
         }
       }
     }
@@ -354,11 +356,16 @@
       margin-top: 0;
     }
 
-    .assignee .avatar {
+    .assignee .avatar-wrap {
       float: left;
       margin-right: 10px;
       margin-bottom: 0;
       margin-left: 0;
+      position: relative;
+
+      .merge-icon {
+        right: 10px;
+      }
     }
 
     .assignee .user-list .avatar {
@@ -515,10 +522,18 @@
           margin: 0;
         }
       }
+
+      .btn-link {
+        position: relative;
+      }
     }
 
     .issuable-header-btn {
       display: none;
+    }
+
+    .merge-icon {
+      font-size: 10px;
     }
 
     .multiple-users {
@@ -655,6 +670,13 @@
 
   .user-link {
     display: inline-block;
+    position: relative;
+  }
+
+  .merge-icon {
+    position: absolute;
+    bottom: 0;
+    right: 0;
   }
 }
 

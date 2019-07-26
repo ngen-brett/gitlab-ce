@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Assignee from '~/sidebar/components/assignees/assignees.vue';
-import UsersMock from './mock_data';
+import UsersMock, { userDataMock } from './mock_data';
 import UsersMockHelper from '../helpers/user_mock_data_helper';
 
 describe('Assignee component', () => {
@@ -119,20 +119,6 @@ describe('Assignee component', () => {
       );
     });
 
-    it('has the root url present in the assigneeUrl method', () => {
-      component = new AssigneeComponent({
-        propsData: {
-          rootPath: 'http://localhost:3000/',
-          users: [UsersMock.user],
-          editable: true,
-        },
-      }).$mount();
-
-      expect(component.assigneeUrl(UsersMock.user).indexOf('http://localhost:3000/')).not.toEqual(
-        -1,
-      );
-    });
-
     it('has correct "cannot merge" tooltip when user cannot merge', () => {
       const user = Object.assign({}, UsersMock.user, { can_merge: false });
 
@@ -145,7 +131,7 @@ describe('Assignee component', () => {
         },
       }).$mount();
 
-      expect(component.mergeNotAllowedTooltipMessage).toEqual('Cannot merge');
+      expect(component.collapsedTooltipTitle).toContain('cannot merge');
     });
   });
 
@@ -165,7 +151,7 @@ describe('Assignee component', () => {
         },
       }).$mount();
 
-      expect(component.mergeNotAllowedTooltipMessage).toEqual('1/3 can merge');
+      expect(component.collapsedTooltipTitle).toContain('1/3 can merge');
     });
 
     it('has correct "cannot merge" tooltip when no user can merge', () => {
@@ -182,7 +168,7 @@ describe('Assignee component', () => {
         },
       }).$mount();
 
-      expect(component.mergeNotAllowedTooltipMessage).toEqual('No one can merge');
+      expect(component.collapsedTooltipTitle).toContain('no one can merge');
     });
 
     it('has correct "cannot merge" tooltip when more than one user can merge', () => {
@@ -200,7 +186,7 @@ describe('Assignee component', () => {
         },
       }).$mount();
 
-      expect(component.mergeNotAllowedTooltipMessage).toEqual('2/3 can merge');
+      expect(component.collapsedTooltipTitle).toContain('2/3 can merge');
     });
 
     it('has no "cannot merge" tooltip when every user can merge', () => {
@@ -217,7 +203,7 @@ describe('Assignee component', () => {
         },
       }).$mount();
 
-      expect(component.mergeNotAllowedTooltipMessage).toEqual(null);
+      expect(component.collapsedTooltipTitle).not.toContain('cannot merge');
     });
 
     it('displays two assignee icons when collapsed', () => {
@@ -294,6 +280,27 @@ describe('Assignee component', () => {
       expect(component.$el.querySelectorAll('.user-item').length).toEqual(users.length);
       expect(component.$el.querySelector('.user-list-more')).toBe(null);
     });
+
+    it('shows sorted assignee where "can merge" users are sorted first', () => {
+      const user1 = {
+        ...userDataMock,
+        ...{ can_merge: false, id: 2 },
+      };
+      const user2 = userDataMock;
+      const users = [user1, user2];
+
+      component = new AssigneeComponent({
+        propsData: {
+          rootPath: 'http://localhost:3000',
+          users,
+          editable: true,
+        },
+      }).$mount();
+
+      expect(component.sortedAssigness[0].can_merge).toBe(true);
+    });
+
+    it('has the correct merge people tooltip ', () => {});
 
     it('sets tooltip container to body', () => {
       const users = UsersMockHelper.createNumberRandomUsers(2);

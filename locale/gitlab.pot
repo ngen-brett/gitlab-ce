@@ -128,9 +128,6 @@ msgstr[1] ""
 msgid "%{actionText} & %{openOrClose} %{noteable}"
 msgstr ""
 
-msgid "%{canMergeCount}/%{assigneesCount} can merge"
-msgstr ""
-
 msgid "%{commit_author_link} authored %{commit_timeago}"
 msgstr ""
 
@@ -197,6 +194,12 @@ msgid "%{loadingIcon} Started"
 msgstr ""
 
 msgid "%{lock_path} is locked by GitLab User %{lock_user_id}"
+msgstr ""
+
+msgid "%{mergeLength}/%{usersLength} can merge"
+msgstr ""
+
+msgid "%{mergeStatus}"
 msgstr ""
 
 msgid "%{mrText}, this issue will be closed automatically."
@@ -274,6 +277,9 @@ msgid "%{unstaged} unstaged and %{staged} staged changes"
 msgstr ""
 
 msgid "%{usage_ping_link_start}Learn more%{usage_ping_link_end} about what information is shared with GitLab Inc."
+msgstr ""
+
+msgid "%{userName} (%{mergeStatus})"
 msgstr ""
 
 msgid "%{userName}'s avatar"
@@ -1943,6 +1949,9 @@ msgid "CONTRIBUTING"
 msgstr ""
 
 msgid "Callback URL"
+msgstr ""
+
+msgid "Can merge"
 msgstr ""
 
 msgid "Can't find HEAD commit for this branch"
@@ -7180,9 +7189,6 @@ msgid "No messages were logged"
 msgstr ""
 
 msgid "No milestones to show"
-msgstr ""
-
-msgid "No one can merge"
 msgstr ""
 
 msgid "No other labels with such name or description"
@@ -13093,6 +13099,9 @@ msgstr ""
 msgid "by"
 msgstr ""
 
+msgid "can merge"
+msgstr ""
+
 msgid "cannot be changed if a personal project has container registry tags."
 msgstr ""
 
@@ -13100,6 +13109,9 @@ msgid "cannot be enabled unless all domains have TLS certificates"
 msgstr ""
 
 msgid "cannot include leading slash or directory traversal."
+msgstr ""
+
+msgid "cannot merge"
 msgstr ""
 
 msgid "comment"
@@ -13527,6 +13539,9 @@ msgid "new merge request"
 msgstr ""
 
 msgid "no contributions"
+msgstr ""
+
+msgid "no one can merge"
 msgstr ""
 
 msgid "none"
