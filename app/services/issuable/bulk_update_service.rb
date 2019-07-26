@@ -29,7 +29,7 @@ module Issuable
       items.each do |issuable|
         next unless can?(current_user, :"update_#{type}", issuable)
 
-        update_class.new(issuable.project, current_user, params).execute(issuable)
+        update_class.new(parent(issuable), current_user, params.to_h).execute(issuable)
       end
 
       {
@@ -50,5 +50,11 @@ module Issuable
         attrs.push(:assignee_id)
       end
     end
+
+    def parent(issuable)
+      issuable.project if issuable.respond_to?(:project)
+    end
   end
 end
+
+Issuable::BulkUpdateService.prepend(EE::Issuable::BulkUpdateService)
