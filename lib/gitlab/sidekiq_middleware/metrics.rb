@@ -7,9 +7,9 @@ module Gitlab
         @metrics = init_metrics
       end
 
-      def call(worker, job, queue)
+      def call(_worker, job, queue)
         labels = create_labels(queue)
-        @metrics[:sidekiq_jobs_started_total].increment(labels, 1)
+        @metrics[:sidekiq_running_jobs].increment(labels, 1)
 
         if job['retry_count'].present?
           @metrics[:sidekiq_jobs_retried_total].increment(labels, 1)
@@ -19,12 +19,13 @@ module Gitlab
           yield
         end
 
-        @metrics[:sidekiq_jobs_completion_seconds].observe(labels.merge(type: 'user'), benchmark.utime + benchmark.cutime)
-        @metrics[:sidekiq_jobs_completion_seconds].observe(labels.merge(type: 'system'), benchmark.stime + benchmark.cstime)
-        @metrics[:sidekiq_jobs_completion_seconds].observe(labels.merge(type: 'real'), benchmark.real)
+        @metrics[:sidekiq_jobs_completion_seconds].observe(labels, benchmark.real)
+        Sidekiq.logger.info(user_time: benchmark.utime + benchmark.cutime, system_time: benchmark.stime + benchmark.cstime)
       rescue Exception # rubocop: disable Lint/RescueException
         @metrics[:sidekiq_jobs_failed_total].increment(labels, 1)
         raise
+      ensure
+        @metrics[:sidekiq_running_jobs].increment(labels, -1)
       end
 
       private
@@ -34,7 +35,7 @@ module Gitlab
           sidekiq_jobs_completion_seconds: ::Gitlab::Metrics.histogram(:sidekiq_jobs_completion_seconds, 'Seconds to complete sidekiq job'),
           sidekiq_jobs_failed_total:       ::Gitlab::Metrics.counter(:sidekiq_jobs_failed_total, 'Sidekiq jobs failed'),
           sidekiq_jobs_retried_total:      ::Gitlab::Metrics.counter(:sidekiq_jobs_retried_total, 'Sidekiq jobs retried'),
-          sidekiq_jobs_started_total:      ::Gitlab::Metrics.counter(:sidekiq_jobs_started_total, 'Sidekiq jobs started')
+          sidekiq_running_jobs:            ::Gitlab::Metrics.gauge(:sidekiq_running_jobs, 'Number of Sidekiq jobs running', {}, :livesum)
         }
       end
 
