@@ -44,6 +44,14 @@ shared_examples 'issuable notes filter' do
     expect(user.reload.notes_filter_for(issuable)).to eq(0)
   end
 
+  it 'does not set notes filter when persist_filter param is false' do
+    notes_filter = UserPreference::NOTES_FILTERS[:only_comments]
+
+    get :discussions, params: params.merge(notes_filter: notes_filter, persist_filter: false)
+
+    expect(user.reload.notes_filter_for(issuable)).to eq(0)
+  end
+
   it 'returns only user comments' do
     user.set_notes_filter(UserPreference::NOTES_FILTERS[:only_comments], issuable)
 
