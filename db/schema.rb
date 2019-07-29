@@ -2820,6 +2820,7 @@ ActiveRecord::Schema.define(version: 2019_07_25_012225) do
     t.string "name", null: false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean "merge_requests_require_code_owner_approval"
     t.index ["project_id"], name: "index_protected_branches_on_project_id"
   end
 
