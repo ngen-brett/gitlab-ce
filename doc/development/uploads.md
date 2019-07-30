@@ -134,7 +134,6 @@ sequenceDiagram
 
 ## How to select the proper level of acceleration.
 
-I can think of 3 major use cases here:
 1. **storage:** we are uploading for storing a file (i.e. artifacts, packages, discussion attachments). In this case Object Storage acceleration is the proper level as it's the less resource-intensive operation.
 1. **in-controller/synchronous processing:** if we allow processing **small files** synchronously, using workhorse disk acceleration may speed up development.
 1. **sidekiq/asynchronous processing:** Async processing should implement Object Storage acceleration, the reason being that it will support ~"Cloud Native" deployment out of the box. In the name of the iteration value, we could start with a disk-based acceleration but it will not work on ~"Cloud Native" and it will require NFS on a traditional multi-VM setup
