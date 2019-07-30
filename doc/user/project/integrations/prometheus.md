@@ -94,11 +94,19 @@ GitLab will automatically scan the Prometheus server for metrics from known serv
 
 You can view the performance dashboard for an environment by [clicking on the monitoring button](../../../ci/environments.md#monitoring-environments).
 
-### Adding additional metrics **(PREMIUM)**
+### Adding custom metrics **(PREMIUM)**
 
 > [Introduced](https://gitlab.com/gitlab-org/gitlab-ee/merge_requests/3799) in [GitLab Premium](https://about.gitlab.com/pricing/) 10.6.
 
-Additional metrics can be monitored by adding them on the Prometheus integration page. Once saved, they will be displayed on the environment performance dashboard.
+Custom metrics can be monitored by adding them on the Prometheus integration page. Once saved, they will be displayed on the environment performance dashboard.
+
+#### Requirements
+
+- A [connected Kubernetes cluster](../clusters/index.md) with *environment_scope* `*` and with [Prometheus installed](prometheus#enabling-prometheus-integration)
+
+  **OR**
+
+- A [manually configured Prometheus](prometheus#manual-configuration-of-prometheus)
 
 ![Add New Metric](img/prometheus_add_metric.png)
 
