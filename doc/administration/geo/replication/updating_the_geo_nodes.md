@@ -10,8 +10,6 @@ all you need to do is update GitLab itself:
 
 1. Log into each node (**primary** and **secondary** nodes).
 1. [Update GitLab][update].
-1. [Update tracking database on **secondary** node](#update-tracking-database-on-secondary-node) when
-   the tracking database is enabled.
 1. [Test](#check-status-after-updating) **primary** and **secondary** nodes, and check version in each.
 
 ## Upgrading to GitLab 12.1
@@ -23,6 +21,21 @@ This can be temporarily disabled by running the following before ugprading:
 ```sh
 sudo touch /etc/gitlab/disable-postgresql-upgrade
 ```
+
+### Check status after updating
+
+Now that the update process is complete, you may want to check whether
+everything is working correctly:
+
+1. Run the Geo raketask on all nodes, everything should be green:
+
+   ```sh
+   sudo gitlab-rake gitlab:geo:check
+   ```
+
+1. Check the **primary** node's Geo dashboard for any errors.
+1. Test the data replication by pushing code to the **primary** node and see if it
+   is received by **secondary** nodes.
 
 ## Upgrading to GitLab 10.8
 
@@ -418,21 +431,6 @@ is prepended with the relevant node for better clarity:
    ```sh
    sudo gitlab-ctl start
    ```
-
-### Check status after updating
-
-Now that the update process is complete, you may want to check whether
-everything is working correctly:
-
-1. Run the Geo raketask on all nodes, everything should be green:
-
-   ```sh
-   sudo gitlab-rake gitlab:geo:check
-   ```
-
-1. Check the **primary** node's Geo dashboard for any errors.
-1. Test the data replication by pushing code to the **primary** node and see if it
-   is received by **secondary** nodes.
 
 ### Update tracking database on **secondary** node
 
