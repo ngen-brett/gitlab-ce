@@ -6,7 +6,11 @@ module Gitlab
   module Metrics
     module Samplers
       class RubySampler < BaseSampler
+        GC_REPORT_BUCKETS = [0.001, 0.002, 0.005, 0.01, 0.05, 0.1, 0.5].freeze
+
         def initialize(interval)
+          @last_gc_stat_count = GC.stat[:count]
+
           metrics[:process_start_time_seconds].set(labels, Time.now.to_i)
 
           super
@@ -37,7 +41,8 @@ module Gitlab
             process_resident_memory_bytes:  ::Gitlab::Metrics.gauge(with_prefix(:process, :resident_memory_bytes), 'Memory used', labels),
             process_start_time_seconds:     ::Gitlab::Metrics.gauge(with_prefix(:process, :start_time_seconds), 'Process start time seconds'),
             sampler_duration:               ::Gitlab::Metrics.counter(with_prefix(:sampler, :duration_seconds_total), 'Sampler time', labels),
-            total_time:                     ::Gitlab::Metrics.counter(with_prefix(:gc, :duration_seconds_total), 'Total GC time', labels)
+            gc_cycle_time:                  ::Gitlab::Metrics.histogram(with_prefix(:gc, :cycle_seconds), 'GC time', labels, GC_REPORT_BUCKETS),
+            gc_missed_cycles:               ::Gitlab::Metrics.counter(with_prefix(:gc, :missed_cycles), 'Missed GC cycles', labels)
           }
 
           GC.stat.keys.each do |key|
@@ -57,20 +62,48 @@ module Gitlab
           sample_gc
 
           metrics[:sampler_duration].increment(labels, System.monotonic_time - start_time)
-        ensure
-          GC::Profiler.clear
         end
 
         private
 
         def sample_gc
+          ### TODO: debug print
+          p "--> #SAMPLE_GC"
+          p "--> PROFILER DISABLED!" unless GC::Profiler.enabled?
+          ###
+
+          GC::Profiler.enable
+
+          gc_reports = sample_gc_reports
+          gc_stat = GC.stat
+
+          ### TODO: debug print
+          tmp_missed_cycles = gc_stat[:count] - @last_gc_stat_count - gc_reports.size
+          p "--> MISSED_CYCLES: #{tmp_missed_cycles}"
+          ###
+
+          # Get a number of missed GC samples
+          metrics[:gc_missed_cycles].increment(labels,
+            gc_stat[:count] - @last_gc_stat_count - gc_reports.size)
+          @last_gc_stat_count = gc_stat[:count]
+
           # Collect generic GC stats.
-          GC.stat.each do |key, value|
+          gc_stat.each do |key, value|
             metrics[key].set(labels, value)
           end
 
-          # Collect the GC time since last sample in float seconds.
-          metrics[:total_time].increment(labels, GC::Profiler.total_time)
+          # Observe all GC samples
+          gc_reports.each do |report|
+            # TODO: debug print
+            p "---> report[:GC_TIME]=#{report[:GC_TIME]}"
+            metrics[:gc_cycle_time].observe(labels, report[:GC_TIME])
+          end
+        end
+
+        def sample_gc_reports
+          GC::Profiler.raw_data
+        ensure
+          GC::Profiler.clear
         end
 
         def set_memory_usage_metrics
