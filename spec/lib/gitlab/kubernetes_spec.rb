@@ -38,6 +38,16 @@ describe Gitlab::Kubernetes do
     end
   end
 
+  describe '.kubectl_delete' do
+    it 'constructs string properly' do
+      args = %w(resource_type type --flag-1 --flag-2)
+
+      expected_command = 'kubectl delete resource_type type --flag-1 --flag-2'
+
+      expect(described_class.kubectl_delete(*args)).to eq expected_command
+    end
+  end
+
   describe '#filter_by_label' do
     it 'returns matching labels' do
       matching_items = [kube_pod(track: 'foo'), kube_deployment(track: 'foo')]

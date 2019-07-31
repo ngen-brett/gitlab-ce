@@ -7,6 +7,12 @@ module Gitlab
       Hash.new { |h, k| h[k] = [] }
     end
 
+    def self.kubectl_delete(*args)
+      command = %w(kubectl delete) + args
+
+      command.shelljoin
+    end
+
     # This is the comand that is run to start a terminal session. Kubernetes
     # expects `command=foo&command=bar, not `command[]=foo&command[]=bar`
     EXEC_COMMAND = URI.encode_www_form(
