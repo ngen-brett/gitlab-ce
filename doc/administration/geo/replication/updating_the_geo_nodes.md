@@ -419,7 +419,7 @@ is prepended with the relevant node for better clarity:
    sudo gitlab-ctl start
    ```
 
-## Check status after updating
+### Check status after updating
 
 Now that the update process is complete, you may want to check whether
 everything is working correctly:
@@ -434,7 +434,7 @@ everything is working correctly:
 1. Test the data replication by pushing code to the **primary** node and see if it
    is received by **secondary** nodes.
 
-## Update tracking database on **secondary** node
+### Update tracking database on **secondary** node
 
 After updating a **secondary** node, you might need to run migrations on
 the tracking database. The tracking database was added in GitLab 9.1,
