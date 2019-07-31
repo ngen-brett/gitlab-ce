@@ -178,8 +178,8 @@ describe 'Signup' do
 
         expect { click_button 'Register' }.to change { User.count }.by(1)
 
-        expect(current_path).to eq users_almost_there_path
-        expect(page).to have_content("Please check your email to confirm your account")
+        expect(current_path).to eq dashboard_projects_path
+        expect(page).to have_content("Please check your email (#{new_user.email}) to verify that you own this address.")
       end
     end
 

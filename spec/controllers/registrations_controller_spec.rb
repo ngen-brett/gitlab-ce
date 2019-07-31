@@ -26,13 +26,15 @@ describe RegistrationsController do
       end
 
       context 'when send_user_confirmation_email is true' do
-        it 'does not authenticate user and sends confirmation email' do
+        before do
           stub_application_setting(send_user_confirmation_email: true)
+        end
 
+        it 'authenticates the user and sends a confirmation email' do
           post(:create, params: user_params)
 
           expect(ActionMailer::Base.deliveries.last.to.first).to eq(user_params[:user][:email])
-          expect(subject.current_user).to be_nil
+          expect(response).to redirect_to(dashboard_projects_path)
         end
       end
 
