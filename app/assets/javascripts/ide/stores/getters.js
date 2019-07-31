@@ -104,5 +104,11 @@ export const packageJson = state => state.entries[packageJsonPath];
 export const isOnDefaultBranch = (_state, getters) =>
   getters.currentProject && getters.currentProject.default_branch === getters.branchName;
 
+export const isOnProtectedBranch = (_state, getters) =>
+  getters.currentProject && getters.currentBranch.protected;
+
+export const canPushToBranch = (_state, getters) =>
+  getters.currentProject && getters.currentBranch.can_push;
+
 // prevent babel-plugin-rewire from generating an invalid default during karma tests
 export default () => {};

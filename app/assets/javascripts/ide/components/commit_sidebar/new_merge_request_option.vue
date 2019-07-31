@@ -1,37 +1,31 @@
 <script>
 import { mapGetters, createNamespacedHelpers } from 'vuex';
 
-const {
-  mapState: mapCommitState,
-  mapGetters: mapCommitGetters,
-  mapActions: mapCommitActions,
-} = createNamespacedHelpers('commit');
+const { mapState: mapCommitState, mapActions: mapCommitActions } = createNamespacedHelpers(
+  'commit',
+);
 
 export default {
   computed: {
     ...mapCommitState(['shouldCreateMR']),
-    ...mapCommitGetters(['isCommittingToCurrentBranch', 'isCommittingToDefaultBranch']),
-    ...mapGetters(['hasMergeRequest', 'isOnDefaultBranch']),
-    currentBranchHasMr() {
-      return this.hasMergeRequest && this.isCommittingToCurrentBranch;
+    ...mapGetters([
+      'hasMergeRequest',
+      'isOnDefaultBranch',
+      'isOnProtectedBranch',
+      'canPushToBranch',
+    ]),
+    hideNewMrOption() {
+      return !this.isOnDefaultBranch && this.hasMergeRequest && this.canPushToBranch;
     },
-    showNewMrOption() {
-      return (
-        this.isCommittingToDefaultBranch || !this.currentBranchHasMr || this.isCommittingToNewBranch
-      );
-    },
-  },
-  mounted() {
-    this.setShouldCreateMR();
   },
   methods: {
-    ...mapCommitActions(['toggleShouldCreateMR', 'setShouldCreateMR']),
+    ...mapCommitActions(['toggleShouldCreateMR']),
   },
 };
 </script>
 
 <template>
-  <div v-if="showNewMrOption">
+  <div v-if="!hideNewMrOption">
     <hr class="my-2" />
     <label class="mb-0">
       <input :checked="shouldCreateMR" type="checkbox" @change="toggleShouldCreateMR" />

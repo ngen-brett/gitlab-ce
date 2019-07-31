@@ -221,4 +221,68 @@ describe('IDE store getters', () => {
       });
     });
   });
+
+  describe('isOnProtectedBranch', () => {
+    it('returns false when no project exists', () => {
+      const localGetters = {
+        currentProject: undefined,
+      };
+
+      expect(getters.isOnProtectedBranch({}, localGetters)).toBeFalsy();
+    });
+
+    it('returns true when currentBranch is protected', () => {
+      const localGetters = {
+        currentProject: {
+          default_branch: 'master',
+        },
+        currentBranch: { protected: true },
+      };
+
+      expect(getters.isOnProtectedBranch({}, localGetters)).toBeTruthy();
+    });
+
+    it('returns false when currentBranch is not protected', () => {
+      const localGetters = {
+        currentProject: {
+          default_branch: 'master',
+        },
+        currentBranch: { protected: false },
+      };
+
+      expect(getters.isOnProtectedBranch({}, localGetters)).toBeFalsy();
+    });
+  });
+
+  describe('canPushToBranch', () => {
+    it('returns false when no project exists', () => {
+      const localGetters = {
+        currentProject: undefined,
+      };
+
+      expect(getters.canPushToBranch({}, localGetters)).toBeFalsy();
+    });
+
+    it('returns true when can_push to currentBranch', () => {
+      const localGetters = {
+        currentProject: {
+          default_branch: 'master',
+        },
+        currentBranch: { can_push: true },
+      };
+
+      expect(getters.canPushToBranch({}, localGetters)).toBeTruthy();
+    });
+
+    it('returns false when !can_push to currentBranch', () => {
+      const localGetters = {
+        currentProject: {
+          default_branch: 'master',
+        },
+        currentBranch: { can_push: false },
+      };
+
+      expect(getters.canPushToBranch({}, localGetters)).toBeFalsy();
+    });
+  });
 });
