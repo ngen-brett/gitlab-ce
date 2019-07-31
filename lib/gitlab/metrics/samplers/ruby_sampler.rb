@@ -9,6 +9,7 @@ module Gitlab
         GC_REPORT_BUCKETS = [0.001, 0.002, 0.005, 0.01, 0.05, 0.1, 0.5].freeze
 
         def initialize(interval)
+          GC::Profiler.clear
           @last_gc_stat_count = GC.stat[:count]
 
           metrics[:process_start_time_seconds].set(labels, Time.now.to_i)
