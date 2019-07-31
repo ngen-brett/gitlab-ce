@@ -197,7 +197,7 @@ export default {
     if (!this.hasMetrics) {
       this.setGettingStartedEmptyState();
     } else {
-      this.fetchData(getTimeDiff(this.selectedTimeWindow));
+      this.fetchData(getTimeDiff(this.selectedTimeWindowKey));
 
       sidebarMutationObserver = new MutationObserver(this.onSidebarMutation);
       sidebarMutationObserver.observe(document.querySelector('.layout-page'), {

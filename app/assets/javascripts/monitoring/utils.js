@@ -1,31 +1,16 @@
-import { timeWindows } from './constants';
-
-/**
- * method that converts a predetermined time window to minutes
- * defaults to 8 hours as the default option
- * @param {String} timeWindow - The time window to convert to minutes
- * @returns {number} The time window in minutes
- */
-const getTimeDifferenceSeconds = timeWindow => {
-  switch (timeWindow) {
-    case timeWindows.thirtyMinutes:
-      return 60 * 30;
-    case timeWindows.threeHours:
-      return 60 * 60 * 3;
-    case timeWindows.oneDay:
-      return 60 * 60 * 24 * 1;
-    case timeWindows.threeDays:
-      return 60 * 60 * 24 * 3;
-    case timeWindows.oneWeek:
-      return 60 * 60 * 24 * 7 * 1;
-    default:
-      return 60 * 60 * 8;
-  }
+const secondsIn = {
+  thirtyMinutes: 60 * 30,
+  threeHours: 60 * 60 * 3,
+  eightHours: 60 * 60 * 8,
+  oneDay: 60 * 60 * 24 * 1,
+  threeDays: 60 * 60 * 24 * 3,
+  oneWeek: 60 * 60 * 24 * 7 * 1,
 };
 
-export const getTimeDiff = selectedTimeWindow => {
+export const getTimeDiff = timeWindow => {
   const end = Date.now() / 1000; // convert milliseconds to seconds
-  const start = end - getTimeDifferenceSeconds(selectedTimeWindow);
+  const difference = secondsIn(timeWindow) || secondsIn('eightHours');
+  const start = end - difference;
 
   return { start, end };
 };

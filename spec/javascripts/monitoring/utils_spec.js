@@ -10,7 +10,7 @@ describe('getTimeDiff', () => {
   });
 
   it('accepts time window as an argument', () => {
-    const params = getTimeDiff(timeWindows.thirtyMinutes);
+    const params = getTimeDiff('thirtyMinutes');
 
     expect(params.end - params.start).not.toEqual(28800);
   });
@@ -18,8 +18,8 @@ describe('getTimeDiff', () => {
   it('returns a value for every defined time window', () => {
     const nonDefaultWindows = Object.keys(timeWindows).filter(window => window !== 'eightHours');
 
-    nonDefaultWindows.forEach(window => {
-      const params = getTimeDiff(timeWindows[window]);
+    nonDefaultWindows.forEach(timeWindow => {
+      const params = getTimeDiff(timeWindow);
       const diff = params.end - params.start;
 
       // Ensure we're not returning the default, 28800 (the # of seconds in 8 hrs)

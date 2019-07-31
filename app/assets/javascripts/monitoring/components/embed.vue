@@ -21,7 +21,7 @@ export default {
   data() {
     return {
       params: {
-        ...getTimeDiff(timeWindows[timeWindowsKeyNames.eightHours]),
+        ...getTimeDiff(timeWindowsKeyNames.eightHours),
       },
       elWidth: 0,
     };
