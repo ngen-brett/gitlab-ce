@@ -89,7 +89,7 @@ module Clusters
 
       def delete_knative_services
         cluster.kubernetes_namespaces.map do |kubernetes_namespace|
-          "kubectl delete ksvc --all -n #{kubernetes_namespace.namespace}"
+          Gitlab::Kubernetes.kubectl_delete("ksvc", "--all", "-n", kubernetes_namespace.namespace)
         end
       end
 
@@ -99,14 +99,14 @@ module Clusters
 
       def delete_knative_namespaces
         [
-          "kubectl delete --ignore-not-found ns knative-serving",
-          "kubectl delete --ignore-not-found ns knative-build"
+          Gitlab::Kubernetes.kubectl_delete("--ignore-not-found", "ns", "knative-serving"),
+          Gitlab::Kubernetes.kubectl_delete("--ignore-not-found", "ns", "knative-build")
         ]
       end
 
       def delete_knative_and_istio_crds
         api_resources.map do |crd|
-          "kubectl delete --ignore-not-found crd #{crd}"
+          Gitlab::Kubernetes.kubectl_delete("--ignore-not-found", "crd", "#{crd}")
         end
       end
 
@@ -121,7 +121,7 @@ module Clusters
       end
 
       def delete_knative_istio_metrics
-        ["kubectl delete --ignore-not-found -f #{METRICS_CONFIG}"] if cluster.application_prometheus_available?
+        [Gitlab::Kubernetes.kubectl_delete("--ignore-not-found", "-f", METRICS_CONFIG)] if cluster.application_prometheus_available?
       end
 
       def verify_cluster?

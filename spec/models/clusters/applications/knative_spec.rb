@@ -146,8 +146,8 @@ describe Clusters::Applications::Knative do
       end
 
       remove_namespaced_services_script = [
-        "kubectl delete ksvc --all -n #{knative.cluster.kubernetes_namespaces.first.namespace}",
-        "kubectl delete ksvc --all -n #{knative.cluster.kubernetes_namespaces.second.namespace}"
+        Gitlab::Kubernetes.kubectl_delete("ksvc", "--all", "-n", knative.cluster.kubernetes_namespaces.first.namespace),
+        Gitlab::Kubernetes.kubectl_delete("ksvc", "--all", "-n", knative.cluster.kubernetes_namespaces.second.namespace)
       ]
 
       expect(subject.predelete).to match_array(remove_namespaced_services_script)
@@ -157,15 +157,17 @@ describe Clusters::Applications::Knative do
       api_resources = YAML.safe_load(File.read(Rails.root.join(Clusters::Applications::Knative::API_RESOURCES_PATH)))
 
       remove_knative_istio_leftovers_script = [
-        "kubectl delete --ignore-not-found ns knative-serving",
-        "kubectl delete --ignore-not-found ns knative-build"
+        Gitlab::Kubernetes.kubectl_delete("--ignore-not-found", "ns", "knative-serving"),
+        Gitlab::Kubernetes.kubectl_delete("--ignore-not-found", "ns", "knative-build")
       ]
 
       full_delete_commands_size = api_resources.size + remove_knative_istio_leftovers_script.size
 
       expect(subject.postdelete).to include(*remove_knative_istio_leftovers_script)
       expect(subject.postdelete.size).to eq(full_delete_commands_size)
-      expect(subject.postdelete[2]).to eq("kubectl delete --ignore-not-found crd #{api_resources[0]}")
+      expect(subject.postdelete[2]).to eq(
+        Gitlab::Kubernetes.kubectl_delete("--ignore-not-found", "crd", api_resources[0])
+      )
     end
   end
 

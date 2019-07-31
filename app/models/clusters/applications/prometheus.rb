@@ -108,7 +108,7 @@ module Clusters
       end
 
       def delete_knative_istio_metrics
-        ["kubectl delete -f #{Clusters::Applications::Knative::METRICS_CONFIG}"] if cluster.application_knative_available?
+        [Gitlab::Kubernetes.kubectl_delete("-f", Clusters::Applications::Knative::METRICS_CONFIG)] if cluster.application_knative_available?
       end
     end
   end
