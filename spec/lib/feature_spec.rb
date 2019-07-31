@@ -254,6 +254,24 @@ describe Feature do
     end
   end
 
+  describe '.remove' do
+    context 'for a non-persisted feature' do
+      it 'returns nil' do
+        expect(Gitlab::AppLogger).to receive(:warn).with("Feature.remove: 'non_persisted_feature_flag' was not persisted, nothing to do.")
+        expect(described_class.remove(:non_persisted_feature_flag)).to be_nil
+      end
+    end
+
+    context 'for a persisted feature' do
+      it 'returns true' do
+        described_class.enable(:persisted_feature_flag)
+
+        expect(Gitlab::AppLogger).to receive(:info).with("Feature.remove: 'persisted_feature_flag' was removed.")
+        expect(described_class.remove(:persisted_feature_flag)).to be_truthy
+      end
+    end
+  end
+
   describe Feature::Target do
     describe '#targets' do
       let(:project) { create(:project) }

@@ -80,6 +80,17 @@ class Feature
       get(key).disable_group(group)
     end
 
+    def remove(key)
+      feature = get(key)
+      unless persisted?(feature)
+        Gitlab::AppLogger.warn("Feature.remove: '#{key}' was not persisted, nothing to do.")
+        return
+      end
+
+      Gitlab::AppLogger.info("Feature.remove: '#{key}' was removed.")
+      feature.remove
+    end
+
     def flipper
       if Gitlab::SafeRequestStore.active?
         Gitlab::SafeRequestStore[:flipper] ||= build_flipper_instance
