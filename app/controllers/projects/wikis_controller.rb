@@ -16,6 +16,10 @@ class Projects::WikisController < Projects::ApplicationController
     redirect_to(project_wiki_path(@project, @page))
   end
 
+  def new
+    redirect_to project_wiki_path(@project, SecureRandom.uuid)
+  end
+
   def pages
     @wiki_pages = Kaminari.paginate_array(
       @project_wiki.list_pages(sort: params[:sort], direction: params[:direction])
@@ -34,7 +38,9 @@ class Projects::WikisController < Projects::ApplicationController
     elsif file_blob
       send_blob(@project_wiki.repository, file_blob)
     elsif can?(current_user, :create_wiki, @project) && view_param == 'create'
-      @page = build_page(title: params[:id])
+      title = params[:id] if params[:id] == 'home' # preserve home as the only title
+
+      @page = build_page(title: title)
 
       render 'edit'
     else
@@ -135,7 +141,7 @@ class Projects::WikisController < Projects::ApplicationController
     params.require(:wiki).permit(:title, :content, :format, :message, :last_commit_sha)
   end
 
-  def build_page(args)
+  def build_page(args = {})
     WikiPage.new(@project_wiki).tap do |page|
       page.update_attributes(args) # rubocop:disable Rails/ActiveRecordAliases
     end

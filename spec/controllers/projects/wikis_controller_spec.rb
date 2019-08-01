@@ -19,6 +19,17 @@ describe Projects::WikisController do
     destroy_page(wiki_title)
   end
 
+  describe 'GET #new' do
+    subject { get :new, params: { namespace_id: project.namespace, project_id: project } }
+
+    it 'redirects to the pages path' do
+      subject
+
+      expect(response).to have_http_status(302)
+      expect(request.params).to include(controller: 'projects/wikis', action: 'new')
+    end
+  end
+
   describe 'GET #pages' do
     subject { get :pages, params: { namespace_id: project.namespace, project_id: project, id: wiki_title } }
 
@@ -75,7 +86,9 @@ describe Projects::WikisController do
   describe 'GET #show' do
     render_views
 
-    subject { get :show, params: { namespace_id: project.namespace, project_id: project, id: wiki_title } }
+    let(:id) { wiki_title }
+
+    subject { get :show, params: { namespace_id: project.namespace, project_id: project, id: id } }
 
     it 'limits the retrieved pages for the sidebar' do
       expect(controller).to receive(:load_wiki).and_return(project_wiki)
@@ -105,10 +118,10 @@ describe Projects::WikisController do
     context 'when page is a file' do
       include WikiHelpers
 
-      let(:path) { upload_file_to_wiki(project, user, file_name) }
+      let(:id) { upload_file_to_wiki(project, user, file_name) }
 
       before do
-        get :show, params: { namespace_id: project.namespace, project_id: project, id: path }
+        subject
       end
 
       context 'when file is an image' do
@@ -135,6 +148,26 @@ describe Projects::WikisController do
         it 'sets the content type to sets the content response headers' do
           expect(response.headers['Content-Disposition']).to match(/^inline/)
           expect(response.headers[Gitlab::Workhorse::DETECT_HEADER]).to eq "true"
+        end
+      end
+    end
+
+    context 'when the page does not exist' do
+      let(:id) { 'does not exist' }
+
+      before do
+        subject
+      end
+
+      it 'builds a new wiki page with no title' do
+        expect(assigns(:page).title).to be_empty
+      end
+
+      context 'when the id is "home"' do
+        let(:id) { 'home' }
+
+        it 'retains the title' do
+          expect(assigns(:page).title).to eq('home')
         end
       end
     end
