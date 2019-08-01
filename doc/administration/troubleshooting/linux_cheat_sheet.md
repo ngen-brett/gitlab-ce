@@ -1,16 +1,23 @@
 ---
-is_hidden: true
-comments: false
+type: reference
 ---
 
 # Linux Cheat Sheet
 
 CAUTION: **CAUTION:**
-If you are administering GitLab you are expected to know these commands for your distro of choice. If you are a GitLab Support Engineer, consider this a cross-reference to translate `yum` -> `apt-get` and the like.
+If you are administering GitLab you are expected to know these commands for your distribution
+of choice. If you are a GitLab Support Engineer, consider this a cross-reference to
+translate `yum` -> `apt-get` and the like.
 
 CAUTION: **CAUTION:**
-Most of the commands below have not been labeled as to which distro they work
+Most of the commands below have not been labeled as to which distribution they work
 on. Contributions are welcome to help add them.
+
+This is a collection of information regarding linux, collected by the
+GitLab Support team, for use while troubleshooting. It is listed here for transparency,
+and it may be useful for users with experience with linux. If you are currently
+having an issue with GitLab, you may want to check your [support options](https://about.gitlab.com/support/)
+first, before attempting to use this information.
 
 ## System Commands
 
@@ -58,7 +65,7 @@ ls > file.txt
 # Send a command's output to file.txt AND see it in STDOUT
 ls | tee /tmp/file.txt
 
-# Search and Replace within a file 
+# Search and Replace within a file
 sed -i 's/original-text/new-text/g' <filename>
 ```
 
@@ -170,36 +177,46 @@ strace -tt -T -f -y -s 1024 -p <pid>
 ps auwx | grep unicorn | awk '{ print " -p " $2}' | xargs strace -tt -T -f -y -s 1024 -o /tmp/unicorn.txt
 ```
 
-See the [strace zine](https://wizardzines.com/zines/strace/) linked on the resources page for a quick walkthrough.
+See the [strace zine](https://wizardzines.com/zines/strace/) for a quick walkthrough.
 
 Brendan Gregg has [a more detailed explanation of how to use strace](http://www.brendangregg.com/blog/2014-05-11/strace-wow-much-syscall.html).
 
 Be aware that strace can have major impacts to system performance when it is running.
 
 ### The Strace Parser tool
-Our [strace-parser tool](https://gitlab.com/wchandler/strace-parser) can be used to provide a high level summary of the `strace` output.  It is similar to `strace -C`, but provides much more detailed statistics.
 
-MacOS and Linux binaries can be downloaded [here](https://gitlab.com/gitlab-com/support/toolbox/strace-parser/-/tags), or you can build it from source if you have the Rust compiler.
+Our [strace-parser tool](https://gitlab.com/wchandler/strace-parser) can be used to
+provide a high level summary of the `strace` output.  It is similar to `strace -C`,
+but provides much more detailed statistics.
+
+MacOS and Linux binaries [are available](https://gitlab.com/gitlab-com/support/toolbox/strace-parser/-/tags),
+or you can build it from source if you have the Rust compiler.
 
 #### How to use the tool:
-First run the tool with no arguments other than the strace output file name to get a summary of the top processes sorted by time spent actively performing tasks.  You can also sort based on total time, # of syscalls made, PID #, and # of child processes using the `-S` or `--sort` flag.  The number of results defaults to 25 processes, but can be changed using the `-c`/`--count` option.  See `--help` for full details.
 
+First run the tool with no arguments other than the strace output file name to get
+a summary of the top processes sorted by time spent actively performing tasks. You
+can also sort based on total time, # of syscalls made, PID #, and # of child processes
+using the `-S` or `--sort` flag. The number of results defaults to 25 processes, but
+can be changed using the `-c`/`--count` option.  See `--help` for full details.
 
-   ``` bash
-   $ ./strace-parser strace.txt
+```sh
+$ ./strace-parser strace.txt
 
-   Top 25 PIDs
+Top 25 PIDs
 -----------
 
-  pid       	active (ms)	 wait (ms)	total (ms)	 % active	 syscalls
-  ----------	----------	---------	---------	---------	---------
-  8795      	   689.072	 45773.832	 46462.902	   16.89%	    23018
-  13408     	   679.432	 55910.891	 56590.320	   16.65%	    28593
-  6423      	   554.822	 13175.485	 13730.308	   13.60%	    13735
-   ...
-   ```
+  pid           active (ms)  wait (ms)  total (ms)   % active    syscalls
+  ----------    ----------  ---------   ---------   ---------   ---------
+  8795             689.072   45773.832   46462.902     16.89%       23018
+  13408            679.432   55910.891   56590.320     16.65%       28593
+  6423             554.822   13175.485   13730.308     13.60%       13735
+...
+```
 
-Based on the summary, you can then view the details of syscalls made by one or more procsses using the `-p`/`--pid` for a specific process, or `-s`/`--stats` flags for a sorted list.  `--stats` takes the same sorting and count options as summary.
+Based on the summary, you can then view the details of syscalls made by one or more
+procsses using the `-p`/`--pid` for a specific process, or `-s`/`--stats` flags for
+a sorted list. `--stats` takes the same sorting and count options as summary.
 
 ```
 $ ./strace-parse strace.text -p 6423
@@ -207,12 +224,12 @@ $ ./strace-parse strace.text -p 6423
 PID 6423
 13735 syscalls, active time: 554.822ms, total time: 13730.308ms
 
-  syscall        	   count	     total	       max	       avg	       min	errors
-                 	        	      (ms)	      (ms)	      (ms)	      (ms)
-  ---------------	--------	----------	----------	----------	----------	--------
-  epoll_wait     	     628	 13175.485	    21.259	    20.980	     0.020
-  clock_gettime  	    7326	   199.500	     0.249	     0.027	     0.013
-  stat           	    2101	   110.768	    19.056	     0.053	     0.017	ENOENT: 2076
+  syscall              count         total         max         avg         min  errors
+                                      (ms)        (ms)        (ms)        (ms)
+  ---------------   --------    ----------  ----------  ----------  ----------  --------
+  epoll_wait             628     13175.485      21.259      20.980       0.020
+  clock_gettime         7326       199.500       0.249       0.027       0.013
+  stat                  2101       110.768      19.056       0.053       0.017  ENOENT: 2076
   ...
   ---------------
 
@@ -221,32 +238,37 @@ PID 6423
 
   Slowest file access times for PID 6423:
 
-     open (ms)	      timestamp	             error	   file name
-  -----------	---------------	   ---------------	   ----------
-      29.818	10:53:11.528954	                  	   /srv/gitlab-data/builds/2018_08/6174/954448.log
-      12.309	10:53:46.708274	                  	   /srv/gitlab-data/builds/2018_08/5342/954186.log
-      0.039	10:53:49.222110	                  	   /opt/gitlab/embedded/service/gitlab-rails/app/views/events/event/_note.html.haml
-      0.035	10:53:49.125115	                  	   /opt/gitlab/embedded/service/gitlab-rails/app/views/events/event/_push.html.haml
+     open (ms)        timestamp              error     file name
+  -----------   ---------------    ---------------     ----------
+      29.818    10:53:11.528954                        /srv/gitlab-data/builds/2018_08/6174/954448.log
+      12.309    10:53:46.708274                        /srv/gitlab-data/builds/2018_08/5342/954186.log
+      0.039     10:53:49.222110                        /opt/gitlab/embedded/service/gitlab-rails/app/views/events/event/_note.html.haml
+      0.035     10:53:49.125115                        /opt/gitlab/embedded/service/gitlab-rails/app/views/events/event/_push.html.haml
   ...
 ```
 
-In the example above, we can see that file opening times on `/srv/gitlab-data` are extremely slow, about 100X slower than `/opt/gitlab`.
+In the example above, we can see that file opening times on `/srv/gitlab-data` are
+extremely slow, about 100X slower than `/opt/gitlab`.
 
-When nothing stands out in the results, a good way to get more context is to run `strace` on your own GitLab instance while performing the action performed by the customer, then compare summaries of both results and dive into the differences.
+When nothing stands out in the results, a good way to get more context is to run `strace`
+on your own GitLab instance while performing the action performed by the customer,
+then compare summaries of both results and dive into the differences.
 
 #### Stats for the open syscall
 
-Rough numbers for calls to `open` and `openat` (used to access files) on various configurations.  Slow storage can cause the dreaded DeadlineExceeded error in Gitaly.
+Rough numbers for calls to `open` and `openat` (used to access files) on various configurations.
+Slow storage can cause the dreaded DeadlineExceeded error in Gitaly.
 
-Also [see this entry](https://docs.gitlab.com/ee/administration/operations/filesystem_benchmarking.html) in the handbook for quick tests customers can perform to check their filesystem performance.
+Also [see this entry](https://docs.gitlab.com/ee/administration/operations/filesystem_benchmarking.html)
+in the handbook for quick tests customers can perform to check their filesystem performance.
 
-Keep in mind that timing information from `strace` is often somewhat inaccurate, so small differences should not be considered significant.
+Keep in mind that timing information from `strace` is often somewhat inaccurate, so
+small differences should not be considered significant.
 
 |Setup          | access times  |
 |:--------------|:--------------|
 | EFS           | 10 - 30ms     |
-| Local Storage | 0.01 - 1ms     |
-
+| Local Storage | 0.01 - 1ms    |
 
 ## Networking
 
@@ -275,7 +297,7 @@ nslookup example.com 1.1.1.1
 whois <ip_address> | grep -i "orgname\|netname"
 
 # Curl headers with redirect
-curl -IL https://example.com
+curl --head --location https://example.com
 ```
 
 ## Package Management
@@ -291,7 +313,7 @@ apt list --installed
 dpkg -l | grep <package>
 apt list --installed | grep <package>
 
-# Install a package 
+# Install a package
 dpkg -i <package_name>.deb
 apt-get install <package>
 apt install <package>
@@ -315,3 +337,15 @@ rpm -qa | grep <package>
 # is the number of lines to print
 tail -n /path/to/log/file
 ```
+
+<!-- ## Troubleshooting
+
+Include any troubleshooting steps that you can foresee. If you know beforehand what issues
+one might have when setting this up, or when something is changed, or on upgrading, it's
+important to describe those, too. Think of things that may go wrong and include them here.
+This is important to minimize requests for support, and to avoid doc comments with
+questions that you know someone might ask.
+
+Each scenario can be a third-level heading, e.g. `### Getting error message X`.
+If you have none to add when creating a doc, leave this section in place
+but commented out to help encourage others to add to it in the future. -->

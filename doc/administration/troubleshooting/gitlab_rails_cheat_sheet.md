@@ -1,28 +1,34 @@
 ---
-is_hidden: true
-comments: false
+type: reference
 ---
 
 # GitLab Rails Console Cheat Sheet
 
 CAUTION: **CAUTION:**
 Please note that some of these scripts could be damaging if not run correctly,
-or under the right conditions.  We highly recommend running them under the
+or under the right conditions. We highly recommend running them under the
 guidance of a Support Engineer, or running them in a test environment with a
 backup of the instance ready to be restored, just in case.
 
 CAUTION: **CAUTION:**
 Please also note that as GitLab changes, changes to the code are inevitable
-and, thus, some scripts may not work as they once used to.  These are not kept
-up-to-date as these scripts/commands were added as they were found/needed.  As
+and, thus, some scripts may not work as they once used to. These are not kept
+up-to-date as these scripts/commands were added as they were found/needed. As
 mentioned above, we recommend running these scripts under the supervision of a
 Support Engineer, who can also verify that they will continue to work as they
 should and, if needed, update the script for the latest version of GitLab.
 
+This is a collection of information regarding the GitLab rails console collected by the
+GitLab Support team, for use while troubleshooting. It is listed here for transparency,
+and it may be useful for users with experience with these tools. If you are currently
+having an issue with GitLab, it is highly recommended that you check your
+[support options](https://about.gitlab.com/support/) first, before attempting to use
+this information.
+
 ## Use the Rails Runner
 
 If the script you want to run is short, you can use the Rails Runner to avoid
-entering the rails console in the first place.  Here's an example of its use:
+entering the rails console in the first place. Here's an example of its use:
 
 ```bash
 gitlab-rails runner "RAILS_COMMAND"
@@ -45,7 +51,7 @@ ActiveRecord::Base.logger = Logger.new(STDOUT)
 
 ## Temporarily Disable Timeout
 
-```
+```ruby
 ActiveRecord::Base.connection.execute('SET statement_timeout TO 0')
 ```
 
@@ -58,7 +64,7 @@ Array.methods.grep(/sing/)
 
 ## Find method source
 
-Works for [non-instrumented methods](https://docs.gitlab.com/ce/development/instrumentation.html#checking-instrumented-methods)
+Works for [non-instrumented methods](https://docs.gitlab.com/ce/development/instrumentation.html#checking-instrumented-methods):
 
 ```ruby
 instance_of_object.method(:foo).source_location
@@ -78,7 +84,6 @@ o = Object.where('attribute like ?', 'ex')
 ```ruby
 Rails.cache.instance_variable_get(:@data).keys
 ```
-
 
 ## Rails console history
 
@@ -100,7 +105,7 @@ url = "/url/goes/here"
 Gitlab::Profiler.with_user(admin) { app.get(url) }
 ```
 
-##  Using the GitLab profiler inside console (used as of 10.5)
+## Using the GitLab profiler inside console (used as of 10.5)
 
 ```ruby
 logger = Logger.new(STDOUT)
@@ -247,7 +252,7 @@ end
 
 ### Identify un-indexed projects
 
-```
+```ruby
 Project.find_each do |project|
   puts "id #{project.id}: #{project.namespace.name.to_s}/#{project.name.to_s}" if project.index_status.nil?
 end
@@ -273,7 +278,11 @@ p.import_state.mark_as_failed("Failed manually through console.")
 
 ### Rename imported repository
 
-A customer had a backup restore that failed on a single repository. It created the project with an empty repository. They were able to successfully restore it to a dev instance. From there, they created an export and imported it into a new project. They did not want the project under the new name. We were able to transfer the newly imported project to the empty project.
+A customer had a backup restore that failed on a single repository. It created the
+project with an empty repository. They were able to successfully restore it to a dev
+instance. From there, they created an export and imported it into a new project. They
+did not want the project under the new name. We were able to transfer the newly imported
+project to the empty project.
 
 Move the new repository to the empty repository
 
@@ -297,8 +306,6 @@ sudo gitlab-rake cache:clear
 
 ### Search sequence of pushes on a repository
 
-<https://gitlab.slack.com/archives/C4Y5DRKLK/p1523984649000229>
-
 ```ruby
 p = Project.find_with_namespace('u/p')
 p.events.code_push.last(100).each do |e|
@@ -315,7 +322,13 @@ p.events.code_push.last(100).each do |e|
 end
 ```
 
-If you're here, chances are you have a customer saying "GitLab lost my commit!". [This StackOverflow article](https://stackoverflow.com/questions/13468027/the-mystery-of-the-missing-commit-across-merges) describes how you can end up in this state without a force push. If you look at the above output for the target branch, you will see a discontinuity in the from/to commits as you step through the output. Each new push should be "from" the "to" sha of the previous push. When this discontinuity happens, you will see two pushes with the same "from" sha.
+If you're here, chances are you have a customer saying "GitLab lost my commit!".
+[This StackOverflow article](https://stackoverflow.com/questions/13468027/the-mystery-of-the-missing-commit-across-merges)
+describes how you can end up in this state without a force push. If you look at the
+above output for the target branch, you will see a discontinuity in the from/to commits
+as you step through the output. Each new push should be "from" the "to" SHA of the
+previous push. When this discontinuity happens, you will see two pushes with the same
+"from" SHA.
 
 ## Mirrors
 
@@ -501,13 +514,13 @@ end
 
 ### Find Max permissions for project/group
 
-```
+```ruby
 user = User.find_by_username 'username'
 project = Project.find_by_full_path 'group/project'
 user.max_member_access_for_project project.id
 ```
 
-```
+```ruby
 user = User.find_by_username 'username'
 group = Group.find_by_full_path 'group'
 user.max_member_access_for_group group.id
@@ -771,7 +784,7 @@ License.current.plan
 
 ### Check if a project feature is available on the instance
 
-Features listed in https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/app/models/license.rb
+Features listed in <https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/app/models/license.rb>
 
 ```ruby
 License.current.feature_available?(:jira_dev_panel_integration)
@@ -779,7 +792,7 @@ License.current.feature_available?(:jira_dev_panel_integration)
 
 ### Check if a project feature is available in a project
 
-Features listed in https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/app/models/license.rb
+Features listed in <https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/app/models/license.rb>
 
 ```ruby
 p = Project.find_by_full_path('<group>/<project>')
@@ -872,19 +885,19 @@ Then `gitlab-ctl reconfigure; gitlab-ctl restart sidekiq`.  The Sidekiq logs wil
 
 ### Sidekiq kill signals
 
-https://github.com/mperham/sidekiq/wiki/Signals#ttin
+<https://github.com/mperham/sidekiq/wiki/Signals#ttin>
 
 ## Redis
 
 ### Connect to redis (omnibus)
 
-```shell
+```sh
 /opt/gitlab/embedded/bin/redis-cli -s /var/opt/gitlab/redis/redis.socket
 ```
 
 ### Connect to redis (HA)
 
-```shell
+```sh
 /opt/gitlab/embedded/bin/redis-cli -h <host ip> -a <password>
 ```
 
@@ -904,7 +917,8 @@ LfsObjectsProject.find_by_lfs_object_id(o.id).destroy
 o.destroy
 ```
 
-which you would also want to combine with deleting the LFS file in the LFS storage area on disk. It remains to be seen exactly how or whether the deletion is useful, however.
+which you would also want to combine with deleting the LFS file in the LFS storage
+area on disk. It remains to be seen exactly how or whether the deletion is useful, however.
 
 ## Decryption Problems
 
@@ -912,14 +926,17 @@ which you would also want to combine with deleting the LFS file in the LFS stora
 
 <https://gitlab.com/snippets/1730735/raw>
 
-This script will go through all the encrypted variables and count how many are not able to be decrypted. Might be helpful to run on multiple nodes to see which `gitlab-secrets.json` file is most up to date. To run:
+This script will go through all the encrypted variables and count how many are not able
+to be decrypted. Might be helpful to run on multiple nodes to see which `gitlab-secrets.json`
+file is most up to date. To run:
 
 ```bash
 wget -O /tmp/bad-decrypt.rb https://gitlab.com/snippets/1730735/raw
 gitlab-rails runner /tmp/bad-decrypt.rb
 ```
 
-If `ProjectImportData Bad count:` is detected and the decision is made to delete the encrypted credentials to allow manual reentry.  This can be done with
+If `ProjectImportData Bad count:` is detected and the decision is made to delete the
+encrypted credentials to allow manual reentry. This can be done with:
 
 ```ruby
   # Find the ids of the corrupt ProjectImportData objects
@@ -946,11 +963,13 @@ If `ProjectImportData Bad count:` is detected and the decision is made to delete
   end
 ```
 
-If `User OTP Secret Bad count:` is detected.  For each user listed disable/enable two-factor authentication.
+If `User OTP Secret Bad count:` is detected.  For each user listed disable/enable
+two-factor authentication.
 
 ### Decrypt Script for encrypted tokens
 
-This script will search for all encrypted tokens that are causing decryption errors, and update or reset as needed 
+This script will search for all encrypted tokens that are causing decryption errors,
+and update or reset as needed:
 
 ```bash
 wget -O /tmp/encrypted-tokens.rb https://gitlab.com/snippets/1876342/raw
@@ -1020,3 +1039,15 @@ project = Project.find_by_full_path('<group/project>')
 
 Geo::RepositorySyncService.new(project).execute
 ```
+
+<!-- ## Troubleshooting
+
+Include any troubleshooting steps that you can foresee. If you know beforehand what issues
+one might have when setting this up, or when something is changed, or on upgrading, it's
+important to describe those, too. Think of things that may go wrong and include them here.
+This is important to minimize requests for support, and to avoid doc comments with
+questions that you know someone might ask.
+
+Each scenario can be a third-level heading, e.g. `### Getting error message X`.
+If you have none to add when creating a doc, leave this section in place
+but commented out to help encourage others to add to it in the future. -->
