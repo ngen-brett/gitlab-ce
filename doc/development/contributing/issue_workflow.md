@@ -122,7 +122,7 @@ Groups are nested beneath a particular stage, so only one stage label and one gr
 can be applied to a single issue. You can find the groups listed in the
 [Product Categories pages][product-categories].
 
-We have moved from stage based teams to group based teams. We use the term group to map down product requirements from our product stages. 
+We use the term group to map down product requirements from our product stages. 
 As a team needs some way to collect the work their members are planning to be assigned to, we use the `~group::` labels to do so.
 
 Normally there is a 1:1 relationship between Stage labels and Group labels. In the spirit of "Everyone can Contribute",
