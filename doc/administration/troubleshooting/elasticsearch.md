@@ -33,8 +33,7 @@ The type of problem will determine what steps to take. The possible troubleshoot
 The following workflow is for ElasticSearch search results issues:
 
 ```mermaid
-graph LR;
-  A --> B
+graph TD;
   B --> |No| B1
   B --> |Yes| B4
   B1 --> B2
@@ -43,7 +42,6 @@ graph LR;
   B5 --> |Yes| B6
   B5 --> |No| B7
   B7 --> B8
-  A((Search Results<br>Troubleshooting))
   B{Is GitLab using<br>ElasticSearch for<br>searching?}
   B1[Check Admin Area > Integrations<br>to ensure the settings are correct]
   B2[Perform a search via<br>the rails console]
@@ -60,25 +58,23 @@ graph LR;
 The following workflow is for ElasticSearch indexing issues:
 
 ```mermaid
-graph LR;
-  A --> C
+graph TD;
   C --> |Yes| C1
   C1 --> |Yes| C2
   C1 --> |No| C3
   C3 --> |Yes| C4
   C3 --> |No| C5
   C --> |No| C6
-  C6 --> |Yes| C7
+  C6 --> |No| C10
   C7 --> |GitLab| C8
   C7 --> |ElasticSearch| C9
-  C6 --> |No| C10
-  C10 --> |Yes| C11
+  C6 --> |Yes| C7
   C10 --> |No| C12
+  C10 --> |Yes| C11
   C12 --> |Yes| C13
   C12 --> |No| C14
   C14 --> |Yes| C15
   C14 --> |No| C16
-  A((Indexing<br>Troubleshooting))
   C{Is the problem with<br>creating an empty<br>index?}
   C1{Does the gitlab-production<br>index exist on the<br>ElasticSearch instance?}
   C2(Try to manually<br>delete the index on the<br>ElasticSearch instance and<br>retry creating an empty index.)
@@ -103,15 +99,13 @@ graph LR;
 The following workflow is for ElasticSearch integration issues:
 
 ```mermaid
-graph LR;
-  A --> D
+graph TD;
   D --> |No| D1
   D --> |Yes| D2
   D2 --> |No| D3
   D2 --> |Yes| D4
   D4 --> |No| D5
   D4 --> |Yes| D6
-  A((Integration<br>Troubleshooting))
   D{Is the error concerning<br>the beta indexer?}
   D1[It would be best<br>to speak with an<br>ElasticSearch admin.]
   D2{Is the ICU development<br>package installed?}
@@ -126,8 +120,7 @@ graph LR;
 The following workflow is for ElasticSearch performance issues:
 
 ```mermaid
-graph LR;
-  A --> F;
+graph TD;
   F --> |Yes| F1
   F --> |No| F2
   F2 --> |No| F3
@@ -135,7 +128,6 @@ graph LR;
   F4 --> F5
   F5 --> |No| F6
   F5 --> |Yes| F7
-  A((Performance Troubleshooting))
   F{Is the ElasticSearch instance<br>running on the same server<br>as the GitLab instance?}
   F1(This is not advised and will cause issues.<br>We recommend moving the ElasticSearch<br>instance to a different server.)
   F2{Does the ElasticSearch<br>server have at least 8<br>GB of RAM and 2 CPU<br>cores?}
