@@ -9,7 +9,7 @@ export default {
   props: {
     isActive: {
       type: Boolean,
-      required: true,
+      default: false,
     },
     isUserAllowed: {
       type: Boolean,
@@ -21,7 +21,12 @@ export default {
     },
     value: {
       type: String,
-      default: null,
+      default: '',
+    },
+  },
+  computed: {
+    hasValue() {
+      return this.value && this.value.length > 0;
     },
   },
 };
@@ -33,7 +38,7 @@ export default {
       <div class="stage-nav-item-cell stage-name">{{ title }}</div>
       <div class="stage-nav-item-cell stage-median">
         <template v-if="isUserAllowed">
-          <span v-if="value">{{ value }}</span>
+          <span v-if="hasValue">{{ value }}</span>
           <span v-else class="stage-empty">{{ __('Not enough data') }}</span>
         </template>
         <template v-else>
