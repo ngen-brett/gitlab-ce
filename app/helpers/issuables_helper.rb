@@ -408,7 +408,7 @@ module IssuablesHelper
       is_collapsed: is_collapsed,
       track_label: "right_sidebar",
       track_property: "update_todo",
-      track_event: "click_edit_button",
+      track_event: "click_button",
       track_value: ""
     }
   end

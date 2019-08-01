@@ -65,7 +65,7 @@ export default {
       // Component event emission.
       this.$emit('toggleSubscription', this.id);
 
-      trackEvent('click_edit_button', 'notifications', this.subscribed ? 0 : 1);
+      trackEvent('toggle_button', 'notifications', this.subscribed ? 0 : 1);
     },
     onClickCollapsedIcon() {
       this.$emit('toggleSidebar');
