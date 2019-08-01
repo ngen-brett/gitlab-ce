@@ -118,9 +118,7 @@ The current group labels can be found by [searching the labels list for `group::
 These labels are [scoped labels](../../user/project/labels.md#scoped-labels-premium)
 and thus are mutually exclusive.
 
-Groups are nested beneath a particular stage, so only one stage label and one group label
-can be applied to a single issue. You can find the groups listed in the
-[Product Categories pages][product-categories].
+You can find the groups listed in the [Product Categories pages][product-categories].
 
 We use the term group to map down product requirements from our product stages. 
 As a team needs some way to collect the work their members are planning to be assigned to, we use the `~group::` labels to do so.
