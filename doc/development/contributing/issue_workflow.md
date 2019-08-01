@@ -126,7 +126,7 @@ We have moved from stage based teams to group based teams. We use the term group
 As a team needs some way to collect the work their members are planning to be assigned to, we use the `~group::` labels to do so.
 
 Normally there is a 1:1 relationship between Stage labels and Group labels. In the spirit of "Everyone can Contribute",
-any issue can be picked up by any group, depending on current priorities. For example, an issue labeled ~"devops:create" may be picked up by the ~group::access group.
+any issue can be picked up by any group, depending on current priorities. For example, an issue labeled ~"devops::create" may be picked up by the ~"group::access" group.
 
 We also use stage and group labels to help quantify our [throughput](https://about.gitlab.com/handbook/engineering/management/throughput). 
 Please read [Stage and Group labels in Throughtput](https://about.gitlab.com/handbook/engineering/management/throughput/#stage-and-group-labels-in-throughput) for more information on how the labels are used in this context.
