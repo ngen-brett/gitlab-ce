@@ -16,11 +16,10 @@ describe 'Invites' do
     group_invite.generate_invite_token!
   end
 
-  def confirm_email_and_sign_in(new_user)
+  def confirm_email(new_user)
     new_user_token = User.find_by_email(new_user.email).confirmation_token
 
     visit user_confirmation_path(confirmation_token: new_user_token)
-    fill_in_sign_in_form(new_user)
   end
 
   def fill_in_sign_up_form(new_user)
@@ -156,7 +155,7 @@ describe 'Invites' do
 
       it 'signs up and redirects to root page with all the project/groups invitation automatically accepted' do
         fill_in_sign_up_form(new_user)
-        confirm_email_and_sign_in(new_user)
+        confirm_email(new_user)
 
         expect(current_path).to eq(root_path)
         expect(page).to have_content(project.full_name)
@@ -164,7 +163,7 @@ describe 'Invites' do
         expect(page).to have_content(group.full_name)
       end
 
-      it "doesn't accept invitations until the user confirm his email" do
+      it "doesn't accept invitations until the user confirms his email" do
         fill_in_sign_up_form(new_user)
         sign_in(owner)
 
@@ -177,7 +176,6 @@ describe 'Invites' do
 
         it 'signs up and redirects to the invitation page' do
           fill_in_sign_up_form(new_user)
-          confirm_email_and_sign_in(new_user)
 
           expect(current_path).to eq(invite_path(group_invite.raw_invite_token))
         end
