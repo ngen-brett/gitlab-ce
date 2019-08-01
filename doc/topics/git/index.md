@@ -39,6 +39,7 @@ We've gathered some resources to help you to get the best from Git with GitLab.
 
 ## Exploring Git
 
+- [Git Tricks](git_tricks.md) collected by the GitLab support team.
 - [Git Tips & Tricks](https://about.gitlab.com/2016/12/08/git-tips-and-tricks/)
 - [Eight Tips to help you work better with Git](https://about.gitlab.com/2015/02/19/8-tips-to-help-you-work-better-with-git/)
 
