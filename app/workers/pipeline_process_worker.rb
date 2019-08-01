@@ -3,13 +3,11 @@
 class PipelineProcessWorker
   include ApplicationWorker
   include PipelineQueue
+  include Deduplicater
 
   queue_namespace :pipeline_processing
 
-  # rubocop: disable CodeReuse/ActiveRecord
   def perform(pipeline_id)
-    Ci::Pipeline.find_by(id: pipeline_id)
-      .try(:process!)
+    Ci::Pipeline.find_by_id(pipeline_id).try(:process!)
   end
-  # rubocop: enable CodeReuse/ActiveRecord
 end
