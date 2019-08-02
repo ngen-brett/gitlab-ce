@@ -2,7 +2,7 @@
 
 .card.js-panel-monitored-metrics{ data: { active_metrics: active_common_project_prometheus_metrics_path(project, :json), metrics_help_path: help_page_path('user/project/integrations/prometheus_library/index') } }
   .card-header
-    %span.bold
+    %strong
       = s_('PrometheusService|Common metrics')
     %span.badge.badge-pill.js-monitored-count 0
   .card-body
