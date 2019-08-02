@@ -117,7 +117,7 @@ module Clusters
       end
 
       def install_knative_metrics
-        ["kubectl apply -f #{METRICS_CONFIG}"] if cluster.application_prometheus_available?
+        [Gitlab::Kubernetes.kubectl_apply("-f", METRICS_CONFIG)] if cluster.application_prometheus_available?
       end
 
       def delete_knative_istio_metrics

@@ -13,6 +13,12 @@ module Gitlab
       command.shelljoin
     end
 
+    def self.kubectl_apply(*args)
+      command = %w(kubectl apply) + args
+
+      command.shelljoin
+    end
+
     # This is the comand that is run to start a terminal session. Kubernetes
     # expects `command=foo&command=bar, not `command[]=foo&command[]=bar`
     EXEC_COMMAND = URI.encode_www_form(
