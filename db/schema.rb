@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_07_31_084415) do
+ActiveRecord::Schema.define(version: 2019_08_01_193427) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -196,7 +196,7 @@ ActiveRecord::Schema.define(version: 2019_07_31_084415) do
     t.boolean "pseudonymizer_enabled", default: false, null: false
     t.boolean "hide_third_party_offers", default: false, null: false
     t.boolean "snowplow_enabled", default: false, null: false
-    t.string "snowplow_collector_uri"
+    t.string "snowplow_collector_hostname"
     t.string "snowplow_site_id"
     t.string "snowplow_cookie_domain"
     t.boolean "instance_statistics_visibility_private", default: false, null: false
