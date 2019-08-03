@@ -601,6 +601,9 @@ msgstr ""
 msgid "Account: %{account}"
 msgstr ""
 
+msgid "Activate"
+msgstr ""
+
 msgid "Active"
 msgstr ""
 
@@ -838,6 +841,9 @@ msgid "AdminUsers|Blocked"
 msgstr ""
 
 msgid "AdminUsers|Cannot unblock LDAP blocked users"
+msgstr ""
+
+msgid "AdminUsers|Deactivated"
 msgstr ""
 
 msgid "AdminUsers|Delete User %{username} and contributions?"
@@ -3570,6 +3576,9 @@ msgstr ""
 msgid "DayTitle|W"
 msgstr ""
 
+msgid "Deactivate"
+msgstr ""
+
 msgid "Debug"
 msgstr ""
 
@@ -4448,10 +4457,16 @@ msgstr ""
 msgid "Error occurred when toggling the notification subscription"
 msgstr ""
 
+msgid "Error occurred. User was not activated"
+msgstr ""
+
 msgid "Error occurred. User was not blocked"
 msgstr ""
 
 msgid "Error occurred. User was not confirmed"
+msgstr ""
+
+msgid "Error occurred. User was not deactivated"
 msgstr ""
 
 msgid "Error occurred. User was not unblocked"
@@ -10502,10 +10517,16 @@ msgstr ""
 msgid "Subtracts"
 msgstr ""
 
+msgid "Successfully activated"
+msgstr ""
+
 msgid "Successfully blocked"
 msgstr ""
 
 msgid "Successfully confirmed"
+msgstr ""
+
+msgid "Successfully deactivated"
 msgstr ""
 
 msgid "Successfully deleted U2F device."
@@ -12420,6 +12441,9 @@ msgid "Webhooks Help"
 msgstr ""
 
 msgid "Wednesday"
+msgstr ""
+
+msgid "Welcome back! Your account had been deactivated due to inactivity and is now reactivated."
 msgstr ""
 
 msgid "Welcome to your Issue Board!"

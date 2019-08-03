@@ -541,6 +541,13 @@ describe Gitlab::GitAccess do
       expect { pull_access_check }.to raise_unauthorized('Your account has been blocked.')
     end
 
+    it 'disallows deactivated users to pull' do
+      project.add_maintainer(user)
+      user.deactivate!
+
+      expect { pull_access_check }.to raise_unauthorized('Your account has been deactivated due to more than 14 days of inactivity. Please log in to GitLab from a web browser to to activate your account.')
+    end
+
     context 'when the project repository does not exist' do
       it 'returns not found' do
         project.add_guest(user)
@@ -923,6 +930,12 @@ describe Gitlab::GitAccess do
 
       before do
         project.add_developer(user)
+      end
+
+      it 'does not allow deactivated users to push' do
+        user.deactivate!
+
+        expect { push_access_check }.to raise_unauthorized('Your account has been deactivated due to more than 14 days of inactivity. Please log in to GitLab from a web browser to to activate your account.')
       end
 
       it 'cleans up the files' do

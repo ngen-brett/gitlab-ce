@@ -60,6 +60,28 @@ describe Admin::UsersController do
     end
   end
 
+  describe 'PUT #activate' do
+    before do
+      user.deactivate
+    end
+
+    it 'activates a deactivated user' do
+      put :activate, params: { id: user.username }
+      user.reload
+      expect(user.active?).to be_truthy
+      expect(flash[:notice]).to eq('Successfully activated')
+    end
+  end
+
+  describe 'PUT #deactivate' do
+    it 'deactivates a user' do
+      put :deactivate, params: { id: user.username }
+      user.reload
+      expect(user.deactivated?).to be_truthy
+      expect(flash[:notice]).to eq('Successfully deactivated')
+    end
+  end
+
   describe 'PUT block/:id' do
     it 'blocks user' do
       put :block, params: { id: user.username }

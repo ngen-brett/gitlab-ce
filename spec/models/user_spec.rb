@@ -1056,6 +1056,30 @@ describe User do
     end
   end
 
+  describe 'deactivating a user' do
+    let(:user) { create(:user, name: 'John Smith') }
+
+    context "an active user" do
+      it "can be deactivated" do
+        user.deactivate
+
+        expect(user.deactivated?).to be_truthy
+      end
+    end
+
+    context "a user who is blocked" do
+      before do
+        user.block
+      end
+
+      it "cannot be deactivated" do
+        user.deactivate
+
+        expect(user.reload.deactivated?).to be_falsy
+      end
+    end
+  end
+
   describe '.filter_items' do
     let(:user) { double }
 
@@ -1075,6 +1099,12 @@ describe User do
       expect(described_class).to receive(:blocked).and_return([user])
 
       expect(described_class.filter_items('blocked')).to include user
+    end
+
+    it 'filters by deactivated' do
+      expect(described_class).to receive(:deactivated).and_return([user])
+
+      expect(described_class.filter_items('deactivated')).to include user
     end
 
     it 'filters by two_factor_disabled' do
@@ -1967,6 +1997,54 @@ describe User do
 
     it 'sorts users by id in descending order when nil is passed' do
       expect(described_class.sort_by_attribute(nil).first).to eq(@user2)
+    end
+  end
+
+  describe "#can_be_deactivated?" do
+    shared_examples 'not eligible for deactivation' do
+      it 'returns false' do
+        expect(user.can_be_deactivated?).to be_falsey
+      end
+    end
+
+    shared_examples 'eligible for deactivation' do
+      it 'returns true' do
+        expect(user.can_be_deactivated?).to be_truthy
+      end
+    end
+
+    context "a user who is not active" do
+      let(:user) { create(:user, name: 'John Smith') }
+
+      before do
+        user.block
+      end
+
+      it_behaves_like 'not eligible for deactivation'
+    end
+
+    context 'a user who has activity within the specified minimum inactive days' do
+      let(:user) { create(:user, name: 'John Smith', last_activity_on: User::MINIMUM_INACTIVE_DAYS.pred.days.ago) }
+
+      it_behaves_like 'not eligible for deactivation'
+    end
+
+    context 'a user who has signed in within the specified minimum inactive days' do
+      let(:user) { create(:user, name: 'John Smith', current_sign_in_at: User::MINIMUM_INACTIVE_DAYS.pred.days.ago) }
+
+      it_behaves_like 'not eligible for deactivation'
+    end
+
+    context 'a user who has no activity within the specified minimum inactive days' do
+      let(:user) { create(:user, name: 'John Smith', last_activity_on: User::MINIMUM_INACTIVE_DAYS.next.days.ago) }
+
+      it_behaves_like 'eligible for deactivation'
+    end
+
+    context 'a user who has not signed in within the specified minimum inactive days' do
+      let(:user) { create(:user, name: 'John Smith', current_sign_in_at: User::MINIMUM_INACTIVE_DAYS.next.days.ago) }
+
+      it_behaves_like 'eligible for deactivation'
     end
   end
 

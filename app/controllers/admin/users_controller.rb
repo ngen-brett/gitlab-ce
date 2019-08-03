@@ -58,6 +58,22 @@ class Admin::UsersController < Admin::ApplicationController
     end
   end
 
+  def activate
+    if update_user { |user| user.activate }
+      redirect_back_or_admin_user(notice: _("Successfully activated"))
+    else
+      redirect_back_or_admin_user(notice: _("Error occurred. User was not activated"))
+    end
+  end
+
+  def deactivate
+    if update_user { |user| user.deactivate }
+      redirect_back_or_admin_user(notice: _("Successfully deactivated"))
+    else
+      redirect_back_or_admin_user(notice: _("Error occurred. User was not deactivated"))
+    end
+  end
+
   def block
     if update_user { |user| user.block }
       redirect_back_or_admin_user(notice: _("Successfully blocked"))

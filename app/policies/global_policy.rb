@@ -42,6 +42,10 @@ class GlobalPolicy < BasePolicy
     prevent :receive_notifications
   end
 
+  rule { deactivated }.policy do
+    prevent :access_git
+  end
+
   rule { required_terms_not_accepted }.policy do
     prevent :access_api
     prevent :access_git
