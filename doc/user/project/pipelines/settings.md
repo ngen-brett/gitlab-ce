@@ -76,6 +76,8 @@ Here are some valid examples:
 - `my/path/.gitlab-ci.yml`
 - `my/path/.my-custom-file.yml`
 
+The path can be customized on project level by setting the value of `Custom CI config path` via Settings > CI / CD > General pipelines.
+
 ## Test coverage parsing
 
 If you use test coverage in your code, GitLab can capture its output in the
