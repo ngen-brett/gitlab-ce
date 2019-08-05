@@ -41,9 +41,19 @@ export default {
   methods: {
     ...mapCommitActions(['updateCommitAction']),
     updateSelectedCommitAction() {
-      if (this.currentBranch && !this.currentBranch.can_push) {
+      if (!this.currentBranch) {
+        return;
+      }
+
+      const {
+        protected: isProtected = false,
+        can_push: canPush = false,
+        default: isDefault = false,
+      } = this.currentBranch;
+
+      if (isDefault || !canPush) {
         this.updateCommitAction(consts.COMMIT_TO_NEW_BRANCH);
-      } else if (this.containsStagedChanges) {
+      } else if (!isProtected || (isProtected && canPush)) {
         this.updateCommitAction(consts.COMMIT_TO_CURRENT_BRANCH);
       }
     },
