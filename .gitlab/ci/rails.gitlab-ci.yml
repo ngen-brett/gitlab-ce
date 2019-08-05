@@ -108,6 +108,7 @@
     - git fetch https://gitlab.com/gitlab-org/gitlab-ce.git v9.3.0
     - git checkout -f FETCH_HEAD
     - sed -i "s/gem 'oj', '~> 2.17.4'//" Gemfile
+    - sed -i "s/gem 'gemnasium-gitlab-service', '~> 0.2'//" Gemfile
     - bundle update google-protobuf grpc
     - bundle install $BUNDLE_INSTALL_FLAGS
     - date
