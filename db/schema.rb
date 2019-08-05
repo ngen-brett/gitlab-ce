@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_08_02_012622) do
+ActiveRecord::Schema.define(version: 2019_08_02_195602) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -1444,6 +1444,7 @@ ActiveRecord::Schema.define(version: 2019_08_02_012622) do
     t.string "internal_url"
     t.string "name", null: false
     t.integer "container_repositories_max_capacity", default: 10, null: false
+    t.datetime_with_timezone "created_at"
     t.index ["access_key"], name: "index_geo_nodes_on_access_key"
     t.index ["name"], name: "index_geo_nodes_on_name", unique: true
     t.index ["primary"], name: "index_geo_nodes_on_primary"
