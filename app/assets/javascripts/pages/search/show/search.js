@@ -2,6 +2,7 @@ import $ from 'jquery';
 import Flash from '~/flash';
 import Api from '~/api';
 import { __ } from '~/locale';
+import refreshCounts from './refresh_counts';
 
 export default class Search {
   constructor() {
@@ -13,6 +14,7 @@ export default class Search {
 
     this.groupId = $groupDropdown.data('groupId');
     this.eventListeners();
+    refreshCounts();
 
     $groupDropdown.glDropdown({
       selectable: true,
