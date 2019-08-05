@@ -1,9 +1,11 @@
 <script>
 import { GlButton, GlTooltipDirective, GlLoadingIcon } from '@gitlab/ui';
-import { s__, sprintf } from '~/locale';
+import axios from '~/lib/utils/axios_utils';
+import flash from '~/flash';
+import { s__, __, sprintf } from '~/locale';
 import GlCountdown from '~/vue_shared/components/gl_countdown.vue';
+import Icon from '~/vue_shared/components/icon.vue';
 import eventHub from '../event_hub';
-import Icon from '../../vue_shared/components/icon.vue';
 
 export default {
   directives: {
@@ -44,7 +46,16 @@ export default {
 
       this.isLoading = true;
 
-      eventHub.$emit('postAction', action.path);
+      axios
+        .post(`${action.path}.json`)
+        .then(() => {
+          this.isLoading = false;
+          eventHub.$emit('updateTable');
+        })
+        .catch(() => {
+          this.isLoading = false;
+          flash(__('An error occurred while making the request.'));
+        });
     },
 
     isActionDisabled(action) {
