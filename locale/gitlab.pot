@@ -948,6 +948,12 @@ msgstr ""
 msgid "Allow requests to the local network from hooks and services."
 msgstr ""
 
+msgid "Allow requests to the local network from system hooks"
+msgstr ""
+
+msgid "Allow requests to the local network from web hooks and services"
+msgstr ""
+
 msgid "Allow this key to push to repository as well? (Default only allows pull access.)"
 msgstr ""
 
@@ -2647,7 +2653,7 @@ msgstr ""
 msgid "ClusterIntegration|Kubernetes cluster name"
 msgstr ""
 
-msgid "ClusterIntegration|Kubernetes cluster was successfully created on Google Kubernetes Engine. Refresh the page to see Kubernetes cluster's details"
+msgid "ClusterIntegration|Kubernetes cluster was successfully created on Google Kubernetes Engine."
 msgstr ""
 
 msgid "ClusterIntegration|Kubernetes clusters allow you to use review apps, deploy your applications, run your pipelines, and much more in an easy way."
@@ -2818,10 +2824,13 @@ msgstr ""
 msgid "ClusterIntegration|The associated IP and all deployed services will be deleted and cannot be restored. Uninstalling Knative will also remove Istio from your cluster. This will not effect any other applications."
 msgstr ""
 
-msgid "ClusterIntegration|The associated certifcate will be deleted and cannot be restored."
+msgid "ClusterIntegration|The associated Tiller pod will be deleted and cannot be restored."
 msgstr ""
 
 msgid "ClusterIntegration|The associated load balancer and IP will be deleted and cannot be restored."
+msgstr ""
+
+msgid "ClusterIntegration|The associated private key will be deleted and cannot be restored."
 msgstr ""
 
 msgid "ClusterIntegration|The endpoint is in the process of being assigned. Please check your Kubernetes cluster or Quotas on Google Kubernetes Engine if it takes a long time."
@@ -3280,6 +3289,9 @@ msgid "Copy to clipboard"
 msgstr ""
 
 msgid "Copy token to clipboard"
+msgstr ""
+
+msgid "Could not add prometheus URL to whitelist"
 msgstr ""
 
 msgid "Could not authorize chat nickname. Try again!"
@@ -4047,12 +4059,6 @@ msgid "Edit issues"
 msgstr ""
 
 msgid "Edit public deploy key"
-msgstr ""
-
-msgid "Editor|%{mdLinkStart}Markdown is supported%{mdLinkEnd}"
-msgstr ""
-
-msgid "Editor|%{mdLinkStart}Markdown%{mdLinkEnd} and %{actionsLinkStart}quick actions%{actionsLinkEnd} are supported"
 msgstr ""
 
 msgid "Email"
@@ -6505,10 +6511,16 @@ msgstr ""
 msgid "Mark to do as done"
 msgstr ""
 
+msgid "Markdown"
+msgstr ""
+
 msgid "Markdown Help"
 msgstr ""
 
 msgid "Markdown enabled"
+msgstr ""
+
+msgid "Markdown is supported"
 msgstr ""
 
 msgid "Marked this %{noun} as Work In Progress."
@@ -8730,6 +8742,9 @@ msgid "ProjectsNew|Visibility Level"
 msgstr ""
 
 msgid "ProjectsNew|Want to house several dependent projects under the same namespace? %{link_start}Create a group.%{link_end}"
+msgstr ""
+
+msgid "Prometheus listen_address is not a valid URI"
 msgstr ""
 
 msgid "PrometheusService|%{exporters} with %{metrics} were found"
@@ -10969,7 +10984,7 @@ msgstr ""
 msgid "The repository must be accessible over <code>http://</code>, <code>https://</code> or <code>git://</code>."
 msgstr ""
 
-msgid "The repository must be accessible over <code>http://</code>, <code>https://</code>, <code>ssh://</code> and <code>git://</code>."
+msgid "The repository must be accessible over <code>http://</code>, <code>https://</code>, <code>ssh://</code> or <code>git://</code>."
 msgstr ""
 
 msgid "The review stage shows the time from creating the merge request to merging it. The data will automatically be added after you merge your first merge request."
@@ -13558,6 +13573,9 @@ msgid "project"
 msgstr ""
 
 msgid "project avatar"
+msgstr ""
+
+msgid "quick actions"
 msgstr ""
 
 msgid "register"
