@@ -195,6 +195,7 @@ If the results:
   [Troubleshooting indexing](#troubleshooting-indexing).
 
 ### Troubleshooting indexing
+
 Troubleshooting indexing issues can be tricky. It can pretty quickly go to either GitLab
 support or your ElasticSearch admin.
 
@@ -229,8 +230,7 @@ If:
 - Everything is showing at 100%, escalate to GitLab support. This could be a potential
   bug/issue.
 - You do see something not at 100%, attempt to reindex that project. To do this,
-  run `sudo gitlab-rake gitlab:elastic:index_projects ID_FROM=xxx ID_TO=xxx`
-  (replacing `xxx` with the project ID).
+  run `sudo gitlab-rake gitlab:elastic:index_projects ID_FROM=<project ID> ID_TO=<project ID>`.
 
 If reindexing the project shows:
 
