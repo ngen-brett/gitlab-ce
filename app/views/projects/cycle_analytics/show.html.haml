@@ -1,3 +1,4 @@
+- use_customisable_ca = Feature.enabled?(:customisable_cycle_analytics)
 - @no_container = true
 - page_title "Cycle Analytics"
 
@@ -34,7 +35,7 @@
                       {{ n__('Last %d day', 'Last %d days', 90) }}
     .stage-panel-container
       .card.stage-panel
-        .card-header
+        .card-header.border-bottom-0
           %nav.col-headers
             %ul
               %li.stage-header
@@ -56,18 +57,21 @@
         .stage-panel-body
           %nav.stage-nav
             %ul
-              %li.stage-nav-item{ ':class' => '{ active: stage.active }', '@click' => 'selectStage(stage)', "v-for" => "stage in state.stages" }
-                .stage-nav-item-cell.stage-name
-                  {{ stage.title }}
-                .stage-nav-item-cell.stage-median
-                  %template{ "v-if" => "stage.isUserAllowed" }
-                    %span{ "v-if" => "stage.value" }
-                      {{ stage.value }}
-                    %span.stage-empty{ "v-else" => true }
-                      {{ __('Not enough data') }}
-                  %template{ "v-else" => true }
-                    %span.not-available
-                      {{ __('Not available') }}
+              - if use_customisable_ca
+                %stage-nav-item{ "v-for" => "stage in state.stages", ":key" => '`ca-stage-title-${stage.title}`', '@select' => 'selectStage(stage)', ":title" => "stage.title", ":is-user-allowed" => "stage.isUserAllowed", ":value" => "stage.value", ":is-active" => "stage.active" }
+              - else
+                %li.stage-nav-item{ ':class' => '{ active: stage.active }', '@click' => 'selectStage(stage)', "v-for" => "stage in state.stages" }
+                  .stage-nav-item-cell.stage-name
+                    {{ stage.title }}
+                  .stage-nav-item-cell.stage-median
+                    %template{ "v-if" => "stage.isUserAllowed" }
+                      %span{ "v-if" => "stage.value" }
+                        {{ stage.value }}
+                      %span.stage-empty{ "v-else" => true }
+                        {{ __('Not enough data') }}
+                    %template{ "v-else" => true }
+                      %span.not-available
+                        {{ __('Not available') }}
           .section.stage-events
             %template{ "v-if" => "isLoadingStage" }
               = icon("spinner spin")

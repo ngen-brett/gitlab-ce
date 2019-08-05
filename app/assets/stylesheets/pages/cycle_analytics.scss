@@ -51,12 +51,12 @@
     }
 
     .stage-header {
-      width: 26%;
-      padding-left: $gl-padding;
+      width: 24%;
+      padding-left: 2 * $gl-padding;
     }
 
     .median-header {
-      width: 14%;
+      width: 16%;
     }
 
     .event-header {
@@ -67,7 +67,7 @@
     .total-time-header {
       width: 15%;
       text-align: right;
-      padding-right: $gl-padding;
+      padding-right: 2 * $gl-padding;
     }
 
     .stage-name {
@@ -153,24 +153,40 @@
     }
 
     .stage-nav-item {
+      $card-list-border-radius: 4px;
+      // $card-list-border-radius: 2px;
+      $card-list-active-bg: $blue-50;
+      $card-list-active-border-color: $blue-300;
+      $card-list-active-shadow: $blue-500;
+
       display: flex;
       line-height: 65px;
-      border-top: 1px solid transparent;
-      border-bottom: 1px solid transparent;
-      border-right: 1px solid $border-color;
-      background-color: $gray-light;
+      border: $border-color solid 1px;
+      border-radius: $card-list-border-radius;
+      // margin: $card-list-border-radius;
+      margin: 0;
+      margin-bottom: $card-list-border-radius;
+      margin-left: 2 * $card-list-border-radius;
+      padding-left: 24px; // TODO: utility?
+
+      .stage-name { padding: 0; }
 
       &.active {
-        background-color: transparent;
-        border-right-color: transparent;
-        border-top-color: $border-color;
-        border-bottom-color: $border-color;
-        box-shadow: inset 2px 0 0 0 $blue-500;
+        /* TODO: replace with utilities */
+        background: $card-list-active-bg;
+        border-color: $card-list-active-border-color;
+        box-shadow: inset 4px 0 0 0 $card-list-active-shadow;
 
         .stage-name {
           font-weight: $gl-font-weight-bold;
+          padding: 0;
         }
       }
+
+      // > :first-child,
+      // > :last-child {
+      //   border-radius: $border-radius-width;
+      // }
 
       &:hover:not(.active) {
         background-color: $gray-lightest;
@@ -178,25 +194,25 @@
         cursor: pointer;
       }
 
-      &:first-child {
-        border-top: 0;
-      }
+      // &:first-child {
+      //   border-top: 0;
+      // }
 
-      &:last-child {
-        border-bottom: 0;
-      }
+      // &:last-child {
+      //   border-bottom: 0;
+      // }
 
       .stage-nav-item-cell {
         &.stage-median {
           margin-left: auto;
-          margin-right: $gl-padding;
-          min-width: calc(35% - #{$gl-padding});
+          margin-right: $gl-padding * 1.5;
+          min-width: 37%;
         }
       }
 
-      .stage-name {
-        padding-left: 16px;
-      }
+      // .stage-name {
+      //   padding-left: 16px;
+      // }
 
       .stage-empty,
       .not-available {

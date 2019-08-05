@@ -9,6 +9,7 @@ import stageComponent from './components/stage_component.vue';
 import stageReviewComponent from './components/stage_review_component.vue';
 import stageStagingComponent from './components/stage_staging_component.vue';
 import stageTestComponent from './components/stage_test_component.vue';
+import stageNavItem from './components/stage_nav_item.vue';
 import CycleAnalyticsService from './cycle_analytics_service';
 import CycleAnalyticsStore from './cycle_analytics_store';
 import { __ } from '~/locale';
@@ -32,6 +33,7 @@ export default () => {
       'stage-review-component': stageReviewComponent,
       'stage-staging-component': stageStagingComponent,
       'stage-production-component': stageComponent,
+      'stage-nav-item': stageNavItem,
     },
     data() {
       const cycleAnalyticsService = new CycleAnalyticsService({
