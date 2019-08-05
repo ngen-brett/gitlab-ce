@@ -76,7 +76,12 @@ Here are some valid examples:
 - `my/path/.gitlab-ci.yml`
 - `my/path/.my-custom-file.yml`
 
-The path can be customized on project level by setting the value of `Custom CI config path` via Settings > CI / CD > General pipelines.
+The path can be customized at a project level. To customize the path:
+
+1. Go to the project's **Settings > CI / CD**.
+1. Expand the **General pipelines** section.
+1. Provide a value in the **Custom CI config path** field.
+1. Click **Save changes**.
 
 ## Test coverage parsing
 
