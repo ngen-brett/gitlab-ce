@@ -117,7 +117,7 @@ export default {
 
 <template>
   <form>
-    <locked-warning v-if="formState.lockedWarningVisible" />
+    <locked-warning v-if="formState.lockedWarningVisible && !formState.updateLoading" />
     <div class="row">
       <div v-if="hasIssuableTemplates" class="col-sm-4 col-lg-3">
         <description-template

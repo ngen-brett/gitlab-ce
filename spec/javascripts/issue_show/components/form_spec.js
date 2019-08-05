@@ -61,6 +61,17 @@ describe('Inline edit form component', () => {
     });
   });
 
+  it('hides locked warning when currently saving', done => {
+    vm.formState.updateLoading = true;
+    vm.formState.lockedWarningVisible = true;
+
+    Vue.nextTick(() => {
+      expect(vm.$el.querySelector('.alert')).toBeNull();
+
+      done();
+    });
+  });
+
   it('initialized Autosave on mount', () => {
     expect(autosave).toHaveBeenCalledTimes(2);
   });
