@@ -3343,6 +3343,7 @@ ActiveRecord::Schema.define(version: 2019_08_02_012622) do
     t.string "epics_sort"
     t.integer "roadmap_epics_state"
     t.string "roadmaps_sort"
+    t.boolean "snowplow_tracking"
     t.index ["user_id"], name: "index_user_preferences_on_user_id", unique: true
   end
 
