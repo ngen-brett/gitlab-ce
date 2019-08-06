@@ -26,13 +26,28 @@ namespace :gitlab do
     # category to object storage
     desc 'GitLab | Uploads | Migrate the uploaded files of specified type to object storage'
     task :migrate, [:uploader_class, :model_class, :mounted_as] => :environment do |task, args|
-      batch_size     = ENV.fetch('BATCH', 200).to_i
-      @to_store      = ObjectStorage::Store::REMOTE
-      @mounted_as    = args.mounted_as&.gsub(':', '')&.to_sym
-      @uploader_class = args.uploader_class.constantize
-      @model_class    = args.model_class.constantize
+      prepare_variables(args)
+
+      batch_size = ENV.fetch('BATCH', 200).to_i
+      @to_store  = ObjectStorage::Store::REMOTE
 
       uploads.each_batch(of: batch_size, &method(:enqueue_batch))
+    end
+
+    desc 'GitLab | Uploads | Migrate from object storage back to local storage'
+    task :migrate_to_local, [:uploader_class, :model_class, :mounted_as] => :environment do |_t, args|
+      prepare_variables(args)
+
+      batch_size = ENV.fetch('BATCH', 200).to_i
+      @to_store  = ObjectStorage::Store::LOCAL
+
+      uploads(ObjectStorage::Store::REMOTE).each_batch(of: batch_size, &method(:enqueue_batch))
+    end
+
+    def prepare_variables(args)
+      @mounted_as     = args.mounted_as&.gsub(':', '')&.to_sym
+      @uploader_class = args.uploader_class.constantize
+      @model_class    = args.model_class.constantize
     end
 
     def enqueue_batch(batch, index)
@@ -46,11 +61,11 @@ namespace :gitlab do
       puts "Could not enqueue batch (#{batch.ids}) #{e.message}".color(:red)
     end
 
-    def uploads
+    def uploads(store_type = [nil, ObjectStorage::Store::LOCAL])
       Upload.class_eval { include EachBatch } unless Upload < EachBatch
 
       Upload
-        .where(store: [nil, ObjectStorage::Store::LOCAL],
+        .where(store: store_type,
                uploader: @uploader_class.to_s,
                model_type: @model_class.base_class.sti_name)
     end

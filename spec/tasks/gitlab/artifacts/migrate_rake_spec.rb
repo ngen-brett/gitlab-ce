@@ -13,6 +13,7 @@ describe 'gitlab:artifacts namespace rake task' do
 
   subject { run_rake_task('gitlab:artifacts:migrate') }
 
+  ### TODO: write spec from remote -> local
   context 'job artifacts' do
     let!(:artifact) { create(:ci_job_artifact, :archive, file_store: store) }
 
