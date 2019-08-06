@@ -2,6 +2,7 @@ include:
   - template: Code-Quality.gitlab-ci.yml
   - template: Security/SAST.gitlab-ci.yml
   - template: Security/Dependency-Scanning.gitlab-ci.yml
+  - template: Security/DAST.gitlab-ci.yml
 
 code_quality:
   extends: .dedicated-no-docs
@@ -20,6 +21,12 @@ sast:
     SAST_BRAKEMAN_LEVEL: 2
 
 dependency_scanning:
+  extends: .dedicated-no-docs
+  tags: []
+  before_script: []
+  cache: {}
+
+dast:
   extends: .dedicated-no-docs
   tags: []
   before_script: []
