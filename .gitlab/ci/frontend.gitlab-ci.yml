@@ -248,3 +248,18 @@ jsdoc:
     expire_in: 31d
     paths:
       - jsdoc/
+
+webpack-dev-server:
+  extends: .dedicated-no-docs-pull-cache-job
+  <<: *use-pg
+  dependencies:
+    - compile-assets
+    - compile-assets pull-cache
+    - setup-test-env
+  variables:
+    # we override the max_old_space_size to prevent OOM errors
+    NODE_OPTIONS: --max_old_space_size=3584
+    WEBPACK_MEMORY_TEST: "true"
+  script:
+    - date
+    - node --expose-gc node_modules/.bin/webpack-dev-server --config config/webpack.config.js
