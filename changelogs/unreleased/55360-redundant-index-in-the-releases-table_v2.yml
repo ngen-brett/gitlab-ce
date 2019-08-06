@@ -1,0 +1,5 @@
+---
+title: Removed redundant index on releases table
+merge_request:
+author:
+type: removed
