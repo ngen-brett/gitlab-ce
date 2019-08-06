@@ -350,7 +350,7 @@ module.exports = {
           console.log(`Webpack heap size: ${toMB(memoryUsage)} MB`);
 
           // exit in case we're running webpack-dev-server
-          process.exit();
+          IS_DEV_SERVER && process.exit();
         });
       },
     },

@@ -257,9 +257,7 @@ webpack-dev-server:
     - compile-assets pull-cache
     - setup-test-env
   variables:
-    # we override the max_old_space_size to prevent OOM errors
-    NODE_OPTIONS: --max_old_space_size=3584
     WEBPACK_MEMORY_TEST: "true"
   script:
-    - date
+    - node --version
     - node --expose-gc node_modules/.bin/webpack-dev-server --config config/webpack.config.js
