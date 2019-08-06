@@ -250,12 +250,11 @@ jsdoc:
       - jsdoc/
 
 webpack-dev-server:
-  extends: .dedicated-no-docs-pull-cache-job
-  <<: *use-pg
+  extends: .dedicated-no-docs-no-db-pull-cache-job
   dependencies:
     - compile-assets
     - compile-assets pull-cache
-    - setup-test-env
+  before_script: []
   variables:
     WEBPACK_MEMORY_TEST: "true"
   script:
