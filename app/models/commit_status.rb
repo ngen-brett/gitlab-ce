@@ -49,6 +49,10 @@ class CommitStatus < ApplicationRecord
     where('EXISTS (?)', needs).preload(:needs)
   end
 
+  scope :without_needs, -> do
+    where('NOT EXISTS (?)', Ci::BuildNeed.scoped_build.select(1))
+  end
+
   # We use `CommitStatusEnums.failure_reasons` here so that EE can more easily
   # extend this `Hash` with new values.
   enum_with_nil failure_reason: ::CommitStatusEnums.failure_reasons
@@ -122,7 +126,7 @@ class CommitStatus < ApplicationRecord
       commit_status.run_after_commit do
         if pipeline_id
           if complete? || manual?
-            BuildProcessWorker.perform_async(id)
+            PipelineProcessWorker.perform_async(pipeline_id, [id])
           else
             PipelineUpdateWorker.perform_async(pipeline_id)
           end
