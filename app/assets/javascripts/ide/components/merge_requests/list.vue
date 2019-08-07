@@ -69,6 +69,10 @@ export default {
       this.currentSearchType = searchType;
       this.loadMergeRequests();
     },
+    focusSearch(event) {
+      event.stopPropagation();
+      this.$refs.search.focus();
+    }
   },
   searchTypes: SEARCH_TYPES,
 };
@@ -76,9 +80,10 @@ export default {
 
 <template>
   <div>
-    <div class="dropdown-input mt-3 pb-3 mb-0 border-bottom">
+    <div class="dropdown-input pt-3 pb-3 mb-0 border-bottom" @click="stopEvent">
       <div class="position-relative">
         <tokened-input
+          ref="search"
           v-model="search"
           :tokens="searchTokens"
           :placeholder="__('Search merge requests')"
