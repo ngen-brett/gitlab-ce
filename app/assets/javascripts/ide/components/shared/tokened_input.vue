@@ -64,6 +64,9 @@ export default {
     removeToken(token) {
       this.$emit('removeToken', token);
     },
+    focus() {
+      this.$refs.input.focus();
+    }
   },
 };
 </script>
