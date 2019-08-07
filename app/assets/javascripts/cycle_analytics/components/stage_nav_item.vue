@@ -15,7 +15,6 @@ export default {
       type: Boolean,
       default: false,
     },
-    // TODO: might not need this, rely on canEdit??
     isUserAllowed: {
       type: Boolean,
       required: true,

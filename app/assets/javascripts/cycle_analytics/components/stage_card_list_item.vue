@@ -20,7 +20,7 @@ export default {
 </script>
 
 <template>
-  <div :class="{ active: isActive }" class="stage-nav-item d-flex pl-4 pr-4 m-0 mb-1 ml-2">
+  <div :class="{ active: isActive }" class="stage-nav-item d-flex pl-4 pr-4 m-0 mb-1 ml-2 rounded">
     <slot></slot>
     <div v-if="canEdit" class="dropdown">
       <button

@@ -52,7 +52,6 @@
 
     .stage-header {
       width: 18.5%;
-      padding-left: 2 * $gl-padding;
     }
 
     .median-header {
@@ -61,13 +60,10 @@
 
     .event-header {
       width: 45%;
-      padding-left: $gl-padding;
     }
 
     .total-time-header {
       width: 15%;
-      text-align: right;
-      padding-right: 2 * $gl-padding;
     }
   }
 
@@ -151,7 +147,6 @@
     .stage-nav-item {
       line-height: 65px;
       border: $border-color solid 1px;
-      border-radius: 4px;
 
       &.active {
         background: $blue-50;
