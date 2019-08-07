@@ -26,11 +26,6 @@ export default {
       required: false,
       default: false,
     },
-    forceModifiedIcon: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     size: {
       type: Number,
       required: false,
@@ -45,8 +40,6 @@ export default {
   computed: {
     changedIcon() {
       const suffix = !this.file.changed && this.file.staged && !this.showStagedIcon ? '-solid' : '';
-
-      if (this.forceModifiedIcon) return `file-modified${suffix}`;
 
       return `${getCommitIconMap(this.file).icon}${suffix}`;
     },
