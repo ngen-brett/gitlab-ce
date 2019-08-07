@@ -82,6 +82,11 @@ export default {
       required: true,
     },
   },
+  data() {
+    return {
+      shouldHideSharedRunnerWarning: false,
+    };
+  },
   computed: {
     ...mapState([
       'isLoading',
@@ -206,6 +211,9 @@ export default {
 
       this.throttled();
     },
+    hideSharedRunnerWarning() {
+      this.shouldHideSharedRunnerWarning = true;
+    },
   },
 };
 </script>
@@ -257,12 +265,13 @@ export default {
         />
 
         <shared-runner
-          v-if="shouldRenderSharedRunnerLimitWarning"
+          v-if="shouldRenderSharedRunnerLimitWarning && !shouldHideSharedRunnerWarning"
           class="js-shared-runner-limit"
           :quota-used="job.runners.quota.used"
           :quota-limit="job.runners.quota.limit"
           :runners-path="runnerHelpUrl"
           :project-path="projectPath"
+          @hideSharedRunnerMessage="hideSharedRunnerWarning"
         />
 
         <environments-block
