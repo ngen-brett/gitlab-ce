@@ -20,13 +20,13 @@ export default {
 </script>
 
 <template>
-  <div :class="{ active: isActive }" class="stage-nav-item">
+  <div :class="{ active: isActive }" class="stage-nav-item d-flex pl-4 pr-4 m-0 mb-1 ml-2">
     <slot></slot>
     <div v-if="canEdit" class="dropdown">
       <button
         type="button"
         title="More actions"
-        class="more-actions-toggle btn btn-transparent"
+        class="more-actions-toggle btn btn-transparent p-0"
         data-toggle="dropdown"
       >
         <icon css-classes="icon" name="ellipsis_v" />

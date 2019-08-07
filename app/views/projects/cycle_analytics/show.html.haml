@@ -38,25 +38,25 @@
           %nav.col-headers
             %ul
               %li.stage-header
-                %span.stage-name
+                %span.stage-name.font-weight-bold
                   {{ s__('ProjectLifecycle|Stage') }}
                 %i.has-tooltip.fa.fa-question-circle{ "data-placement" => "top", title: _("The phase of the development lifecycle."), "aria-hidden" => "true" }
               %li.median-header
-                %span.stage-name
+                %span.stage-name.font-weight-bold
                   {{ __('Median') }}
                 %i.has-tooltip.fa.fa-question-circle{ "data-placement" => "top", title: _("The value lying at the midpoint of a series of observed values. E.g., between 3, 5, 9, the median is 5. Between 3, 5, 7, 8, the median is (5+7)/2 = 6."), "aria-hidden" => "true" }
               %li.event-header
-                %span.stage-name
+                %span.stage-name.font-weight-bold
                   {{ currentStage ? __(currentStage.legend) : __('Related Issues') }}
                 %i.has-tooltip.fa.fa-question-circle{ "data-placement" => "top", title: _("The collection of events added to the data gathered for that stage."), "aria-hidden" => "true" }
               %li.total-time-header
-                %span.stage-name
+                %span.stage-name.font-weight-bold
                   {{ __('Total Time') }}
                 %i.has-tooltip.fa.fa-question-circle{ "data-placement" => "top", title: _("The time taken by each data entry gathered by that stage."), "aria-hidden" => "true" }
         .stage-panel-body
           %nav.stage-nav
             %ul
-              %stage-nav-item{ "v-for" => "stage in state.stages", ":key" => '`ca-stage-title-${stage.title}`', '@select' => 'selectStage(stage)', ":title" => "stage.title", ":is-user-allowed" => "stage.isUserAllowed", ":value" => "stage.value", ":is-active" => "stage.active", "canEdit" => false }
+              %stage-nav-item{ "v-for" => "stage in state.stages", ":key" => '`ca-stage-title-${stage.title}`', '@select' => 'selectStage(stage)', ":title" => "stage.title", ":is-user-allowed" => "stage.isUserAllowed", ":value" => "stage.value", ":is-active" => "stage.active", ":can-edit" => true }
           .section.stage-events
             %template{ "v-if" => "isLoadingStage" }
               = icon("spinner spin")

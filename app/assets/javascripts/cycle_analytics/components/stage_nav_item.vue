@@ -55,8 +55,10 @@ export default {
 <template>
   <li @click="$emit('select')">
     <stage-card-list-item :is-active="isActive" :display-menu="true" :can-edit="editable">
-      <div class="stage-nav-item-cell stage-name">{{ title }}</div>
-      <div class="stage-nav-item-cell stage-median">
+      <div class="stage-nav-item-cell stage-name p-0" :class="{ 'font-weight-bold': isActive }">
+        {{ title }}
+      </div>
+      <div class="stage-nav-item-cell stage-median mr-4">
         <template v-if="isUserAllowed">
           <span v-if="hasValue">{{ value }}</span>
           <span v-else class="stage-empty">{{ __('Not enough data') }}</span>

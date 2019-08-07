@@ -19,7 +19,6 @@ describe('StageNavItem', () => {
         value,
         ...props,
       },
-      // sync: true,
     });
   }
 
@@ -29,11 +28,6 @@ describe('StageNavItem', () => {
     expect(stageName.text()).toEqual(title);
   }
 
-  function hasMedianValue() {
-    const median = wrapper.find('.stage-median');
-    expect(median.exists()).toBe(true);
-    expect(median.text()).toEqual(value);
-  }
   it('renders stage name', () => {
     wrapper = createComponent({ isUserAllowed: true });
     hasStageName();
