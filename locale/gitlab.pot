@@ -4064,6 +4064,9 @@ msgstr ""
 msgid "Edit public deploy key"
 msgstr ""
 
+msgid "Edit stage"
+msgstr ""
+
 msgid "Email"
 msgstr ""
 
@@ -5447,6 +5450,9 @@ msgid "Hide payload"
 msgstr ""
 
 msgid "Hide shared projects"
+msgstr ""
+
+msgid "Hide stage"
 msgstr ""
 
 msgid "Hide value"
@@ -9086,6 +9092,9 @@ msgid "Remove project"
 msgstr ""
 
 msgid "Remove spent time"
+msgstr ""
+
+msgid "Remove stage"
 msgstr ""
 
 msgid "Remove time estimate"
