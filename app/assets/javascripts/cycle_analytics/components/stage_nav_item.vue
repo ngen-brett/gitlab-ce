@@ -7,10 +7,15 @@ export default {
     StageCardListItem,
   },
   props: {
+    isDefaultStage: {
+      type: Boolean,
+      default: false,
+    },
     isActive: {
       type: Boolean,
       default: false,
     },
+    // TODO: might not need this, rely on canEdit??
     isUserAllowed: {
       type: Boolean,
       required: true,
@@ -23,6 +28,10 @@ export default {
       type: String,
       default: '',
     },
+    canEdit: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -33,23 +42,19 @@ export default {
     hasValue() {
       return this.value && this.value.length > 0;
     },
+    editable() {
+      return this.isUserAllowed && this.canEdit;
+    },
   },
-  methods: {
-    handleMouseOver() {
-      console.log('handleMouseOver', this);
-      this.displayMenu = true;
-    },
-    handleMouseOut() {
-      console.log('handleMouseOut', this);
-      this.displayMenu = false;
-    },
+  mounted() {
+    // console.log('StageNavItem::props', this.propsData);
   },
 };
 </script>
 
 <template>
-  <li @click="$emit('select')" @mouseover="handleMouseOver" @mouseout="handleMouseOut">
-    <stage-card-list-item :is-active="isActive" :display-menu="true">
+  <li @click="$emit('select')">
+    <stage-card-list-item :is-active="isActive" :display-menu="true" :can-edit="editable">
       <div class="stage-nav-item-cell stage-name">{{ title }}</div>
       <div class="stage-nav-item-cell stage-median">
         <template v-if="isUserAllowed">
@@ -60,17 +65,26 @@ export default {
           <span class="not-available">{{ __('Not available') }}</span>
         </template>
       </div>
-      <template #dropdown-options>
-        <li>
-          <button type="button" class="btn-default btn-transparent">
-            {{ __('Edit stage') }}
-          </button>
-        </li>
-        <li>
-          <button type="button" class="btn-danger danger">
-            {{ __('Remove stage') }}
-          </button>
-        </li>
+      <template v-slot:dropdown-options>
+        <template v-if="isDefaultStage">
+          <li>
+            <button type="button" class="btn-default btn-transparent">
+              {{ __('Hide stage') }}
+            </button>
+          </li>
+        </template>
+        <template v-else>
+          <li>
+            <button type="button" class="btn-default btn-transparent">
+              {{ __('Edit stage') }}
+            </button>
+          </li>
+          <li>
+            <button type="button" class="btn-danger danger">
+              {{ __('Remove stage') }}
+            </button>
+          </li>
+        </template>
       </template>
     </stage-card-list-item>
   </li>

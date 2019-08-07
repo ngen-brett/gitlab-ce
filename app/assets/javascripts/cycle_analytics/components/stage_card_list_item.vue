@@ -11,19 +11,10 @@ export default {
       type: Boolean,
       required: true,
     },
-    displayMenu: {
+    canEdit: {
       type: Boolean,
-      required: true,
+      default: false,
     },
-    // isMenuOpen: {
-    //   type: Boolean,
-    //   required: true,
-    // },
-  },
-  computed: {
-    // displayMenu() {
-    //   return false;
-    // },
   },
 };
 </script>
@@ -31,7 +22,7 @@ export default {
 <template>
   <div :class="{ active: isActive }" class="stage-nav-item">
     <slot></slot>
-    <div v-show="displayMenu" class="dropdown">
+    <div v-if="canEdit" class="dropdown">
       <button
         type="button"
         title="More actions"
@@ -40,7 +31,7 @@ export default {
       >
         <icon css-classes="icon" name="ellipsis_v" />
       </button>
-      <ul class="dropdown-menu dropdown-open-left">
+      <ul class="more-actions-dropdown dropdown-menu dropdown-open-left">
         <slot name="dropdown-options"></slot>
       </ul>
     </div>
