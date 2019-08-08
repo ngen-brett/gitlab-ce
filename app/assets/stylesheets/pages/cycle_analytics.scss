@@ -41,7 +41,6 @@
       width: 20%;
     }
 
-
     .fa {
       color: $cycle-analytics-light-gray;
 
@@ -204,17 +203,17 @@
       }
 
       &.stage-ghost {
-        border: dashed 2px $gray-500;
-        font-weight: bold;
+        background: transparent;
+        border: dashed 1px $border-color;
         display: flex;
         justify-content: center;
 
         &:hover {
-          /* TODO: replace with utilities */
-          background: $blue-100;
-          border: $blue-500 solid 1px;
-          border-bottom-width: 1px;
-          border-left-width: 2px;
+          font-weight: bold;
+          background: $blue-50;
+          border-color: $blue-300;
+          border-style: solid;
+          box-shadow: inset 4px 0 0 0 $blue-500;
         }
       }
     }

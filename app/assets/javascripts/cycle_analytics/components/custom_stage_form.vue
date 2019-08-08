@@ -4,8 +4,7 @@ export default {
 };
 </script>
 <template>
-  <div class="landing content-block">
+  <div class="ml-3">
     <h2>{{ 'Form' }}</h2>
-    <p>{{ 'Our beautiful custom stage form' }}</p>
   </div>
 </template>
