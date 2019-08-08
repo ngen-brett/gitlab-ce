@@ -45,26 +45,12 @@ module ImportHelper
   end
 
   def import_github_authorize_message
-    _('To import GitHub repositories, you first need to authorize GitLab to access the list of your GitHub repositories:')
+    _('To connect GitHub repositories, you first need to authorize GitLab to access the list of your GitHub repositories:')
   end
 
   def import_github_personal_access_token_message
     personal_access_token_link = link_to _('Personal Access Token'), 'https://github.com/settings/tokens'
 
-    if github_import_configured?
-      _('Alternatively, you can use a %{personal_access_token_link}. When you create your Personal Access Token, you will need to select the <code>repo</code> scope, so we can display a list of your public and private repositories which are available to import.').html_safe % { personal_access_token_link: personal_access_token_link }
-    else
-      _('To import GitHub repositories, you can use a %{personal_access_token_link}. When you create your Personal Access Token, you will need to select the <code>repo</code> scope, so we can display a list of your public and private repositories which are available to import.').html_safe % { personal_access_token_link: personal_access_token_link }
-    end
-  end
-
-  def import_configure_github_admin_message
-    github_integration_link = link_to 'GitHub integration', help_page_path('integration/github')
-
-    if current_user.admin?
-      _('Note: As an administrator you may like to configure %{github_integration_link}, which will allow login via GitHub and allow importing repositories without generating a Personal Access Token.').html_safe % { github_integration_link: github_integration_link }
-    else
-      _('Note: Consider asking your GitLab administrator to configure %{github_integration_link}, which will allow login via GitHub and allow importing repositories without generating a Personal Access Token.').html_safe % { github_integration_link: github_integration_link }
-    end
+    _('Create and provide your %{personal_access_token_link}. You will need to select the <code>repo</code> scope, so we can display a list of your public and private repositories which are available to import.').html_safe % { personal_access_token_link: personal_access_token_link }
   end
 end
