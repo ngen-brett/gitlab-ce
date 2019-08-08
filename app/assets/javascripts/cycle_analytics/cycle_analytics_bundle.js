@@ -121,6 +121,7 @@ export default () => {
           return;
         }
 
+        this.isCustomStageForm = false;
         this.isLoadingStage = true;
         this.store.setStageEvents([], stage);
         this.store.setActiveStage(stage);
@@ -147,7 +148,7 @@ export default () => {
 
         // TODO: do async-y stuff if we need it?
         // Maybe loading the data, but most likely we can bootstrap that in the form as props
-
+        this.store.deactivateAllStages();
         // TODO: perhaps could be something more like this.activeStage('stage-name') ie loading, empty, custom form etc
 
         // Should eventually be actions emitted to the vuex store
