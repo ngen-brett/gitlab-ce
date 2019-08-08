@@ -1,3 +1,14 @@
+.single-embedded-chart {
+  width: 50%;
+  float: left;
+  margin: auto 8px 8px -8px;
+
+  @media (max-width: map-get($grid-breakpoints, md)) {
+    float: none;
+    width: 100%;
+  }
+}
+
 .prometheus-graphs {
   .dropdown-buttons {
     > div {
