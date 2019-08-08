@@ -10,6 +10,7 @@ import stageReviewComponent from './components/stage_review_component.vue';
 import stageStagingComponent from './components/stage_staging_component.vue';
 import stageTestComponent from './components/stage_test_component.vue';
 import customStageForm from './components/custom_stage_form.vue';
+import addStageButton from './components/add_stage_button.vue';
 import CycleAnalyticsService from './cycle_analytics_service';
 import CycleAnalyticsStore from './cycle_analytics_store';
 import { __ } from '~/locale';
@@ -34,6 +35,7 @@ export default () => {
       'stage-staging-component': stageStagingComponent,
       'stage-production-component': stageComponent,
       'custom-stage-form': customStageForm,
+      'add-stage-button': addStageButton,
     },
     data() {
       const cycleAnalyticsService = new CycleAnalyticsService({
