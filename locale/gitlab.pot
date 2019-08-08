@@ -11377,7 +11377,7 @@ msgstr ""
 msgid "This page will be removed in a future release."
 msgstr ""
 
-msgid "This pipeline is run on the source branch"
+msgid "This pipeline is detached: The code is tested against the source branch instead of merged results"
 msgstr ""
 
 msgid "This pipeline makes use of a predefined CI/CD configuration enabled by %{strongStart}Auto DevOps.%{strongEnd}"
