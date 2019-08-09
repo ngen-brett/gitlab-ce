@@ -129,6 +129,19 @@ describe MergeRequests::RefreshService do
             .not_to change { @merge_request.reload.merge_request_diff }
         end
       end
+
+      context 'when source branch ref does not exists in cache but actually exists', :use_clean_rails_memory_store_caching do
+        before do
+          Gitlab::RepositoryCache.new(@merge_request.source_project.repository)
+            .write(:branch_names, [])
+        end
+
+        it 'does not close the associated MRs' do
+          refresh_service.execute(@oldrev, @newrev, 'refs/heads/master')
+
+          expect(@merge_request.reload.state).to eq('opened')
+        end
+      end
     end
 
     context 'when pipeline exists for the source branch' do

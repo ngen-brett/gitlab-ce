@@ -44,7 +44,16 @@ module MergeRequests
       # MergeRequest#reload_diff ignores not opened MRs. This means it won't
       # create an `empty` diff for `closed` MRs without a source branch, keeping
       # the latest diff state as the last _valid_ one.
-      merge_requests_for_source_branch.reject(&:source_branch_exists?).each do |mr|
+      merge_requests_for_source_branch.each do |mr|
+        # Ensure that the source branch cache is expired so we can get updated
+        # information when determining if we need to close an MR or not if the
+        # source branch doesn't exist.
+        #
+        # This is to prevent closing MRs inadvertently.
+        mr.source_project.repository.expire_branches_cache
+
+        next if mr.source_branch_exists?
+
         MergeRequests::CloseService
           .new(mr.target_project, @current_user)
           .execute(mr)
