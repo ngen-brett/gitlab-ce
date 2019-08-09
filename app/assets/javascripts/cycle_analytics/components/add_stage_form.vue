@@ -48,7 +48,7 @@ export default {
 <template>
   <form class="add-stage-form m-4">
     <div class="mb-1">
-      <h4>New stage</h4>
+      <h4>{{ s__('CustomCycleAnalytics|New stage') }}</h4>
     </div>
     <gl-form-group>
       <gl-form-input
@@ -69,7 +69,7 @@ export default {
     <gl-form-group>
       <gl-form-select
         v-model="objectType"
-        :label="__('Object type')"
+        :label="__('CustomCycleAnalytics|Object type')"
         name="add-stage-object-type"
         :required="true"
         :options="objectTypeOptions"
