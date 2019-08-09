@@ -104,7 +104,7 @@ export default {
         v-gl-tooltip
         :title="
           __(
-            'This pipeline is detached: The code is tested against the source branch instead of merged results',
+            'The code of a detached pipeline is tested against the source branch instead of merged results',
           )
         "
         class="js-pipeline-url-detached badge badge-info"
