@@ -25,6 +25,8 @@ describe('Job App ', () => {
     terminalPath: 'jobs/123/terminal',
     pagePath: `${gl.TEST_HOST}jobs/123`,
     projectPath: 'user-name/project-name',
+    subscriptionsMoreMinutesUrl:
+      'https://customers.gitlab.com/subscriptions/new?plan_id=2c92a0086a07f4a8016a2c0a1f7b4b4c',
     logState:
       'eyJvZmZzZXQiOjE3NDUxLCJuX29wZW5fdGFncyI6MCwiZmdfY29sb3IiOm51bGwsImJnX2NvbG9yIjpudWxsLCJzdHlsZV9tYXNrIjowfQ%3D%3D',
   };
