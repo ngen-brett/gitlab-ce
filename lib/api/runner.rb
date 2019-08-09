@@ -119,8 +119,11 @@ module API
         new_update = current_runner.ensure_runner_queue_value
         result = ::Ci::RegisterJobService.new(current_runner).execute(runner_params)
 
-        if result.valid?
-          if result.build
+        if !result.conflict?
+          if !result.valid?
+            Gitlab::Metrics.add_event(:build_invalid)
+            render_validation_error!(result.build)
+          elsif result.build
             Gitlab::Metrics.add_event(:build_found)
             present Ci::BuildRunnerPresenter.new(result.build), with: Entities::JobRequest::Response
           else
@@ -130,7 +133,7 @@ module API
           end
         else
           # We received build that is invalid due to concurrency conflict
-          Gitlab::Metrics.add_event(:build_invalid)
+          Gitlab::Metrics.add_event(:build_conflicted)
           conflict!
         end
       end
