@@ -32,7 +32,6 @@ export default {
     },
   },
   computed: {
-    // TODO: might not need to be computed
     startEventOptions() {
       return [{ value: null, text: __('Select start event') }];
     },
