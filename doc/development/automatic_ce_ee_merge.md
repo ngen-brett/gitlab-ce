@@ -171,6 +171,13 @@ Now, every time you create an MR for CE and EE:
   job failed, you are required to submit the EE MR so that you can fix the conflicts in EE
   before merging your changes into CE.
 
+## How we run the Automatic CE->EE merge at GitLab
+
+At GitLab, to keep our [gitlab-ee](https://gitlab.com/gitlab-org/gitlab-ee) repository 
+updated with commits from [gitlab-ce](https://gitlab.com/gitlab-org/gitlab-ce),
+we run the Automatic CE->EE merge job every twenty minutes, using a scheduled CI job
+configured at https://ops.gitlab.net/gitlab-org/merge-train.
+
 ## FAQ
 
 ### How does automatic merging work?
