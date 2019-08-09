@@ -162,6 +162,17 @@ RSpec.configure do |config|
     RequestStore.clear!
   end
 
+  # As we'll review the examples with this tag, we should either:
+  # - fix the example to not require Sidekiq inline mode (and remove this tag)
+  # - explicitly keep the inline mode and change the tag for `:sidekiq_inline` instead
+  config.around(:example, :sidekiq_inline_tech_debt) do |example|
+    Sidekiq::Testing.inline! { example.run }
+  end
+
+  config.around(:example, :sidekiq_inline) do |example|
+    Sidekiq::Testing.inline! { example.run }
+  end
+
   config.after do
     Fog.unmock! if Fog.mock?
   end
