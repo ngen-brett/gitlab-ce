@@ -1,17 +1,8 @@
-.new-wiki-page {
-  .new-wiki-page-slug-tip {
-    display: inline-block;
-    max-width: 100%;
-    margin-top: 5px;
-  }
-}
-
-.wiki-form {
-  .edit-wiki-page-slug-tip {
-    display: inline-block;
-    max-width: 100%;
-    margin-top: 5px;
-  }
+.new-wiki-page .new-wiki-page-slug-tip,
+.wiki-form .edit-wiki-page-slug-tip {
+  display: inline-block;
+  max-width: 100%;
+  margin-top: 5px;
 }
 
 .title .edit-wiki-header {
@@ -22,7 +13,6 @@
 }
 
 .wiki-page-header {
-  @extend .top-area;
   position: relative;
 
   .wiki-breadcrumb {
