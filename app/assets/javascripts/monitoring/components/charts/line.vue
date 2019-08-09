@@ -1,7 +1,7 @@
 <script>
 import { __ } from '~/locale';
 import { GlLink } from '@gitlab/ui';
-import { GlAreaChart, GlChartSeriesLabel } from '@gitlab/ui/dist/charts';
+import { GlLineChart, GlChartSeriesLabel } from '@gitlab/ui/dist/charts';
 import dateFormat from 'dateformat';
 import { debounceByAnimationFrame, roundOffFloat } from '~/lib/utils/common_utils';
 import { getSvgIconPathContent } from '~/lib/utils/icon_utils';
@@ -14,8 +14,8 @@ let debouncedResize;
 
 export default {
   components: {
-    GlAreaChart,
     GlChartSeriesLabel,
+    GlLineChart,
     GlLink,
     Icon,
   },
@@ -71,23 +71,19 @@ export default {
       // Transforms & supplements query data to render appropriate labels & styles
       // Input: [{ queryAttributes1 }, { queryAttributes2 }]
       // Output: [{ seriesAttributes1 }, { seriesAttributes2 }]
-      return this.graphData.queries.reduce((acc, query) => {
+      let res = this.graphData.queries.reduce((acc, query) => {
         const { appearance } = query;
         const series = makeDataSeries(query.result, {
           name: this.formatLegendLabel(query),
           lineStyle: getLineStyle(appearance, lineTypes.default),
-          areaStyle: {
-            opacity:
-              appearance && appearance.area && typeof appearance.area.opacity === 'number'
-                ? appearance.area.opacity
-                : undefined,
-          },
+          showSymbol: false
         });
         return acc.concat(series);
       }, []);
+      return res;
     },
     chartOptions() {
-      return {
+      let res = {
         xAxis: makeTimeAxis(),
         yAxis: {
           name: this.yAxisLabel,
@@ -98,6 +94,7 @@ export default {
         series: this.scatterSeries,
         dataZoom: this.dataZoomConfig,
       };
+      return res
     },
     dataZoomConfig() {
       const handleIcon = this.svgs['scroll-handle'];
@@ -209,8 +206,8 @@ export default {
       [this.primaryColor] = chart.getOption().color;
     },
     onResize() {
-      if (!this.$refs.areaChart) return;
-      const { width } = this.$refs.areaChart.$el.getBoundingClientRect();
+      if (!this.$refs.lineChart) return;
+      const { width } = this.$refs.lineChart.$el.getBoundingClientRect();
       this.width = width;
     },
   },
@@ -224,8 +221,8 @@ export default {
         <h5 ref="graphTitle" class="prometheus-graph-title">{{ graphData.title }}</h5>
         <div ref="graphWidgets" class="prometheus-graph-widgets"><slot></slot></div>
       </div>
-      <gl-area-chart
-        ref="areaChart"
+      <gl-line-chart
+        ref="lineChart"
         v-bind="$attrs"
         :data="chartData"
         :option="chartOptions"
@@ -265,7 +262,7 @@ export default {
             </div>
           </template>
         </template>
-      </gl-area-chart>
+      </gl-line-chart>
     </div>
   </div>
 </template>

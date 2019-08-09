@@ -1,5 +1,8 @@
 /* eslint-disable import/prefer-default-export */
 
+import { __ } from '~/locale';
+import dateFormat from 'dateformat';
+
 export const makeDataSeries = (queryResults, defaultConfig) =>
   queryResults.reduce((acc, result) => {
     const data = result.values.filter(([, value]) => !Number.isNaN(value));
@@ -15,3 +18,28 @@ export const makeDataSeries = (queryResults, defaultConfig) =>
 
     return acc.concat({ ...defaultConfig, ...series });
   }, []);
+
+export const makeTimeAxis = axis => {
+  const defaultAxis = {
+    name: __('Time'),
+    type: 'time',
+    axisLabel: {
+      formatter: date => dateFormat(date, 'h:MM TT'),
+    },
+    axisPointer: {
+      snap: true,
+    },
+  };
+  return { ...defaultAxis, ...axis };
+};
+
+export const getLineStyle = (appearance, defaultLineType) => {
+  const lineType =
+    appearance && appearance.line && appearance.line.type ? appearance.line.type : defaultLineType;
+  const lineWidth =
+    appearance && appearance.line && appearance.line.width ? appearance.line.width : undefined;
+  return {
+    type: lineType,
+    width: lineWidth,
+  };
+};
