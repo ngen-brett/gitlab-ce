@@ -92,7 +92,7 @@ describe Ci::CreatePipelineService do
         end
 
         context 'when the head pipeline sha equals merge request sha' do
-          it 'updates head pipeline of each merge request' do
+          it 'updates head pipeline of each merge request', :sidekiq_inline_tech_debt do
             merge_request_1
             merge_request_2
 
