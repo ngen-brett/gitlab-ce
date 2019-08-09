@@ -5,6 +5,10 @@ require 'spec_helper'
 describe RegistrationsController do
   include TermsHelper
 
+  before do
+    stub_feature_flags(invisible_captcha: false)
+  end
+
   describe '#create' do
     let(:base_user_params) { { name: 'new_user', username: 'new_username', email: 'new@user.com', password: 'Any_password' } }
     let(:user_params) { { user: base_user_params } }
@@ -85,6 +89,58 @@ describe RegistrationsController do
         expect(controller).not_to receive(:verify_recaptcha)
         expect(flash[:alert]).to be_nil
         expect(flash[:notice]).to include 'Welcome! You have signed up successfully.'
+      end
+    end
+
+    context 'when invisible captcha is enabled' do
+      before do
+        stub_feature_flags(invisible_captcha: true)
+        InvisibleCaptcha.timestamp_threshold = treshold
+      end
+
+      let(:treshold) { 4 }
+      let(:form_rendered_time) { Time.current }
+      let(:session_params) { { invisible_captcha_timestamp: form_rendered_time.iso8601 } }
+      let(:submit_time) { form_rendered_time + treshold + 1 }
+
+      describe 'the honeypot has not been filled and the signup form has not been submitted too quickly' do
+        it 'creates an account' do
+          travel_to(submit_time) do
+            expect { post(:create, params: user_params, session: session_params) }.to change(User, :count).by(1)
+          end
+        end
+      end
+
+      describe 'and the honeypot has been filled' do
+        it 'refuses to create an account and renders an empty body' do
+          travel_to(submit_time) do
+            expect { post(:create, params: user_params.merge(firstname: 'Roy', lastname: 'Batty'), session: session_params) }.not_to change(User, :count)
+            expect(response).to have_gitlab_http_status(200)
+            expect(response.body).to be_empty
+          end
+        end
+      end
+
+      context 'the sign up form has been submitted without the invisible_captcha_timestamp parameter' do
+        it 'refuses to create an account and displays a flash alert' do
+          travel_to(submit_time) do
+            expect { post(:create, params: user_params) }.not_to change(User, :count)
+            expect(response).to redirect_to(new_user_session_path)
+            expect(flash[:alert]).to include 'That was a bit too quick! Please resubmit.'
+          end
+        end
+      end
+
+      context 'the sign up form has been submitted too quickly' do
+        let(:submit_time) { form_rendered_time + treshold - 1 }
+
+        it 'refuses to create an account and displays a flash alert' do
+          travel_to(submit_time) do
+            expect { post(:create, params: user_params, session: session_params) }.not_to change(User, :count)
+            expect(response).to redirect_to(new_user_session_path)
+            expect(flash[:alert]).to include 'That was a bit too quick! Please resubmit.'
+          end
+        end
       end
     end
 
