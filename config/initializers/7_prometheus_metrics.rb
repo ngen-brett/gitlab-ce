@@ -59,6 +59,12 @@ def cleanup_prometheus_multiproc_dir
   # unicorn workers start after a SIGUSR2 is received.
   if dir = ::Prometheus::Client.configuration.multiprocess_files_dir
     old_metrics = Dir[File.join(dir, '*.db')]
+
+    p old_metrics
+    # These are the metrics that gets wiped
+    # ["../gdk-ce/gitlab/tmp/prometheus_multiproc_dir/puma/counter_puma_master-0.db",
+    #  "../gdk-ce/gitlab/tmp/prometheus_multiproc_dir/puma/histogram_puma_master-0.db"]
+
     FileUtils.rm_rf(old_metrics)
   end
 end
