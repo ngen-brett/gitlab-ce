@@ -179,11 +179,16 @@ export default {
       return IS_EE && this.prometheusAlertsAvailable && this.alertsEndpoint;
     },
     csvText() {
-      console.log('link', this.chartData());
-      const header = `timestamp,\r\n`; // eslint-disable-line @gitlab/i18n/no-non-i18n-strings
+      const chartData = this.graphData;
+      const yLabel = this.graphData.y_label;
+      console.log('link',chartData);
+      const header = `timestamp,${yLabel}\r\n`; // eslint-disable-line @gitlab/i18n/no-non-i18n-strings
+      return chartData.reduce((csv, data) => {
+        const row = data.join(',');
+        return `${csv}${row}\r\n`;
+      }, header);
     },
-    downloadLink() {
-      console.log('downloadLink', this.csvText);
+    downloadLink() this.graphData && {
       const data = new Blob([this.csvText], { type: 'text/plain' });
       return window.URL.createObjectURL(data);
     },
@@ -210,6 +215,7 @@ export default {
       const defaultRange = getTimeDiff();
       const start = getParameterValues('start')[0] || defaultRange.start;
       const end = getParameterValues('end')[0] || defaultRange.end;
+
       const range = {
         start,
         end,
@@ -275,9 +281,6 @@ export default {
     setTimeWindowParameter(key) {
       const { start, end } = getTimeDiff(key);
       return `?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
-    },
-    chartData(){
-      return this.chartsWithData(group.metrics);
     },
     groupHasData(group) {
       return this.chartsWithData(group.metrics).length > 0;
@@ -472,8 +475,8 @@ export default {
                   <icon name="ellipsis_v" class="text-secondary" />
                 </template>
                 <gl-dropdown-item
-                  v-if="exportMetricsToCsvEnabled" 
-                  :href="csvText"
+                  v-if="exportMetricsToCsvEnabled && graphData" 
+                  href="downloadLink"
                   download="chart_metrics.csv"
                  >
                   {{ __('Download CSV') }}
