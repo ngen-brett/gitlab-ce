@@ -1,4 +1,4 @@
-.assets-compile-cache: &assets-compile-cache
+.assets-compile-cache:
   cache:
     key: "assets-compile:vendor_ruby:.yarn-cache:tmp_cache_assets_sprockets:v6"
     paths:
@@ -6,15 +6,11 @@
       - .yarn-cache/
       - tmp/cache/assets/sprockets
 
-.use-pg: &use-pg
-  services:
-    - name: postgres:9.6.14
-      command: ["postgres", "-c", "fsync=off", "-c", "synchronous_commit=off", "-c", "full_page_writes=off"]
-    - name: redis:alpine
-
 .gitlab:assets:compile-metadata:
-  <<: *assets-compile-cache
-  extends: .dedicated-no-docs-pull-cache-job
+  extends:
+    - .dedicated-pull-cache-job
+    - .assets-compile-cache
+    - .no-docs
   image: dev.gitlab.org:5005/gitlab/gitlab-build-images:ruby-2.6.3-git-2.22-chrome-73.0-node-12.x-yarn-1.16-graphicsmagick-1.3.29-docker-18.06.1
   dependencies:
     - setup-test-env
@@ -54,31 +50,29 @@
     - /.+/@gitlab/gitlabhq
     - /.+/@gitlab/gitlab-ee
   tags:
-    - docker
     - gitlab-org
+    - docker
 
 gitlab:assets:compile:
-  extends: .gitlab:assets:compile-metadata
+  extends:
+    - .gitlab:assets:compile-metadata
+    - .only-canonical-master
   cache:
     policy: pull-push
-  only:
-    - master@gitlab-org/gitlab-ce
-    - master@gitlab-org/gitlab-ee
 
 gitlab:assets:compile pull-cache:
-  extends: .gitlab:assets:compile-metadata
+  extends:
+    - .gitlab:assets:compile-metadata
+    - .no-canonical-master
+    - .no-docs
   cache:
     policy: pull
-  except:
-    refs:
-      - master@gitlab-org/gitlab-ce
-      - master@gitlab-org/gitlab-ee
-      - /(^docs[\/-].+|.+-docs$)/
 
 .compile-assets-metadata:
-  extends: .dedicated-runner
-  <<: *use-pg
-  <<: *assets-compile-cache
+  extends:
+    - .dedicated-pull-cache-job
+    - .assets-compile-cache
+    - .use-pg
   stage: prepare
   script:
     - node --version
@@ -96,26 +90,25 @@ gitlab:assets:compile pull-cache:
       - public/assets
 
 compile-assets:
-  extends: .compile-assets-metadata
+  extends:
+    - .compile-assets-metadata
+    - .only-canonical-master
   cache:
     policy: pull-push
-  only:
-    - master@gitlab-org/gitlab-ce
-    - master@gitlab-org/gitlab-ee
 
 compile-assets pull-cache:
-  extends: .compile-assets-metadata
+  extends:
+    - .compile-assets-metadata
+    - .no-canonical-master
+    - .no-docs
   cache:
     policy: pull
-  except:
-    refs:
-      - master@gitlab-org/gitlab-ce
-      - master@gitlab-org/gitlab-ee
-      - /(^docs[\/-].+|.+-docs$)/
 
 karma:
-  extends: .dedicated-no-docs-pull-cache-job
-  <<: *use-pg
+  extends:
+    - .dedicated-pull-cache-job
+    - .use-pg
+    - .no-docs
   dependencies:
     - compile-assets
     - compile-assets pull-cache
@@ -142,8 +135,11 @@ karma:
       junit: junit_karma.xml
 
 jest:
-  extends: .dedicated-no-docs-and-no-qa-pull-cache-job
-  <<: *use-pg
+  extends:
+    - .dedicated-pull-cache-job
+    - .use-pg
+    - .no-docs
+    - .no-qa
   dependencies:
     - compile-assets
     - compile-assets pull-cache
@@ -170,35 +166,40 @@ jest:
       - tmp/jest/jest/
     policy: pull-push
 
-qa:internal:
-  extends: .dedicated-no-docs-no-db-pull-cache-job
-  services: []
-  script:
-    - cd qa/
-    - bundle install
-    - bundle exec rspec
+.qa:
+  extends:
+    - .dedicated-pull-cache-job
+    - .no-docs
   dependencies:
     - setup-test-env
+  variables:
+    SETUP_DB: "false"
+  before_script:
+    - cd qa/
+    - bundle install
+
+qa:internal:
+  extends: .qa
+  script:
+    - bundle exec rspec
 
 qa:selectors:
-  extends: .dedicated-no-docs-no-db-pull-cache-job
-  services: []
+  extends: .qa
   script:
-    - cd qa/
-    - bundle install
     - bundle exec bin/qa Test::Sanity::Selectors
-  dependencies:
-    - setup-test-env
 
-.qa-frontend-node: &qa-frontend-node
-  extends: .dedicated-no-docs-no-db-pull-cache-job
-  stage: test
+.qa-frontend-node:
+  extends:
+    - .dedicated-pull-cache-job
+    - .no-docs
+  dependencies: []
+  variables:
+    SETUP_DB: "false"
   cache:
     key: "$CI_JOB_NAME"
     paths:
       - .yarn-cache/
     policy: pull-push
-  dependencies: []
   before_script: []
   script:
     - date
@@ -207,20 +208,24 @@ qa:selectors:
     - yarn run webpack-prod
 
 qa-frontend-node:8:
-  <<: *qa-frontend-node
+  extends: .qa-frontend-node
   image: node:carbon
 
 qa-frontend-node:10:
-  <<: *qa-frontend-node
+  extends: .qa-frontend-node
   image: node:dubnium
 
 qa-frontend-node:latest:
-  <<: *qa-frontend-node
+  extends: .qa-frontend-node
   image: node:latest
   allow_failure: true
 
 lint:javascript:report:
-  extends: .dedicated-no-docs-no-db-pull-cache-job
+  extends:
+    - .dedicated-pull-cache-job
+    - .no-docs
+  variables:
+    SETUP_DB: "false"
   stage: post-test
   dependencies: []
   before_script: []
@@ -234,7 +239,11 @@ lint:javascript:report:
       - eslint-report.html
 
 jsdoc:
-  extends: .dedicated-no-docs-no-db-pull-cache-job
+  extends:
+    - .dedicated-pull-cache-job
+    - .no-docs
+  variables:
+    SETUP_DB: "false"
   stage: post-test
   dependencies:
     - compile-assets

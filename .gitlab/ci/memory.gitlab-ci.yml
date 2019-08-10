@@ -1,5 +1,9 @@
 memory-static:
-  extends: .dedicated-no-docs-no-db-pull-cache-job
+  extends:
+    - .dedicated-pull-cache-job
+    - .no-docs
+  variables:
+    SETUP_DB: "false"
   script:
     # Uses two different reports from the 'derailed_benchmars' gem.
 

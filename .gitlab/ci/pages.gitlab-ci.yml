@@ -1,5 +1,10 @@
 pages:
-  extends: .dedicated-no-docs-no-db-pull-cache-job
+  extends:
+    - .dedicated-pull-cache-job
+    - .only-canonical-master
+    - .no-docs
+  variables:
+    SETUP_DB: "false"
   before_script: []
   stage: pages
   dependencies:
@@ -21,6 +26,3 @@ pages:
   artifacts:
     paths:
       - public
-  only:
-    - master@gitlab-org/gitlab-ce
-    - master@gitlab-org/gitlab-ee

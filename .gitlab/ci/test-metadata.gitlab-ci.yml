@@ -1,5 +1,4 @@
-.tests-metadata-state: &tests-metadata-state
-  extends: .dedicated-runner
+.tests-metadata-state:
   variables:
     TESTS_METADATA_S3_BUCKET: "gitlab-ce-cache"
   before_script:
@@ -14,7 +13,8 @@
 retrieve-tests-metadata:
   extends:
     - .tests-metadata-state
-    - .no-docs-and-no-qa
+    - .no-docs
+    - .no-qa
   stage: prepare
   cache:
     key: tests_metadata
@@ -29,7 +29,9 @@ retrieve-tests-metadata:
     - '[[ -f $FLAKY_RSPEC_SUITE_REPORT_PATH ]] || echo "{}" > ${FLAKY_RSPEC_SUITE_REPORT_PATH}'
 
 update-tests-metadata:
-  <<: *tests-metadata-state
+  extends:
+    - .tests-metadata-state
+    - .only-canonical-master
   stage: post-test
   cache:
     key: tests_metadata
@@ -49,15 +51,12 @@ update-tests-metadata:
     - rm -f rspec_flaky/all_*.json rspec_flaky/new_*.json
     - scripts/insert-rspec-profiling-data
   only:
-    - master@gitlab-org/gitlab-ce
-    - master@gitlab-org/gitlab-ee
-    - master@gitlab/gitlabhq
-    - master@gitlab/gitlab-ee
+    refs:
+      - master@gitlab/gitlabhq
+      - master@gitlab/gitlab-ee
 
 flaky-examples-check:
-  extends: .dedicated-runner
   image: ruby:2.6-alpine
-  services: []
   before_script: []
   variables:
     SETUP_DB: "false"
@@ -67,7 +66,8 @@ flaky-examples-check:
   allow_failure: true
   retry: 0
   only:
-    - branches
+    refs:
+      - branches
   except:
     refs:
       - master
