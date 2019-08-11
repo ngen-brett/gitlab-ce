@@ -31,7 +31,8 @@ describe('DiffFile', () => {
       vm.file.renderIt = true;
 
       vm.$nextTick(() => {
-        expect(el.querySelectorAll('.line_content').length).toBeGreaterThan(5);
+        expect(el.querySelectorAll('.line_content').length).toBe(5);
+        expect(el.querySelectorAll('.line_expansion_content').length).toBe(1);
       });
     });
 
