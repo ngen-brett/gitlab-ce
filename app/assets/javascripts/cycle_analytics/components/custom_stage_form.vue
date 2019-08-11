@@ -2,6 +2,12 @@
 import { s__ } from '~/locale';
 import { GlButton, GlFormGroup, GlFormInput, GlFormSelect } from '@gitlab/ui';
 
+const isStartEvent = ev => ev && ev.can_be_start_event;
+const eventToOption = ({ name: text = '', identifier: value = null }) => ({
+  text,
+  value,
+});
+
 export default {
   components: {
     GlButton,
@@ -10,6 +16,10 @@ export default {
     GlFormSelect,
   },
   props: {
+    events: {
+      type: Array,
+      required: true,
+    },
     // name: {
     //   type: String,
     //   default: null,
@@ -38,11 +48,14 @@ export default {
     };
   },
   computed: {
-    startEventOptions() {
-      return [{ value: null, text: s__('CustomCycleAnalytics|Select start event') }];
-    },
     stopEventOptions() {
       return [{ value: null, text: s__('CustomCycleAnalytics|Select stop event') }];
+    },
+    startEventOptions() {
+      return [
+        { value: null, text: s__('CustomCycleAnalytics|Select start event') },
+        ...this.events.filter(isStartEvent).map(eventToOption),
+      ];
     },
     // objectTypeOptions() {
     //   return [{ value: null, text: s__('CustomCycleAnalytics|Select one or more objects') }];

@@ -1,11 +1,17 @@
 import { mount, shallowMount } from '@vue/test-utils';
 import CustomStageForm from '~/cycle_analytics/components/custom_stage_form.vue';
+import data from './cycle_analytics.json';
+
+const { events } = data;
+const startEvents = events.filter(ev => ev.can_be_start_event);
+const stopEvents = events.filter(ev => !ev.can_be_start_event);
 
 describe('CustomStageForm', () => {
   function createComponent(props, shallow = true) {
     const func = shallow ? shallowMount : mount;
     return func(CustomStageForm, {
       propsData: {
+        events,
         ...props,
       },
     });
@@ -38,12 +44,35 @@ describe('CustomStageForm', () => {
     });
 
     describe('Start event', () => {
+      describe('with events', () => {
+        beforeEach(() => {
+          wrapper = createComponent({}, false);
+        });
+        it('selects only the relevant start events for the dropdown', () => {
+          const select = wrapper.find(sel.startEvent);
+          startEvents.forEach(ev => {
+            expect(select.html()).toHaveHtml(
+              `<option value="${ev.identifier}">${ev.name}</option>`,
+            );
+          });
+        });
+
+        it('will exclude stop events for the dropdown', () => {
+          const select = wrapper.find(sel.startEvent);
+          stopEvents.forEach(ev => {
+            expect(select.html()).not.toHaveHtml(
+              `<option value="${ev.identifier}">${ev.name}</option>`,
+            );
+          });
+        });
+      });
+
       describe('start event label', () => {
         it('is hidden by default', () => {});
         it('will display the start event label field if a label event is selected', () => {});
       });
     });
-    describe('Stop event', () => {
+    describe.only('Stop event', () => {
       it('is enabled when a start event is selected', () => {});
       it('will only display stop events for the selected start event', () => {});
       describe('Stop event label', () => {
