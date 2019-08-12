@@ -70,6 +70,7 @@ module QA
     end
 
     module Repository
+      autoload :Commit, 'qa/resource/repository/commit'
       autoload :Push, 'qa/resource/repository/push'
       autoload :ProjectPush, 'qa/resource/repository/project_push'
       autoload :WikiPush, 'qa/resource/repository/wiki_push'
@@ -335,6 +336,10 @@ module QA
 
       module Issuable
         autoload :Common, 'qa/page/component/issuable/common'
+      end
+
+      module WebIDE
+        autoload :Alert, 'qa/page/component/web_ide/alert'
       end
     end
   end

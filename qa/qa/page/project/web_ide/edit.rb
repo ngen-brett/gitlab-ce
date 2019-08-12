@@ -114,3 +114,5 @@ module QA
     end
   end
 end
+
+QA::Page::Project::WebIDE::Edit.prepend(QA::Page::Component::WebIDE::Alert)
