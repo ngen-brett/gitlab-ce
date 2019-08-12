@@ -10,7 +10,7 @@ module Gitlab
 
             def evaluate(variables = {})
               text = @left.evaluate(variables)
-              regexp = @right.evaluate(variables)
+              regexp = @right.evaluate(variables) || ''
 
               regexp.scan(text.to_s).any?
             end
