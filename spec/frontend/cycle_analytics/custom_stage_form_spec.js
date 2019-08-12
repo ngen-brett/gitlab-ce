@@ -181,14 +181,82 @@ describe('CustomStageForm', () => {
         it('will display the stop event label field if a label event is selected', () => {});
       });
     });
-    describe.skip('Add stage button', () => {
-      it('is enabled when all required fields are filled', () => {});
-      it('emits a `submit` event when clicked', () => {
+    describe('Add stage button', () => {
+      beforeEach(() => {
+        wrapper = createComponent({}, false);
+
+        wrapper
+          .find(sel.startEvent)
+          .findAll('option')
+          .at(1)
+          .setSelected();
+
+        Vue.nextTick(() => {
+          wrapper
+            .find(sel.stopEvent)
+            .findAll('option')
+            .at(1)
+            .setSelected();
+        });
+      });
+
+      it('is enabled when all required fields are filled', () => {
         const btn = wrapper.find(sel.submit);
-        expect(wrapper.emitted().submit).toBeUndefined();
-        btn.trigger('click');
-        expect(wrapper.emitted().submit).toBeTruthy();
-        expect(wrapper.emitted().submit.length).toBe(1);
+
+        expect(btn.attributes('disabled')).toBe('disabled');
+        wrapper.find(sel.name).setValue('Cool stage');
+
+        Vue.nextTick(() => {
+          expect(btn.attributes('disabled')).toBeUndefined();
+        });
+      });
+
+      describe('with all fields set', () => {
+        beforeEach(() => {
+          wrapper = createComponent({}, false);
+
+          wrapper
+            .find(sel.startEvent)
+            .findAll('option')
+            .at(1)
+            .setSelected();
+
+          Vue.nextTick(() => {
+            wrapper
+              .find(sel.stopEvent)
+              .findAll('option')
+              .at(1)
+              .setSelected();
+            wrapper.find(sel.name).setValue('Cool stage');
+          });
+        });
+
+        it('emits a `submit` event when clicked', () => {
+          const btn = wrapper.find(sel.submit);
+
+          expect(wrapper.emitted().submit).toBeUndefined();
+
+          btn.trigger('click');
+          expect(wrapper.emitted().submit).toBeTruthy();
+          expect(wrapper.emitted().submit.length).toBe(1);
+        });
+        it('`submit` event receives the latest data', () => {
+          const btn = wrapper.find(sel.submit);
+
+          expect(wrapper.emitted().submit).toBeUndefined();
+
+          const res = [
+            {
+              name: 'Cool stage',
+              startEvent: 'issue_created',
+              startEventLabel: '',
+              stopEvent: 'issue_stage_end',
+              stopEventLabel: '',
+            },
+          ];
+          btn.trigger('click');
+          expect(wrapper.emitted().submit[0]).toEqual(res);
+        });
       });
     });
   });
