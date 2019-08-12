@@ -39,4 +39,7 @@ export default class PipelinesService {
   postAction(endpoint) {
     return axios.post(`${endpoint}.json`);
   }
+
+  // eslint-disable-next-line class-methods-use-this
+  runPipeline() {}
 }

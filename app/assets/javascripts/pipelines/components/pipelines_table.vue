@@ -1,5 +1,5 @@
 <script>
-import { GlTooltipDirective } from '@gitlab/ui';
+import { GlTooltipDirective, GlButton } from '@gitlab/ui';
 import PipelinesTableRowComponent from './pipelines_table_row.vue';
 import PipelineStopModal from './pipeline_stop_modal.vue';
 import eventHub from '../event_hub';
@@ -13,6 +13,7 @@ export default {
   components: {
     PipelinesTableRowComponent,
     PipelineStopModal,
+    GlButton,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -35,6 +36,20 @@ export default {
       type: String,
       required: true,
     },
+    /**
+     * When this table is used in MR view,
+     * we render a "Run Pipeline" button
+     */
+    canRunPipeline: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    isRunningMergeRequestPipeline: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   data() {
     return {
@@ -42,7 +57,18 @@ export default {
       pipeline: {},
       endpoint: '',
       cancelingPipeline: null,
+      isNewPipelineLoading: false,
     };
+  },
+  computed: {
+    /**
+     * The Run Pipeline button can only be rendered when:
+     * - In MR view
+     * - `detached` is true -> TODO
+     */
+    canRenderPipelineButton() {
+      return this.canRunPipeline;
+    },
   },
   watch: {
     pipelines() {
@@ -65,6 +91,9 @@ export default {
       eventHub.$emit('postAction', this.endpoint);
       this.cancelingPipeline = this.pipelineId;
     },
+    onClickRunPipeline() {
+      eventHub.$emit('runMergeRequestPipeline');
+    },
   },
 };
 </script>
@@ -86,6 +115,26 @@ export default {
       <div class="table-section section-15 js-pipeline-stages pipeline-stages" role="rowheader">
         {{ s__('Pipeline|Stages') }}
       </div>
+      <template v-if="canRenderPipelineButton">
+        <div
+          class="table-section section-15 js-pipeline-stages pipelines-time-ago"
+          role="rowheader"
+        ></div>
+
+        <div
+          class="table-section section-20 js-pipeline-stages pipelines-time-ago"
+          role="rowheader"
+        >
+          <gl-button
+            v-if="canRenderPipelineButton"
+            variant="success"
+            class="js-run-pipeline"
+            :disabled="isRunningMergeRequestPipeline"
+            @click="onClickRunPipeline"
+            >{{ s__('Pipelines|Run Pipeline') }}</gl-button
+          >
+        </div>
+      </template>
     </div>
     <pipelines-table-row-component
       v-for="model in pipelines"

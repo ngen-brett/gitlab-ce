@@ -33,6 +33,11 @@ export default {
       required: false,
       default: 'child',
     },
+    canRunPipeline: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
 
   data() {
@@ -104,6 +109,8 @@ export default {
         :update-graph-dropdown="updateGraphDropdown"
         :auto-devops-help-path="autoDevopsHelpPath"
         :view-type="viewType"
+        :can-run-pipeline="canRunPipeline"
+        :is-running-merge-request-pipeline="state.isRunningMergeRequestPipeline"
       />
     </div>
 

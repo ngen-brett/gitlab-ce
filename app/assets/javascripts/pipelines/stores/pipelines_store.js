@@ -7,6 +7,9 @@ export default class PipelinesStore {
     this.state.pipelines = [];
     this.state.count = {};
     this.state.pageInfo = {};
+
+    // Used in MR Pipelines tab
+    this.state.isRunningPipeline = false;
   }
 
   storePipelines(pipelines = []) {
