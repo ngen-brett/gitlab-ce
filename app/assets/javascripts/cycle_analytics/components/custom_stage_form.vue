@@ -87,7 +87,6 @@ export default {
   },
   methods: {
     handleSave() {
-      console.log('BTN::HANDLESAVE');
       this.$emit('submit', this.fields);
     },
   },
