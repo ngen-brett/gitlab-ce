@@ -177,3 +177,7 @@ module TodosHelper
     groups.unshift({ id: '', text: 'Any Group' }).to_json
   end
 end
+
+# For some reason the wrong module was prepended here.
+TodosHelper.prepend_if_ee('EE::NotesHelper') # rubocop: disable Cop/InjectEnterpriseEditionModule
+TodosHelper.prepend_if_ee('EE::TodosHelper')
