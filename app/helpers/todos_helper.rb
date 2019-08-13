@@ -26,7 +26,7 @@ module TodosHelper
   end
 
   def todo_target_link(todo)
-    text = raw("#{todo.target_type.titleize.downcase} ") +
+    text = raw("#{todo_category(todo)} ") +
       if todo.for_commit?
         content_tag(:span, todo.target_reference, class: 'commit-sha')
       else
@@ -34,6 +34,10 @@ module TodosHelper
       end
 
     link_to text, todo_target_path(todo), class: 'has-tooltip', title: todo.target.title
+  end
+
+  def todo_category(todo)
+    todo.target_type.titleize.downcase
   end
 
   def todo_target_path(todo)
