@@ -96,7 +96,7 @@ module MigrationsHelpers
     if metadata_schema == :latest
       migrations.last.version
     else
-      metadata_schema || previous_migration.version
+      metadata_schema.to_i || previous_migration.version
     end
   end
 
