@@ -290,7 +290,7 @@ With a few API endpoints you can use a [GitLab CI job token](../user/project/new
 to authenticate with the API:
 
 * [Get job artifacts](jobs.md#get-job-artifacts)
-* [Pipeline triggers](pipeline_triggers.html)
+* [Pipeline triggers](pipeline_triggers.md)
 
 ### Impersonation tokens
 
