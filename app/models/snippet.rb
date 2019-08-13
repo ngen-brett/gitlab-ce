@@ -190,6 +190,11 @@ class Snippet < ApplicationRecord
       (public? && (title_changed? || content_changed?))
   end
 
+  # snippers are the biggest sources of spam
+  def allow_possible_spam?
+    false
+  end
+
   def spammable_entity_type
     'snippet'
   end

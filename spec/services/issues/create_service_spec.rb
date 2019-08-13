@@ -344,6 +344,7 @@ describe Issues::CreateService do
       end
 
       before do
+        stub_feature_flags(recaptcha_disabled: false)
         allow_any_instance_of(SpamService).to receive(:check_for_spam?).and_return(true)
       end
 
@@ -389,20 +390,44 @@ describe Issues::CreateService do
             allow_any_instance_of(AkismetService).to receive(:spam?).and_return(true)
           end
 
-          it 'marks an issue as a spam ' do
-            expect(issue).to be_spam
+          context 'when issuables_recaptcha_enabled feature flag is true' do
+            it 'marks an issue as a spam ' do
+              expect(issue).to be_spam
+            end
+
+            it 'an issue is not valid ' do
+              expect(issue.valid?).to be_falsey
+            end
+
+            it 'creates a new spam_log' do
+              expect {issue}.to change {SpamLog.count}.from(0).to(1)
+            end
+
+            it 'assigns a spam_log to an issue' do
+              expect(issue.spam_log).to eq(SpamLog.last)
+            end
           end
 
-          it 'an issue is not valid ' do
-            expect(issue.valid?).to be_falsey
-          end
+          context 'when issuable_recaptcha_enabled feature flag is false' do
+            before do
+              stub_feature_flags(recaptcha_disabled: true)
+            end
 
-          it 'creates a new spam_log' do
-            expect {issue}.to change {SpamLog.count}.from(0).to(1)
-          end
+            it 'does not mark an issue as a spam ' do
+              expect(issue).not_to be_spam
+            end
 
-          it 'assigns a spam_log to an issue' do
-            expect(issue.spam_log).to eq(SpamLog.last)
+            it 'an issue is valid ' do
+              expect(issue.valid?).to be_truthy
+            end
+
+            it 'creates a new spam_log' do
+              expect {issue}.to change {SpamLog.count}.from(0).to(1)
+            end
+
+            it 'assigns a spam_log to an issue' do
+              expect(issue.spam_log).to eq(SpamLog.last)
+            end
           end
         end
 
