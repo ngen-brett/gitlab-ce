@@ -258,8 +258,8 @@ export default {
       [this.primaryColor] = chart.getOption().color;
     },
     onResize() {
-      if (!this.$refs.areaChart) return;
-      const { width } = this.$refs.areaChart.$el.getBoundingClientRect();
+      if (!this.$refs.chart) return;
+      const { width } = this.$refs.chart.$el.getBoundingClientRect();
       this.width = width;
     },
   },

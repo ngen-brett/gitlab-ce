@@ -902,7 +902,7 @@ export const metricsDashboardResponse = {
           },
           {
             title: 'Memory Usage (Pod average)',
-            type: 'area-chart',
+            type: 'line-chart',
             y_label: 'Memory Used per Pod',
             weight: 2,
             metrics: [
