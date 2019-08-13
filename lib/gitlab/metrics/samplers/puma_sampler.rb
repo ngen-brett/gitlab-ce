@@ -15,7 +15,7 @@ module Gitlab
             puma_workers:            ::Gitlab::Metrics.gauge(:puma_workers, 'Total number of workers'),
             puma_running_workers:    ::Gitlab::Metrics.gauge(:puma_running_workers, 'Number of active workers'),
             puma_stale_workers:      ::Gitlab::Metrics.gauge(:puma_stale_workers, 'Number of stale workers'),
-            puma_phase:              ::Gitlab::Metrics.gauge(:puma_phase, 'Phase number (increased during phased restarts)'),
+            puma_phase:              ::Gitlab::Metrics.gauge(:puma_phase, 'Phase number (increased during phased restarts)', {}, :livesum),
             puma_running:            ::Gitlab::Metrics.gauge(:puma_running, 'Number of running threads'),
             puma_queued_connections: ::Gitlab::Metrics.gauge(:puma_queued_connections, 'Number of connections in that worker\'s "todo" set waiting for a worker thread'),
             puma_active_connections: ::Gitlab::Metrics.gauge(:puma_active_connections, 'Number of threads processing a request'),
