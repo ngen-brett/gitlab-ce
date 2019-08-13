@@ -60,9 +60,21 @@
       %td
         = _("Certificate")
       %td
-        - if @domain.certificate_text
-          %pre
-            = @domain.certificate_text
+        - if @domain.auto_ssl_enabled?
+          - if @domain.certificate_text
+            %pre
+              = @domain.certificate_text
+          - else
+            - if @domain.enabled?
+              .alert.alert-info
+                = _("GitLab is obtaining a Let's Encrypt SSL certificate for this domain. This process can take some time. Please try again later.")
+            - else
+              .alert.alert-warning
+                = _("A Let's Encrypt SSL certificate can not be obtained until your domain is verified.")
         - else
-          .light
-            = _("missing")
+          - if @domain.certificate_text
+            %pre
+              = @domain.certificate_text
+          - else
+            .light
+              = _("missing")
