@@ -77,8 +77,11 @@ You are highly advised to [read about storing configuration files](#storing-conf
 Use this command if you've installed GitLab with the Omnibus package:
 
 ```sh
-sudo gitlab-backup create
+sudo gitlab-rake gitlab:backup:create
 ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup create` instead of `gitlab-rake gitlab:backup:create`.
 
 Use this if you've installed GitLab from source:
 
@@ -89,8 +92,11 @@ sudo -u git -H bundle exec rake gitlab:backup:create RAILS_ENV=production
 If you are running GitLab within a Docker container, you can run the backup from the host:
 
 ```sh
-docker exec -t <container name> gitlab-backup create
+docker exec -t <container name> gitlab-rake gitlab:backup:create
 ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup create` instead of `gitlab-rake gitlab:backup:create`.
 
 If you are using the [GitLab helm chart](https://gitlab.com/charts/gitlab) on a
 Kubernetes cluster, you can run the backup task using `backup-utility` script on
@@ -199,16 +205,22 @@ To use the `copy` strategy instead of the default streaming strategy, specify
 `STRATEGY=copy` in the Rake task command. For example:
 
 ```sh
-sudo gitlab-backup create STRATEGY=copy
+sudo gitlab-rake gitlab:backup:create STRATEGY=copy
 ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup create` instead of `gitlab-rake gitlab:backup:create`.
 
 ### Backup filename
 
 By default a backup file is created according to the specification in [the Backup timestamp](#backup-timestamp) section above. You can however override the `[TIMESTAMP]` part of the filename by setting the `BACKUP` environment variable. For example:
 
 ```sh
-sudo gitlab-backup create BACKUP=dump
+sudo gitlab-rake gitlab:backup:create BACKUP=dump
 ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup create` instead of `gitlab-rake gitlab:backup:create`.
 
 The resulting file will then be `dump_gitlab_backup.tar`. This is useful for systems that make use of rsync and incremental backups, and will result in considerably faster transfer speeds.
 
@@ -219,8 +231,11 @@ To make sure the generated archive is intelligently transferable by rsync, the `
 Note that the `--rsyncable` option in `gzip` is not guaranteed to be available on all distributions. To verify that it is available in your distribution you can run `gzip --help` or consult the man pages.
 
 ```sh
-sudo gitlab-backup create BACKUP=dump GZIP_RSYNCABLE=yes
+sudo gitlab-rake gitlab:backup:create BACKUP=dump GZIP_RSYNCABLE=yes
 ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup create` instead of `gitlab-rake gitlab:backup:create`.
 
 ### Excluding specific directories from the backup
 
@@ -244,8 +259,11 @@ will be skipped during a backup.
 For Omnibus GitLab packages:
 
 ```sh
-sudo gitlab-backup create SKIP=db,uploads
+sudo gitlab-rake gitlab:backup:create SKIP=db,uploads
 ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup create` instead of `gitlab-rake gitlab:backup:create`.
 
 For installations from source:
 
@@ -448,9 +466,12 @@ Note: This option only works for remote storage. If you want to group your backu
 you can pass a `DIRECTORY` environment variable:
 
 ```
-sudo gitlab-backup create DIRECTORY=daily
-sudo gitlab-backup create DIRECTORY=weekly
+sudo gitlab-rake gitlab:backup:create DIRECTORY=daily
+sudo gitlab-rake gitlab:backup:create DIRECTORY=weekly
 ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup create` instead of `gitlab-rake gitlab:backup:create`.
 
 ### Uploading to locally mounted shares
 
@@ -566,8 +587,11 @@ crontab -e
 There, add the following line to schedule the backup for everyday at 2 AM:
 
 ```
-0 2 * * * /opt/gitlab/bin/gitlab-backup create CRON=1
+0 2 * * * /opt/gitlab/bin/gitlab-rake gitlab:backup:create CRON=1
 ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup create` instead of `gitlab-rake gitlab:backup:create`.
 
 You may also want to set a limited lifetime for backups to prevent regular
 backups using all your disk space.
@@ -726,8 +750,11 @@ restore:
 
 ```shell
 # This command will overwrite the contents of your GitLab database!
-sudo gitlab-backup restore BACKUP=1493107454_2018_04_25_10.6.4-ce
+sudo gitlab-rake gitlab:backup:restore BACKUP=1493107454_2018_04_25_10.6.4-ce
 ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup restore` instead of `gitlab-rake gitlab:backup:restore`.
 
 Next, restore `/etc/gitlab/gitlab-secrets.json` if necessary as mentioned above.
 
@@ -760,8 +787,11 @@ backup location (default location is `/var/opt/gitlab/backups`).
 For docker installations, the restore task can be run from host:
 
 ```sh
-docker exec -it <name of container> gitlab-backup restore
+docker exec -it <name of container> gitlab-rake gitlab:backup:restore
 ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup restore` instead of `gitlab-rake gitlab:backup:restore`.
 
 The GitLab helm chart uses a different process, documented in
 [restoring a GitLab helm chart installation](https://gitlab.com/charts/gitlab/blob/master/doc/backup-restore/restore.md).
@@ -966,7 +996,7 @@ want to run the chown against your custom location instead of
 While running the backup, you may receive a gzip error:
 
 ```sh
-sudo /opt/gitlab/bin/gitlab-backup create
+sudo /opt/gitlab/bin/gitlab-rake gitlab:backup:create
 Dumping ...
 ...
 gzip: stdout: Input/output error

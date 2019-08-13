@@ -67,7 +67,7 @@ Also check on your GitLab server.
 ```
 # On your GitLab server:
 # Omnibus
-sudo gitlab-backup create SKIP=repositories,uploads
+sudo gitlab-rake gitlab:backup:create SKIP=repositories,uploads
 
 # Source
 cd /home/git/gitlab
@@ -76,6 +76,9 @@ sudo -u git -H bundle exec rake gitlab:backup:create RAILS_ENV=production SKIP=r
 
 If this fails you need to fix it before upgrading to 8.0. Also see
 <https://about.gitlab.com/get-help/>
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup create` instead of `gitlab-rake gitlab:backup:create`.
 
 ### 2. Check source and target database types
 

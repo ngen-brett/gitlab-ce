@@ -610,8 +610,11 @@ To back up GitLab:
 1. Take a backup:
 
    ```sh
-   sudo gitlab-backup create
+   sudo gitlab-rake gitlab:backup:create
    ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup create` instead of `gitlab-rake gitlab:backup:create`.
 
 ### Restoring GitLab from a backup
 
@@ -628,8 +631,11 @@ released, you can update your GitLab instance:
 1. Take a backup:
 
    ```sh
-   sudo gitlab-backup create
+   sudo gitlab-rake gitlab:backup:create
    ```
+
+NOTE: **Note**
+If you are using GitLab 12.2 or newer you can use `gitlab-backup create` instead of `gitlab-rake gitlab:backup:create`.
 
 1. Update the repositories and install GitLab:
 
