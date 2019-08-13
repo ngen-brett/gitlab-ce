@@ -12,7 +12,7 @@ From here, you can increase or decrease by changing the value in `Maximum attach
 
 NOTE: **Note:**
 If you choose a size larger than what is currently configured for the web server,
-you will get errors. See the [troubleshooting section](#troubleshooting) for more
+you will likely get errors. See the [troubleshooting section](#troubleshooting) for more
 details.
 
 ## Repository size limit **(STARTER)**
@@ -66,12 +66,13 @@ GitLab.com repository size [is set by GitLab](../../gitlab_com/index.md#reposito
 
 ### 413 Request Entity Too Large
 
-The `413 Request Entity Too Large` error is caused by having a [max attachment size](#max-attachment-size)
+If you are attaching a file to a comment or reply in GitLab and receive the `413 Request Entity Too Large`
+error, it is likely caused by having a [max attachment size](#max-attachment-size)
 larger than what the web server is configured to allow.
 
-For example, if you wanted to increase the max attachment size to 200m in a GitLab
-[Omnibus](https://docs.gitlab.com/omnibus/) install, you might need to add the line
-below to `/etc/gitlab/gitlab.rb` before increasing the max attachment size:
+If you wanted to increase the max attachment size to 200m in a GitLab
+[Omnibus](https://docs.gitlab.com/omnibus/) install, for example, you might need to
+add the line below to `/etc/gitlab/gitlab.rb` before increasing the max attachment size:
 
 ```
 nginx['client_max_body_size'] = "200m"
