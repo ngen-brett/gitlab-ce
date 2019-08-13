@@ -72,6 +72,9 @@ module Projects
         # Move missing group labels to project
         Labels::TransferService.new(current_user, @old_group, project).execute
 
+        # Move missing group milestones
+        Milestones::TransferService.new(current_user, @old_group, project).execute
+
         # Move uploads
         move_project_uploads(project)
 
@@ -163,5 +166,9 @@ module Projects
         @new_namespace.full_path
       )
     end
+
+    # def move_group_milestones(project)
+    #   Milestones::TransferService.new(current_user, @old_group, project).execute
+    # end
   end
 end
