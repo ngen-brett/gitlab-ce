@@ -220,7 +220,7 @@ There are four ways to authenticate with the GitLab API:
 1. [OAuth2 tokens](#oauth2-tokens)
 1. [Personal access tokens](#personal-access-tokens)
 1. [Session cookie](#session-cookie)
-1. [GitLab CI job token](#) **(PREMIUM)**
+1. [GitLab CI job token](#gitlab-ci-job-token-premium) **(PREMIUM)**
 
 For admins who want to authenticate with the API as a specific user, or who want to build applications or scripts that do so, two options are available:
 
