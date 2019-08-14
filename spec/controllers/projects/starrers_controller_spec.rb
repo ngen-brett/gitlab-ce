@@ -3,23 +3,25 @@
 require 'spec_helper'
 
 describe Projects::StarrersController do
-  let(:user) { create(:user) }
-  let(:private_user) { create(:user, private_profile: true) }
+  let(:user_1) { create(:user, name: 'John') }
+  let(:user_2) { create(:user, name: 'Mike') }
+  let(:private_user) { create(:user, name: 'Mary', private_profile: true) }
   let(:admin) { create(:user, admin: true) }
-  let(:project) { create(:project, :public, :repository) }
+  let(:project) { create(:project, :public) }
 
   before do
-    user.toggle_star(project)
+    user_1.toggle_star(project)
+    user_2.toggle_star(project)
     private_user.toggle_star(project)
   end
 
   describe 'GET index' do
-    def get_starrers
-      get :index,
-        params: {
-          namespace_id: project.namespace,
-          project_id: project
-        }
+    def get_starrers(search: nil)
+      get :index, params: { namespace_id: project.namespace, project_id: project, search: search }
+    end
+
+    def user_ids
+      assigns[:starrers].map { |s| s['user_id'] }
     end
 
     context 'when project is public' do
@@ -28,55 +30,106 @@ describe Projects::StarrersController do
       end
 
       context 'when no user is logged in' do
-        before do
-          get_starrers
-        end
-
         it 'only public starrers are visible' do
-          user_ids = assigns[:starrers].map { |s| s['user_id'] }
-          expect(user_ids).to include(user.id)
-          expect(user_ids).not_to include(private_user.id)
+          get_starrers
+
+          expect(user_ids).to contain_exactly(user_1.id, user_2.id)
         end
 
-        it 'public/private starrers counts are correct' do
-          expect(assigns[:public_count]).to eq(1)
+        it 'starrers counters are correct' do
+          get_starrers
+
+          expect(assigns[:total_count]).to eq(3)
+          expect(assigns[:public_count]).to eq(2)
           expect(assigns[:private_count]).to eq(1)
+        end
+
+        context 'searching' do
+          it 'only public starrers are visible' do
+            get_starrers(search: 'Mike')
+
+            expect(user_ids).to contain_exactly(user_2.id)
+          end
+
+          it 'starrers counters are correct' do
+            get_starrers(search: 'Mike')
+
+            expect(assigns[:total_count]).to eq(3)
+            expect(assigns[:public_count]).to eq(2)
+            expect(assigns[:private_count]).to eq(1)
+          end
         end
       end
 
       context 'when private user is logged in' do
         before do
           sign_in(private_user)
-
-          get_starrers
         end
 
         it 'their star is also visible' do
-          user_ids = assigns[:starrers].map { |s| s['user_id'] }
-          expect(user_ids).to include(user.id, private_user.id)
+          get_starrers
+
+          expect(user_ids).to contain_exactly(user_1.id, user_2.id, private_user.id)
         end
 
-        it 'public/private starrers counts are correct' do
-          expect(assigns[:public_count]).to eq(1)
+        it 'starrers counters are correct' do
+          get_starrers
+
+          expect(assigns[:total_count]).to eq(3)
+          expect(assigns[:public_count]).to eq(2)
           expect(assigns[:private_count]).to eq(1)
+        end
+
+        context 'searching' do
+          it 'only public starrers are visible' do
+            get_starrers(search: 'Mike')
+
+            expect(user_ids).to contain_exactly(user_2.id)
+          end
+
+          it 'starrers counters are correct' do
+            get_starrers(search: 'Mike')
+
+            expect(assigns[:total_count]).to eq(3)
+            expect(assigns[:public_count]).to eq(2)
+            expect(assigns[:private_count]).to eq(1)
+          end
         end
       end
 
       context 'when admin is logged in' do
         before do
           sign_in(admin)
+        end
 
+        it 'all starrers are visible' do
           get_starrers
+
+          expect(user_ids).to include(user_1.id, user_2.id, private_user.id)
         end
 
-        it 'all stars are visible' do
-          user_ids = assigns[:starrers].map { |s| s['user_id'] }
-          expect(user_ids).to include(user.id, private_user.id)
-        end
+        it 'starrers counters are correct' do
+          get_starrers
 
-        it 'public/private starrers counts are correct' do
-          expect(assigns[:public_count]).to eq(1)
+          expect(assigns[:total_count]).to eq(3)
+          expect(assigns[:public_count]).to eq(2)
           expect(assigns[:private_count]).to eq(1)
+        end
+
+        context 'searching' do
+          it 'only public starrers are visible' do
+            get_starrers(search: 'Mike')
+
+            expect(user_ids).to contain_exactly(user_2.id)
+          end
+
+          it 'starrers counters are correct' do
+            get_starrers(search: 'Mike')
+
+            expect(assigns[:total_count]).to eq(3)
+            expect(assigns[:public_count]).to eq(2)
+            expect(assigns[:private_count]).to eq(1)
+          end
         end
       end
     end
@@ -100,9 +153,15 @@ describe Projects::StarrersController do
         it 'only public starrers are visible' do
           get_starrers
 
-          user_ids = assigns[:starrers].map { |s| s['user_id'] }
-          expect(user_ids).to include(user.id)
-          expect(user_ids).not_to include(private_user.id)
+          expect(user_ids).to contain_exactly(user_1.id, user_2.id)
+        end
+
+        it 'starrers counters are correct' do
+          get_starrers
+
+          expect(assigns[:total_count]).to eq(3)
+          expect(assigns[:public_count]).to eq(2)
+          expect(assigns[:private_count]).to eq(1)
         end
       end
     end
