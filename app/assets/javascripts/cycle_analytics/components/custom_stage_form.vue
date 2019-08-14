@@ -143,22 +143,10 @@ export default {
         },
       ],
     },
-    // name: {
-    //   type: String,
-    //   default: null,
-    // },
-    // objectType: {
-    //   type: String,
-    //   default: null,
-    // },
-    // startEvent: {
-    //   type: String,
-    //   default: null,
-    // },
-    // stopEvent: {
-    //   type: String,
-    //   default: null,
-    // },
+    labels: {
+      type: Array,
+      required: true,
+    },
   },
   data() {
     return {
@@ -171,7 +159,6 @@ export default {
         stopEventLabel: '',
         labelEvents: [],
       },
-      mockLabels,
       selectedLabel: null,
     };
   },
@@ -230,7 +217,7 @@ export default {
     <gl-form-group :label="s__('CustomCycleAnalytics|Start event label')">
       <div class="row">
         <labels-selector
-          :labels="mockLabels"
+          :labels="labels"
           :selected-label-id="selectedLabel"
           @select-label="handleSelectLabel"
         />
