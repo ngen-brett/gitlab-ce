@@ -61,7 +61,7 @@ POST /projects/:id/approvals
 
 ### Get project-level rules
 
->**Note:** This API endpoint is only available on 12.0 Starter and above.
+>**Note:** This API endpoint is only available on 12.2 Starter and above.
 
 You can request information about a project's approval rules using the following endpoint:
 
@@ -113,7 +113,7 @@ GET /projects/:id/approval_rules
 
 ### Create project-level rule
 
->**Note:** This API endpoint is only available on 12.0 Starter and above.
+>**Note:** This API endpoint is only available on 12.2 Starter and above.
 
 You can create project approval rules using the following endpoint:
 
@@ -164,7 +164,7 @@ POST /projects/:id/approval_rules
 
 ### Update project-level rule
 
->**Note:** This API endpoint is only available on 12.0 Starter and above.
+>**Note:** This API endpoint is only available on 12.2 Starter and above.
 
 You can update project approval rules using the following endpoint:
 
@@ -218,7 +218,7 @@ PUT /projects/:id/approval_rules/:approval_rule_id
 
 ### Delete project-level rule
 
->**Note:** This API endpoint is only available on 12.0 Starter and above.
+>**Note:** This API endpoint is only available on 12.2 Starter and above.
 
 You can delete project approval rules using the following endpoint:
 
@@ -455,7 +455,7 @@ PUT /projects/:id/merge_requests/:merge_request_iid/approvers
 
 ### Get approval rules for Merge Request
 
->**Note:** This API endpoint is only available on 12.0 Starter and above.
+>**Note:** This API endpoint is only available on 12.2 Starter and above.
 
 You can request information about a merge request's approval rules using the following endpoint:
 
