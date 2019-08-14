@@ -313,7 +313,7 @@ export const toggleTreeOpen = ({ commit }, path) => {
 
 export const scrollToFile = ({ state, commit }, path) => {
   const { fileHash } = state.treeEntries[path];
-  document.location.hash = fileHash;
+  if (!state.showOneFile) document.location.hash = fileHash;
 
   commit(types.UPDATE_CURRENT_DIFF_FILE_ID, fileHash);
 };
