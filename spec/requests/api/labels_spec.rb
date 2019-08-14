@@ -329,7 +329,7 @@ describe API::Labels do
     it 'returns 400 if no label name given' do
       put api("/projects/#{project.id}/labels", user), params: { new_name: 'label2' }
       expect(response).to have_gitlab_http_status(400)
-      expect(json_response['error']).to eq('name is missing')
+      expect(json_response['error']).to eq('label_id, name are missing, exactly one parameter must be provided')
     end
 
     it 'returns 400 if no new parameters given' do

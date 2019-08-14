@@ -11,9 +11,9 @@ module API
         optional :description, type: String, desc: 'The description of label to be created'
       end
 
-      def find_label(parent, id, include_ancestor_groups: true)
+      def find_label(parent, id_or_title, include_ancestor_groups: true)
         labels = available_labels_for(parent, include_ancestor_groups: include_ancestor_groups)
-        label = labels.find_by_id(id) || labels.find_by_title(id)
+        label = labels.find_by_id(id_or_title) || labels.find_by_title(id_or_title)
 
         label || not_found!('Label')
       end
@@ -56,7 +56,7 @@ module API
       def update_label(parent, entity)
         authorize! :admin_label, parent
 
-        label = find_label(parent, params[:name], include_ancestor_groups: false)
+        label = find_label(parent, params_id_or_title, include_ancestor_groups: false)
         update_priority = params.key?(:priority)
         priority = params.delete(:priority)
 
@@ -77,9 +77,13 @@ module API
       def delete_label(parent)
         authorize! :admin_label, parent
 
-        label = find_label(parent, params[:name], include_ancestor_groups: false)
+        label = find_label(parent, params_id_or_title, include_ancestor_groups: false)
 
         destroy_conditionally!(label)
+      end
+
+      def params_id_or_title
+        params[:label_id] || params[:name]
       end
     end
   end
