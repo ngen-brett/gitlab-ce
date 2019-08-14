@@ -285,6 +285,55 @@ describe API::Pipelines do
         expect(json_response).not_to be_an Array
       end
     end
+
+    context 'projects with public visibility' do
+      let(:visibility) { 'public' }
+      let(:project) { create(:project, :repository, creator: user, visibility: visibility, public_builds: public_builds) }
+
+      context 'with public builds' do
+        let(:public_builds) { true }
+
+        context 'with non assigned user' do
+          it 'does return project pipelines' do
+            get api("/projects/#{project.id}/pipelines", non_member)
+
+            expect(response).to have_gitlab_http_status(200)
+            expect(json_response).to be_an Array
+          end
+        end
+
+        context 'without any user' do
+          it 'does return project pipelines' do
+            get api("/projects/#{project.id}/pipelines")
+
+            expect(response).to have_gitlab_http_status(200)
+            expect(json_response).to be_an Array
+          end
+        end
+      end
+
+      context 'without public builds' do
+        let(:public_builds) { false }
+
+        context 'with non assigned user' do
+          it 'does return project pipelines' do
+            get api("/projects/#{project.id}/pipelines", non_member)
+
+            expect(response).to have_gitlab_http_status(403)
+            expect(json_response).not_to be_an Array
+          end
+        end
+
+        context 'without any user' do
+          it 'does return project pipelines' do
+            get api("/projects/#{project.id}/pipelines")
+
+            expect(response).to have_gitlab_http_status(403)
+            expect(json_response).not_to be_an Array
+          end
+        end
+      end
+    end
   end
 
   describe 'POST /projects/:id/pipeline ' do
