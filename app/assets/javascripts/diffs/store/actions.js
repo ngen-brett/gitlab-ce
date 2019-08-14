@@ -358,14 +358,10 @@ export const setShowWhitespace = ({ commit }, { showWhitespace, pushState = fals
   eventHub.$emit('refetchDiffData');
 };
 
-export const setShowOneFile = ({ commit }, { showOneFile, pushState = false }) => {
+export const setShowOneFile = ({ commit }, { showOneFile }) => {
   commit(types.SET_SHOW_ONE_FILE, showOneFile);
 
   localStorage.setItem(ONE_FILE_STORAGE_KEY, showOneFile);
-
-  if (pushState) {
-    historyPushState(mergeUrlParams({ w: showOneFile ? '0' : '1' }, window.location.href));
-  }
 
   eventHub.$emit('refetchDiffData');
 };
