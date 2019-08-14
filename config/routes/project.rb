@@ -270,7 +270,10 @@ constraints(::Constraints::ProjectUrlConstrainer.new) do
             get :cached_widget, to: 'merge_requests/content#cached_widget'
           end
 
-          get :diff_for_path, controller: 'merge_requests/diffs'
+          scope controller: 'merge_requests/diffs' do
+            get :diff_for_path
+            get :diff_stats
+          end
 
           scope controller: 'merge_requests/conflicts' do
             get :conflicts, action: :show

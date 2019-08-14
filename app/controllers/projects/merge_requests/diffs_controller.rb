@@ -17,7 +17,37 @@ class Projects::MergeRequests::DiffsController < Projects::MergeRequests::Applic
     render_diffs
   end
 
+  def diff_stats
+    return render_404 unless diff_collection.paths.any?
+
+    response = diff_collection.each_with_object({}) do |diff, hash|
+      hash[diff.path] = {
+        additions: diff.additions,
+        deletions: diff.deletions,
+        diff_url: diff_for_path_url(diff)
+      }
+    end
+
+    render json: response.to_json
+  end
+
   private
+
+  def diff_collection
+    repository.raw_repository.diff_stats(
+      merge_request.target_branch,
+      merge_request.source_branch
+    )
+  end
+
+  def diff_for_path_url(diff)
+    diff_for_path_namespace_project_merge_request_path(
+      namespace_id: project.namespace.to_param,
+      project_id: project.to_param,
+      id: merge_request.iid,
+      file_identifier: diff.path
+    )
+  end
 
   def render_diffs
     @environment = @merge_request.environments_for(current_user).last

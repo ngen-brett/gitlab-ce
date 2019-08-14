@@ -154,4 +154,44 @@ describe Projects::MergeRequests::DiffsController do
       end
     end
   end
+
+  describe 'GET get_diff_stats' do
+    def get_diff_stats(extra_params = {})
+      params = {
+        namespace_id: project.namespace.to_param,
+        project_id: project,
+        id: merge_request.iid,
+        format: 'json'
+      }
+
+      get :diff_stats, params: params.merge(extra_params)
+    end
+
+    let(:existing_path) { 'files/ruby/popen.rb' }
+
+    context 'when the merge request exists' do
+      it "returns stats for HEAD versus target" do
+        get_diff_stats
+
+        expect(response).to have_gitlab_http_status(200)
+        expect(json_response.keys).to include(existing_path)
+        expect(json_response[existing_path]["additions"]).to eq(10)
+        expect(json_response[existing_path]["deletions"]).to eq(3)
+        expect(json_response[existing_path]["diff_url"])
+          .to eq("/#{project.namespace.to_param}/#{project.name}/merge_requests/#{merge_request.iid}/diff_for_path?file_identifier=#{url_encode(existing_path)}")
+      end
+    end
+
+    context "when the diff_stats are empty" do
+      before do
+        expect_any_instance_of(Gitlab::Git::DiffStatsCollection).to receive(:paths).and_return([])
+      end
+
+      it "returns a 404" do
+        get_diff_stats
+
+        expect(response).to have_gitlab_http_status(404)
+      end
+    end
+  end
 end
