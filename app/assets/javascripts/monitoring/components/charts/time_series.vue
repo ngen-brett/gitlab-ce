@@ -94,7 +94,7 @@ export default {
           },
           showSymbol: false,
           areaStyle:
-            this.graphData.type == 'area-chart'
+            this.graphData.type === 'area-chart'
               ? {
                   opacity:
                     appearance && appearance.area && typeof appearance.area.opacity === 'number'
