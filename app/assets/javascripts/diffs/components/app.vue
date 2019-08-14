@@ -104,7 +104,7 @@ export default {
       plainDiffPath: state => state.diffs.plainDiffPath,
       emailPatchPath: state => state.diffs.emailPatchPath,
     }),
-    ...mapState('diffs', ['showTreeList', 'isLoading', 'startVersion']),
+    ...mapState('diffs', ['showTreeList', 'isLoading', 'startVersion', 'showOneFile']),
     ...mapGetters('diffs', ['isParallelView', 'currentDiffIndex']),
     ...mapGetters(['isNotesFetched', 'getNoteableData']),
     targetBranch() {
@@ -325,13 +325,14 @@ export default {
         >
           <commit-widget v-if="commit" :commit="commit" />
           <template v-if="renderDiffFiles">
-            <diff-file
-              v-for="file in diffFiles"
-              :key="file.newPath"
-              :file="file"
-              :help-page-path="helpPagePath"
-              :can-current-user-fork="canCurrentUserFork"
-            />
+            <div v-for="(file, idx) in diffFiles" :key="file.newPath">
+              <diff-file
+                v-if="!showOneFile || idx === currentDiffIndex"
+                :file="file"
+                :help-page-path="helpPagePath"
+                :can-current-user-fork="canCurrentUserFork"
+              />
+            </div>
           </template>
           <no-changes v-else :changes-empty-state-illustration="changesEmptyStateIllustration" />
         </div>

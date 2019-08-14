@@ -10,7 +10,7 @@ export default {
   },
   computed: {
     ...mapGetters('diffs', ['isInlineView', 'isParallelView']),
-    ...mapState('diffs', ['renderTreeList', 'showWhitespace']),
+    ...mapState('diffs', ['renderTreeList', 'showWhitespace', 'showOneFile']),
   },
   methods: {
     ...mapActions('diffs', [
@@ -18,6 +18,7 @@ export default {
       'setParallelDiffViewType',
       'setRenderTreeList',
       'setShowWhitespace',
+      'setShowOneFile',
     ]),
   },
 };
@@ -85,6 +86,17 @@ export default {
             @change="setShowWhitespace({ showWhitespace: $event.target.checked, pushState: true })"
           />
           {{ __('Show whitespace changes') }}
+        </label>
+      </div>
+      <div class="mt-2">
+        <label class="mb-0">
+          <input
+            id="show-one-file"
+            type="checkbox"
+            :checked="showOneFile"
+            @change="setShowOneFile({ showOneFile: $event.target.checked, pushState: true })"
+          />
+          {{ __('Show one file at a time') }}
         </label>
       </div>
     </div>

@@ -22,6 +22,7 @@ import {
   MR_TREE_SHOW_KEY,
   TREE_LIST_STORAGE_KEY,
   WHITESPACE_STORAGE_KEY,
+  ONE_FILE_STORAGE_KEY,
   TREE_LIST_WIDTH_STORAGE_KEY,
   OLD_LINE_KEY,
   NEW_LINE_KEY,
@@ -352,6 +353,18 @@ export const setShowWhitespace = ({ commit }, { showWhitespace, pushState = fals
 
   if (pushState) {
     historyPushState(mergeUrlParams({ w: showWhitespace ? '0' : '1' }, window.location.href));
+  }
+
+  eventHub.$emit('refetchDiffData');
+};
+
+export const setShowOneFile = ({ commit }, { showOneFile, pushState = false }) => {
+  commit(types.SET_SHOW_ONE_FILE, showOneFile);
+
+  localStorage.setItem(ONE_FILE_STORAGE_KEY, showOneFile);
+
+  if (pushState) {
+    historyPushState(mergeUrlParams({ w: showOneFile ? '0' : '1' }, window.location.href));
   }
 
   eventHub.$emit('refetchDiffData');
