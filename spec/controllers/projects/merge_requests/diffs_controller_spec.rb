@@ -174,10 +174,13 @@ describe Projects::MergeRequests::DiffsController do
         get_diff_stats
 
         expect(response).to have_gitlab_http_status(200)
-        expect(json_response.keys).to include(existing_path)
-        expect(json_response[existing_path]["additions"]).to eq(10)
-        expect(json_response[existing_path]["deletions"]).to eq(3)
-        expect(json_response[existing_path]["diff_url"])
+        expect(json_response.collect { |h| h["path"] }).to include(existing_path)
+
+        existing_path_hash = json_response.select { |h| h["path"] == existing_path }.first
+# binding.pry
+        expect(existing_path_hash["additions"]).to eq(10)
+        expect(existing_path_hash["deletions"]).to eq(3)
+        expect(existing_path_hash["diff_url"])
           .to eq("/#{project.namespace.to_param}/#{project.name}/merge_requests/#{merge_request.iid}/diff_for_path?file_identifier=#{url_encode(existing_path)}")
       end
     end

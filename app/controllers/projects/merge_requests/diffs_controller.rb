@@ -20,11 +20,12 @@ class Projects::MergeRequests::DiffsController < Projects::MergeRequests::Applic
   def diff_stats
     return render_404 unless diff_collection.paths.any?
 
-    response = diff_collection.each_with_object({}) do |diff, hash|
-      hash[diff.path] = {
+    response = diff_collection.each_with_object([]) do |diff, arr|
+      arr << {
+        path:      diff.path,
         additions: diff.additions,
         deletions: diff.deletions,
-        diff_url: diff_for_path_url(diff)
+        diff_url:  diff_for_path_url(diff)
       }
     end
 
