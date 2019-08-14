@@ -41,11 +41,6 @@ module Gitlab
                                      #{config.root}/app/models/hooks
                                      #{config.root}/app/models/members
                                      #{config.root}/app/models/project_services
-                                     #{config.root}/app/workers/concerns
-                                     #{config.root}/app/policies/concerns
-                                     #{config.root}/app/services/concerns
-                                     #{config.root}/app/serializers/concerns
-                                     #{config.root}/app/finders/concerns
                                      #{config.root}/app/graphql/resolvers/concerns
                                      #{config.root}/app/graphql/mutations/concerns])
 
@@ -293,10 +288,5 @@ module Gitlab
       Gitlab::Routing.add_helpers(project_url_helpers)
       Gitlab::Routing.add_helpers(MilestonesRoutingHelper)
     end
-
-    # This makes generated cookies to be compatible with Rails 5.1 and older
-    # We can remove this when we're confident that there are no issues with the Rails 5.2 upgrade
-    # and we won't need to rollback to older versions
-    config.action_dispatch.use_authenticated_cookie_encryption = false
   end
 end

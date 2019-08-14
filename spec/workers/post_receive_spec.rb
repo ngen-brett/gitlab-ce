@@ -14,6 +14,10 @@ describe PostReceive do
     create(:project, :repository, auto_cancel_pending_pipelines: 'disabled')
   end
 
+  def perform(changes: base64_changes)
+    described_class.new.perform(gl_repository, key_id, changes)
+  end
+
   context "as a sidekiq worker" do
     it "responds to #perform" do
       expect(described_class.new).to respond_to(:perform)
@@ -28,7 +32,7 @@ describe PostReceive do
 
     it "returns false and logs an error" do
       expect(Gitlab::GitLogger).to receive(:error).with("POST-RECEIVE: #{error_message}")
-      expect(described_class.new.perform(gl_repository, key_id, base64_changes)).to be(false)
+      expect(perform).to be(false)
     end
   end
 
@@ -39,7 +43,7 @@ describe PostReceive do
         expect(Git::TagPushService).not_to receive(:new)
         expect_next_instance_of(SystemHooksService) { |service| expect(service).to receive(:execute_hooks) }
 
-        described_class.new.perform(gl_repository, key_id, "")
+        perform(changes: "")
       end
     end
 
@@ -50,40 +54,80 @@ describe PostReceive do
         expect(Git::BranchPushService).not_to receive(:new)
         expect(Git::TagPushService).not_to receive(:new)
 
-        expect(described_class.new.perform(gl_repository, key_id, base64_changes)).to be false
+        expect(perform).to be false
       end
     end
 
     context 'with changes' do
       before do
         allow_any_instance_of(Gitlab::GitPostReceive).to receive(:identify).and_return(project.owner)
+        allow(Gitlab::GlRepository).to receive(:parse).and_return([project, Gitlab::GlRepository::PROJECT])
       end
 
       context "branches" do
-        let(:changes) { "123456 789012 refs/heads/tést" }
+        let(:changes) do
+          <<~EOF
+            '123456 789012 refs/heads/tést1'
+            '123456 789012 refs/heads/tést2'
+          EOF
+        end
 
-        it "calls Git::BranchPushService" do
-          expect_next_instance_of(Git::BranchPushService) do |service|
+        it 'expires the branches cache' do
+          expect(project.repository).to receive(:expire_branches_cache).once
+
+          described_class.new.perform(gl_repository, key_id, base64_changes)
+        end
+
+        it 'calls Git::BranchPushService' do
+          expect_any_instance_of(Git::BranchPushService) do |service|
             expect(service).to receive(:execute).and_return(true)
           end
 
           expect(Git::TagPushService).not_to receive(:new)
 
-          described_class.new.perform(gl_repository, key_id, base64_changes)
+          perform
         end
       end
 
       context "tags" do
-        let(:changes) { "123456 789012 refs/tags/tag" }
+        let(:changes) do
+          <<~EOF
+            654321 210987 refs/tags/tag1
+            654322 210986 refs/tags/tag2
+            654323 210985 refs/tags/tag3
+            654324 210984 refs/tags/tag4
+            654325 210983 refs/tags/tag5
+          EOF
+        end
+
+        before do
+          expect(Gitlab::GlRepository).to receive(:parse).and_return([project, Gitlab::GlRepository::PROJECT])
+        end
+
+        it 'does not expire branches cache' do
+          expect(project.repository).not_to receive(:expire_branches_cache)
+
+          described_class.new.perform(gl_repository, key_id, base64_changes)
+        end
+
+        it "only invalidates tags once" do
+          expect(project.repository).to receive(:repository_event).exactly(5).times.with(:push_tag).and_call_original
+          expect(project.repository).to receive(:expire_caches_for_tags).once.and_call_original
+          expect(project.repository).to receive(:expire_tags_cache).once.and_call_original
+
+          described_class.new.perform(gl_repository, key_id, base64_changes)
+        end
 
         it "calls Git::TagPushService" do
-          expect(Git::BranchPushService).not_to receive(:execute)
+          expect(Git::BranchPushService).not_to receive(:new)
 
-          expect_next_instance_of(Git::TagPushService) do |service|
+          expect_any_instance_of(Git::TagPushService) do |service|
             expect(service).to receive(:execute).and_return(true)
           end
 
-          described_class.new.perform(gl_repository, key_id, base64_changes)
+          expect(Git::BranchPushService).not_to receive(:new)
+
+          perform
         end
       end
 
@@ -94,7 +138,7 @@ describe PostReceive do
           expect(Git::BranchPushService).not_to receive(:new)
           expect(Git::TagPushService).not_to receive(:new)
 
-          described_class.new.perform(gl_repository, key_id, base64_changes)
+          perform
         end
       end
 
@@ -111,7 +155,7 @@ describe PostReceive do
 
         let(:changes_count) { changes.lines.count }
 
-        subject { described_class.new.perform(gl_repository, key_id, base64_changes) }
+        subject { perform }
 
         context "with valid .gitlab-ci.yml" do
           before do
@@ -180,7 +224,13 @@ describe PostReceive do
         it 'calls SystemHooksService' do
           expect_any_instance_of(SystemHooksService).to receive(:execute_hooks).with(fake_hook_data, :repository_update_hooks).and_return(true)
 
-          described_class.new.perform(gl_repository, key_id, base64_changes)
+          perform
+        end
+
+        it 'increments the usage data counter of pushes event' do
+          counter = Gitlab::UsageDataCounters::SourceCodeCounter
+
+          expect { perform }.to change { counter.read(:pushes) }.by(1)
         end
       end
     end
@@ -197,7 +247,7 @@ describe PostReceive do
       # a second to ensure we see changes.
       Timecop.freeze(1.second.from_now) do
         expect do
-          described_class.new.perform(gl_repository, key_id, base64_changes)
+          perform
           project.reload
         end.to change(project, :last_activity_at)
            .and change(project, :last_repository_updated_at)
@@ -208,7 +258,8 @@ describe PostReceive do
   context "webhook" do
     it "fetches the correct project" do
       expect(Project).to receive(:find_by).with(id: project.id.to_s)
-      described_class.new.perform(gl_repository, key_id, base64_changes)
+
+      perform
     end
 
     it "does not run if the author is not in the project" do
@@ -218,7 +269,7 @@ describe PostReceive do
 
       expect(project).not_to receive(:execute_hooks)
 
-      expect(described_class.new.perform(gl_repository, key_id, base64_changes)).to be_falsey
+      expect(perform).to be_falsey
     end
 
     it "asks the project to trigger all hooks" do
@@ -227,7 +278,7 @@ describe PostReceive do
       expect(project).to receive(:execute_hooks).twice
       expect(project).to receive(:execute_services).twice
 
-      described_class.new.perform(gl_repository, key_id, base64_changes)
+      perform
     end
 
     it "enqueues a UpdateMergeRequestsWorker job" do
@@ -235,7 +286,7 @@ describe PostReceive do
 
       expect(UpdateMergeRequestsWorker).to receive(:perform_async).with(project.id, project.owner.id, any_args)
 
-      described_class.new.perform(gl_repository, key_id, base64_changes)
+      perform
     end
   end
 end

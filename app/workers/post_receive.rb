@@ -42,6 +42,11 @@ class PostReceive
     user = identify_user(post_received)
     return false unless user
 
+    # Expire the branches cache so we have updated data for this push
+    post_received.project.repository.expire_branches_cache if post_received.includes_branches?
+    # We only need to expire tags once per push
+    post_received.project.repository.expire_caches_for_tags if post_received.includes_tags?
+
     post_received.enum_for(:changes_refs).with_index do |(oldrev, newrev, ref), index|
       service_klass =
         if Gitlab::Git.tag_ref?(ref)
@@ -72,6 +77,7 @@ class PostReceive
   def after_project_changes_hooks(post_received, user, refs, changes)
     hook_data = Gitlab::DataBuilder::Repository.update(post_received.project, user, changes, refs)
     SystemHooksService.new.execute_hooks(hook_data, :repository_update_hooks)
+    Gitlab::UsageDataCounters::SourceCodeCounter.count(:pushes)
   end
 
   def process_wiki_changes(post_received)
