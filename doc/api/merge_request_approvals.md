@@ -90,6 +90,14 @@ GET /projects/:id/approval_rules
           "state": "active",
           "avatar_url": "https://www.gravatar.com/avatar/0?s=80&d=identicon",
           "web_url": "http://localhost/jdoe"
+        },
+        {
+          "id": 50,
+          "name": "Group Member 1",
+          "username": "group_member_1",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/0?s=80&d=identicon",
+          "web_url": "http://localhost/group_member_1"
         }
       ],
       "approvals_required": 3,
@@ -103,7 +111,24 @@ GET /projects/:id/approval_rules
           "web_url": "http://localhost/jdoe"
         }
       ],
-      "groups": [],
+      "groups": [
+        {
+          "id": 5,
+          "name": "group1",
+          "path": "group1",
+          "description": "",
+          "visibility": "public",
+          "lfs_enabled": false,
+          "avatar_url": null,
+          "web_url": "http://localhost/groups/group1",
+          "request_access_enabled": false,
+          "full_name": "group1",
+          "full_path": "group1",
+          "parent_id": null,
+          "ldap_cn": null,
+          "ldap_access": null
+        }
+      ],
       "contains_hidden_groups": false
     }
   ],
@@ -144,6 +169,14 @@ POST /projects/:id/approval_rules
       "state": "active",
       "avatar_url": "https://www.gravatar.com/avatar/0?s=80&d=identicon",
       "web_url": "http://localhost/jdoe"
+    },
+    {
+      "id": 50,
+      "name": "Group Member 1",
+      "username": "group_member_1",
+      "state": "active",
+      "avatar_url": "https://www.gravatar.com/avatar/0?s=80&d=identicon",
+      "web_url": "http://localhost/group_member_1"
     }
   ],
   "approvals_required": 1,
@@ -157,7 +190,24 @@ POST /projects/:id/approval_rules
       "web_url": "http://localhost/jdoe"
     }
   ],
-  "groups": [],
+  "groups": [
+    {
+      "id": 5,
+      "name": "group1",
+      "path": "group1",
+      "description": "",
+      "visibility": "public",
+      "lfs_enabled": false,
+      "avatar_url": null,
+      "web_url": "http://localhost/groups/group1",
+      "request_access_enabled": false,
+      "full_name": "group1",
+      "full_path": "group1",
+      "parent_id": null,
+      "ldap_cn": null,
+      "ldap_access": null
+    }
+  ],
   "contains_hidden_groups": false
 }
 ```
@@ -198,6 +248,14 @@ PUT /projects/:id/approval_rules/:approval_rule_id
       "state": "active",
       "avatar_url": "https://www.gravatar.com/avatar/0?s=80&d=identicon",
       "web_url": "http://localhost/jdoe"
+    },
+    {
+      "id": 50,
+      "name": "Group Member 1",
+      "username": "group_member_1",
+      "state": "active",
+      "avatar_url": "https://www.gravatar.com/avatar/0?s=80&d=identicon",
+      "web_url": "http://localhost/group_member_1"
     }
   ],
   "approvals_required": 1,
@@ -211,7 +269,24 @@ PUT /projects/:id/approval_rules/:approval_rule_id
       "web_url": "http://localhost/jdoe"
     }
   ],
-  "groups": [],
+  "groups": [
+    {
+      "id": 5,
+      "name": "group1",
+      "path": "group1",
+      "description": "",
+      "visibility": "public",
+      "lfs_enabled": false,
+      "avatar_url": null,
+      "web_url": "http://localhost/groups/group1",
+      "request_access_enabled": false,
+      "full_name": "group1",
+      "full_path": "group1",
+      "parent_id": null,
+      "ldap_cn": null,
+      "ldap_access": null
+    }
+  ],
   "contains_hidden_groups": false
 }
 ```
@@ -486,6 +561,14 @@ GET /projects/:id/merge_requests/:merge_request_iid/approval_rules
           "state": "active",
           "avatar_url": "https://www.gravatar.com/avatar/0?s=80&d=identicon",
           "web_url": "http://localhost/jdoe"
+        },
+        {
+          "id": 50,
+          "name": "Group Member 1",
+          "username": "group_member_1",
+          "state": "active",
+          "avatar_url": "https://www.gravatar.com/avatar/0?s=80&d=identicon",
+          "web_url": "http://localhost/group_member_1"
         }
       ],
       "approvals_required": 2,
@@ -499,7 +582,24 @@ GET /projects/:id/merge_requests/:merge_request_iid/approval_rules
           "web_url": "http://localhost/jdoe"
         }
       ],
-      "groups": [],
+      "groups": [
+        {
+          "id": 5,
+          "name": "group1",
+          "path": "group1",
+          "description": "",
+          "visibility": "public",
+          "lfs_enabled": false,
+          "avatar_url": null,
+          "web_url": "http://localhost/groups/group1",
+          "request_access_enabled": false,
+          "full_name": "group1",
+          "full_path": "group1",
+          "parent_id": null,
+          "ldap_cn": null,
+          "ldap_access": null
+        }
+      ],
       "contains_hidden_groups": false,
       "approved_by": [
         {
