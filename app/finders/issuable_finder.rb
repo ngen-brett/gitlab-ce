@@ -442,8 +442,14 @@ class IssuableFinder
   def sort(items)
     # Ensure we always have an explicit sort order (instead of inheriting
     # multiple orders when combining ActiveRecord::Relation objects).
-    params[:sort] ? items.sort_by_attribute(params[:sort], excluded_labels: label_names) : items.reorder(id: :desc)
+    order_by ? items.sort_by_attribute(order_by, excluded_labels: label_names) : items.reorder(id: :desc)
   end
+
+  def order_by
+    direction = params[:sort].present? && %w(asc desc).include?(params[:sort].downcase) ? params[:sort] : ""
+    params[:order_by].present? ? "#{params[:order_by]}_#{direction}" : params[:sort]
+  end
+
   # rubocop: enable CodeReuse/ActiveRecord
 
   def filter_by_no_assignee?

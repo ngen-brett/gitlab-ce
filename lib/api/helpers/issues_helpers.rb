@@ -27,6 +27,10 @@ module API
         ]
       end
 
+      def self.sort_options
+        %w[created_at updated_at closest_future_date due_date relative_position label_priority milestone_due popularity]
+      end
+
       def issue_finder(args = {})
         args = declared_params.merge(args)
 
@@ -40,9 +44,7 @@ module API
 
       def find_issues(args = {})
         finder = issue_finder(args)
-        issues = finder.execute.with_api_entity_associations
-
-        issues.reorder(order_options_with_tie_breaker) # rubocop: disable CodeReuse/ActiveRecord
+        finder.execute.with_api_entity_associations
       end
 
       def issues_statistics(args = {})
