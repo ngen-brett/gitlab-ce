@@ -122,8 +122,10 @@ module Auth
       case requested_action
       when 'pull'
         build_can_pull?(requested_project) || user_can_pull?(requested_project) || deploy_token_can_pull?(requested_project)
-      when 'push', 'delete'
+      when 'push'
         build_can_push?(requested_project) || user_can_push?(requested_project)
+      when 'delete'
+        build_can_push?(requested_project) || user_can_push?(requested_project) || user_can_admin?(requested_project)
       when '*'
         user_can_admin?(requested_project)
       else

@@ -205,7 +205,7 @@ describe Auth::ContainerRegistryAuthenticationService do
         it_behaves_like 'not a container repository factory'
       end
 
-      context 'disallow developer to delete images since registry 2.7' do
+      context 'allow to delete images since registry 2.7' do
         before do
           project.add_developer(current_user)
         end
@@ -214,8 +214,7 @@ describe Auth::ContainerRegistryAuthenticationService do
           { scopes: ["repository:#{project.full_path}:delete"] }
         end
 
-        it_behaves_like 'an inaccessible'
-        it_behaves_like 'not a container repository factory'
+        it_behaves_like 'a deletable since registry 2.7'
       end
 
       context 'allow reporter to pull images' do
@@ -507,19 +506,19 @@ describe Auth::ContainerRegistryAuthenticationService do
       end
     end
 
-    context 'disallow to delete images' do
+    context 'allow to delete images since registry 2.7' do
       let(:current_params) do
-        { scopes: ["repository:#{current_project.full_path}:*"] }
+        { scopes: ["repository:#{current_project.full_path}:delete"] }
       end
 
-      it_behaves_like 'an inaccessible' do
+      it_behaves_like 'a deletable since registry 2.7' do
         let(:project) { current_project }
       end
     end
 
-    context 'disallow to delete images since registry 2.7' do
+    context 'disallow to delete images' do
       let(:current_params) do
-        { scopes: ["repository:#{current_project.full_path}:delete"] }
+        { scopes: ["repository:#{current_project.full_path}:*"] }
       end
 
       it_behaves_like 'an inaccessible' do
