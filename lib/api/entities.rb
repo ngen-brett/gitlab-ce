@@ -1125,6 +1125,7 @@ module API
       expose :id
       expose :label, using: Entities::LabelBasic
       expose :position
+      expose :max_issue_count
     end
 
     class Board < Grape::Entity
