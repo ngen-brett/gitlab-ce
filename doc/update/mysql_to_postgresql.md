@@ -13,7 +13,7 @@ NOTE: **Note:**
 Support for MySQL was removed in GitLab 12.1. This procedure should be performed
 **before** installing GitLab 12.1.
 
-[pgloader](https://pgloader.io/) 3.4.1+ is required, confirm with `pgloader -V`
+[pgloader](https://pgloader.io/) 3.4.1+ is required, confirm with `pgloader -V`.
 
 You can install it directly from your distribution, for example in
 Debian/Ubuntu:
