@@ -11,6 +11,7 @@ import IssuableContext from '~/issuable_context';
 import LabelsSelect from '~/labels_select';
 import AssigneeTitle from '~/sidebar/components/assignees/assignee_title.vue';
 import Assignees from '~/sidebar/components/assignees/assignees.vue';
+import SidebarEpicsSelect from 'ee_else_ce/sidebar/components/sidebar_item_epics_select.vue';
 import Subscriptions from '~/sidebar/components/subscriptions/subscriptions.vue';
 import TimeTracker from '~/sidebar/components/time_tracking/time_tracker.vue';
 import MilestoneSelect from '~/milestone_select';
@@ -22,6 +23,7 @@ export default Vue.extend({
   components: {
     AssigneeTitle,
     Assignees,
+    SidebarEpicsSelect,
     RemoveBtn,
     Subscriptions,
     TimeTracker,
