@@ -289,7 +289,7 @@ describe('Time series component', () => {
 
         it('recieves a tooltip title', done => {
           const mockTitle = 'mockTitle';
-          timeSeriesAreaChart.vm.tooltip.title = mockTitle; // TODO Currently yields "Failed: $listeners is readonly.""
+          timeSeriesAreaChart.vm.tooltip.title = mockTitle;
 
           timeSeriesAreaChart.vm.$nextTick(() => {
             expect(shallowWrapperContainsSlotText(glChart, 'tooltipTitle', mockTitle)).toBe(true);

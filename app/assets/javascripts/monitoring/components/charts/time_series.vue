@@ -223,20 +223,18 @@ export default {
     formatTooltipText(params) {
       this.tooltip.title = dateFormat(params.value, 'dd mmm yyyy, h:MMTT');
       this.tooltip.content = [];
-      params.seriesData.forEach(seriesData => {
-        this.tooltip.isDeployment = seriesData.componentSubType === graphTypes.deploymentData;
+      params.seriesData.forEach(dataPoint => {
+        const [xVal, yVal] = dataPoint.value;
+        this.tooltip.isDeployment = dataPoint.componentSubType === graphTypes.deploymentData;
         if (this.tooltip.isDeployment) {
           const [deploy] = this.recentDeployments.filter(
-            deployment => deployment.createdAt === seriesData.value[0],
+            deployment => deployment.createdAt === xVal,
           );
           this.tooltip.sha = deploy.sha.substring(0, 8);
           this.tooltip.commitUrl = deploy.commitUrl;
         } else {
-          const { seriesName, color } = seriesData;
-          // seriesData.value contains the chart's [x, y] value pair
-          // seriesData.value[1] is threfore the chart y value
-          const value = seriesData.value[1].toFixed(3);
-
+          const { seriesName, color } = dataPoint;
+          const value = yVal.toFixed(3);
           this.tooltip.content.push({
             name: seriesName,
             value,
