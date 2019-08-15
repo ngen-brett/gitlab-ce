@@ -500,6 +500,12 @@ list.
 
 ![Merge request diff file navigation](img/merge_request_diff_file_navigation.png)
 
+### Incrementally expand merge request diffs
+
+When there are file changes, the diff will be automatically collapsed. To review the changes, you can easily expand it to see more lines. Depending on where the lines are, there are three expansion options: expand up, expand down, and/or Show all lines.
+
+![Incrementally expand merge request diffs](img/incrementally_expand_merge_request_diffs.png)
+
 ## Ignore whitespace changes in Merge Request diff view
 
 If you click the **Hide whitespace changes** button, you can see the diff
