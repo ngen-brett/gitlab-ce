@@ -30,6 +30,24 @@ describe API::Pipelines do
         expect(json_response.first.keys).to contain_exactly(*%w[id sha ref status web_url])
       end
 
+      context 'when project has public visibility' do
+        let(:project) { create(:project, :repository, :public, creator: user, public_builds: true) }
+
+        it 'does return project pipelines for guests' do
+          get api("/projects/#{project.id}/pipelines", non_member)
+
+          expect(response).to have_gitlab_http_status(200)
+          expect(json_response).to be_an Array
+        end
+
+        it 'does return project pipelines for non logged in users' do
+          get api("/projects/#{project.id}/pipelines")
+
+          expect(response).to have_gitlab_http_status(200)
+          expect(json_response).to be_an Array
+        end
+      end
+
       context 'when parameter is passed' do
         %w[running pending].each do |target|
           context "when scope is #{target}" do
@@ -284,53 +302,22 @@ describe API::Pipelines do
         expect(json_response['message']).to eq '404 Project Not Found'
         expect(json_response).not_to be_an Array
       end
-    end
 
-    context 'projects with public visibility' do
-      let(:visibility) { 'public' }
-      let(:project) { create(:project, :repository, creator: user, visibility: visibility, public_builds: public_builds) }
+      context 'when project has public_builds set to false' do
+        let(:project) { create(:project, :repository, :public, creator: user, public_builds: false) }
 
-      context 'with public builds' do
-        let(:public_builds) { true }
+        it 'does not return project pipelines for guests' do
+          get api("/projects/#{project.id}/pipelines", non_member)
 
-        context 'with non assigned user' do
-          it 'does return project pipelines' do
-            get api("/projects/#{project.id}/pipelines", non_member)
-
-            expect(response).to have_gitlab_http_status(200)
-            expect(json_response).to be_an Array
-          end
+          expect(response).to have_gitlab_http_status(403)
+          expect(json_response).not_to be_an Array
         end
 
-        context 'without any user' do
-          it 'does return project pipelines' do
-            get api("/projects/#{project.id}/pipelines")
+        it 'does not return project pipelines for non logged in users' do
+          get api("/projects/#{project.id}/pipelines")
 
-            expect(response).to have_gitlab_http_status(200)
-            expect(json_response).to be_an Array
-          end
-        end
-      end
-
-      context 'without public builds' do
-        let(:public_builds) { false }
-
-        context 'with non assigned user' do
-          it 'does return project pipelines' do
-            get api("/projects/#{project.id}/pipelines", non_member)
-
-            expect(response).to have_gitlab_http_status(403)
-            expect(json_response).not_to be_an Array
-          end
-        end
-
-        context 'without any user' do
-          it 'does return project pipelines' do
-            get api("/projects/#{project.id}/pipelines")
-
-            expect(response).to have_gitlab_http_status(403)
-            expect(json_response).not_to be_an Array
-          end
+          expect(response).to have_gitlab_http_status(403)
+          expect(json_response).not_to be_an Array
         end
       end
     end
