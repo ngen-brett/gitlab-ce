@@ -11,7 +11,7 @@ import MonitoringMock, {
   environmentData,
   singleGroupResponse,
   dashboardGitResponse,
-} from './mock_data';
+} from '../mock_data';
 
 const propsData = {
   hasMetrics: false,

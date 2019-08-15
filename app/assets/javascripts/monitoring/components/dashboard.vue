@@ -16,7 +16,7 @@ import { getParameterValues } from '~/lib/utils/url_utility';
 import invalidUrl from '~/lib/utils/invalid_url';
 import MonitorAreaChart from './charts/area.vue';
 import MonitorSingleStatChart from './charts/single_stat.vue';
-import PanelType from './panel_type.vue';
+import PanelType from 'ee_else_ce/monitoring/components/panel_type.vue';
 import GraphGroup from './graph_group.vue';
 import EmptyState from './empty_state.vue';
 import { sidebarAnimationDuration, timeWindows } from '../constants';
@@ -137,6 +137,16 @@ export default {
       default: '',
     },
     smallEmptyState: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    alertsEndpoint: {
+      type: String,
+      required: false,
+      default: null,
+    },
+    prometheusAlertsAvailable: {
       type: Boolean,
       required: false,
       default: false,
@@ -437,6 +447,8 @@ export default {
             :key="`panel-type-${graphIndex}`"
             :graph-data="graphData"
             :dashboard-width="elWidth"
+            :alerts-endpoint="alertsEndpoint"
+            :prometheus-alerts-available="prometheusAlertsAvailable"
             :index="`${index}-${graphIndex}`"
           />
         </template>
