@@ -217,6 +217,8 @@ describe('Time series component', () => {
             ['2017-05-30T20:08:04.629Z', 0],
             ['2017-05-30T17:42:38.409Z', 0],
           ]);
+
+          expect(timeSeriesChart.vm.scatterSeries.symbolSize).toBe(14);
         });
       });
 

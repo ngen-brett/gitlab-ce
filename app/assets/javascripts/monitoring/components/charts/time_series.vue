@@ -7,7 +7,7 @@ import dateFormat from 'dateformat';
 import { debounceByAnimationFrame, roundOffFloat } from '~/lib/utils/common_utils';
 import { getSvgIconPathContent } from '~/lib/utils/icon_utils';
 import Icon from '~/vue_shared/components/icon.vue';
-import { chartHeight, graphTypes, lineTypes } from '../../constants';
+import { chartHeight, graphTypes, lineTypes, symbolSizes } from '../../constants';
 import { makeDataSeries } from '~/helpers/monitor_helper';
 import { graphDataValidatorForValues } from '../../utils';
 
@@ -182,7 +182,7 @@ export default {
         type: graphTypes.deploymentData,
         data: this.recentDeployments.map(deployment => [deployment.createdAt, 0]),
         symbol: this.svgs.rocket,
-        symbolSize: 14,
+        symbolSize: symbolSizes.default,
         itemStyle: {
           color: this.primaryColor,
         },
