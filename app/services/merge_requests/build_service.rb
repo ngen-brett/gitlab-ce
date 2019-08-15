@@ -29,7 +29,7 @@ module MergeRequests
       if merge_request.can_be_created
         compare_branches
         assign_title_and_description
-        assign_labels
+        assign_labels(params.delete(:label), params.delete(:unlabel))
         assign_milestone
       end
 
@@ -169,11 +169,17 @@ module MergeRequests
       append_closes_description
     end
 
-    def assign_labels
+    def assign_labels(labels, unlabels)
       return unless target_project.issues_enabled? && issue
-      return if merge_request.label_ids&.any?
 
-      merge_request.label_ids = issue.try(:label_ids)
+      merge_request.label_ids = issue.try(:label_ids) unless merge_request.label_ids&.any?
+
+      keys = labels.keys + unlabels.keys
+      keys.to_set.each { |k|
+        labels[k] ||= 0
+        unlabels[k] ||= 0
+        labels[k] -= unlabels[k]
+      }
     end
 
     def assign_milestone

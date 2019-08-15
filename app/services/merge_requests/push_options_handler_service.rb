@@ -122,7 +122,9 @@ module MergeRequests
         title: push_options[:title],
         description: push_options[:description],
         target_branch: push_options[:target],
-        force_remove_source_branch: push_options[:remove_source_branch]
+        force_remove_source_branch: push_options[:remove_source_branch],
+        label: push_options[:label],
+        unlabel: push_options[:unlabel]
       }
 
       params.compact!

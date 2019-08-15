@@ -289,6 +289,7 @@ as pushing changes:
 - Set the merge request to remove the source branch when it's merged.
 - Set the title of the merge request to a particular title.
 - Set the description of the merge request to a particular description.
+- Add or remove labels to the merge request.
 
 ### Create a new merge request using git push options
 
@@ -367,6 +368,25 @@ git push -o merge_request.description="The description I want"
 ```
 
 You can also use this push option in addition to the
+`merge_request.create` push option.
+
+### Add or remove labels to a merge request using git push options
+
+To add a label to an existing merge request, use
+the `merge_request.label` push option:
+
+```sh
+git push -o merge_request.label="myLabel"
+```
+
+To remove a label from an existing merge request, use
+the `merge_request.unlabel` push option:
+
+```sh
+git push -o merge_request.unlabel="myLabel"
+```
+
+You can also use these push options in addition to the
 `merge_request.create` push option.
 
 ## Find the merge request that introduced a change
