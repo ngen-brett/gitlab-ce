@@ -1524,11 +1524,11 @@ ActiveRecord::Schema.define(version: 2019_08_07_141523) do
   end
 
   create_table "github_pull_request_events", force: :cascade do |t|
-    t.bigint "project_id", null: false
-    t.string "branch_name", null: false
-    t.string "status", limit: 30, null: false
     t.datetime_with_timezone "created_at", null: false
     t.datetime_with_timezone "updated_at", null: false
+    t.bigint "project_id", null: false
+    t.string "branch_name", limit: 255, null: false
+    t.string "status", limit: 30, null: false
     t.index ["branch_name"], name: "index_github_pull_request_events_on_branch_name"
     t.index ["project_id", "branch_name"], name: "index_github_pull_request_events_on_project_id_and_branch_name", unique: true
     t.index ["project_id"], name: "index_github_pull_request_events_on_project_id"
