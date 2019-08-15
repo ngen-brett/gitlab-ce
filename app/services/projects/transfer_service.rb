@@ -166,9 +166,5 @@ module Projects
         @new_namespace.full_path
       )
     end
-
-    # def move_group_milestones(project)
-    #   Milestones::TransferService.new(current_user, @old_group, project).execute
-    # end
   end
 end

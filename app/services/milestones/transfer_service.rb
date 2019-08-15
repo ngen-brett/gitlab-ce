@@ -17,8 +17,8 @@ module Milestones
         milestones_to_transfer.find_each do |milestone|
           new_milestone_id = create_milestone!(milestone)
 
-          update_issues_milestone(old_milestone_id, new_milestone_id)
-          update_merge_requests_milestone(old_milestone_id, new_milestone_id)
+          update_issues_milestone(milestone.id, new_milestone_id)
+          update_merge_requests_milestone(milestone.id, new_milestone_id)
         end
       end
     end
