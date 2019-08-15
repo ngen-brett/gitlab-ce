@@ -700,6 +700,12 @@ export const addSelectOnFocusBehaviour = (selector = '.js-select-on-focus') => {
   });
 };
 
+export const addPreventDefaultOnClickBehaviour = (selector = '.js-prevent-default-on-click') => {
+  $(selector).click(e => {
+    e.preventDefault();
+  });
+};
+
 /**
  * Method to round of values with decimal places
  * with provided precision.

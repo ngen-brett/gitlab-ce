@@ -81,10 +81,10 @@
                 .dropdown-content
                   %ul
                     - member.valid_level_roles.each do |role, role_id|
+                      - css_classes = ['js-prevent-default-on-click']
+                      - css_classes << 'is-active' if member.access_level == role_id
                       %li
-                        = link_to role, "javascript:void(0)",
-                          class: ("is-active" if member.access_level == role_id),
-                          data: { id: role_id, el_id: dom_id(member) }
+                        = link_to role, '#', class: css_classes, data: { id: role_id, el_id: dom_id(member) }
                     = render_if_exists 'shared/members/ee/revert_ldap_group_sync_option',
                       group: @group,
                       member: member,

@@ -9,7 +9,11 @@ import './commons';
 import './behaviors';
 
 // lib/utils
-import { handleLocationHash, addSelectOnFocusBehaviour } from './lib/utils/common_utils';
+import {
+  handleLocationHash,
+  addSelectOnFocusBehaviour,
+  addPreventDefaultOnClickBehaviour,
+} from './lib/utils/common_utils';
 import { localTimeAgo } from './lib/utils/datetime_utility';
 import { getLocationHash, visitUrl } from './lib/utils/url_utility';
 
@@ -82,7 +86,8 @@ function deferredInitialisation() {
 
   if (document.querySelector('.search')) initSearchAutocomplete();
 
-  addSelectOnFocusBehaviour('.js-select-on-focus');
+  addSelectOnFocusBehaviour();
+  addPreventDefaultOnClickBehaviour();
 
   $('.remove-row').on('ajax:success', function removeRowAjaxSuccessCallback() {
     $(this)
