@@ -54,11 +54,11 @@ describe('Time series component', () => {
     });
 
     it('renders chart title', () => {
-      expect(timeSeriesChart.find({ ref: 'graphTitle' }).text()).toBe(mockGraphData.title);
+      expect(timeSeriesChart.find('.qa-graph-title').text()).toBe(mockGraphData.title);
     });
 
     it('contains graph widgets from slot', () => {
-      expect(timeSeriesChart.find({ ref: 'graphWidgets' }).text()).toBe(mockWidgets);
+      expect(timeSeriesChart.find('.qa-graph-widgets').text()).toBe(mockWidgets);
     });
 
     describe('when exportMetricsToCsvEnabled is disabled', () => {

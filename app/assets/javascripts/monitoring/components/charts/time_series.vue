@@ -268,7 +268,7 @@ export default {
   <div class="prometheus-graph col-12 col-lg-6" :class="[showBorder ? 'p-2' : 'p-0']">
     <div :class="{ 'prometheus-graph-embed w-100 p-3': showBorder }">
       <div class="prometheus-graph-header">
-        <h5 ref="graphTitle" class="prometheus-graph-title">{{ graphData.title }}</h5>
+        <h5 class="prometheus-graph-title qa-graph-title">{{ graphData.title }}</h5>
         <gl-button
           v-if="exportMetricsToCsvEnabled"
           :href="downloadLink"
@@ -279,7 +279,7 @@ export default {
         >
           {{ __('Download CSV') }}
         </gl-button>
-        <div ref="graphWidgets" class="prometheus-graph-widgets"><slot></slot></div>
+        <div class="prometheus-graph-widgets qa-graph-widgets"><slot></slot></div>
       </div>
 
       <component
