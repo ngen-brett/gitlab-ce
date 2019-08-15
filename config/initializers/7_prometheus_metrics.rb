@@ -32,6 +32,9 @@ end
 
 Sidekiq.configure_server do |config|
   config.on(:startup) do
+    # webserver metrics are cleaned up in config.ru: `warmup` block
+    Prometheus::CleanupMultiprocDir.call if Prometheus::PidProvider.worker_id == 'sidekiq'
+
     Gitlab::Metrics::SidekiqMetricsExporter.instance.start
   end
 end
