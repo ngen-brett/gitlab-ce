@@ -83,9 +83,20 @@ module Git
 
     # Schedules processing of commit messages
     def enqueue_process_commit_messages
-      limited_commits.each do |commit|
-        next unless commit.matches_cross_reference_regex?
+      processable_commits = limited_commits.select(&:matches_cross_reference_regex?)
 
+      # Avoid reprocessing commits that already exist in the upstream
+      # when project is forked. This will also prevent duplicated system notes.
+      upstream_project = project.fork_source
+      if upstream_project
+        upstream_commits = upstream_project.commits_by(oids: processable_commits.map(&:id))
+        upstream_commit_ids = upstream_commits.each_with_object(Set.new) do |commit, set|
+          set << commit.id
+        end
+        processable_commits.reject! { |commit| upstream_commit_ids.include?(commit.id) }
+      end
+
+      processable_commits.each do |commit|
         ProcessCommitWorker.perform_async(
           project.id,
           current_user.id,
