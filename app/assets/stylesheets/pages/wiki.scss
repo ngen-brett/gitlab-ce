@@ -32,13 +32,8 @@
     color: $gl-text-color-secondary;
   }
 
-  .git-access-header {
-    padding: $gl-padding 0 $gl-padding-top;
-  }
-
   .git-clone-holder {
     width: 100%;
-    padding-bottom: 40px;
   }
 
   button.sidebar-toggle {
@@ -48,14 +43,23 @@
     display: block;
   }
 
-  @include media-breakpoint-up(sm) {
-    &.has-sidebar-toggle {
-      padding-right: 40px;
-    }
+  @include media-breakpoint-down(md) {
+    flex-direction: column;
 
     .git-clone-holder {
-      width: 480px;
-      padding-bottom: $gl-padding;
+      padding-top: $gl-padding / 2;
+    }
+  }
+
+  @include media-breakpoint-down(sm) {
+    .git-clone-holder {
+      padding-top: $gl-padding;
+    }
+  }
+
+  @include media-breakpoint-up(sm) {
+    &.has-sidebar-toggle .git-access-header {
+      padding-right: 40px;
     }
 
     .nav-controls {

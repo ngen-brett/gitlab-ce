@@ -1,0 +1,5 @@
+---
+title: Fix broken git clone box on wiki git access page
+merge_request:
+author:
+type: fixed
