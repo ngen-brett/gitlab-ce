@@ -33,14 +33,14 @@ describe API::Pipelines do
       context 'when project has public visibility' do
         let(:project) { create(:project, :repository, :public, creator: user, public_builds: true) }
 
-        it 'does return project pipelines for guests' do
+        it 'does return project pipelines for non members' do
           get api("/projects/#{project.id}/pipelines", non_member)
 
           expect(response).to have_gitlab_http_status(200)
           expect(json_response).to be_an Array
         end
 
-        it 'does return project pipelines for non logged in users' do
+        it 'does return project pipelines for guests' do
           get api("/projects/#{project.id}/pipelines")
 
           expect(response).to have_gitlab_http_status(200)
@@ -306,14 +306,14 @@ describe API::Pipelines do
       context 'when project has public_builds set to false' do
         let(:project) { create(:project, :repository, :public, creator: user, public_builds: false) }
 
-        it 'does not return project pipelines for guests' do
+        it 'does not return project pipelines for non members' do
           get api("/projects/#{project.id}/pipelines", non_member)
 
           expect(response).to have_gitlab_http_status(403)
           expect(json_response).not_to be_an Array
         end
 
-        it 'does not return project pipelines for non logged in users' do
+        it 'does not return project pipelines for guests' do
           get api("/projects/#{project.id}/pipelines")
 
           expect(response).to have_gitlab_http_status(403)
