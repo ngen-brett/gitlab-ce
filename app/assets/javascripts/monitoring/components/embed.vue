@@ -90,11 +90,8 @@ export default {
 };
 </script>
 <template>
-  <div class="metrics-embed">
-    <div
-      v-if="charts"
-      :class="[isSingleChart ? 'col-lg-6 float-left p-0 ml-n2 mr-2 mb-2' : 'row w-100 m-n2 pb-4']"
-    >
+  <div class="metrics-embed" :class="{ 'd-inline-flex col-lg-6 p-0': isSingleChart }">
+    <div v-if="charts" class="row w-100 m-n2 pb-4">
       <monitor-area-chart
         v-for="graphData in charts"
         :key="graphData.title"
