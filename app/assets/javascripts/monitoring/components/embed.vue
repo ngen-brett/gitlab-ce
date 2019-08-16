@@ -39,12 +39,12 @@ export default {
     charts() {
       const groupWithMetrics = this.groups.find(group =>
         group.metrics.find(chart => this.chartHasData(chart)),
-      );
+      ) || { metrics: [] };
 
-      return groupWithMetrics && groupWithMetrics.metrics.filter(chart => this.chartHasData(chart));
+      return groupWithMetrics.metrics.filter(chart => this.chartHasData(chart));
     },
     isSingleChart() {
-      return this.charts && this.charts.length === 1;
+      return this.charts.length === 1;
     },
   },
   mounted() {
