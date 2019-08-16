@@ -36,15 +36,12 @@ export default {
   },
   computed: {
     ...mapState('monitoringDashboard', ['groups', 'metricsWithData']),
-    charts() {
-      const groupWithMetrics = this.groups.find(group =>
-        group.metrics.find(chart => this.chartHasData(chart)),
-      ) || { metrics: [] };
-
-      return groupWithMetrics.metrics.filter(chart => this.chartHasData(chart));
-    },
-    isSingleChart() {
-      return this.charts.length === 1;
+    groupData() {
+      const groupsWithData = this.groups.filter(group => this.chartsWithData(group.metrics).length);
+      if (groupsWithData.length) {
+        return groupsWithData[0];
+      }
+      return null;
     },
   },
   mounted() {
@@ -69,8 +66,10 @@ export default {
       'setFeatureFlags',
       'setShowErrorBanner',
     ]),
-    chartHasData(chart) {
-      return chart.metrics.some(metric => this.metricsWithData.includes(metric.metric_id));
+    chartsWithData(charts) {
+      return charts.filter(chart =>
+        chart.metrics.some(metric => this.metricsWithData.includes(metric.metric_id)),
+      );
     },
     onSidebarMutation() {
       setTimeout(() => {
@@ -90,17 +89,16 @@ export default {
 };
 </script>
 <template>
-  <div class="metrics-embed" :class="{ 'd-inline-flex col-lg-6 p-0': isSingleChart }">
-    <div v-if="charts" class="row w-100 m-n2 pb-4">
+  <div class="metrics-embed">
+    <div v-if="groupData" class="row w-100 m-n2 pb-4">
       <monitor-area-chart
-        v-for="graphData in charts"
+        v-for="graphData in chartsWithData(groupData.metrics)"
         :key="graphData.title"
         :graph-data="graphData"
         :container-width="elWidth"
         group-id="monitor-area-chart"
         :project-path="null"
         :show-border="true"
-        :single-embed="isSingleChart"
       />
     </div>
   </div>
