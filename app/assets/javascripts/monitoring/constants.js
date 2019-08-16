@@ -8,6 +8,10 @@ export const graphTypes = {
   deploymentData: 'scatter',
 };
 
+export const symbolSizes = {
+  default: 14,
+};
+
 export const lineTypes = {
   default: 'solid',
 };
