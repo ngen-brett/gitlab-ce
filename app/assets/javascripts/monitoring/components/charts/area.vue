@@ -48,7 +48,7 @@ export default {
     singleEmbed: {
       type: Boolean,
       required: false,
-      default: () => false,
+      default: false,
     },
     thresholds: {
       type: Array,

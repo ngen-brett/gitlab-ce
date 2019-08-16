@@ -367,7 +367,6 @@ A single chart can also be embedded. You can generate a link to the chart via th
 
 ![Generate Link To Chart](img/generate_link_to_chart.png)
 
-
 The following requirements must be met for the metric to unfurl:
 
 - The `<environment_id>` must correspond to a real environment.
