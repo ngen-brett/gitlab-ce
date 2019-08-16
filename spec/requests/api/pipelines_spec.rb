@@ -31,7 +31,12 @@ describe API::Pipelines do
       end
 
       context 'when project has public visibility' do
-        let(:project) { create(:project, :repository, :public, creator: user, public_builds: true) }
+        before do
+          project.update!(
+            visibility_level: Gitlab::VisibilityLevel::PUBLIC,
+            public_builds: true
+          )
+        end
 
         it 'does return project pipelines for non members' do
           get api("/projects/#{project.id}/pipelines", non_member)
@@ -304,7 +309,12 @@ describe API::Pipelines do
       end
 
       context 'when project has public_builds set to false' do
-        let(:project) { create(:project, :repository, :public, creator: user, public_builds: false) }
+        before do
+          project.update!(
+            visibility_level: Gitlab::VisibilityLevel::PUBLIC,
+            public_builds: false
+          )
+        end
 
         it 'does not return project pipelines for non members' do
           get api("/projects/#{project.id}/pipelines", non_member)
