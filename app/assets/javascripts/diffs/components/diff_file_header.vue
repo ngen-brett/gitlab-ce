@@ -130,7 +130,7 @@ export default {
       return `\`${this.diffFile.file_path}\``;
     },
     isFileRenamed() {
-      return this.diffFile.viewer.name === diffViewerModes.renamed;
+      return this.diffFile.renamed_file;
     },
     isModeChanged() {
       return this.diffFile.viewer.name === diffViewerModes.mode_changed;
@@ -193,6 +193,7 @@ export default {
     class="js-file-title file-title file-title-flex-parent"
     @click="handleToggleFile($event, true)"
   >
+    <!-- SAM: here -->
     <div class="file-header-content">
       <icon
         v-if="collapsible"
