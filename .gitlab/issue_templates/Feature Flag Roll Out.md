@@ -39,5 +39,6 @@ If applicable, any groups/projects that are happy to have this feature turned on
 - [ ] Cross post chatops slack command to `#support_gitlab-com` and in your team channel
 - [ ] Announce on the issue that the flag has been enabled
 - [ ] Remove feature flag and add changelog entry
+- [ ] After the flag removal is deployed, clean up the feature flag by running chatops command in `#production`
 
 /label ~"feature flag"
