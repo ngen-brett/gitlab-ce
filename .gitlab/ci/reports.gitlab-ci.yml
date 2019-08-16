@@ -27,7 +27,7 @@ dependency_scanning:
   cache: {}
 
 dast:
-  stage: dast
+  stage: build
   dependencies:
     - review-deploy
   before_script:

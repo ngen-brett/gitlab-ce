@@ -26,6 +26,7 @@ stages:
   - merge
   - test
   - review
+  - dast
   - qa
   - post-test
   - pages
