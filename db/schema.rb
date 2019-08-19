@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_08_15_093949) do
+ActiveRecord::Schema.define(version: 2019_08_19_131155) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -1143,6 +1143,7 @@ ActiveRecord::Schema.define(version: 2019_08_15_093949) do
     t.integer "status", limit: 2, null: false
     t.datetime_with_timezone "finished_at"
     t.integer "cluster_id"
+    t.index ["cluster_id", "status"], name: "index_deployments_on_cluster_id_and_status"
     t.index ["cluster_id"], name: "index_deployments_on_cluster_id"
     t.index ["created_at"], name: "index_deployments_on_created_at"
     t.index ["deployable_type", "deployable_id"], name: "index_deployments_on_deployable_type_and_deployable_id"
