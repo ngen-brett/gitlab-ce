@@ -40,6 +40,7 @@ export default class PipelinesService {
     return axios.post(`${endpoint}.json`);
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  runPipeline() {}
+  runMRPipeline() {
+    return axios.post(this.endpoint);
+  }
 }

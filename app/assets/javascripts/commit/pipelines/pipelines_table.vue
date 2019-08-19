@@ -110,7 +110,7 @@ export default {
         :auto-devops-help-path="autoDevopsHelpPath"
         :view-type="viewType"
         :can-run-pipeline="canRunPipeline"
-        :is-running-merge-request-pipeline="state.isRunningMergeRequestPipeline"
+        :is-running-merge-request-pipeline="state.isRunningPipeline"
       />
     </div>
 

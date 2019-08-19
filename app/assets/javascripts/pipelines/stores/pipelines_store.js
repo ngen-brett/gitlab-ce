@@ -32,4 +32,13 @@ export default class PipelinesStore {
 
     this.state.pageInfo = paginationInfo;
   }
+
+  /**
+   * Toggles the isRunningPipeline flag
+   *
+   * @param {Boolean} value
+   */
+  toggleIsRunningPipeline(value = false) {
+    this.state.isRunningPipeline = value;
+  }
 }

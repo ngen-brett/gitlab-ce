@@ -1,5 +1,5 @@
 <script>
-import { GlTooltipDirective, GlButton } from '@gitlab/ui';
+import { GlTooltipDirective, GlButton, GlLoadingIcon } from '@gitlab/ui';
 import PipelinesTableRowComponent from './pipelines_table_row.vue';
 import PipelineStopModal from './pipeline_stop_modal.vue';
 import eventHub from '../event_hub';
@@ -14,6 +14,7 @@ export default {
     PipelinesTableRowComponent,
     PipelineStopModal,
     GlButton,
+    GlLoadingIcon,
   },
   directives: {
     GlTooltip: GlTooltipDirective,
@@ -64,10 +65,15 @@ export default {
     /**
      * The Run Pipeline button can only be rendered when:
      * - In MR view
-     * - `detached` is true -> TODO
+     * - if the first pipeline has the `detached_merge_request_pipeline` flag
      */
     canRenderPipelineButton() {
-      return this.canRunPipeline;
+      return this.canRunPipeline && this.latestPipelineDetachedFlag === true;
+    },
+    latestPipelineDetachedFlag() {
+      const latest = this.pipelines[0];
+      // return latest && latest.flags && latest.flags.detached_merge_request_pipeline;
+      return true;
     },
   },
   watch: {
@@ -128,11 +134,13 @@ export default {
           <gl-button
             v-if="canRenderPipelineButton"
             variant="success"
-            class="js-run-pipeline"
+            class="js-run-mr-pipeline"
             :disabled="isRunningMergeRequestPipeline"
             @click="onClickRunPipeline"
-            >{{ s__('Pipelines|Run Pipeline') }}</gl-button
           >
+            <gl-loading-icon v-if="isRunningMergeRequestPipeline" :inline="true" />
+            {{ s__('Pipelines|Run Pipeline') }}
+          </gl-button>
         </div>
       </template>
     </div>
