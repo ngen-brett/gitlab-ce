@@ -30,29 +30,6 @@ describe API::Pipelines do
         expect(json_response.first.keys).to contain_exactly(*%w[id sha ref status web_url])
       end
 
-      context 'when project has public visibility' do
-        before do
-          project.update!(
-            visibility_level: Gitlab::VisibilityLevel::PUBLIC,
-            public_builds: true
-          )
-        end
-
-        it 'does return project pipelines for non members' do
-          get api("/projects/#{project.id}/pipelines", non_member)
-
-          expect(response).to have_gitlab_http_status(200)
-          expect(json_response).to be_an Array
-        end
-
-        it 'does return project pipelines for guests' do
-          get api("/projects/#{project.id}/pipelines")
-
-          expect(response).to have_gitlab_http_status(200)
-          expect(json_response).to be_an Array
-        end
-      end
-
       context 'when parameter is passed' do
         %w[running pending].each do |target|
           context "when scope is #{target}" do
@@ -307,27 +284,209 @@ describe API::Pipelines do
         expect(json_response['message']).to eq '404 Project Not Found'
         expect(json_response).not_to be_an Array
       end
+    end
 
-      context 'when project has public_builds set to false' do
+    context 'pipelines visibility table' do
+      using RSpec::Parameterized::TableSyntax
+
+      let(:ci_user) { create(:user) }
+
+      let(:response_200) do
+        a_collection_containing_exactly(
+          a_hash_including('sha', 'ref', 'status', 'web_url', 'id' => pipeline.id)
+        )
+      end
+
+      let(:response_40x) do
+        a_hash_including('message')
+      end
+
+      where(:visibility_level,            :builds_access_level,     :public_builds, :is_admin,   :user_role,   :response_status) do
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | true       | nil         | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | true       | :non_member | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | true       | :guest      | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | true       | :developer  | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | false      | nil         | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | false      | :non_member | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | false      | :guest      | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | false      | :developer  | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | true          | false      | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | true       | nil         | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | true       | :non_member | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | true       | :guest      | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | true       | :developer  | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | false      | nil         | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | false      | :non_member | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | false      | :guest      | 403
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | false      | :developer  | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::ENABLED | false         | false      | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | true       | nil         | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | true       | :non_member | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | true       | :guest      | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | true       | :developer  | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | false      | nil         | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | false      | :non_member | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | false      | :guest      | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | false      | :developer  | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | true          | false      | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | true       | nil         | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | true       | :non_member | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | true       | :guest      | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | true       | :developer  | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | false      | nil         | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | false      | :non_member | 404
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | false      | :guest      | 403
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | false      | :developer  | 200
+        Gitlab::VisibilityLevel::PRIVATE  | ProjectFeature::PRIVATE | false         | false      | :maintainer | 200
+
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | true       | nil         | 404
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | true       | :non_member | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | true       | :guest      | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | true       | :developer  | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | false      | nil         | 404
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | false      | :non_member | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | false      | :guest      | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | false      | :developer  | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | true          | false      | :maintainer | 200
+
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | true       | nil         | 404
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | true       | :non_member | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | true       | :guest      | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | true       | :developer  | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | false      | nil         | 404
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | false      | :non_member | 403
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | false      | :guest      | 403
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | false      | :developer  | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::ENABLED | false         | false      | :maintainer | 200
+
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | true       | nil         | 404
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | true       | :non_member | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | true       | :guest      | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | true       | :developer  | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | false      | nil         | 404
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | false      | :non_member | 403
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | false      | :guest      | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | false      | :developer  | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | true          | false      | :maintainer | 200
+
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | true       | nil         | 404
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | true       | :non_member | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | true       | :guest      | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | true       | :developer  | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | false      | nil         | 404
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | false      | :non_member | 403
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | false      | :guest      | 403
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | false      | :developer  | 200
+        Gitlab::VisibilityLevel::INTERNAL | ProjectFeature::PRIVATE | false         | false      | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | true       | nil         | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | true       | :non_member | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | true       | :guest      | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | true       | :developer  | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | false      | nil         | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | false      | :non_member | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | false      | :guest      | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | false      | :developer  | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | true          | false      | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | true       | nil         | 403
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | true       | :non_member | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | true       | :guest      | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | true       | :developer  | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | false      | nil         | 403
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | false      | :non_member | 403
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | false      | :guest      | 403
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | false      | :developer  | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::ENABLED | false         | false      | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | true       | nil         | 403
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | true       | :non_member | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | true       | :guest      | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | true       | :developer  | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | false      | nil         | 403
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | false      | :non_member | 403
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | false      | :guest      | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | false      | :developer  | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | true          | false      | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | true       | nil         | 403
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | true       | :non_member | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | true       | :guest      | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | true       | :reporter   | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | true       | :developer  | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | true       | :maintainer | 200
+
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | false      | nil         | 403
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | false      | :non_member | 403
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | false      | :guest      | 403
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | false      | :reporter   | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | false      | :developer  | 200
+        Gitlab::VisibilityLevel::PUBLIC   | ProjectFeature::PRIVATE | false         | false      | :maintainer | 200
+      end
+
+      with_them do
         before do
-          project.update!(
-            visibility_level: Gitlab::VisibilityLevel::PUBLIC,
-            public_builds: false
-          )
+          ci_user.update!(admin: is_admin)
+
+          project.update!(visibility_level: visibility_level, public_builds: public_builds)
+          project.project_feature.update!(builds_access_level: builds_access_level)
+          project.add_role(ci_user, user_role) if user_role && user_role != :non_member
+
+          get api("/projects/#{project.id}/pipelines", user_role && ci_user)
         end
 
-        it 'does not return project pipelines for non members' do
-          get api("/projects/#{project.id}/pipelines", non_member)
+        it do
+          expected = response_status == 200 ? response_200 : response_40x
 
-          expect(response).to have_gitlab_http_status(403)
-          expect(json_response).not_to be_an Array
-        end
-
-        it 'does not return project pipelines for guests' do
-          get api("/projects/#{project.id}/pipelines")
-
-          expect(response).to have_gitlab_http_status(403)
-          expect(json_response).not_to be_an Array
+          expect(response).to have_gitlab_http_status(response_status)
+          expect(json_response).to match(expected)
         end
       end
     end
