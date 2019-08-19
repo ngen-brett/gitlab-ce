@@ -125,9 +125,8 @@ class Notify < BaseMailer
   def mail_thread(model, headers = {})
     add_project_headers
     add_unsubscription_headers_and_links
+    add_model_headers
 
-    headers["X-GitLab-#{model.class.name}-ID"] = model.id
-    headers["X-GitLab-#{model.class.name}-IID"] = model.iid if model.respond_to?(:iid)
     headers['X-GitLab-Reply-Key'] = reply_key
 
     @reason = headers['X-GitLab-NotificationReason']
@@ -194,6 +193,13 @@ class Notify < BaseMailer
 
   def reply_key
     @reply_key ||= SentNotification.reply_key
+  end
+
+  def add_model_headers(model)
+    prefix = "X-GitLab-#{model.class.name.demodulize}"
+
+    headers["#{prefix}-ID"] = model.id if model.respond_to?(:id)
+    headers["#{prefix}-IID"] = model.iid if model.respond_to?(:iid)
   end
 
   def add_project_headers
