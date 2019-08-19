@@ -1,6 +1,9 @@
 # Cleanup
 
-## Remove garbage from filesystem. Important! Data loss!
+## Remove garbage from filesystem
+
+DANGER: **Danger:**
+Important! Data loss!
 
 Remove namespaces(dirs) from all repository storage paths if they don't exist in GitLab database.
 

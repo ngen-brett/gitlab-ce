@@ -152,8 +152,8 @@ Uses an [Edge NGram token filter](https://www.elastic.co/guide/en/elasticsearch/
 
 GitLab uses `elasticsearch-rails` for handling communication with Elasticsearch server. However, in order to achieve zero-downtime deployment during schema changes, an extra abstraction layer is built to allow:
 
-* Indexing (writes) to multiple indexes, with different mappings
-* Switching to different index for searches (reads) on the fly
+- Indexing (writes) to multiple indexes, with different mappings
+- Switching to different index for searches (reads) on the fly
 
 Currently we are on the process of migrating models to this new design (e.g. `Snippet`), and it is hardwired to work with a single version for now.
 
