@@ -476,7 +476,7 @@ describe API::Pipelines do
 
       with_them do
         before do
-          ci_user.update!(admin: is_admin)
+          ci_user.update!(admin: is_admin) if user_role
 
           project.update!(visibility_level: visibility_levels[visibility_level], public_builds: public_builds)
           project.project_feature.update!(builds_access_level: builds_access_levels[builds_access_level])
