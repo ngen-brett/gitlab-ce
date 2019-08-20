@@ -162,6 +162,14 @@ class Deployment < ApplicationRecord
     deployed_at&.to_time&.in_time_zone&.to_s(:medium)
   end
 
+  def deployed_by
+    if deployable&.when == 'manual' && deployable&.user_id
+      deployable.user
+    else
+      user
+    end
+  end
+
   private
 
   def ref_path

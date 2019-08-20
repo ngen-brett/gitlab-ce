@@ -322,4 +322,39 @@ describe Deployment do
       end
     end
   end
+
+  describe '#deployed_by' do
+    it 'returns the deployment user if there is no deployable' do
+      deployment_user = create(:user)
+      deployment = create(:deployment, deployable: nil, user: deployment_user)
+
+      expect(deployment.deployed_by).to eq(deployment_user)
+    end
+
+    it 'returns the deployment user if the deployable is not manual job' do
+      build_user = create(:user)
+      deployment_user = create(:user)
+      build = create(:ci_build, user: build_user)
+      deployment = create(:deployment, deployable: build, user: deployment_user)
+
+      expect(deployment.deployed_by).to eq(deployment_user)
+    end
+
+    it 'returns the deployment user if the deployable is manual job but has no user assigned' do
+      deployment_user = create(:user)
+      build = create(:ci_build, when: 'manual', user: nil)
+      deployment = create(:deployment, deployable: build, user: deployment_user)
+
+      expect(deployment.deployed_by).to eq(deployment_user)
+    end
+
+    it 'returns the deployable user if it is manual job and has user assigned' do
+      build_user = create(:user)
+      deployment_user = create(:user)
+      build = create(:ci_build, when: 'manual', user: build_user)
+      deployment = create(:deployment, deployable: build, user: deployment_user)
+
+      expect(deployment.deployed_by).to eq(build_user)
+    end
+  end
 end
