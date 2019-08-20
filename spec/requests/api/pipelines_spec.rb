@@ -317,7 +317,6 @@ describe API::Pipelines do
       end
 
       where(:visibility_level, :builds_access_level, :public_builds, :is_admin, :user_role, :response_status) do
-        :private  | :enabled | true  | true  | nil         | 404
         :private  | :enabled | true  | true  | :non_member | 200
         :private  | :enabled | true  | true  | :guest      | 200
         :private  | :enabled | true  | true  | :reporter   | 200
@@ -331,7 +330,6 @@ describe API::Pipelines do
         :private  | :enabled | true  | false | :developer  | 200
         :private  | :enabled | true  | false | :maintainer | 200
 
-        :private  | :enabled | false | true  | nil         | 404
         :private  | :enabled | false | true  | :non_member | 200
         :private  | :enabled | false | true  | :guest      | 200
         :private  | :enabled | false | true  | :reporter   | 200
@@ -345,7 +343,6 @@ describe API::Pipelines do
         :private  | :enabled | false | false | :developer  | 200
         :private  | :enabled | false | false | :maintainer | 200
 
-        :private  | :private | true  | true  | nil         | 404
         :private  | :private | true  | true  | :non_member | 200
         :private  | :private | true  | true  | :guest      | 200
         :private  | :private | true  | true  | :reporter   | 200
@@ -359,7 +356,6 @@ describe API::Pipelines do
         :private  | :private | true  | false | :developer  | 200
         :private  | :private | true  | false | :maintainer | 200
 
-        :private  | :private | false | true  | nil         | 404
         :private  | :private | false | true  | :non_member | 200
         :private  | :private | false | true  | :guest      | 200
         :private  | :private | false | true  | :reporter   | 200
@@ -373,7 +369,6 @@ describe API::Pipelines do
         :private  | :private | false | false | :developer  | 200
         :private  | :private | false | false | :maintainer | 200
 
-        :internal | :enabled | true  | true  | nil         | 404
         :internal | :enabled | true  | true  | :non_member | 200
         :internal | :enabled | true  | true  | :guest      | 200
         :internal | :enabled | true  | true  | :reporter   | 200
@@ -387,7 +382,6 @@ describe API::Pipelines do
         :internal | :enabled | true  | false | :developer  | 200
         :internal | :enabled | true  | false | :maintainer | 200
 
-        :internal | :enabled | false | true  | nil         | 404
         :internal | :enabled | false | true  | :non_member | 200
         :internal | :enabled | false | true  | :guest      | 200
         :internal | :enabled | false | true  | :reporter   | 200
@@ -401,7 +395,6 @@ describe API::Pipelines do
         :internal | :enabled | false | false | :developer  | 200
         :internal | :enabled | false | false | :maintainer | 200
 
-        :internal | :private | true  | true  | nil         | 404
         :internal | :private | true  | true  | :non_member | 200
         :internal | :private | true  | true  | :guest      | 200
         :internal | :private | true  | true  | :reporter   | 200
@@ -415,7 +408,6 @@ describe API::Pipelines do
         :internal | :private | true  | false | :developer  | 200
         :internal | :private | true  | false | :maintainer | 200
 
-        :internal | :private | false | true  | nil         | 404
         :internal | :private | false | true  | :non_member | 200
         :internal | :private | false | true  | :guest      | 200
         :internal | :private | false | true  | :reporter   | 200
@@ -429,7 +421,6 @@ describe API::Pipelines do
         :internal | :private | false | false | :developer  | 200
         :internal | :private | false | false | :maintainer | 200
 
-        :public   | :enabled | true  | true  | nil         | 200
         :public   | :enabled | true  | true  | :non_member | 200
         :public   | :enabled | true  | true  | :guest      | 200
         :public   | :enabled | true  | true  | :reporter   | 200
@@ -443,7 +434,6 @@ describe API::Pipelines do
         :public   | :enabled | true  | false | :developer  | 200
         :public   | :enabled | true  | false | :maintainer | 200
 
-        :public   | :enabled | false | true  | nil         | 403
         :public   | :enabled | false | true  | :non_member | 200
         :public   | :enabled | false | true  | :guest      | 200
         :public   | :enabled | false | true  | :reporter   | 200
@@ -457,7 +447,6 @@ describe API::Pipelines do
         :public   | :enabled | false | false | :developer  | 200
         :public   | :enabled | false | false | :maintainer | 200
 
-        :public   | :private | true  | true  | nil         | 403
         :public   | :private | true  | true  | :non_member | 200
         :public   | :private | true  | true  | :guest      | 200
         :public   | :private | true  | true  | :reporter   | 200
@@ -471,7 +460,6 @@ describe API::Pipelines do
         :public   | :private | true  | false | :developer  | 200
         :public   | :private | true  | false | :maintainer | 200
 
-        :public   | :private | false | true  | nil         | 403
         :public   | :private | false | true  | :non_member | 200
         :public   | :private | false | true  | :guest      | 200
         :public   | :private | false | true  | :reporter   | 200
