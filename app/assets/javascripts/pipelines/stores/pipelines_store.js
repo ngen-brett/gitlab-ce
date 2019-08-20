@@ -9,7 +9,7 @@ export default class PipelinesStore {
     this.state.pageInfo = {};
 
     // Used in MR Pipelines tab
-    this.state.isRunningPipeline = false;
+    this.state.isRunningMergeRequestPipeline = false;
   }
 
   storePipelines(pipelines = []) {
@@ -39,6 +39,6 @@ export default class PipelinesStore {
    * @param {Boolean} value
    */
   toggleIsRunningPipeline(value = false) {
-    this.state.isRunningPipeline = value;
+    this.state.isRunningMergeRequestPipeline = value;
   }
 }

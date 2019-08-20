@@ -167,11 +167,11 @@ export default {
 
       this.service
         .runMRPipeline()
-        .then(() => 
+        .then(() =>
           // update loading state
-           this.updateTable().then(() => {
+          this.updateTable().then(() => {
             this.store.toggleIsRunningPipeline(false);
-          })
+          }),
         )
         .catch(() => {
           createFlash(
