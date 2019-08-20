@@ -221,6 +221,7 @@ group.
 | Remove group                                           |       |          |           |            | ✓     |
 | Delete group epic **(ULTIMATE)**                       |       |          |           |            | ✓     |
 | Edit epic comments (posted by any user) **(ULTIMATE)** |       |          |           | ✓          | ✓     |
+| Disable notification emails                            |       |          |           |            | ✓     |
 | View group Audit Events                                |       |          |           |            | ✓     |
 
 - (1): Groups can be set to [allow either Owners or Owners and
