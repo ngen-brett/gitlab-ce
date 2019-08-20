@@ -125,12 +125,21 @@ module Auth
       when 'push'
         build_can_push?(requested_project) || user_can_push?(requested_project)
       when 'delete'
-        build_can_push?(requested_project) || user_can_push?(requested_project) || user_can_admin?(requested_project)
+        build_can_delete?(requested_project) || user_can_delete?(requested_project) || user_can_admin?(requested_project)
       when '*'
         user_can_admin?(requested_project)
       else
         false
       end
+    end
+
+    def build_can_delete?(requested_project)
+      build_can_push?(requested_project)
+    end
+
+    def user_can_delete?(requested_project)
+      has_authentication_ability?(:destroy_container_image) &&
+        (requested_project == project || can_user?(:destroy_container_image, requested_project))
     end
 
     def registry
