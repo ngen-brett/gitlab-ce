@@ -4,6 +4,8 @@
 
   .file-title,
   .file-title-flex-parent {
+    border-top-left-radius: $border-radius-default;
+    border-top-right-radius: $border-radius-default;
     cursor: pointer;
 
     @media (min-width: map-get($grid-breakpoints, md)) {
