@@ -27,5 +27,20 @@
   "first-line-h1": false,
   "code-block-style": {
     "style": "fenced"
+  },
+  "proper-names": {
+    "names": [
+      "Git",
+      "GitLab",
+      "JavaScript",
+      "Jira",
+      "Jenkins",
+      "GitLab Runner",
+      "Omnibus",
+      "Kubernetes",
+      "Debian",
+      "Ubuntu"
+    ],
+    "code_blocks": false
   }
 }
