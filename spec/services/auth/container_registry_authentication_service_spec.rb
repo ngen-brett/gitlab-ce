@@ -205,7 +205,7 @@ describe Auth::ContainerRegistryAuthenticationService do
         it_behaves_like 'not a container repository factory'
       end
 
-      context 'does not allow to delete images since registry 2.7' do
+      context 'disallow developer to delete images since registry 2.7' do
         before do
           project.add_developer(current_user)
         end
