@@ -220,7 +220,7 @@ group.
 | Manage group members                                   |       |          |           |            | ✓     |
 | Remove group                                           |       |          |           |            | ✓     |
 | Delete group epic **(ULTIMATE)**                       |       |          |           |            | ✓     |
-| Edit epic comments (posted by any user) **(ULTIMATE)** |       |          |           | ✓          | ✓     |
+| Edit epic comments (posted by any user) **(ULTIMATE)** |       |          |           | ✓ (2)      | ✓ (2) |
 | Disable notification emails                            |       |          |           |            | ✓     |
 | View group Audit Events                                |       |          |           |            | ✓     |
 
