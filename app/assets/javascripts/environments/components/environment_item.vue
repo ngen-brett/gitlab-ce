@@ -124,14 +124,13 @@ export default {
      *
      * @returns {String}
      */
-    createdDate() {
+    deployedDate() {
       if (
         this.model &&
         this.model.last_deployment &&
-        this.model.last_deployment.deployable &&
-        this.model.last_deployment.deployable.created_at
+        this.model.last_deployment.deployed_at
       ) {
-        return timeagoInstance.format(this.model.last_deployment.deployable.created_at);
+        return timeagoInstance.format(this.model.last_deployment.deployed_at);
       }
       return '';
     },
@@ -547,7 +546,7 @@ export default {
     <div v-if="!model.isFolder" class="table-section section-10" role="gridcell">
       <div role="rowheader" class="table-mobile-header">{{ s__('Environments|Updated') }}</div>
       <span v-if="canShowDate" class="environment-created-date-timeago table-mobile-content">
-        {{ createdDate }}
+        {{ deployedDate }}
       </span>
     </div>
 
