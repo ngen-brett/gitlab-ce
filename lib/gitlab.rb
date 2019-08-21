@@ -56,6 +56,10 @@ module Gitlab
   end
 
   def self.dev_env_or_com?
+    Rails.env.development? || com?
+  end
+
+  def self.dev_env_org_or_com?
     Rails.env.development? || org? || com?
   end
 
