@@ -597,7 +597,7 @@ processes](https://gitlab.com/gitlab-org/charts/auto-deploy-app/merge_requests/9
 In order to run a worker you'll need to ensure that it is able to respond to
 the standard health checks which expect a successful HTTP response on port
 `5000`. For sidekiq you could make use of the
-[sidekiq_alive gem](https://rubygems.org/gems/sidekiq_alive) to do this. 
+[sidekiq_alive gem](https://rubygems.org/gems/sidekiq_alive) to do this.
 
 In order to work with sidekiq you'll also need to ensure your deployments have
 access to a redis instance. Auto DevOps won't deploy this for you so you'll
@@ -692,6 +692,23 @@ will build a Docker image based on the Dockerfile rather than using buildpacks.
 This can be much faster and result in smaller images, especially if your
 Dockerfile is based on [Alpine](https://hub.docker.com/_/alpine/).
 
+### Extra arguments for the `docker build` command
+
+Auto DevOps also has limited support for customizing the arguments passed
+down to the `docker build` command via the project variable
+`AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS`. As [build
+arguments](https://docs.docker.com/engine/reference/commandline/build/#set-build-time-variables---build-arg)
+must be declared in the `Dockerfile`, a [custom
+`Dockerfile`](#custom-dockerfile) is needed to make use of them.
+
+NOTE: **Note:**
+Passing complex values, such as a `--build-arg` with  spaces or
+newlines, is are not well currently supported due to limitations with the
+current Auto DevOps scripting environment.
+
+CAUTION: **Warning:**
+Always be careful when handling secrets. In general, avoid passing them as docker build arguments if possible, as they may get persisted in your image. See [this discussion](https://github.com/moby/moby/issues/13490) for details.
+
 ### Custom Helm Chart
 
 Auto DevOps uses [Helm](https://helm.sh/) to deploy your application to Kubernetes.
@@ -780,6 +797,7 @@ applications.
 |-----------------------------------------|------------------------------------|
 | `ADDITIONAL_HOSTS`                      | Fully qualified domain names specified as a comma-separated list that are added to the ingress hosts. |
 | `<ENVIRONMENT>_ADDITIONAL_HOSTS`        | For a specific environment, the fully qualified domain names specified as a comma-separated list that are added to the ingress hosts. This takes precedence over `ADDITIONAL_HOSTS`. |
+| `AUTO_DEVOPS_BUILD_IMAGE_EXTRA_ARGS`    | Extra arguments to be passed to the `docker build` command. Spaces and newlines are not well supported in `--build-arg` values. [More details](#extra-arguments-for-the-docker-build-command). |
 | `AUTO_DEVOPS_CHART`                     | Helm Chart used to deploy your apps. Defaults to the one [provided by GitLab](https://gitlab.com/gitlab-org/charts/auto-deploy-app). |
 | `AUTO_DEVOPS_CHART_REPOSITORY`          | Helm Chart repository used to search for charts. Defaults to `https://charts.gitlab.io`. |
 | `AUTO_DEVOPS_CHART_REPOSITORY_NAME`     | From Gitlab 11.11, used to set the name of the helm repository. Defaults to `gitlab`. |
