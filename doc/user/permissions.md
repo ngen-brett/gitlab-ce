@@ -221,8 +221,8 @@ group.
 | Remove group                                           |       |          |           |            | ✓     |
 | Delete group epic **(ULTIMATE)**                       |       |          |           |            | ✓     |
 | Edit epic comments (posted by any user) **(ULTIMATE)** |       |          |           | ✓ (2)      | ✓ (2) |
-| Disable notification emails                            |       |          |           |            | ✓     |
 | View group Audit Events                                |       |          |           |            | ✓     |
+| Disable notification emails                            |       |          |           |            | ✓     |
 
 - (1): Groups can be set to [allow either Owners or Owners and
   Maintainers to create subgroups](group/subgroups/index.md#creating-a-subgroup)
