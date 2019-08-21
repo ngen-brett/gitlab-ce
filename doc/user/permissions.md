@@ -226,6 +226,7 @@ group.
 
 - (1): Groups can be set to [allow either Owners or Owners and
   Maintainers to create subgroups](group/subgroups/index.md#creating-a-subgroup)
+- (2): Introduced in GitLab 12.2.
 
 ### Subgroup permissions
 
