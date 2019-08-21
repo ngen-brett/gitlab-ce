@@ -152,6 +152,8 @@ class Note < ApplicationRecord
   after_save :expire_etag_cache
   after_save :touch_noteable
   after_destroy :expire_etag_cache
+  after_commit :notify_after_create, on: :create
+  after_commit :notify_after_destroy, on: :destroy
 
   class << self
     def model_name
@@ -472,6 +474,14 @@ class Note < ApplicationRecord
 
   def parent
     project
+  end
+
+  def notify_after_create
+    noteable&.after_note_created(self)
+  end
+
+  def notify_after_destroy
+    noteable&.after_note_destroyed(self)
   end
 
   private
