@@ -238,6 +238,7 @@ export default {
       prevPath: oldEntry.tempFile ? null : oldEntry.path,
       url: oldEntry.url.replace(new RegExp(`${escapeFileUrl(oldEntry.path)}/?$`), newPath),
       opened: false,
+      raw: oldEntry.content || oldEntry.raw,
       parentPath,
     });
 
