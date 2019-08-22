@@ -222,6 +222,7 @@ export default {
   [types.RENAME_ENTRY](state, { path, name, entryPath = null, parentPath }) {
     const oldEntry = state.entries[entryPath || path];
     const slashedParentPath = parentPath ? `${parentPath}/` : '';
+    const newName = entryPath ? oldEntry.name : name;
     const newPath = entryPath
       ? `${slashedParentPath}${oldEntry.name}`
       : `${slashedParentPath}${name}`;
@@ -231,12 +232,11 @@ export default {
       id: newPath,
       key: `${newPath}-${oldEntry.type}-${oldEntry.path}`,
       path: newPath,
-      name: entryPath ? oldEntry.name : name,
+      name: newName,
+      prevName: oldEntry.name !== newName ? oldEntry.name : undefined,
       tempFile: true,
       prevPath: oldEntry.tempFile ? null : oldEntry.path,
       url: oldEntry.url.replace(new RegExp(`${escapeFileUrl(oldEntry.path)}/?$`), newPath),
-      tree: [],
-      raw: '',
       opened: false,
       parentPath,
     });
