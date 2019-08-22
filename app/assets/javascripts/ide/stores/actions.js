@@ -242,8 +242,9 @@ export const renameEntry = (
     commit(types.TOGGLE_FILE_CHANGED, { file: newEntry, changed: true });
 
     if (entry.opened) {
-      router.push(`/project${newEntry.url}`);
       commit(types.TOGGLE_FILE_OPEN, entry.path);
+      commit(types.TOGGLE_FILE_OPEN, newEntry.path);
+      router.push(`/project${newEntry.url}`);
     }
   }
 
