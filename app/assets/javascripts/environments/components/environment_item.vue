@@ -115,7 +115,8 @@ export default {
         this.model &&
         this.model.last_deployment &&
         this.model.last_deployment.deployable &&
-        this.model.last_deployment.deployable !== undefined
+        this.model.last_deployment.deployable !== undefined &&
+        this.model.last_deployment.deployed_at
       );
     },
 
@@ -125,11 +126,7 @@ export default {
      * @returns {String}
      */
     deployedDate() {
-      if (
-        this.model &&
-        this.model.last_deployment &&
-        this.model.last_deployment.deployed_at
-      ) {
+      if (this.model && this.model.last_deployment && this.model.last_deployment.deployed_at) {
         return timeagoInstance.format(this.model.last_deployment.deployed_at);
       }
       return '';
