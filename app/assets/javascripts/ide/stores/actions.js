@@ -230,8 +230,8 @@ export const renameEntry = (
 
     state.entries[entryPath || path].tree.forEach(f => {
       dispatch('renameEntry', {
-        path,
-        name,
+        path: f.path,
+        name: f.name,
         entryPath: f.path,
         parentPath: newParentPath,
       });

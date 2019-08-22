@@ -543,79 +543,115 @@ describe('Multi-file store actions', () => {
   });
 
   describe('renameEntry', () => {
-    it('renames entry', done => {
-      store.state.entries.test = {
-        tree: [],
-      };
+    describe('single entry', () => {
+      it('renames an entry', done => {
+        store.state.entries.test = {
+          tree: [],
+        };
 
-      testAction(
-        renameEntry,
-        { path: 'test', name: 'new-name', entryPath: null, parentPath: 'parent-path' },
-        store.state,
-        [
-          {
-            type: types.RENAME_ENTRY,
-            payload: { path: 'test', name: 'new-name', entryPath: null, parentPath: 'parent-path' },
-          },
-          {
-            type: types.TOGGLE_FILE_CHANGED,
-            payload: {
-              file: store.state.entries['parent-path/new-name'],
-              changed: true,
+        testAction(
+          renameEntry,
+          { path: 'test', name: 'new-name', entryPath: null, parentPath: null },
+          store.state,
+          [
+            {
+              type: types.RENAME_ENTRY,
+              payload: jasmine.objectContaining({
+                name: 'new-name',
+              }),
             },
-          },
-        ],
-        [{ type: 'triggerFilesChange' }],
-        done,
-      );
+            {
+              type: types.TOGGLE_FILE_CHANGED,
+              payload: {
+                file: store.state.entries['new-name'],
+                changed: true,
+              },
+            },
+          ],
+          [{ type: 'triggerFilesChange' }],
+          done,
+        );
+      });
+
+      it('renames entries with spaces correctly', done => {
+        store.state.entries['old entry'] = {
+          tree: [],
+        };
+
+        testAction(
+          renameEntry,
+          { path: 'old entry', name: 'new entry', entryPath: null, parentPath: null },
+          store.state,
+          [
+            {
+              type: types.RENAME_ENTRY,
+              payload: jasmine.objectContaining({
+                path: 'old entry',
+                name: 'new entry',
+              }),
+            },
+            {
+              type: types.TOGGLE_FILE_CHANGED,
+              payload: {
+                file: store.state.entries['new entry'],
+                changed: true,
+              },
+            },
+          ],
+          [{ type: 'triggerFilesChange' }],
+          done,
+        );
+      });
     });
 
-    it('renames all entries in tree', done => {
-      store.state.entries.test = {
-        type: 'tree',
-        tree: [
-          {
-            path: 'tree-1',
-          },
-          {
-            path: 'tree-2',
-          },
-        ],
-      };
+    describe('folder', () => {
+      const folder = file('folder', 'folder', 'tree');
+      const file1 = file('file-1', 'file-1', 'blob', folder);
+      const file2 = file('file-2', 'file-2', 'blob', folder);
 
-      testAction(
-        renameEntry,
-        { path: 'test', name: 'new-name', parentPath: 'parent-path' },
-        store.state,
-        [
-          {
-            type: types.RENAME_ENTRY,
-            payload: { path: 'test', name: 'new-name', entryPath: null, parentPath: 'parent-path' },
-          },
-        ],
-        [
-          {
-            type: 'renameEntry',
-            payload: {
-              path: 'test',
-              name: 'new-name',
-              entryPath: 'tree-1',
-              parentPath: 'parent-path/new-name',
+      beforeEach(() => {
+        folder.tree = [file1, file2];
+
+        store.state.entries[folder.path] = folder;
+        store.state.entries[file1.path] = file1;
+        store.state.entries[file2.path] = file2;
+      });
+
+      it('updates entries in a folder correctly, when folder is renamed', done => {
+        testAction(
+          renameEntry,
+          { path: 'folder', name: 'new-folder', parentPath: null },
+          store.state,
+          [
+            {
+              type: types.RENAME_ENTRY,
+              payload: { path: 'folder', name: 'new-folder', entryPath: null, parentPath: null },
             },
-          },
-          {
-            type: 'renameEntry',
-            payload: {
-              path: 'test',
-              name: 'new-name',
-              entryPath: 'tree-2',
-              parentPath: 'parent-path/new-name',
+          ],
+          [
+            {
+              type: 'renameEntry',
+              payload: {
+                name: 'file-1',
+                path: 'folder/file-1',
+                entryPath: 'folder/file-1',
+                parentPath: 'new-folder',
+              },
             },
-          },
-          { type: 'triggerFilesChange' },
-        ],
-        done,
-      );
+            {
+              type: 'renameEntry',
+              payload: {
+                name: 'file-2',
+                path: 'folder/file-2',
+                entryPath: 'folder/file-2',
+                parentPath: 'new-folder',
+              },
+            },
+            { type: 'triggerFilesChange' },
+          ],
+          done,
+        );
+      });
     });
   });
 
