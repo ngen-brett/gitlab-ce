@@ -50,8 +50,9 @@ module EntityDateHelper
     elsif start_date&.future?
       content_tag(:strong, 'Upcoming')
     elsif due_date
-      is_upcoming = (due_date - Date.today).to_i > 0
-      time_ago = time_ago_in_words(due_date)
+      due_time = due_date.end_of_day
+      is_upcoming = (due_time - Date.today.beginning_of_day).to_i > 0
+      time_ago = time_ago_in_words(due_time)
 
       # https://gitlab.com/gitlab-org/gitlab-ce/issues/49440
       #
