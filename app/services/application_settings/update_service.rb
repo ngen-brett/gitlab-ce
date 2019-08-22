@@ -7,7 +7,8 @@ module ApplicationSettings
     attr_reader :params, :application_setting
 
     def execute
-      validate_classification_label(application_setting, :external_authorization_service_default_label)
+      ext_auth_enabled = Gitlab::Utils.to_boolean(params[:external_authorization_service_enabled])
+      validate_classification_label(application_setting, :external_authorization_service_default_label) if ext_auth_enabled
 
       if application_setting.errors.any?
         return false
