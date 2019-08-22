@@ -30,7 +30,44 @@ module SearchHelper
     to = collection.offset_value + collection.to_a.size
     count = collection.total_count
 
-    s_("SearchResults|Showing %{from} - %{to} of %{count} %{scope} for \"%{term}\"") % { from: from, to: to, count: count, scope: scope.humanize(capitalize: false), term: term }
+    scope_label =
+      case scope
+      when 'projects'
+        n_('project', 'projects', count)
+      when 'issues'
+        n_('issue', 'issues', count)
+      when 'merge_requests'
+        n_('merge request', 'merge requests', count)
+      when 'milestones'
+        n_('milestone', 'milestones', count)
+      when 'users'
+        n_('user', 'users', count)
+      when 'notes'
+        n_('note', 'notes', count)
+      when 'commits'
+        n_('commit', 'commits', count)
+      when 'snippet_titles'
+        n_('snippet', 'snippets', count)
+      when 'blobs', 'wiki_blobs', 'snippet_blobs'
+        n_('result', 'results', count)
+      else
+        raise "Unrecognized search scope '#{scope}'"
+      end
+
+    template =
+      if collection.total_pages > 1
+        s_("SearchResults|Showing %{from} - %{to} of %{count} %{scope} for \"%{term}\"")
+      else
+        s_("SearchResults|Showing %{count} %{scope} for \"%{term}\"")
+      end
+
+    template % {
+      from: from,
+      to: to,
+      count: count,
+      scope: scope_label,
+      term: term
+    }
   end
 
   def find_project_for_result_blob(projects, result)

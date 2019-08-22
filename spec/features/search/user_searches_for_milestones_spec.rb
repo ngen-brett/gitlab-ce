@@ -45,6 +45,8 @@ describe 'User searches for milestones', :js do
         click_link('Milestones')
       end
 
+      expect(page).to have_content("Showing 1 milestone for \"#{milestone1.title}\"")
+
       page.within('.results') do
         expect(find(:css, '.search-results')).to have_link(milestone1.title).and have_no_link(milestone2.title)
       end

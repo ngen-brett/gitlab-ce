@@ -32,6 +32,7 @@ describe 'User searches for code' do
 
       submit_search('application.js')
 
+      expect(page).to have_text('Showing 1 result for "application.js"')
       expect(page).to have_selector('.file-content .code')
       expect(page).to have_selector("span.line[lang='javascript']")
     end
@@ -51,6 +52,8 @@ describe 'User searches for code' do
       it 'finds code' do
         fill_in('dashboard_search', with: 'rspec')
         find('.btn-search').click
+
+        expect(page).to have_text('Showing 4 results for "rspec"')
 
         page.within('.results') do
           expect(find(:css, '.search-results')).to have_content('Update capybara, rspec-rails, poltergeist to recent versions')
@@ -133,6 +136,8 @@ describe 'User searches for code' do
 
     it 'finds code' do
       submit_search('rspec')
+
+      expect(page).to have_text('Showing 4 results for "rspec"')
 
       page.within('.results') do
         expect(find(:css, '.search-results')).to have_content('Update capybara, rspec-rails, poltergeist to recent versions')

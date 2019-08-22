@@ -31,6 +31,8 @@ describe 'User searches for wiki pages', :js do
         click_link('Wiki')
       end
 
+      expect(page).to have_content("Showing 1 result for \"#{search_term}\"")
+
       page.within('.results') do
         expect(find(:css, '.search-results')).to have_link(wiki_page.title, href: project_wiki_path(project, wiki_page.slug))
       end

@@ -46,6 +46,8 @@ describe 'User searches for issues', :js do
           click_link('Issues')
         end
 
+        expect(page).to have_content("Showing 1 issue for \"#{issue1.title}\"")
+
         page.within('.results') do
           expect(find(:css, '.search-results')).to have_link(issue1.title).and have_no_link(issue2.title)
         end

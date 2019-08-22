@@ -45,6 +45,8 @@ describe 'User searches for merge requests', :js do
         click_link('Merge requests')
       end
 
+      expect(page).to have_content("Showing 1 merge request for \"#{merge_request1.title}\"")
+
       page.within('.results') do
         expect(find(:css, '.search-results')).to have_link(merge_request1.title).and have_no_link(merge_request2.title)
       end
