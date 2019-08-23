@@ -23,7 +23,7 @@ export default class Store {
 
     Object.assign(this.state, convertObjectPropsToCamelCase(data));
     // find if there is an open details node inside of the issue description.
-    const descriptionSection = $('details')
+    const descriptionSection = $('.detail-page-description.content-block')
     const atLeastOneDetailOpen = descriptionSection.find('details[open]').length > 0;
   
     if (atLeastOneDetailOpen) {
