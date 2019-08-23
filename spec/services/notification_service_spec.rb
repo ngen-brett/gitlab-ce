@@ -1932,32 +1932,41 @@ describe NotificationService, :mailer do
     let(:added_user) { create(:user) }
 
     describe '#new_access_request' do
-      let(:maintainer) { create(:user) }
-      let(:owner) { create(:user) }
-      let(:developer) { create(:user) }
-      let!(:group) do
-        create(:group, :public, :access_requestable) do |group|
-          group.add_owner(owner)
-          group.add_maintainer(maintainer)
-          group.add_developer(developer)
+      context 'recipients' do
+        let(:maintainer) { create(:user) }
+        let(:owner) { create(:user) }
+        let(:developer) { create(:user) }
+        let!(:group) do
+          create(:group, :public, :access_requestable) do |group|
+            group.add_owner(owner)
+            group.add_maintainer(maintainer)
+            group.add_developer(developer)
+          end
+        end
+
+        before do
+          reset_delivered_emails!
+        end
+
+        it 'sends notification only to group owners' do
+          group.request_access(added_user)
+
+          should_email(owner)
+          should_not_email(maintainer)
+          should_not_email(developer)
+        end
+
+        it_behaves_like 'group emails are disabled' do
+          let(:notification_target)  { group }
+          let(:notification_trigger) { group.request_access(added_user) }
         end
       end
 
-      before do
-        reset_delivered_emails!
-      end
-
-      it 'sends notification to group owners_and_maintainers' do
-        group.request_access(added_user)
-
-        should_email(owner)
-        should_email(maintainer)
-        should_not_email(developer)
-      end
-
-      it_behaves_like 'group emails are disabled' do
-        let(:notification_target)  { group }
-        let(:notification_trigger) { group.request_access(added_user) }
+      context 'limit notification emails' do
+        it_behaves_like 'sends notification only to 10, most recently active group owners' do
+          let(:group) { create(:group, :public, :access_requestable) }
+          let(:notification_trigger) { group.request_access(added_user) }
+        end
       end
     end
 
@@ -2012,37 +2021,96 @@ describe NotificationService, :mailer do
 
     describe '#new_access_request' do
       context 'for a project in a user namespace' do
-        let(:project) do
-          create(:project, :public, :access_requestable) do |project|
-            project.add_maintainer(project.owner)
+        context 'recipients' do
+          let(:developer) { create(:user) }
+          let!(:project) do
+            create(:project, :public, :access_requestable) do |project|
+              project.add_developer(developer)
+            end
+          end
+
+          before do
+            reset_delivered_emails!
+          end
+
+          it 'sends notification only to project maintainers' do
+            project.request_access(added_user)
+
+            should_email(project.owner)
+            should_not_email(developer)
+          end
+
+          it_behaves_like 'project emails are disabled' do
+            let(:notification_target)  { project }
+            let(:notification_trigger) { project.request_access(added_user) }
           end
         end
 
-        it 'sends notification to project owners_and_maintainers' do
-          project.request_access(added_user)
-
-          should_only_email(project.owner)
-        end
-
-        it_behaves_like 'project emails are disabled' do
-          let(:notification_target)  { project }
-          let(:notification_trigger) { project.request_access(added_user) }
+        context 'limit notification emails' do
+          it_behaves_like 'sends notification only to 10, most recently active project maintainers' do
+            let(:project) { create(:project, :public, :access_requestable) }
+            let(:notification_trigger) { project.request_access(added_user) }
+          end
         end
       end
 
       context 'for a project in a group' do
         let(:group_owner) { create(:user) }
         let(:group) { create(:group).tap { |g| g.add_owner(group_owner) } }
-        let!(:project) { create(:project, :public, :access_requestable, namespace: group) }
 
-        before do
-          reset_delivered_emails!
+        context 'when the project has no maintainers' do
+          let!(:project) { create(:project, :public, :access_requestable, namespace: group) }
+
+          before do
+            reset_delivered_emails!
+          end
+
+          context 'recipients' do
+            it 'sends notifications to the group owners' do
+              project.request_access(added_user)
+
+              should_only_email(group_owner)
+            end
+          end
+          context 'limit notification emails' do
+            it_behaves_like 'sends notification only to 10, most recently active group owners' do
+              let(:group) { create(:group, :public, :access_requestable) }
+              let(:notification_trigger) { project.request_access(added_user) }
+            end
+          end
         end
 
-        it 'sends notification to group owners_and_maintainers' do
-          project.request_access(added_user)
+        context 'when the project has maintainers' do
+          let(:maintainer) { create(:user) }
+          let(:developer) { create(:user) }
 
-          should_only_email(group_owner)
+          let!(:project) do
+            create(:project, :public, :access_requestable, namespace: group) do |project|
+              project.add_maintainer(maintainer)
+              project.add_developer(developer)
+            end
+          end
+
+          before do
+            reset_delivered_emails!
+          end
+
+          context 'recipients' do
+            it 'sends notifications only to project maintainers' do
+              project.request_access(added_user)
+
+              should_email(maintainer)
+              should_not_email(developer)
+              should_not_email(group_owner)
+            end
+          end
+
+          context 'limit notification emails' do
+            it_behaves_like 'sends notification only to 10, most recently active project maintainers' do
+              let(:project) { create(:project, :public, :access_requestable, namespace: group) }
+              let(:notification_trigger) { project.request_access(added_user) }
+            end
+          end
         end
       end
     end

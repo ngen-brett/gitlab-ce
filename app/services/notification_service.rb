@@ -16,6 +16,8 @@
 #   NotificationService.new.async.new_issue(issue, current_user)
 #
 class NotificationService
+  ACCESS_REQUEST_NOTIFICATIONS_LIMIT = 10
+
   class Async
     attr_reader :parent
     delegate :respond_to_missing, to: :parent
@@ -293,10 +295,19 @@ class NotificationService
   def new_access_request(member)
     return true unless member.notifiable?(:subscription)
 
-    recipients = member.source.members.active_without_invites_and_requests.owners_and_maintainers
-    if fallback_to_group_owners_maintainers?(recipients, member)
-      recipients = member.source.group.members.active_without_invites_and_requests.owners_and_maintainers
+    source = member.source
+
+    if source.is_a?(Group)
+      recipients = source.members.active_without_invites_and_requests.owners
+    else
+      recipients = source.members.active_without_invites_and_requests.maintainers
+
+      if fallback_to_group_owners?(recipients, source)
+        recipients = source.group.members.active_without_invites_and_requests.owners
+      end
     end
+
+    recipients = recipients.order_recent_sign_in.limit(ACCESS_REQUEST_NOTIFICATIONS_LIMIT) # rubocop: disable CodeReuse/ActiveRecord
 
     recipients.each { |recipient| deliver_access_request_email(recipient, member) }
   end
@@ -611,9 +622,9 @@ class NotificationService
     mailer.member_access_requested_email(member.real_source_type, member.id, recipient.user.id).deliver_later
   end
 
-  def fallback_to_group_owners_maintainers?(recipients, member)
+  def fallback_to_group_owners?(recipients, source)
     return false if recipients.present?
 
-    member.source.respond_to?(:group) && member.source.group
+    source.respond_to?(:group) && source.group
   end
 end
