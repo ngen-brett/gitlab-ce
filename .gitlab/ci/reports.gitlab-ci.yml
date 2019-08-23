@@ -18,7 +18,7 @@ sast:
   cache: {}
   variables:
     SAST_BRAKEMAN_LEVEL: 2
-    SAST_EXCLUDED_PATHS: qa,spec
+    SAST_EXCLUDED_PATHS: qa,spec,docs
 
 dependency_scanning:
   extends: .dedicated-no-docs
