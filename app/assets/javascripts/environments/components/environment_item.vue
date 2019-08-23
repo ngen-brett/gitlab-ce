@@ -111,11 +111,7 @@ export default {
      * @returns {Boolean|Undefined}
      */
     canShowDate() {
-      return (
-        this.model &&
-        this.model.last_deployment &&
-        this.model.last_deployment.deployed_at
-      );
+      return this.model && this.model.last_deployment && this.model.last_deployment.deployed_at;
     },
 
     /**
