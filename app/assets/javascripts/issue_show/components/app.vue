@@ -13,6 +13,7 @@ import editedComponent from './edited.vue';
 import formComponent from './form.vue';
 import PinnedLinks from './pinned_links.vue';
 import recaptchaModalImplementor from '../../vue_shared/mixins/recaptcha_modal_implementor';
+import axios from '../../lib/utils/axios_utils';
 
 export default {
   components: {
@@ -247,14 +248,21 @@ export default {
 
     openForm() {
       if (!this.showForm) {
-        this.showForm = true;
-        this.store.setFormState({
-          title: this.state.titleText,
-          description: this.state.descriptionText,
-          lock_version: this.state.lock_version,
-          lockedWarningVisible: false,
-          updateLoading: false,
-        });
+        // TODO: issueableTemplates should be set asynchronously without blocking the form
+        axios.get('templates/index.json').then(res => {
+          this.showForm = true;
+          this.store.setFormState({
+            title: this.state.titleText,
+            description: this.state.descriptionText,
+            lock_version: this.state.lock_version,
+            lockedWarningVisible: false,
+            updateLoading: false,
+            issuableTemplates: res
+          });
+        })
+          .catch(error => {
+            alert(error);
+          });
       }
     },
     closeForm() {
