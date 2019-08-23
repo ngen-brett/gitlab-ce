@@ -95,6 +95,7 @@ them in a YAML file named `clair-whitelist.yml`. Read more in the
 [Clair documentation](https://github.com/arminc/clair-scanner/blob/master/README.md#example-whitelist-yaml-file).
 
 ## Example
+
 The following is a sample `.gitlab-ci.yml` that will build your Docker Image, push it to the container registry and run Container Scanning. 
 
 ```yaml
