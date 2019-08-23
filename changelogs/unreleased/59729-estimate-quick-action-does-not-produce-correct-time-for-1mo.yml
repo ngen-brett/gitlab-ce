@@ -1,0 +1,5 @@
+---
+title: Fix time tracking parsing of months
+merge_request: 32165
+author:
+type: fixed
