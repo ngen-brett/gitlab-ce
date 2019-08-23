@@ -7,7 +7,6 @@ const DETAILS_TAG = '<details>';
 export default class Store {
   constructor(initialState) {
     this.state = initialState;
-    // maybe put details info here?
     this.formState = {
       title: '',
       description: '',
