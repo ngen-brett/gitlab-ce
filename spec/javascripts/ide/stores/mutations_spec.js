@@ -377,6 +377,7 @@ describe('Multi-file store mutations', () => {
         ...localState.entries.oldPath,
         id: 'newPath',
         name: 'newPath',
+        prevName: 'oldPath',
         key: 'newPath-blob-oldPath',
         path: 'newPath',
         tempFile: true,
@@ -384,8 +385,45 @@ describe('Multi-file store mutations', () => {
         tree: [],
         parentPath: '',
         url: `${gl.TEST_HOST}/newPath`,
-        moved: jasmine.anything(),
-        movedPath: jasmine.anything(),
+        moved: false,
+        movedPath: '',
+        opened: false,
+      });
+    });
+
+    it('handles files with spaces', () => {
+      const path = 'my fancy path';
+      const newPath = 'new path';
+
+      localState.entries[path] = {
+        ...file(),
+        type: 'blob',
+        name: path,
+        path,
+        url: `${gl.TEST_HOST}/${encodeURI(path)}`,
+      };
+
+      mutations.RENAME_ENTRY(localState, {
+        path,
+        name: newPath,
+        entryPath: null,
+        parentPath: '',
+      });
+
+      expect(localState.entries[newPath]).toEqual({
+        ...localState.entries.oldPath,
+        id: newPath,
+        name: newPath,
+        prevName: path,
+        key: `${newPath}-blob-${path}`,
+        path: newPath,
+        tempFile: true,
+        prevPath: path,
+        tree: [],
+        parentPath: '',
+        url: `${gl.TEST_HOST}/${encodeURI(newPath)}`,
+        moved: false,
+        movedPath: '',
         opened: false,
       });
     });

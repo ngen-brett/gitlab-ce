@@ -236,7 +236,10 @@ export default {
       prevName: oldEntry.name !== newName ? oldEntry.name : undefined,
       tempFile: true,
       prevPath: oldEntry.tempFile ? null : oldEntry.path,
-      url: oldEntry.url.replace(new RegExp(`${escapeFileUrl(oldEntry.path)}/?$`), newPath),
+      url: oldEntry.url.replace(
+        new RegExp(`${escapeFileUrl(oldEntry.path)}/?$`),
+        encodeURI(newPath),
+      ),
       opened: false,
       raw: oldEntry.content || oldEntry.raw,
       parentPath,
