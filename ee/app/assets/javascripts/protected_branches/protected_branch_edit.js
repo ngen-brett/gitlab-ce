@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import _ from 'underscore';
 import axios from '~/lib/utils/axios_utils';
 import Flash from '~/flash';
@@ -13,6 +12,7 @@ export default class ProtectedBranchEdit {
     this.$wrap = options.$wrap;
     this.$allowedToMergeDropdown = this.$wrap.find('.js-allowed-to-merge');
     this.$allowedToPushDropdown = this.$wrap.find('.js-allowed-to-push');
+    this.$toggleButton = this.$wrap.find('.js-project-feature-toggle');
 
     this.$wraps[ACCESS_LEVELS.MERGE] = this.$allowedToMergeDropdown.closest(
       `.${ACCESS_LEVELS.MERGE}-container`,
@@ -22,6 +22,7 @@ export default class ProtectedBranchEdit {
     );
 
     this.buildDropdowns();
+<<<<<<< HEAD
     this.toggleCodeOwnerApproval();
   }
 
@@ -38,6 +39,24 @@ export default class ProtectedBranchEdit {
 
       this.updateCodeOwnerApproval(formData);
     });
+=======
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    this.$toggleButton.on('click', this.onToggleButtonClick.bind(this));
+  }
+
+  onToggleButtonClick() {
+    this.$toggleButton.toggleClass('is-checked');
+    this.$toggleButton.prop('disabled', true);
+
+    const formData = {
+      code_owner_approval_required: this.$toggleButton.hasClass('is-checked'),
+    };
+
+    this.updateCodeOwnerApproval(formData);
+>>>>>>> cd182ca57e5... Add views of code owner approval
   }
 
   updateCodeOwnerApproval(formData) {
@@ -46,10 +65,17 @@ export default class ProtectedBranchEdit {
         protected_branch: formData,
       })
       .then(() => {
+<<<<<<< HEAD
         this.$wrap.find('.js-project-feature-toggle').prop('disabled', false);
       })
       .catch(() => {
         Flash(__('Failed to update branch!'), null, $('.js-protected-branches-list'));
+=======
+        this.$toggleButton.prop('disabled', false);
+      })
+      .catch(() => {
+        Flash(__('Failed to update branch!'));
+>>>>>>> cd182ca57e5... Add views of code owner approval
       });
   }
 
@@ -114,7 +140,7 @@ export default class ProtectedBranchEdit {
       .catch(() => {
         this.$allowedToMergeDropdown.enable();
         this.$allowedToPushDropdown.enable();
-        Flash(__('Failed to update branch!'), null, $('.js-protected-branches-list'));
+        Flash(__('Failed to update branch!'));
       });
   }
 

@@ -14,20 +14,28 @@ export default class ProtectedBranchCreate {
     this.currentProjectUserDefaults = {};
     this.buildDropdowns();
     this.$branchInput = this.$form.find('input[name="protected_branch[name]"]');
+    this.$toggleButton = this.$form.find('.js-project-feature-toggle');
     this.bindEvents();
     this.toggleCodeOwnerApproval();
   }
 
   bindEvents() {
+    this.$toggleButton.on('click', this.onToggleButtonClick.bind(this));
     this.$form.on('submit', this.onFormSubmit.bind(this));
   }
 
+<<<<<<< HEAD
   toggleCodeOwnerApproval() {
     const toggleButton = this.$form.find('.js-project-feature-toggle');
 
     toggleButton.on('click', () => {
       toggleButton.toggleClass('is-checked');
     });
+=======
+  onToggleButtonClick() {
+    const toggleButton = this.$toggleButton;
+    toggleButton.toggleClass('is-checked');
+>>>>>>> cd182ca57e5... Add views of code owner approval
   }
 
   buildDropdowns() {
