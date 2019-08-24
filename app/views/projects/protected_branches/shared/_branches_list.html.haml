@@ -19,6 +19,8 @@
           %th Last commit
           %th Allowed to merge
           %th Allowed to push
+          - if @project.merge_requests_require_code_owner_approval
+            %th Code owner approval
           - if can_admin_project
             %th
       %tbody
