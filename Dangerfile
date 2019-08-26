@@ -30,6 +30,8 @@ all_danger_files = DANGERFILES_LOCAL
 
 if ENV['CI'] && !helper.release_automation?
   all_danger_files += DANGERFILES_CI_ONLY
+else
+  warn("Only the following Danger rules can be run locally: #{DANGERFILES_LOCAL.join(', ')}")
 end
 
 all_danger_files.each do |file|
