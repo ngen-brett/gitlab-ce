@@ -193,7 +193,7 @@ function deploy() {
 
 HELM_CMD=$(cat << EOF
   helm upgrade --install \
-    --atomic \
+    --wait \
     --timeout 900 \
     --set releaseOverride="$CI_ENVIRONMENT_SLUG" \
     --set global.appConfig.enableUsagePing=false \
