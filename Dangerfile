@@ -1,23 +1,37 @@
 # frozen_string_literal: true
+
 danger.import_plugin('danger/plugins/helper.rb')
 danger.import_plugin('danger/plugins/roulette.rb')
 
-unless helper.release_automation?
-  danger.import_dangerfile(path: 'danger/metadata')
-  danger.import_dangerfile(path: 'danger/changes_size')
-  danger.import_dangerfile(path: 'danger/changelog')
-  danger.import_dangerfile(path: 'danger/specs')
-  danger.import_dangerfile(path: 'danger/gemfile')
-  danger.import_dangerfile(path: 'danger/database')
-  danger.import_dangerfile(path: 'danger/documentation')
-  danger.import_dangerfile(path: 'danger/frozen_string')
-  danger.import_dangerfile(path: 'danger/commit_messages')
-  danger.import_dangerfile(path: 'danger/duplicate_yarn_dependencies')
-  danger.import_dangerfile(path: 'danger/prettier')
-  danger.import_dangerfile(path: 'danger/eslint')
-  danger.import_dangerfile(path: 'danger/roulette')
-  danger.import_dangerfile(path: 'danger/single_codebase')
-  danger.import_dangerfile(path: 'danger/gitlab_ui_wg')
-  danger.import_dangerfile(path: 'danger/ce_ee_vue_templates')
-  danger.import_dangerfile(path: 'danger/only_documentation')
+DANGERFILES_LOCAL = %w{
+  changes_size
+  gemfile
+  documentation
+  frozen_string
+  duplicate_yarn_dependencies
+  prettier
+  eslint
+}.freeze
+
+DANGERFILES_CI_ONLY = %w{
+  metadata
+  changelog
+  specs
+  database
+  commit_messages
+  roulette
+  single_codebase
+  gitlab_ui_wg
+  ce_ee_vue_templates
+  only_documentation
+}.freeze
+
+all_danger_files = DANGERFILES_LOCAL
+
+if ENV['CI'] && !helper.release_automation?
+  all_danger_files += DANGERFILES_CI_ONLY
+end
+
+all_danger_files.each do |file|
+  danger.import_dangerfile(path: File.join('danger', file))
 end
