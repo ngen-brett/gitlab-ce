@@ -231,7 +231,7 @@ export default class LabelsSelect {
                   });
                 }
                 if (extraData.length) {
-                  extraData.push('divider');
+                  extraData.push('--|GitLab|--divider-item--|GitLab|--');
                   data = extraData.concat(data);
                 }
               }

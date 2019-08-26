@@ -100,7 +100,7 @@ export default class MilestoneSelect {
               });
             }
             if (extraOptions.length) {
-              extraOptions.push('divider');
+              extraOptions.push('--|GitLab|--divider-item--|GitLab|--');
             }
 
             callback(extraOptions.concat(data));

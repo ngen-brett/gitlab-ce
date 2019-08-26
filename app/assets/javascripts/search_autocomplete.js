@@ -191,7 +191,7 @@ export class SearchAutocomplete {
           // Add group header before list each group
           if (lastCategory !== suggestion.category) {
             if (!firstCategory) {
-              data.push('separator');
+              data.push('--|GitLab|--separator-item--|GitLab|--');
             }
             if (firstCategory) {
               firstCategory = false;
@@ -221,7 +221,7 @@ export class SearchAutocomplete {
             template = s__('SearchAutocomplete|in this group');
           }
 
-          data.unshift('separator');
+          data.unshift('--|GitLab|--separator-item--|GitLab|--');
           data.unshift({
             icon,
             text: term,

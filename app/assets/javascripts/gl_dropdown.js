@@ -689,6 +689,10 @@ GitLabDropdown = (function() {
 
   GitLabDropdown.prototype.renderItem = function(data, group, index) {
     var field, html, selected, text, url, value, rowHidden;
+    var separators = new Map( {
+      "--|GitLab|--divider-item--|GitLab|--": "divider",
+      "--|GitLab|--separator-item--|GitLab|--": "separator"
+     } );
 
     if (!this.options.renderRow) {
       value = this.options.id ? this.options.id(data) : data.id;
@@ -715,8 +719,8 @@ GitLabDropdown = (function() {
       html.style.display = 'none';
     }
 
-    if (data === 'divider' || data === 'separator') {
-      html.className = data;
+    if (separators.has( data )) {
+      html.className = separators.get( data );
       return html;
     }
     // Header
