@@ -14,6 +14,7 @@ db/ @gitlab-org/maintainers/database
 lib/gitlab/background_migration/ @gitlab-org/maintainers/database
 lib/gitlab/database/ @gitlab-org/maintainers/database
 lib/gitlab/sql/ @gitlab-org/maintainers/database
+lib/gitlab/github_import/ @gitlab-org/maintainers/database
 /ee/db/ @gitlab-org/maintainers/database
 
 # Feature specific owners
