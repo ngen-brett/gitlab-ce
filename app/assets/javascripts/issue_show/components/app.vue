@@ -108,6 +108,10 @@ export default {
       required: false,
       default: () => [],
     },
+    issuableTemplateNamesPath: {
+      type: String,
+      required: true
+    },
     markdownPreviewPath: {
       type: String,
       required: true,
@@ -218,12 +222,14 @@ export default {
     eventHub.$on('update.issuable', this.updateIssuable);
     eventHub.$on('close.form', this.closeForm);
     eventHub.$on('open.form', this.openForm);
+    eventHub.$on('update.issuable-templates', this.updateIssuableTemplates);
   },
   beforeDestroy() {
     eventHub.$off('delete.issuable', this.deleteIssuable);
     eventHub.$off('update.issuable', this.updateIssuable);
     eventHub.$off('close.form', this.closeForm);
     eventHub.$off('open.form', this.openForm);
+    eventHub.$off('update.issuable-templates', this.updateIssuableTemplates);
     window.removeEventListener('beforeunload', this.handleBeforeUnloadEvent);
   },
   methods: {
@@ -246,23 +252,26 @@ export default {
         });
     },
 
+    updateIssuableTemplates(templates) {
+      this.store.updateIssuableTemplates(templates);
+    },
+
     openForm() {
       if (!this.showForm) {
-        // TODO: issueableTemplates should be set asynchronously without blocking the form
-        axios.get('templates/index.json').then(res => {
-          this.showForm = true;
-          this.store.setFormState({
-            title: this.state.titleText,
-            description: this.state.descriptionText,
-            lock_version: this.state.lock_version,
-            lockedWarningVisible: false,
-            updateLoading: false,
-            issuableTemplates: res
-          });
-        })
-          .catch(error => {
-            alert(error);
-          });
+        this.showForm = true;
+        this.store.setFormState({
+          title: this.state.titleText,
+          description: this.state.descriptionText,
+          lock_version: this.state.lock_version,
+          lockedWarningVisible: false,
+          updateLoading: false,
+          issuableTemplates: []
+        });
+
+        axios.get(this.issuableTemplateNamesPath).then(res => {
+          // TODO
+          eventHub.$emit('update.issuable-templates', res.data);
+        });
       }
     },
     closeForm() {

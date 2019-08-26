@@ -33,4 +33,8 @@ export default class Store {
   setFormState(state) {
     this.formState = Object.assign(this.formState, state);
   }
+
+  updateIssuableTemplates(templates) {
+    Object.assign(this.formState.issuableTemplates, templates);
+  }
 }

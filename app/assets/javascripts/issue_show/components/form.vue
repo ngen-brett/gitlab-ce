@@ -68,7 +68,9 @@ export default {
   },
   computed: {
     hasIssuableTemplates() {
-      return this.issuableTemplates.length;
+      // return this.issuableTemplates.length;
+
+      return true;
     },
     showLockedWarning() {
       return this.formState.lockedWarningVisible && !this.formState.updateLoading;
