@@ -34,6 +34,14 @@ module GraphqlHelpers
     end
   end
 
+  # BatchLoader::GraphQL returns a wrapper, so we need to :sync in order
+  # to get the actual values
+  def batch_sync(max_queries: nil, &blk)
+    result = batch(max_queries: nil, &blk)
+
+    result.is_a?(Array) ? result.map(&:sync) : result&.sync
+  end
+
   def graphql_query_for(name, attributes = {}, fields = nil)
     <<~QUERY
     {
