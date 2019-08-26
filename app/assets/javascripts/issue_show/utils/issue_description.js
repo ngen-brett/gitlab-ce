@@ -7,14 +7,15 @@
 
 const updateDetailsState = (descriptionHtml = '', details = []) => {
   const placeholder = document.createElement('div');
-
   placeholder.innerHTML = descriptionHtml;
 
-  placeholder.querySelectorAll('details').forEach((el, i) => {
-    const matchingCurrentEl = details[i];
+  const newDescription = placeholder.querySelectorAll('details')
 
-    el.open = matchingCurrentEl.open;
-  });
+  if(newDescription.length !== details.length) {
+    return descriptionHtml;
+  };
+  
+  newDescription.forEach((el, i) => { el.open = details[i].open });
 
   return placeholder.innerHTML;
 }
