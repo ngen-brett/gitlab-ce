@@ -1,30 +1,22 @@
-const DETAILS_OPEN = '<details open>';
-const DETAILS_EL_REGEXP = new RegExp(/<details>/, 'g');
-const DETAILS_TAG = '<details>';
-
 /**
  * Function that replaces the open attribute for the <details> element.
  *
- * @param {String} description - The html string passed back from the server as a result of polling
+ * @param {String} descriptionHtml - The html string passed back from the server as a result of polling
  * @param {Array} details - All detail nodes inside of the issue description.
  */
 
-const updateDetailsState = (description = '', details = []) => {
-  let index = 0;
+const updateDetailsState = (descriptionHtml = '', details = []) => {
+  const placeholder = document.createElement('div');
 
-  return description.replace(DETAILS_EL_REGEXP, () => {
-    const shouldReplace = details[index] && details[index].open;
-    let str = DETAILS_TAG;
-    // increment count every time we find a match.
-    index += 1;
+  placeholder.innerHTML = descriptionHtml;
 
-    if(shouldReplace) {
-      str =  DETAILS_OPEN;
-    }
-    
+  placeholder.querySelectorAll('details').forEach((el, i) => {
+    const matchingCurrentEl = details[i];
 
-    return str;
+    el.open = matchingCurrentEl.open;
   });
+
+  return placeholder.innerHTML;
 }
 
 export { updateDetailsState };

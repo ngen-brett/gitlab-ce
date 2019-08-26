@@ -20,11 +20,11 @@ export default class Store {
 
     Object.assign(this.state, convertObjectPropsToCamelCase(data));
     // find if there is an open details node inside of the issue description.
-    const descriptionSection = $('.detail-page-description.content-block')
-    const atLeastOneDetailOpen = descriptionSection.find('details[open]').length > 0;
-  
-    if (atLeastOneDetailOpen) {
-      const details = descriptionSection.find('details');
+    const [descriptionSection] = document.getElementsByClassName('detail-page-description content-block');
+    const openDetails = descriptionSection.querySelector('details[open]');
+
+    if (openDetails) {
+      const details = descriptionSection.querySelectorAll('details');
 
       this.state.descriptionHtml = updateDetailsState(data.description, details);
     } else {
