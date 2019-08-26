@@ -101,7 +101,6 @@ The following is a sample `.gitlab-ci.yml` that will build your Docker Image, pu
 ```yaml
 variables:
   DOCKER_DRIVER: overlay2
-  MAJOR: 1
 
 services:
   - docker:stable-dind
