@@ -211,3 +211,12 @@ ActiveRecordAssociationReload:
   Exclude:
     - 'spec/**/*'
     - 'ee/spec/**/*'
+
+RSpec/BeSuccessMatcher:
+  Enabled: true
+  Include:
+    - 'spec/controllers/**/*'
+    - 'ee/spec/controllers/**/*'
+    - 'spec/support/shared_examples/controllers/**/*'
+    - 'ee/spec/support/shared_examples/controllers/**/*'
+    - 'spec/support/controllers/**/*'
