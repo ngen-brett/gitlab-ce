@@ -124,6 +124,12 @@ review-stop:
     - source $(basename $SCRIPT_NAME)
     - delete
 
+# Cleanup any failed Review App deployment in the prepare stage
+review-cleanup:
+  extends: review-stop
+  stage: prepare
+  when: on_success
+
 .review-qa-base: &review-qa-base
   <<: *review-docker
   allow_failure: true
