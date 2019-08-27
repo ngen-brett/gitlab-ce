@@ -23,6 +23,7 @@ issues:
 - epic_issue
 - epic
 - designs
+- versions
 events:
 - author
 - project
