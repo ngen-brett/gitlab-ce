@@ -5319,9 +5319,6 @@ msgstr ""
 msgid "GitLab.com import"
 msgstr ""
 
-msgid "GitLab’s issue tracker"
-msgstr ""
-
 msgid "Gitaly"
 msgstr ""
 
@@ -6560,9 +6557,6 @@ msgid "Learn how to %{link_start}contribute to the built-in templates%{link_end}
 msgstr ""
 
 msgid "Learn more"
-msgstr ""
-
-msgid "Learn more about %{issue_boards_url}, to keep track of issues in multiple lists, using labels, assignees, and milestones. If you’re missing something from issue boards, please create an issue on %{gitlab_issues_url}."
 msgstr ""
 
 msgid "Learn more about Auto DevOps"
@@ -11391,9 +11385,6 @@ msgstr ""
 msgid "The staging stage shows the time between merging the MR and deploying code to the production environment. The data will be automatically added once you deploy to production for the first time."
 msgstr ""
 
-msgid "The tabs below will be removed in a future version"
-msgstr ""
-
 msgid "The testing stage shows the time GitLab CI takes to run every pipeline for the related merge request. The data will automatically be added after your first pipeline finishes running."
 msgstr ""
 
@@ -13644,9 +13635,6 @@ msgid "is too long (maximum is 1000 entries)"
 msgstr ""
 
 msgid "issue"
-msgstr ""
-
-msgid "issue boards"
 msgstr ""
 
 msgid "it is stored externally"
