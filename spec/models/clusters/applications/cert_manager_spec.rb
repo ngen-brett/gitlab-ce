@@ -44,11 +44,11 @@ describe Clusters::Applications::CertManager do
 
     it 'is initialized with cert_manager arguments' do
       expect(subject.name).to eq('certmanager')
-      expect(subject.chart).to eq('stable/cert-manager')
-      expect(subject.version).to eq('v0.5.2')
+      expect(subject.chart).to eq('certmanager/cert-manager')
+      expect(subject.version).to eq('v0.9.1')
       expect(subject).to be_rbac
       expect(subject.files).to eq(cert_manager.files.merge(cluster_issuer_file))
-      expect(subject.postinstall).to eq(['kubectl create -f /data/helm/certmanager/config/cluster_issuer.yaml'])
+      expect(subject.postinstall).to eq(['kubectl apply -f /data/helm/certmanager/config/cluster_issuer.yaml'])
     end
 
     context 'for a specific user' do
@@ -75,7 +75,7 @@ describe Clusters::Applications::CertManager do
       let(:cert_manager) { create(:clusters_applications_cert_manager, :errored, version: '0.0.1') }
 
       it 'is initialized with the locked version' do
-        expect(subject.version).to eq('v0.5.2')
+        expect(subject.version).to eq('v0.9.1')
       end
     end
   end
