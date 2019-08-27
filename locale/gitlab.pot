@@ -2503,6 +2503,9 @@ msgstr ""
 msgid "ClusterIntegration|Alternatively"
 msgstr ""
 
+msgid "ClusterIntegration|Amazon EKS"
+msgstr ""
+
 msgid "ClusterIntegration|An error occurred when trying to contact the Google Cloud API. Please try again later."
 msgstr ""
 
@@ -2581,6 +2584,9 @@ msgstr ""
 msgid "ClusterIntegration|Create Kubernetes cluster"
 msgstr ""
 
+msgid "ClusterIntegration|Create cluster on"
+msgstr ""
+
 msgid "ClusterIntegration|Did you know?"
 msgstr ""
 
@@ -2630,6 +2636,9 @@ msgid "ClusterIntegration|GitLab-managed cluster"
 msgstr ""
 
 msgid "ClusterIntegration|Google Cloud Platform project"
+msgstr ""
+
+msgid "ClusterIntegration|Google GKE"
 msgstr ""
 
 msgid "ClusterIntegration|Google Kubernetes Engine"
