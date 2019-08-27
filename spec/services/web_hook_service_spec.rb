@@ -56,7 +56,7 @@ describe WebHookService do
     before do
       project.hooks << [project_hook]
 
-      WebMock.stub_request(:post, project_hook.url)
+      stub_full_request(project_hook.url, method: :post)
     end
 
     context 'when token is defined' do
@@ -64,7 +64,7 @@ describe WebHookService do
 
       it 'POSTs to the webhook URL' do
         service_instance.execute
-        expect(WebMock).to have_requested(:post, project_hook.url).with(
+        expect(WebMock).to have_requested(:post, stubbed_hostname(project_hook.url)).with(
           headers: headers.merge({ 'X-Gitlab-Token' => project_hook.token })
         ).once
       end
@@ -72,14 +72,14 @@ describe WebHookService do
 
     it 'POSTs to the webhook URL' do
       service_instance.execute
-      expect(WebMock).to have_requested(:post, project_hook.url).with(
+      expect(WebMock).to have_requested(:post, stubbed_hostname(project_hook.url)).with(
         headers: headers
       ).once
     end
 
     it 'POSTs the data as JSON' do
       service_instance.execute
-      expect(WebMock).to have_requested(:post, project_hook.url).with(
+      expect(WebMock).to have_requested(:post, stubbed_hostname(project_hook.url)).with(
         headers: headers
       ).once
     end
