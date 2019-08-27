@@ -110,7 +110,7 @@ export default {
     },
     issuableTemplateNamesPath: {
       type: String,
-      required: true
+      required: true,
     },
     markdownPreviewPath: {
       type: String,
@@ -265,7 +265,7 @@ export default {
           lock_version: this.state.lock_version,
           lockedWarningVisible: false,
           updateLoading: false,
-          issuableTemplates: []
+          issuableTemplates: [],
         });
 
         axios.get(this.issuableTemplateNamesPath).then(res => {
