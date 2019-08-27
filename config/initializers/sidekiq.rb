@@ -33,6 +33,10 @@ enable_sidekiq_monitor = ENV.fetch("SIDEKIQ_MONITOR_WORKER", 0).to_i.nonzero?
 Sidekiq.configure_server do |config|
   config.redis = queues_config_hash
 
+  require 'rbtrace'
+  # require 'objspace'
+  # ObjectSpace.trace_object_allocations_start
+
   config.server_middleware do |chain|
     chain.add Gitlab::SidekiqMiddleware::Monitor if enable_sidekiq_monitor
     chain.add Gitlab::SidekiqMiddleware::Metrics if Settings.monitoring.sidekiq_exporter

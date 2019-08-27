@@ -12,6 +12,8 @@ class ProjectExportWorker
     after_export = build!(after_export_strategy)
 
     ::Projects::ImportExport::ExportService.new(project, current_user, params).execute(after_export)
+
+#     GC.start
   end
 
   private
