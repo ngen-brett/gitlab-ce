@@ -24,6 +24,11 @@ describe('Store', () => {
           `;
     });
 
+    afterEach(() => {
+      document.getElementsByTagName('html')[0].innerHTML = ''; 
+    });
+  
+
     it('calls updateDetailsState', () => {
       jest.spyOn(issueUtils, 'updateDetailsState').mockImplementationOnce(() => '');
 
