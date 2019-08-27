@@ -30,11 +30,13 @@ describe('Store', () => {
   
 
     it('calls updateDetailsState', () => {
-      jest.spyOn(issueUtils, 'updateDetailsState').mockImplementationOnce(() => '');
+      const spy = jest.spyOn(issueUtils, 'updateDetailsState')
 
       store.updateState({ description: '' });
 
       expect(issueUtils.updateDetailsState).toHaveBeenCalledTimes(1);
+
+      spy.mockRestore();
     });
 
     it('returns the correct value to be set as descriptionHtml', () => {
