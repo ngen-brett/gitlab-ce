@@ -120,7 +120,7 @@ export default {
      * @returns {String}
      */
     deployedDate() {
-      if (this.model && this.model.last_deployment && this.model.last_deployment.deployed_at) {
+      if (this.canShowDate) {
         return timeagoInstance.format(this.model.last_deployment.deployed_at);
       }
       return '';
