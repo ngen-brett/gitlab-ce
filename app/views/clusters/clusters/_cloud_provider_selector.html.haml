@@ -1,0 +1,13 @@
+- gke_label = s_('ClusterIntegration|Google GKE')
+- eks_label = s_('ClusterIntegration|Amazon EKS')
+.d-flex.flex-column
+  %h5 Create cluster on
+  .d-flex
+    = link_to clusterable.new_path(provider: 'gke'), class: 'btn btn-outline flex-fill d-inline-flex flex-column mr-3 justify-content-center align-items-center' do
+      = image_tag 'cloud_logos/google_gke.svg', alt: gke_label, class: 'gl-w-13 gl-h-13'
+      %span
+        = gke_label
+    = link_to clusterable.new_path(provider: 'eks'), class: 'btn btn-outline flex-fill d-inline-flex flex-column mr-3 justify-content-center align-items-center' do
+      = image_tag 'cloud_logos/amazon_eks.svg', alt: gke_label, class: 'gl-w-13 gl-h-13'
+      %span
+        = eks_label
