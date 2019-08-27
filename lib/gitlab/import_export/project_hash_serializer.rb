@@ -24,10 +24,11 @@ module Gitlab
         # Now serialize each top-level association (e.g. issues, merge requests, etc.)
         # in batches.
         preload_data.each do |key, preload_clause|
-          p '*' * 50
-          p "key: #{key}, preload_clause: #{preload_clause}"
           records = project.send(key)
-          p "records: #{records}"
+
+          # p '*' * 50
+          # p "key: #{key}, preload_clause: #{preload_clause}"
+          # p "records: #{records}"
 
           next unless records
 
