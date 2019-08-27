@@ -10,11 +10,46 @@ module Gitlab
         @tree = tree
       end
 
+      def execute
+        # Let's serialize in batches :merge_requests only
+        key = :merge_requests
+        selection = extract_from_tree!(key)
+
+        # data = @project.as_json(tree)
+        data = {}
+        data[key.to_s] = []
+
+        records = project.send(key)
+
+        records.in_batches(of: 100) do |batch|
+          data[key.to_s] += batch.as_json(selection)
+        end
+
+        data
+      end
+
+
+      private
+
+      def extract_from_tree!(attr)
+        index = index_in_include_arr(attr)
+
+        tree[:include].delete_at(index)[attr]
+      end
+
+      def index_in_include_arr(attr)
+        tree[:include].find_index do |x|
+          x.is_a?(Hash) && x.keys.first == attr
+        end
+      end
+
+      # as_json implementation (current master)
       def execute_old
         @project.as_json(tree)
       end
 
-      def execute
+      # Stan's implementation
+      def execute_stan_ver
         preload_data = extract_preload_clause(tree)
         # Detach the top-level includes so only the project attributes
         # are serialized
@@ -25,10 +60,6 @@ module Gitlab
         # in batches.
         preload_data.each do |key, preload_clause|
           records = project.send(key)
-
-          # p '*' * 50
-          # p "key: #{key}, preload_clause: #{preload_clause}"
-          # p "records: #{records}"
 
           next unless records
 
@@ -49,8 +80,6 @@ module Gitlab
 
         data
       end
-
-      private
 
       # The `include` tree contains rows of entries that can contain a Hash or a symbol
       # sorted in any particular way:
