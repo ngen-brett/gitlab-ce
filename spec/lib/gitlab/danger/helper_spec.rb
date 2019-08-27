@@ -11,16 +11,36 @@ describe Gitlab::Danger::Helper do
   class FakeDanger
     include Gitlab::Danger::Helper
 
-    attr_reader :git
+    attr_reader :git, :gitlab
 
-    def initialize(git:)
+    def initialize(git:, gitlab:)
       @git = git
+      @gitlab = gitlab
     end
   end
 
   let(:fake_git) { double('fake-git') }
 
-  subject(:helper) { FakeDanger.new(git: fake_git) }
+  let(:mr_author) { nil }
+  let(:fake_gitlab) { double('fake-gitlab', mr_author: mr_author) }
+
+  subject(:helper) { FakeDanger.new(git: fake_git, gitlab: fake_gitlab) }
+
+  describe '#gitlab_helper' do
+    context 'when gitlab helper is not available' do
+      let(:fake_gitlab) { nil }
+
+      it 'returns nil' do
+        expect(helper.gitlab_helper).to be_nil
+      end
+    end
+
+    context 'when gitlab helper is available' do
+      it 'returns the gitlab helper' do
+        expect(helper.gitlab_helper).to eq(fake_gitlab)
+      end
+    end
+  end
 
   describe '#all_changed_files' do
     subject { helper.all_changed_files }
