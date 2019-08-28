@@ -18,7 +18,6 @@ module Gitlab
       # Took from Rails:
       # https://github.com/rails/rails/blob/5-2-stable/activemodel/lib/active_model/serialization.rb
       def serializable_hash(obj, options = nil)
-        # binding.pry
         options ||= {}
 
         attribute_names = obj.attributes.keys
@@ -30,19 +29,31 @@ module Gitlab
 
         hash = {}
         attribute_names.each { |n| hash[n] = obj.send(n) }
-
-        # binding.pry
         Array(options[:methods]).each { |m| hash[m.to_s] = obj.send(m) }
 
         serializable_add_includes(obj, options) do |association, records, opts|
-          # binding.pry
-          hash[association.to_s] = if records.respond_to?(:to_ary)
+          # ActiveRecord::StatementInvalid: PG::SyntaxError: ERROR:  zero-length delimited identifier at or near """"
+          # LINE 1: ...gnees"."issue_id" = $1 ORDER BY "issue_assignees"."" ASC LIM...
+          # in_batches doesn't work if the model doesn't have primary key
+          hash[association.to_s] = if records.respond_to?(:to_ary) && records.model.primary_key.present?
+            # p "*" * 50
+            # p records.class
+            # p records.first
+            # p "*" * 50
+
+            [].tap do |res|
+              records.in_batches do |batch|
+                res << batch.map { |el| serializable_hash(el, opts) }
+              end
+            end
+          elsif records.respond_to?(:to_ary)
             records.to_ary.map { |a| serializable_hash(a, opts) }
           else
             serializable_hash(records, opts)
           end
         end
 
+        p hash
         hash
       end
 
