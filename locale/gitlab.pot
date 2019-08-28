@@ -4969,6 +4969,9 @@ msgstr ""
 msgid "Failed to save preferences."
 msgstr ""
 
+msgid "Failed to set due date because the date format is invalid"
+msgstr ""
+
 msgid "Failed to update branch!"
 msgstr ""
 
