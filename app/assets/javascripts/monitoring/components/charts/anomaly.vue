@@ -7,9 +7,16 @@ import dateFormat from 'dateformat';
 import { debounceByAnimationFrame, roundOffFloat } from '~/lib/utils/common_utils';
 import { getSvgIconPathContent } from '~/lib/utils/icon_utils';
 import Icon from '~/vue_shared/components/icon.vue';
-import { chartHeight, graphTypes, lineTypes, symbolSizes, dateFormats } from '../../constants';
+import {
+  chartHeight,
+  graphTypes,
+  lineTypes,
+  symbolSizes,
+  opacityValues,
+  dateFormats,
+} from '../../constants';
 import { makeDataSeries, makeDataSeriesData } from '~/helpers/monitor_helper';
-import { graphDataValidatorForValues } from '../../utils';
+import { graphDataValidatorForValues, getEarliestDatapoint } from '../../utils';
 
 let debouncedResize;
 
@@ -75,11 +82,8 @@ export default {
     };
   },
   computed: {
-    ...mapState('monitoringDashboard', ['exportMetricsToCsvEnabled']),
-    minValue() {
-      return 0; // TODO Consider negative values in any of the series
-    },
     dataSeries() {
+      // TODO This hardcodes the chart into 3 series always in the same order. Try to make it configurable ?
       const [metricQuery, upperQuery, lowerQuery] = this.graphData.queries;
       return {
         metric: {
@@ -96,7 +100,17 @@ export default {
         },
       };
     },
-
+    yOffset() {
+      // in case the area chart must be displayed below 0
+      // calculate an offset for the whole chart
+      const mins = Object.keys(this.dataSeries).map(seriesName => {
+        return this.dataSeries[seriesName].data.reduce((min, datapoint) => {
+          const [, yVal] = datapoint;
+          return Math.floor(Math.min(min, yVal));
+        }, Infinity);
+      });
+      return -Math.min(...mins);
+    },
     chartData() {
       const { appearance } = this.graphData.queries[0];
       const lineType =
@@ -110,43 +124,43 @@ export default {
         {
           type: 'line',
           name: this.formatLegendLabel(this.dataSeries.metric),
-          data: this.dataSeries.metric.data,
+          data: this.dataSeries.metric.data.map(datapoint => {
+            const [xVal, yVal] = datapoint;
+            return [xVal, yVal + this.yOffset];
+          }),
           symbol: 'circle',
           symbolSize: (val, params) => {
-            // TODO Move to a separated method
-            let dataIndex = params.dataIndex;
-            let [, yVal] = this.dataSeries.metric.data[dataIndex];
-            let [, yLower] = this.dataSeries.lower.data[dataIndex];
-            let [, yUpper] = this.dataSeries.upper.data[dataIndex];
-
-            if (yVal < yLower || yVal > yUpper) {
-              return symbolSizes.small / 2; // Big symbol
+            if (this.isDatapointAnomaly(params.dataIndex)) {
+              return symbolSizes.anomaly;
             }
-            return 0.001; // Prevents Error: <path> attribute transform: Expected number, "matrix(NaN,NaN,NaN,NaN ..."
+            return 0.0001; // 0 causes echarts to throws an error, use small number instead
           },
           itemStyle: {
-            borderColor: '#BF0000',
-            borderWidth: symbolSizes.small / 2,
+            color: params => {
+              if (this.isDatapointAnomaly(params.dataIndex)) {
+                return '#BF0000';
+              }
+              return this.primaryColor;
+            },
           },
           lineStyle: {
+            color: this.primaryColor,
             type: lineType,
             width: lineWidth,
           },
-          showAllSymbol: true,
         },
       ];
     },
     chartOptions() {
       const stackKey = 'normal-band';
       const { appearance } = this.graphData.queries[0];
-      const areaStyle = {
+      const normalBandAreaStyle = {
         color: this.primaryColor,
         opacity:
           appearance && appearance.area && typeof appearance.area.opacity === 'number'
             ? appearance.area.opacity
-            : 0.2, // TODO Magic number
+            : opacityValues.normalBand, // TODO Magic number
       };
-
       return {
         xAxis: {
           name: __('Time'),
@@ -161,42 +175,26 @@ export default {
         yAxis: {
           name: this.yAxisLabel,
           axisLabel: {
-            formatter: num => roundOffFloat(num, 3).toString(),
+            formatter: num => roundOffFloat(num - this.yOffset, 3).toString(),
           },
         },
         series: [
-          {
+          this.makeNormalBandSeries({
             name: this.formatLegendLabel(this.dataSeries.lower),
-            type: 'line',
-            stack: stackKey,
-            data: this.dataSeries.lower.data.map(lowerDataPoint => {
-              const [xLowerVal, yLowerVal] = lowerDataPoint;
-              return [xLowerVal, yLowerVal + this.minValue];
+            data: this.dataSeries.lower.data.map(lower => {
+              const [xLowerVal, yLowerVal] = lower;
+              return [xLowerVal, yLowerVal + this.yOffset];
             }),
-            lineStyle: {
-              normal: {
-                opacity: 0,
-              },
-            },
-            symbol: 'none',
-          },
-          {
+          }),
+          this.makeNormalBandSeries({
             name: this.formatLegendLabel(this.dataSeries.upper),
-            type: 'line',
-            stack: stackKey,
-            data: this.dataSeries.upper.data.map((upperDataPoint, index) => {
-              const [xUpperVal, yUpperVal] = upperDataPoint;
-              const [, ylowerVal] = this.dataSeries.lower.data[index];
-              return [xUpperVal, yUpperVal - this.minValue];
+            data: this.dataSeries.upper.data.map((upper, i) => {
+              const [xUpperVal, yUpperVal] = upper;
+              const [, yLowerVal] = this.dataSeries.lower.data[i];
+              return [xUpperVal, yUpperVal - yLowerVal];
             }),
-            lineStyle: {
-              normal: {
-                opacity: 0,
-              },
-            },
-            areaStyle,
-            symbol: 'none',
-          },
+            areaStyle: normalBandAreaStyle,
+          }),
           this.deploymentSeries,
         ],
         dataZoom: this.dataZoomConfig,
@@ -206,28 +204,12 @@ export default {
       const handleIcon = this.svgs['scroll-handle'];
       return handleIcon ? { handleIcon } : {};
     },
-    earliestDatapoint() {
-      let res = this.chartData.reduce((acc, series) => {
-        const { data } = series;
-        const { length } = data;
-        if (!length) {
-          return acc;
-        }
-
-        const [first] = data[0];
-        const [last] = data[length - 1];
-        const seriesEarliest = first < last ? first : last;
-
-        return seriesEarliest < acc || acc === null ? seriesEarliest : acc;
-      }, null);
-      return res;
-    },
     isMultiSeries() {
       return this.tooltip.content.length > 1;
     },
     recentDeployments() {
       let res = this.deploymentData.reduce((acc, deployment) => {
-        if (deployment.created_at >= this.earliestDatapoint) {
+        if (deployment.created_at >= getEarliestDatapoint(this.chartData)) {
           const { id, created_at, sha, ref, tag } = deployment;
           acc.push({
             id,
@@ -240,7 +222,6 @@ export default {
             showDeploymentFlag: false,
           });
         }
-
         return acc;
       }, []);
       return res;
@@ -258,18 +239,6 @@ export default {
     },
     yAxisLabel() {
       return `${this.dataSeries.metric.label}`;
-    },
-    csvText() {
-      const chartData = this.chartData[0].data;
-      const header = `timestamp,${this.dataSeries.metric.label}\r\n`; // eslint-disable-line @gitlab/i18n/no-non-i18n-strings
-      return chartData.reduce((csv, data) => {
-        const row = data.join(',');
-        return `${csv}${row}\r\n`;
-      }, header);
-    },
-    downloadLink() {
-      const data = new Blob([this.csvText], { type: 'text/plain' });
-      return window.URL.createObjectURL(data);
     },
   },
   watch: {
@@ -291,9 +260,9 @@ export default {
     formatTooltipText(params) {
       this.tooltip.title = dateFormat(params.value, dateFormats.default);
       this.tooltip.content = [];
-      params.seriesData.forEach(dataPoint => {
-        const [xVal, yVal] = dataPoint.value;
-        this.tooltip.isDeployment = dataPoint.componentSubType === graphTypes.deploymentData;
+      params.seriesData.forEach(datapoint => {
+        const [xVal, yVal] = datapoint.value;
+        this.tooltip.isDeployment = datapoint.componentSubType === graphTypes.deploymentData;
         if (this.tooltip.isDeployment) {
           const [deploy] = this.recentDeployments.filter(
             deployment => deployment.createdAt === xVal,
@@ -301,8 +270,8 @@ export default {
           this.tooltip.sha = deploy.sha.substring(0, 8);
           this.tooltip.commitUrl = deploy.commitUrl;
         } else {
-          const { seriesName, color } = dataPoint;
-          const value = yVal.toFixed(3);
+          const { seriesName, color } = datapoint;
+          const value = (yVal - this.yOffset).toFixed(3);
           this.tooltip.content.push({
             name: seriesName,
             value,
@@ -310,6 +279,25 @@ export default {
           });
         }
       });
+    },
+    isDatapointAnomaly(dataIndex) {
+      const [, yVal] = this.dataSeries.metric.data[dataIndex];
+      const [, yLower] = this.dataSeries.lower.data[dataIndex];
+      const [, yUpper] = this.dataSeries.upper.data[dataIndex];
+      return yVal < yLower || yVal > yUpper;
+    },
+    makeNormalBandSeries(series) {
+      return {
+        type: 'line',
+        stack: 'normal-band-stack',
+        lineStyle: {
+          color: this.primaryColor,
+          opacity: 0,
+        },
+        color: this.primaryColor, // used in the tooltip
+        symbol: 'none',
+        ...series,
+      };
     },
     setSvg(name) {
       getSvgIconPathContent(name)
@@ -343,14 +331,6 @@ export default {
     <div :class="{ 'prometheus-graph-embed w-100 p-3': showBorder }">
       <div class="prometheus-graph-header">
         <h5 class="prometheus-graph-title js-graph-title">{{ graphData.title }}</h5>
-        <!-- TODO This button is also available in the menu, should it be here? -->
-        <gl-button
-          :href="downloadLink"
-          :title="__('Download CSV')"
-          :aria-label="__('Download CSV')"
-          style="margin-left: 200px;"
-          download="chart_metrics.csv"
-        >{{ __('Download CSV') }}</gl-button>
         <div class="prometheus-graph-widgets js-graph-widgets">
           <slot></slot>
         </div>

@@ -43,4 +43,19 @@ export const graphDataValidatorForValues = (isValues, graphData) => {
   );
 };
 
+export const getEarliestDatapoint = chartData =>
+  chartData.reduce((acc, series) => {
+    const { data } = series;
+    const { length } = data;
+    if (!length) {
+      return acc;
+    }
+
+    const [first] = data[0];
+    const [last] = data[length - 1];
+    const seriesEarliest = first < last ? first : last;
+
+    return seriesEarliest < acc || acc === null ? seriesEarliest : acc;
+  }, null);
+
 export default {};

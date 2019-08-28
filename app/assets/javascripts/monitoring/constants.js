@@ -9,9 +9,13 @@ export const graphTypes = {
 };
 
 export const symbolSizes = {
-  small: 8,
+  anomaly: 8,
   default: 14,
 };
+
+export const opacityValues = {
+  normalBand: 0.2
+}
 
 export const lineTypes = {
   default: 'solid',
