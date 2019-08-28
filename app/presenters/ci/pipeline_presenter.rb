@@ -34,6 +34,15 @@ module Ci
       end
     end
 
+    def type_label
+      case pipeline.type
+      when :merge_train_pipeline then _('Pipeline|Merge train pipeline')
+      when :merge_request_pipeline then _('Pipeline|Merged result pipeline')
+      when :detached_merge_request_pipeline then _('Pipeline|Detached merge request pipeline')
+      else _('Pipeline|Pipeline')
+      end
+    end
+
     def ref_text
       if pipeline.detached_merge_request_pipeline?
         _("for %{link_to_merge_request} with %{link_to_merge_request_source_branch}").html_safe % { link_to_merge_request: link_to_merge_request, link_to_merge_request_source_branch: link_to_merge_request_source_branch }

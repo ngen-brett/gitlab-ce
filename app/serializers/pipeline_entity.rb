@@ -12,6 +12,7 @@ class PipelineEntity < Grape::Entity
   # disabling of this specific field whenever necessary.
   expose :coverage, unless: proc { options[:disable_coverage] }
   expose :source
+  expose :type
 
   expose :created_at, :updated_at
 
@@ -36,6 +37,7 @@ class PipelineEntity < Grape::Entity
     expose :ordered_stages, as: :stages, using: StageEntity
     expose :duration
     expose :finished_at
+    expose :type_label
   end
 
   expose :merge_request, if: -> (*) { has_presentable_merge_request? }, with: MergeRequestForPipelineEntity do |pipeline|

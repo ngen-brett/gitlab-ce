@@ -771,8 +771,16 @@ module Ci
       triggered_by_merge_request? && target_sha.present?
     end
 
+    def merge_train_pipeline?
+      merge_request_pipeline? && merge_train_ref?
+    end
+
     def merge_request_ref?
       MergeRequest.merge_request_ref?(ref)
+    end
+
+    def merge_train_ref?
+      MergeRequest.merge_train_ref?(ref)
     end
 
     def matches_sha_or_source_sha?(sha)
@@ -801,6 +809,22 @@ module Ci
 
     def error_messages
       errors ? errors.full_messages.to_sentence : ""
+    end
+
+    def type
+      if merge_train_pipeline?
+        :merge_train_pipeline
+      elsif merge_request_pipeline?
+        :merge_request_pipeline
+      elsif detached_merge_request_pipeline?
+        :detached_merge_request_pipeline
+      elsif branch?
+        :branch_pipeline
+      elsif tag?
+        :tag_pipeline
+      else
+        :unknown_pipeline
+      end
     end
 
     private
