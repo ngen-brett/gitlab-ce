@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_08_20_163320) do
+ActiveRecord::Schema.define(version: 2019_08_28_121013) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -2795,6 +2795,7 @@ ActiveRecord::Schema.define(version: 2019_08_20_163320) do
     t.boolean "service_desk_enabled", default: true
     t.integer "approvals_before_merge", default: 0, null: false
     t.boolean "emails_disabled"
+    t.index "lower((name)::text)", name: "index_projects_on_lower_name"
     t.index ["archived", "pending_delete", "merge_requests_require_code_owner_approval"], name: "projects_requiring_code_owner_approval", where: "((pending_delete = false) AND (archived = false) AND (merge_requests_require_code_owner_approval = true))"
     t.index ["created_at"], name: "index_projects_on_created_at"
     t.index ["creator_id"], name: "index_projects_on_creator_id"
@@ -2989,6 +2990,7 @@ ActiveRecord::Schema.define(version: 2019_08_20_163320) do
     t.string "path", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index "lower((path)::text) varchar_pattern_ops", name: "index_redirect_routes_on_path_unique_text_pattern_ops", unique: true
     t.index ["path"], name: "index_redirect_routes_on_path", unique: true
     t.index ["source_type", "source_id"], name: "index_redirect_routes_on_source_type_and_source_id"
   end
@@ -3515,6 +3517,7 @@ ActiveRecord::Schema.define(version: 2019_08_20_163320) do
     t.integer "bot_type", limit: 2
     t.string "first_name", limit: 255
     t.string "last_name", limit: 255
+    t.index "lower((name)::text)", name: "index_on_users_name_lower"
     t.index ["accepted_term_id"], name: "index_users_on_accepted_term_id"
     t.index ["admin"], name: "index_users_on_admin"
     t.index ["bot_type"], name: "index_users_on_bot_type"
