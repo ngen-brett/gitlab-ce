@@ -1,8 +1,7 @@
 <script>
 import { __ } from '~/locale';
-import { mapState } from 'vuex';
 import { GlLink, GlButton } from '@gitlab/ui';
-import { GlAreaChart, GlLineChart, GlChartSeriesLabel } from '@gitlab/ui/dist/charts';
+import { GlLineChart, GlChartSeriesLabel } from '@gitlab/ui/dist/charts';
 import dateFormat from 'dateformat';
 import { debounceByAnimationFrame, roundOffFloat } from '~/lib/utils/common_utils';
 import { getSvgIconPathContent } from '~/lib/utils/icon_utils';
@@ -22,7 +21,6 @@ let debouncedResize;
 
 export default {
   components: {
-    // GlAreaChart,
     GlLineChart,
     GlButton,
     GlChartSeriesLabel,
