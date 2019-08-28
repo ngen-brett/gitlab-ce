@@ -45,13 +45,14 @@ build-qa-image:
 
 .review-build-cng-base:
   image: ruby:2.6-alpine
-  stage: test
+  stage: review-prepare
   when: manual
   before_script:
     - source scripts/utils.sh
     - install_api_client_dependencies_with_apk
     - install_gitlab_gem
   dependencies: []
+  needs: ["gitlab:assets:compile"]
   script:
     - BUILD_TRIGGER_TOKEN=$REVIEW_APPS_BUILD_TRIGGER_TOKEN ./scripts/trigger-build cng
 
@@ -70,6 +71,7 @@ review-deploy:
   allow_failure: true
   retry: 1
   stage: review
+  needs: [ "review-build-cng" ]
   variables:
     HOST_SUFFIX: "${CI_ENVIRONMENT_SLUG}"
     DOMAIN: "-${CI_ENVIRONMENT_SLUG}.${REVIEW_APPS_DOMAIN}"
