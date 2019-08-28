@@ -9,6 +9,7 @@ export const graphTypes = {
 };
 
 export const symbolSizes = {
+  small: 8,
   default: 14,
 };
 

@@ -5,6 +5,10 @@ import statusCodes from '../../lib/utils/http_status';
 import { backOff } from '../../lib/utils/common_utils';
 import { s__, __ } from '../../locale';
 
+// TODO START ANOMALY MOCK
+import { graphDataPrometheusQueryAnomaly, anomalyDeploymentData } from '../components/mock_data/anomaly';
+// TODO END ANOMALY MOCK
+
 const MAX_REQUESTS = 3;
 
 function backOffRequest(makeRequestCallback) {
@@ -121,6 +125,13 @@ export const fetchDashboard = ({ state, dispatch }, params) => {
     .get(state.dashboardEndpoint, { params })
     .then(resp => resp.data)
     .then(response => {
+      // TODO START ANOMALY MOCK
+      response.dashboard.panel_groups.push({
+        group: 'Requests per second (Mock)',
+        panels: [graphDataPrometheusQueryAnomaly],
+      });
+      // TODO END ANOMALY MOCK
+
       dispatch('receiveMetricsDashboardSuccess', { response, params });
     })
     .catch(error => {
@@ -163,6 +174,28 @@ export const fetchPrometheusMetric = ({ commit }, { metric, params }) => {
     step,
   };
 
+  // TODO START ANOMALY MOCK
+  if (metric.prometheus_endpoint_path === 'MOCK_METRIC_PEP') {
+    commit(types.SET_QUERY_RESULT, {
+      metricId: metric.metric_id,
+      result: graphDataPrometheusQueryAnomaly.queries[0].result,
+    });
+    return Promise.resolve();
+  } else if (metric.prometheus_endpoint_path === 'MOCK_UPPER_PEP') {
+    commit(types.SET_QUERY_RESULT, {
+      metricId: metric.metric_id,
+      result: graphDataPrometheusQueryAnomaly.queries[1].result,
+    });
+    return Promise.resolve();
+  } else if (metric.prometheus_endpoint_path === 'MOCK_LOWER_PEP') {
+    commit(types.SET_QUERY_RESULT, {
+      metricId: metric.metric_id,
+      result: graphDataPrometheusQueryAnomaly.queries[2].result,
+    });
+    return Promise.resolve();
+  }
+  // TODO END ANOMALY MOCK
+
   return fetchPrometheusResult(metric.prometheus_endpoint_path, queryParams).then(result => {
     commit(types.SET_QUERY_RESULT, { metricId: metric.metric_id, result });
   });
@@ -197,6 +230,11 @@ export const fetchDeploymentsData = ({ state, dispatch }) => {
       if (!response || !response.deployments) {
         createFlash(s__('Metrics|Unexpected deployment data response from prometheus endpoint'));
       }
+      
+      // TODO START MOCK
+      dispatch('receiveDeploymentsDataSuccess', anomalyDeploymentData);
+      return;
+      // TODO END MOCK
 
       dispatch('receiveDeploymentsDataSuccess', response.deployments);
     })

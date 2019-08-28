@@ -15,3 +15,14 @@ export const makeDataSeries = (queryResults, defaultConfig) =>
 
     return acc.concat({ ...defaultConfig, ...series });
   }, []);
+
+// TODO Replace into makeDataSeries ?
+export const makeDataSeriesData = queryResults => {
+  const data = queryResults[0].values
+    .map(d => [d[0], d[1]])
+    .filter(([, value]) => !Number.isNaN(value));
+  if (!data.length) {
+    return [];
+  }
+  return data;
+};
