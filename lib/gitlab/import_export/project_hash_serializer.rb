@@ -10,7 +10,65 @@ module Gitlab
         @tree = tree
       end
 
+
       def execute
+        serializable_hash(project, tree)
+      end
+
+      # Took from Rails:
+      # https://github.com/rails/rails/blob/5-2-stable/activemodel/lib/active_model/serialization.rb
+      def serializable_hash(obj, options = nil)
+        # binding.pry
+        options ||= {}
+
+        attribute_names = obj.attributes.keys
+        if only = options[:only]
+          attribute_names &= Array(only).map(&:to_s)
+        elsif except = options[:except]
+          attribute_names -= Array(except).map(&:to_s)
+        end
+
+        hash = {}
+        attribute_names.each { |n| hash[n] = obj.send(n) }
+
+        # binding.pry
+        Array(options[:methods]).each { |m| hash[m.to_s] = obj.send(m) }
+
+        serializable_add_includes(obj, options) do |association, records, opts|
+          # binding.pry
+          hash[association.to_s] = if records.respond_to?(:to_ary)
+            records.to_ary.map { |a| serializable_hash(a, opts) }
+          else
+            serializable_hash(records, opts)
+          end
+        end
+
+        hash
+      end
+
+      # Add associations specified via the <tt>:include</tt> option.
+      #
+      # Expects a block that takes as arguments:
+      #   +association+ - name of the association
+      #   +records+     - the association record(s) to be serialized
+      #   +opts+        - options for the association records
+      def serializable_add_includes(obj, options = {}) #:nodoc:
+        return unless includes = options[:include]
+
+        unless includes.is_a?(Hash)
+          includes = Hash[Array(includes).map { |n| n.is_a?(Hash) ? n.to_a.first : [n, {}] }]
+        end
+
+        includes.each do |association, opts|
+          if records = obj.send(association)
+            yield association, records, opts
+          end
+        end
+      end
+
+      private
+
+      def execute_only_mrs
         # Let's serialize in batches :merge_requests only
         key = :merge_requests
         selection = extract_from_tree!(key)
@@ -27,9 +85,6 @@ module Gitlab
 
         data
       end
-
-
-      private
 
       def extract_from_tree!(attr)
         index = index_in_include_arr(attr)
