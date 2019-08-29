@@ -60,6 +60,7 @@ review-build-cng:
   extends:
     - .review-build-cng-base
     - .review-only
+  needs: ["gitlab:assets:compile pull-cache"]
 
 schedule:review-build-cng:
   extends:
