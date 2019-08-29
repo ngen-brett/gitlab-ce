@@ -20,6 +20,8 @@ module Projects
 
       def destroy
         if tag.delete
+          track_delete(tag)
+
           respond_to do |format|
             format.json { head :no_content }
           end
@@ -51,6 +53,7 @@ module Projects
         success_count = 0
         @tags.each do |tag|
           if tag.delete
+            track_delete(tag)
             success_count += 1
           end
         end
@@ -61,6 +64,10 @@ module Projects
       end
 
       private
+
+      def track_delete(tag)
+        GitLab::Tracking.event('Projects::Registry::TagsController', 'delete_tag')
+      end
 
       def tags
         Kaminari::PaginatableArray.new(image.tags, limit: LIMIT)
