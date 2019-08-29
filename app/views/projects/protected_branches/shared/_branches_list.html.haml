@@ -15,12 +15,26 @@
           %col
       %thead
         %tr
+<<<<<<< HEAD
           %th Protected branch (#{@protected_branches_count})
           %th Last commit
           %th Allowed to merge
           %th Allowed to push
           - if @project.merge_requests_require_code_owner_approval
             %th Code owner approval
+=======
+          %th
+            = (s_("ProtectedBranch|Protected branch (%{protected_branches_count})") % { protected_branches_count: @protected_branches_count }).html_safe
+          %th
+            = s_("ProtectedBranch|Last commit")
+          %th
+            = s_("ProtectedBranch|Allowed to merge")
+          %th
+            = s_("ProtectedBranch|Allowed to push")
+          - if @project.merge_requests_require_code_owner_approval
+            %th
+              = s_("ProtectedBranch|Code owner approval")
+>>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
           - if can_admin_project
             %th
       %tbody

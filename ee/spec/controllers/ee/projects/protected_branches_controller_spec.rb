@@ -11,6 +11,19 @@ describe Projects::ProtectedBranchesController do
     project.add_maintainer(user)
   end
 
+<<<<<<< HEAD
+=======
+  shared_examples "protected branch with code owner approvals feature" do |boolean|
+    it "sets code owner approvals to #{boolean} when protecting the branch" do
+      expect do
+        post(:create, params: project_params.merge(protected_branch: create_params))
+      end.to change(ProtectedBranch, :count).by(1)
+
+      expect(ProtectedBranch.last.attributes["code_owner_approval_required"]).to eq(boolean)
+    end
+  end
+
+>>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
   describe "POST #create" do
     let(:maintainer_access_level) { [{ access_level: Gitlab::Access::MAINTAINER }] }
     let(:access_level_params) do
@@ -30,6 +43,7 @@ describe Projects::ProtectedBranchesController do
         create_params[:code_owner_approval_required] = false
       end
 
+<<<<<<< HEAD
       it "creates the protected branch rule" do
         expect do
           post(:create, params: project_params.merge(protected_branch: create_params))
@@ -37,6 +51,9 @@ describe Projects::ProtectedBranchesController do
 
         expect(ProtectedBranch.last.attributes["code_owner_approval_required"]).to be_falsy
       end
+=======
+      it_behaves_like "protected branch with code owner approvals feature", false
+>>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
     end
 
     context "when code_owner_approval_required is 'true'" do
@@ -49,6 +66,7 @@ describe Projects::ProtectedBranchesController do
           stub_licensed_features(code_owner_approval_required: true)
         end
 
+<<<<<<< HEAD
         it "creates the protected branch rule" do
           expect do
             post(:create, params: project_params.merge(protected_branch: create_params))
@@ -66,6 +84,17 @@ describe Projects::ProtectedBranchesController do
 
           expect(ProtectedBranch.last.attributes["code_owner_approval_required"]).to be_falsy
         end
+=======
+        it_behaves_like "protected branch with code owner approvals feature", true
+      end
+
+      context "when the feature is not enabled" do
+        before do
+          stub_licensed_features(code_owner_approval_required: false)
+        end
+
+        it_behaves_like "protected branch with code owner approvals feature", false
+>>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
       end
     end
   end

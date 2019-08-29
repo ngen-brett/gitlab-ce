@@ -42,6 +42,7 @@ module API
       end
       # rubocop: enable CodeReuse/ActiveRecord
 
+<<<<<<< HEAD
       desc 'Update a single protected branch ' do
         success Entities::ProtectedBranch
       end
@@ -69,6 +70,9 @@ module API
       # rubocop: enable CodeReuse/ActiveRecord
 
       desc 'Protect a single branch or wildcard' do
+=======
+      desc 'Protect a single branch' do
+>>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
         success Entities::ProtectedBranch
       end
       params do
@@ -118,3 +122,5 @@ module API
     end
   end
 end
+
+API::ProtectedBranches.prepend_if_ee('EE::API::ProtectedBranches')

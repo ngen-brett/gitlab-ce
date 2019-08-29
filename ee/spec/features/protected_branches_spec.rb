@@ -24,6 +24,10 @@ describe 'Protected Branches', :js do
 
         it 'has code owner toggle' do
           visit project_settings_repository_path(project)
+<<<<<<< HEAD
+=======
+
+>>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
           expect(page).to have_content("Require approval from code owners")
         end
       end
@@ -34,11 +38,19 @@ describe 'Protected Branches', :js do
 
           it 'shows code owner approval toggle' do
             visit project_settings_repository_path(project)
+<<<<<<< HEAD
+=======
+
+>>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
             expect(page).to have_content("Code owner approval")
           end
 
           it 'displays toggle on' do
             visit project_settings_repository_path(project)
+<<<<<<< HEAD
+=======
+
+>>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
             expect(page).to have_css('.js-project-feature-toggle.is-checked')
           end
         end
@@ -48,6 +60,10 @@ describe 'Protected Branches', :js do
 
           it 'displays toggle off' do
             visit project_settings_repository_path(project)
+<<<<<<< HEAD
+=======
+
+>>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
             page.within '.qa-protected-branches-list' do
               expect(page).not_to have_css('.js-project-feature-toggle.is-checked')
             end
@@ -63,11 +79,19 @@ describe 'Protected Branches', :js do
 
       it 'does not have code owner approval in the form' do
         visit project_settings_repository_path(project)
+<<<<<<< HEAD
+=======
+
+>>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
         expect(page).not_to have_content("Require approval from code owners")
       end
 
       it 'does not have code owner approval in the table' do
         visit project_settings_repository_path(project)
+<<<<<<< HEAD
+=======
+
+>>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
         expect(page).not_to have_content("Code owner approval")
       end
     end
