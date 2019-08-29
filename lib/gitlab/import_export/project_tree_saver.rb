@@ -36,9 +36,8 @@ module Gitlab
 
         RelationRenameService.add_new_associations(project_json)
 
-        project_json['ci_pipelines'].reverse!
-        project_json['pipelines'].reverse!
-        
+        project_json['ci_pipelines'] = project_json['ci_pipelines'].reverse
+        project_json['pipelines'] = project_json['pipelines'].reverse
         project_json.to_json
       end
 

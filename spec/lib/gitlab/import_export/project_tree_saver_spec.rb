@@ -316,29 +316,24 @@ describe Gitlab::ImportExport::ProjectTreeSaver do
     milestone = create(:milestone, project: project)
     merge_request = create(:merge_request, source_project: project, milestone: milestone)
 
-    
-    pipeline = create(:ci_empty_pipeline, project: project, sha: project.commit.sha, ref: 'master') 
-    pipeline2 = create(:ci_empty_pipeline, project: project, sha: project.commit.sha, ref: 'master') 
-    pipeline3 = create(:ci_empty_pipeline, project: project, sha: project.commit.sha, ref: 'master') 
-    ci_build = create(:ci_build, project: project, when: nil, pipeline: pipeline)
-    ci_build2 = create(:ci_build, project: project, when: nil, pipeline: pipeline2)
-    ci_build3 = create(:ci_build, project: project, when: nil, pipeline: pipeline3)
-    ci_build.pipeline.update(project: project)
-    ci_build2.pipeline.update(project: project)
-    ci_build3.pipeline.update(project: project)
-    # byebug
-    create(:commit_status, project: project, pipeline: ci_build.pipeline)
-    create(:commit_status, project: project, pipeline: ci_build2.pipeline)
-    create(:commit_status, project: project, pipeline: ci_build3.pipeline)
+    pipelines = []
+    3.times do
+      pipelines.push(create(:ci_empty_pipeline, project: project, sha: project.commit.sha, ref: 'master'))
+    end
 
-    create(:milestone, project: project)
-    create(:discussion_note, noteable: issue, project: project)
-    create(:note, noteable: merge_request, project: project)
-    create(:note, noteable: snippet, project: project)
-    create(:note_on_commit,
-           author: user,
-           project: project,
-           commit_id: ci_build.pipeline.sha)
+    3.times do |i|
+      ci_build = create(:ci_build, project: project, when: nil, pipeline: pipelines[i])
+      ci_build.pipeline.update(project: project)
+      create(:commit_status, project: project, pipeline: ci_build.pipeline)
+      create(:milestone, project: project)
+      create(:discussion_note, noteable: issue, project: project)
+      create(:note, noteable: merge_request, project: project)
+      create(:note, noteable: snippet, project: project)
+      create(:note_on_commit,
+            author: user,
+            project: project,
+            commit_id: ci_build.pipeline.sha)
+    end
 
     create(:resource_label_event, label: project_label, issue: issue)
     create(:resource_label_event, label: group_label, merge_request: merge_request)
