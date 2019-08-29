@@ -32,12 +32,15 @@ export default {
     graphData: {
       type: Object,
       required: true,
+      // TODO Validate all array lengths are the same
+      // TODO Validate for exactly 3 data source
       validator: graphDataValidatorForValues.bind(null, false),
     },
-    containerWidth: {
-      type: Number,
-      required: true,
-    },
+    // TODO Can this be removed?
+    // containerWidth: {
+    //   type: Number,
+    //   required: true,
+    // },
     deploymentData: {
       type: Array,
       required: false,
@@ -136,7 +139,7 @@ export default {
           itemStyle: {
             color: params => {
               if (this.isDatapointAnomaly(params.dataIndex)) {
-                return '#BF0000';
+                return '#BF0000'; // TODO Move anomaly color to constants
               }
               return this.primaryColor;
             },
@@ -150,14 +153,13 @@ export default {
       ];
     },
     chartOptions() {
-      const stackKey = 'normal-band';
       const { appearance } = this.graphData.queries[0];
-      const normalBandAreaStyle = {
+      const anomalyBoundaryAreaStyle = {
         color: this.primaryColor,
         opacity:
           appearance && appearance.area && typeof appearance.area.opacity === 'number'
             ? appearance.area.opacity
-            : opacityValues.normalBand, // TODO Magic number
+            : opacityValues.anomalyBoundary,
       };
       return {
         xAxis: {
@@ -177,21 +179,23 @@ export default {
           },
         },
         series: [
-          this.makeNormalBandSeries({
+          // The boundary is rendered by 2 series
+          // One area invisible series (opacity: 0) stacked on a visible one
+          this.makeBoundarySeries({
             name: this.formatLegendLabel(this.dataSeries.lower),
             data: this.dataSeries.lower.data.map(lower => {
               const [xLowerVal, yLowerVal] = lower;
               return [xLowerVal, yLowerVal + this.yOffset];
             }),
           }),
-          this.makeNormalBandSeries({
+          this.makeBoundarySeries({
             name: this.formatLegendLabel(this.dataSeries.upper),
             data: this.dataSeries.upper.data.map((upper, i) => {
               const [xUpperVal, yUpperVal] = upper;
               const [, yLowerVal] = this.dataSeries.lower.data[i];
               return [xUpperVal, yUpperVal - yLowerVal];
             }),
-            areaStyle: normalBandAreaStyle,
+            areaStyle: anomalyBoundaryAreaStyle,
           }),
           this.deploymentSeries,
         ],
@@ -240,7 +244,8 @@ export default {
     },
   },
   watch: {
-    containerWidth: 'onResize',
+    // TODO Can this be removed?
+    // containerWidth: 'onResize',
   },
   beforeDestroy() {
     window.removeEventListener('resize', debouncedResize);
@@ -284,10 +289,11 @@ export default {
       const [, yUpper] = this.dataSeries.upper.data[dataIndex];
       return yVal < yLower || yVal > yUpper;
     },
-    makeNormalBandSeries(series) {
+    makeBoundarySeries(series) {
+      const stackKey = 'anomaly-boundary-series-stack';
       return {
         type: 'line',
-        stack: 'normal-band-stack',
+        stack: stackKey,
         lineStyle: {
           color: this.primaryColor,
           opacity: 0,

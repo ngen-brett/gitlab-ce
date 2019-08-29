@@ -14,7 +14,7 @@ export const symbolSizes = {
 };
 
 export const opacityValues = {
-  normalBand: 0.2,
+  anomalyBoundary: 0.2,
 };
 
 export const lineTypes = {

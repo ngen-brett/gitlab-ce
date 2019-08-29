@@ -36,7 +36,7 @@ export const graphDataPrometheusQueryAnomaly = {
       query_range: '...',
       unit: 'RPS',
       label: 'Metrics RPS',
-      metric_id: 90, // HACK
+      metric_id: 90,
       prometheus_endpoint_path: '...',
       result: [
         {
@@ -114,30 +114,24 @@ export const anomalyDeploymentData = [
     id: 111,
     iid: 3,
     sha: 'f5bcd1d9dac6fa4137e2510b9ccd134ef2e84187',
-    commitUrl:
-      'http://test.host/frontend-fixtures/environments-project/commit/f5bcd1d9dac6fa4137e2510b9ccd134ef2e84187',
     ref: {
       name: 'master',
     },
     created_at: '2019-08-19T22:00:00.000Z',
     deployed_at: '2019-08-19T22:01:00.000Z',
     tag: false,
-    tagUrl: 'http://test.host/frontend-fixtures/environments-project/tags/false',
     'last?': true,
   },
   {
     id: 110,
     iid: 2,
     sha: 'f5bcd1d9dac6fa4137e2510b9ccd134ef2e84187',
-    commitUrl:
-      'http://test.host/frontend-fixtures/environments-project/commit/f5bcd1d9dac6fa4137e2510b9ccd134ef2e84187',
     ref: {
       name: 'master',
     },
     created_at: '2019-08-19T23:00:00.000Z',
     deployed_at: '2019-08-19T23:00:00.000Z',
     tag: false,
-    tagUrl: 'http://test.host/frontend-fixtures/environments-project/tags/false',
     'last?': false,
   },
 ];
