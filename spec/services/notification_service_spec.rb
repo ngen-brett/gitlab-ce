@@ -335,6 +335,9 @@ describe NotificationService, :mailer do
             should_not_email(@u_participating)
             should_not_email(@u_disabled)
             should_not_email(@u_lazy_participant)
+
+            expect(find_email_for(@u_mentioned)).to have_header('X-GitLab-NotificationReason', 'mentioned')
+            expect(find_email_for(@u_custom_global)).to have_header('X-GitLab-NotificationReason', '')
           end
         end
 
