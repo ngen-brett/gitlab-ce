@@ -6,7 +6,10 @@ import { backOff } from '../../lib/utils/common_utils';
 import { s__, __ } from '../../locale';
 
 // TODO START ANOMALY MOCK
-import { graphDataPrometheusQueryAnomaly, anomalyDeploymentData } from '../components/mock_data/anomaly';
+import {
+  graphDataPrometheusQueryAnomaly,
+  anomalyDeploymentData,
+} from '../components/mock_data/anomaly';
 // TODO END ANOMALY MOCK
 
 const MAX_REQUESTS = 3;
@@ -230,7 +233,7 @@ export const fetchDeploymentsData = ({ state, dispatch }) => {
       if (!response || !response.deployments) {
         createFlash(s__('Metrics|Unexpected deployment data response from prometheus endpoint'));
       }
-      
+
       // TODO START MOCK
       dispatch('receiveDeploymentsDataSuccess', anomalyDeploymentData);
       return;

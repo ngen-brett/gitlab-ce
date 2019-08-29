@@ -14,8 +14,8 @@ export const symbolSizes = {
 };
 
 export const opacityValues = {
-  normalBand: 0.2
-}
+  normalBand: 0.2,
+};
 
 export const lineTypes = {
   default: 'solid',

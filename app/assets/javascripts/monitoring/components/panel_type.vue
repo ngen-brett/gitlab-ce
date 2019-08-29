@@ -90,99 +90,99 @@ export default {
 };
 </script>
 <template>
-    <monitor-single-stat-chart
-      v-if="isPanelType('single-stat') && graphDataHasMetrics"
-      :graph-data="graphData"
-    />
-    <monitor-anomaly-chart
-      v-else-if="isPanelType('anomaly-chart') && graphDataHasMetrics"
-      :graph-data="graphData"
-      :deployment-data="deploymentData"
-      :project-path="projectPath"
-      :thresholds="getGraphAlertValues(graphData.queries)"
-      :container-width="dashboardWidth"
-      group-id="monitor-anomaly-chart"
-    >
-      <div class="d-flex align-items-center">
-        <alert-widget
-          v-if="alertWidgetAvailable && graphData"
-          :modal-id="`alert-modal-${index}`"
-          :alerts-endpoint="alertsEndpoint"
-          :relevant-queries="graphData.queries"
-          :alerts-to-manage="getGraphAlerts(graphData.queries)"
-          @setAlerts="setAlerts"
-        />
-        <gl-dropdown
-          v-gl-tooltip
-          class="mx-2"
-          toggle-class="btn btn-transparent border-0"
-          :right="true"
-          :no-caret="true"
-          :title="__('More actions')"
+  <monitor-single-stat-chart
+    v-if="isPanelType('single-stat') && graphDataHasMetrics"
+    :graph-data="graphData"
+  />
+  <monitor-anomaly-chart
+    v-else-if="isPanelType('anomaly-chart') && graphDataHasMetrics"
+    :graph-data="graphData"
+    :deployment-data="deploymentData"
+    :project-path="projectPath"
+    :thresholds="getGraphAlertValues(graphData.queries)"
+    :container-width="dashboardWidth"
+    group-id="monitor-anomaly-chart"
+  >
+    <div class="d-flex align-items-center">
+      <alert-widget
+        v-if="alertWidgetAvailable && graphData"
+        :modal-id="`alert-modal-${index}`"
+        :alerts-endpoint="alertsEndpoint"
+        :relevant-queries="graphData.queries"
+        :alerts-to-manage="getGraphAlerts(graphData.queries)"
+        @setAlerts="setAlerts"
+      />
+      <gl-dropdown
+        v-gl-tooltip
+        class="mx-2"
+        toggle-class="btn btn-transparent border-0"
+        :right="true"
+        :no-caret="true"
+        :title="__('More actions')"
+      >
+        <template slot="button-content">
+          <icon name="ellipsis_v" class="text-secondary" />
+        </template>
+        <gl-dropdown-item :href="downloadCsv" download="chart_metrics.csv">
+          {{ __('Download CSV') }}
+        </gl-dropdown-item>
+        <gl-dropdown-item
+          class="js-chart-link"
+          :data-clipboard-text="clipboardText"
+          @click="showToast"
         >
-          <template slot="button-content">
-            <icon name="ellipsis_v" class="text-secondary" />
-          </template>
-          <gl-dropdown-item :href="downloadCsv" download="chart_metrics.csv">
-            {{ __('Download CSV') }}
-          </gl-dropdown-item>
-          <gl-dropdown-item
-            class="js-chart-link"
-            :data-clipboard-text="clipboardText"
-            @click="showToast"
-          >
-            {{ __('Generate link to chart') }}
-          </gl-dropdown-item>
-          <gl-dropdown-item v-if="alertWidgetAvailable" v-gl-modal="`alert-modal-${index}`">
-            {{ __('Alerts') }}
-          </gl-dropdown-item>
-        </gl-dropdown>
-      </div>
-    </monitor-anomaly-chart>
-    <monitor-time-series-chart
-      v-else-if="graphDataHasMetrics"
-      :graph-data="graphData"
-      :deployment-data="deploymentData"
-      :project-path="projectPath"
-      :thresholds="getGraphAlertValues(graphData.queries)"
-      :container-width="dashboardWidth"
-      group-id="monitor-area-chart"
-    >
-      <div class="d-flex align-items-center">
-        <alert-widget
-          v-if="alertWidgetAvailable && graphData"
-          :modal-id="`alert-modal-${index}`"
-          :alerts-endpoint="alertsEndpoint"
-          :relevant-queries="graphData.queries"
-          :alerts-to-manage="getGraphAlerts(graphData.queries)"
-          @setAlerts="setAlerts"
-        />
-        <gl-dropdown
-          v-gl-tooltip
-          class="mx-2"
-          toggle-class="btn btn-transparent border-0"
-          :right="true"
-          :no-caret="true"
-          :title="__('More actions')"
+          {{ __('Generate link to chart') }}
+        </gl-dropdown-item>
+        <gl-dropdown-item v-if="alertWidgetAvailable" v-gl-modal="`alert-modal-${index}`">
+          {{ __('Alerts') }}
+        </gl-dropdown-item>
+      </gl-dropdown>
+    </div>
+  </monitor-anomaly-chart>
+  <monitor-time-series-chart
+    v-else-if="graphDataHasMetrics"
+    :graph-data="graphData"
+    :deployment-data="deploymentData"
+    :project-path="projectPath"
+    :thresholds="getGraphAlertValues(graphData.queries)"
+    :container-width="dashboardWidth"
+    group-id="monitor-area-chart"
+  >
+    <div class="d-flex align-items-center">
+      <alert-widget
+        v-if="alertWidgetAvailable && graphData"
+        :modal-id="`alert-modal-${index}`"
+        :alerts-endpoint="alertsEndpoint"
+        :relevant-queries="graphData.queries"
+        :alerts-to-manage="getGraphAlerts(graphData.queries)"
+        @setAlerts="setAlerts"
+      />
+      <gl-dropdown
+        v-gl-tooltip
+        class="mx-2"
+        toggle-class="btn btn-transparent border-0"
+        :right="true"
+        :no-caret="true"
+        :title="__('More actions')"
+      >
+        <template slot="button-content">
+          <icon name="ellipsis_v" class="text-secondary" />
+        </template>
+        <gl-dropdown-item :href="downloadCsv" download="chart_metrics.csv">
+          {{ __('Download CSV') }}
+        </gl-dropdown-item>
+        <gl-dropdown-item
+          class="js-chart-link"
+          :data-clipboard-text="clipboardText"
+          @click="showToast"
         >
-          <template slot="button-content">
-            <icon name="ellipsis_v" class="text-secondary" />
-          </template>
-          <gl-dropdown-item :href="downloadCsv" download="chart_metrics.csv">
-            {{ __('Download CSV') }}
-          </gl-dropdown-item>
-          <gl-dropdown-item
-            class="js-chart-link"
-            :data-clipboard-text="clipboardText"
-            @click="showToast"
-          >
-            {{ __('Generate link to chart') }}
-          </gl-dropdown-item>
-          <gl-dropdown-item v-if="alertWidgetAvailable" v-gl-modal="`alert-modal-${index}`">
-            {{ __('Alerts') }}
-          </gl-dropdown-item>
-        </gl-dropdown>
-      </div>
-    </monitor-time-series-chart>
-    <monitor-empty-chart v-else :graph-title="graphData.title" />
+          {{ __('Generate link to chart') }}
+        </gl-dropdown-item>
+        <gl-dropdown-item v-if="alertWidgetAvailable" v-gl-modal="`alert-modal-${index}`">
+          {{ __('Alerts') }}
+        </gl-dropdown-item>
+      </gl-dropdown>
+    </div>
+  </monitor-time-series-chart>
+  <monitor-empty-chart v-else :graph-title="graphData.title" />
 </template>

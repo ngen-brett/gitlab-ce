@@ -362,7 +362,9 @@ export default {
               :key="key"
               class="d-flex justify-content-between"
             >
-              <gl-chart-series-label :color="isMultiSeries ? content.color : ''">{{ content.name }}</gl-chart-series-label>
+              <gl-chart-series-label :color="isMultiSeries ? content.color : ''">{{
+                content.name
+              }}</gl-chart-series-label>
               <div class="prepend-left-32">{{ content.value }}</div>
             </div>
           </template>
