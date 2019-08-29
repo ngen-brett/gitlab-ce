@@ -1,0 +1,5 @@
+---
+title: Resolve "Pipelines in reverse order after import"
+merge_request: 32388
+author:
+type: fixed

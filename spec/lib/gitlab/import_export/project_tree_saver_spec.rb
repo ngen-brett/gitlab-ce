@@ -143,10 +143,20 @@ describe Gitlab::ImportExport::ProjectTreeSaver do
 
       it 'has pipeline builds' do
         builds_count = saved_project_json
-          .dig('ci_pipelines', 0, 'stages', 0, 'statuses')
-          .count { |hash| hash['type'] == 'Ci::Build' }
+          .dig('ci_pipelines').length
+        expect(builds_count).to eq(3)
+      end
 
-        expect(builds_count).to eq(1)
+      it 'has ci pipeline builds in reverse order' do
+        first_build = saved_project_json['ci_pipelines'].first
+        last_build = saved_project_json['ci_pipelines'].last
+        expect(first_build["id"]).to be < last_build["id"]
+      end
+
+      it 'has pipeline builds in reverse order' do
+        first_build = saved_project_json['pipelines'].first
+        last_build = saved_project_json['pipelines'].last
+        expect(first_build["id"]).to be < last_build["id"]
       end
 
       it 'has no when YML attributes but only the DB column' do
@@ -306,9 +316,20 @@ describe Gitlab::ImportExport::ProjectTreeSaver do
     milestone = create(:milestone, project: project)
     merge_request = create(:merge_request, source_project: project, milestone: milestone)
 
-    ci_build = create(:ci_build, project: project, when: nil)
+    
+    pipeline = create(:ci_empty_pipeline, project: project, sha: project.commit.sha, ref: 'master') 
+    pipeline2 = create(:ci_empty_pipeline, project: project, sha: project.commit.sha, ref: 'master') 
+    pipeline3 = create(:ci_empty_pipeline, project: project, sha: project.commit.sha, ref: 'master') 
+    ci_build = create(:ci_build, project: project, when: nil, pipeline: pipeline)
+    ci_build2 = create(:ci_build, project: project, when: nil, pipeline: pipeline2)
+    ci_build3 = create(:ci_build, project: project, when: nil, pipeline: pipeline3)
     ci_build.pipeline.update(project: project)
+    ci_build2.pipeline.update(project: project)
+    ci_build3.pipeline.update(project: project)
+    # byebug
     create(:commit_status, project: project, pipeline: ci_build.pipeline)
+    create(:commit_status, project: project, pipeline: ci_build2.pipeline)
+    create(:commit_status, project: project, pipeline: ci_build3.pipeline)
 
     create(:milestone, project: project)
     create(:discussion_note, noteable: issue, project: project)
