@@ -8,7 +8,7 @@ export default {
   },
   computed: {
     ...mapState(['isLoading']),
-    ...mapGetters(['visibleStatistics']),
+    ...mapGetters(['statisticsData']),
   },
   methods: {
     ...mapActions(['fetchStatistics']),
@@ -25,7 +25,7 @@ export default {
       <h4>{{ __('Statistics') }}</h4>
       <gl-loading-icon v-if="isLoading" size="md" class="my-3" />
       <template v-else>
-        <p v-for="statistic in visibleStatistics" :key="statistic.key">
+        <p v-for="statistic in statisticsData" :key="statistic.key">
           {{ statistic.label }}
           <span class="light float-right">{{ statistic.value }}</span>
         </p>
