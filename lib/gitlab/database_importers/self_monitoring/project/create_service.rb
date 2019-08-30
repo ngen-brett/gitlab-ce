@@ -128,7 +128,7 @@ module Gitlab
             return success unless prometheus_listen_address.present?
 
             uri = parse_url(internal_prometheus_listen_address_uri)
-            return error(_('Prometheus listen_address (in gitlab.yml) is not a valid URI')) unless uri
+            return error(_('Prometheus listen_address in config/gitlab.yml is not a valid URI')) unless uri
 
             application_settings.add_to_outbound_local_requests_whitelist([uri.normalized_host])
             result = application_settings.save
