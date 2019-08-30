@@ -264,7 +264,7 @@ describe Projects::JobsController, :clean_gitlab_redis_shared_state do
         let(:job) { create(:ci_build, :running, environment: environment.name, pipeline: pipeline) }
 
         before do
-          create(:deployment, :success, environment: environment, project: project)
+          create(:deployment, :success, :on_cluster, environment: environment, project: project)
         end
 
         it 'exposes the deployment information' do
@@ -275,8 +275,9 @@ describe Projects::JobsController, :clean_gitlab_redis_shared_state do
           expect(json_response.dig('deployment_status', 'status')).to eq 'creating'
           expect(json_response.dig('deployment_status', 'environment')).not_to be_nil
           expect(json_response.dig('deployment_status', 'environment', 'last_deployment')).not_to be_nil
-          expect(json_response.dig('deployment_status', 'environment', 'last_deployment'))
-            .not_to include('commit')
+          expect(json_response.dig('deployment_status', 'environment', 'last_deployment')).not_to include('commit')
+          expect(json_response.dig('deployment_status', 'environment', 'last_deployment', 'cluster', 'name')).to eq('test-cluster')
+          expect(json_response.dig('deployment_status', 'environment', 'last_deployment', 'cluster', 'path')).to be_present
         end
       end
 
