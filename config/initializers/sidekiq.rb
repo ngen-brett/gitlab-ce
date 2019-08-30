@@ -29,6 +29,7 @@ end
 
 enable_json_logs = Gitlab.config.sidekiq.log_format == 'json'
 enable_sidekiq_monitor = ENV.fetch("SIDEKIQ_MONITOR_WORKER", 0).to_i.nonzero?
+enable_sidekiq_independent_memory_killer = ENV.fetch("ENABLE_SIDEKIQ_INDEPENDENT_MEMORY_KILLER", 1).to_i.nonzero?
 
 Sidekiq.configure_server do |config|
   config.redis = queues_config_hash
@@ -61,6 +62,13 @@ Sidekiq.configure_server do |config|
     ActiveRecord::Base.clear_all_connections!
 
     Gitlab::SidekiqMonitor.instance.start if enable_sidekiq_monitor
+
+    # See whether we can get the Sidekiq worker process id here
+    if enable_sidekiq_independent_memory_killer
+      pid = Process.pid
+      Gitlab::SidekiqIndependentMemoryKiller.instance.sidekiq_worker_pid = pid
+      Gitlab::SidekiqIndependentMemoryKiller.instance.start
+    end
   end
 
   if enable_reliable_fetch?
