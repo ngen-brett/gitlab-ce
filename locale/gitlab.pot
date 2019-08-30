@@ -2434,6 +2434,9 @@ msgstr ""
 msgid "Closed"
 msgstr ""
 
+msgid "Closed (duplicated)"
+msgstr ""
+
 msgid "Closed this %{quick_action_target}."
 msgstr ""
 
