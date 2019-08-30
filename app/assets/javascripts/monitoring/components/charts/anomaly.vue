@@ -15,7 +15,11 @@ import {
   dateFormats,
 } from '../../constants';
 import { makeDataSeries, makeDataSeriesData } from '~/helpers/monitor_helper';
-import { graphDataValidatorForValues, graphDataValidatorForAnomalyValues, getEarliestDatapoint } from '../../utils';
+import {
+  graphDataValidatorForValues,
+  graphDataValidatorForAnomalyValues,
+  getEarliestDatapoint,
+} from '../../utils';
 
 let debouncedResize;
 
@@ -82,26 +86,25 @@ export default {
   },
   computed: {
     dataSeries() {
-      // TODO This hardcodes the chart into 3 series always in the same order. Try to make it configurable ?
-      const [metricQuery, upperQuery, lowerQuery] = this.graphData.queries;
+      // for anomaly only 3 queries are considered, metric, upper boundary and lower boundary
+      const [metricDataSeries, upperDataSeries, lowerDataSeries] = this.graphData.queries.map(
+        query => {
+          const values = query.result[0] ? query.result[0].values : [];
+          return {
+            label: query.label,
+            data: values.filter(([, value]) => !Number.isNaN(value)),
+          };
+        },
+      );
       return {
-        metric: {
-          label: metricQuery.label,
-          data: makeDataSeriesData(metricQuery.result),
-        },
-        upper: {
-          label: upperQuery.label,
-          data: makeDataSeriesData(upperQuery.result),
-        },
-        lower: {
-          label: lowerQuery.label,
-          data: makeDataSeriesData(lowerQuery.result),
-        },
+        metric: metricDataSeries,
+        upper: upperDataSeries,
+        lower: lowerDataSeries,
       };
     },
     yOffset() {
-      // in case the area chart must be displayed below 0
-      // calculate an offset for the whole chart
+      // in case the any part of the chart is displayed below 0
+      // calculate an offset for the whole chart, so the bounday can be displayed
       const mins = Object.keys(this.dataSeries).map(seriesName => {
         return this.dataSeries[seriesName].data.reduce((min, datapoint) => {
           const [, yVal] = datapoint;
@@ -314,7 +317,6 @@ export default {
         });
     },
     onChartUpdated(chart) {
-      console.log('chart sent', chart);
       [this.primaryColor] = chart.getOption().color;
     },
     onResize() {
