@@ -43,6 +43,15 @@ export const graphDataValidatorForValues = (isValues, graphData) => {
   );
 };
 
+export const graphDataValidatorForAnomalyValues = (isValues, graphData) => {
+  const anomalySeriesCount = 3; // metric, upper, lower
+  return (
+    graphData.queries &&
+    graphData.queries.length === anomalySeriesCount &&
+    graphDataValidatorForValues(isValues, graphData)
+  );
+};
+
 export const getEarliestDatapoint = chartData =>
   chartData.reduce((acc, series) => {
     const { data } = series;

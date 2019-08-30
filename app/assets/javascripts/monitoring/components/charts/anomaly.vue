@@ -15,7 +15,7 @@ import {
   dateFormats,
 } from '../../constants';
 import { makeDataSeries, makeDataSeriesData } from '~/helpers/monitor_helper';
-import { graphDataValidatorForValues, getEarliestDatapoint } from '../../utils';
+import { graphDataValidatorForValues, graphDataValidatorForAnomalyValues, getEarliestDatapoint } from '../../utils';
 
 let debouncedResize;
 
@@ -32,9 +32,7 @@ export default {
     graphData: {
       type: Object,
       required: true,
-      // TODO Validate all array lengths are the same
-      // TODO Validate for exactly 3 data source
-      validator: graphDataValidatorForValues.bind(null, false),
+      validator: graphDataValidatorForAnomalyValues.bind(null, false),
     },
     // TODO Can this be removed?
     // containerWidth: {
@@ -139,7 +137,7 @@ export default {
           itemStyle: {
             color: params => {
               if (this.isDatapointAnomaly(params.dataIndex)) {
-                return '#BF0000'; // TODO Move anomaly color to constants
+                return '#db3b21'; // TODO Move anomaly color to constants
               }
               return this.primaryColor;
             },
@@ -316,6 +314,7 @@ export default {
         });
     },
     onChartUpdated(chart) {
+      console.log('chart sent', chart);
       [this.primaryColor] = chart.getOption().color;
     },
     onResize() {
@@ -339,7 +338,6 @@ export default {
           <slot></slot>
         </div>
       </div>
-
       <gl-line-chart
         ref="chart"
         v-bind="$attrs"
