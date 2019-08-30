@@ -128,7 +128,7 @@ module Gitlab
             return success unless prometheus_listen_address.present?
 
             uri = parse_url(internal_prometheus_listen_address_uri)
-            return error(_('Prometheus listen_address is not a valid URI')) unless uri
+            return error(_('Prometheus listen_address (in gitlab.yml) is not a valid URI')) unless uri
 
             application_settings.add_to_outbound_local_requests_whitelist([uri.normalized_host])
             result = application_settings.save
@@ -181,7 +181,7 @@ module Gitlab
           end
 
           def prometheus_listen_address
-            Gitlab.config.prometheus.listen_address if Gitlab.config.prometheus
+            Gitlab.config.prometheus.listen_address.to_s if Gitlab.config.prometheus
           rescue Settingslogic::MissingSetting
             log_error(_('prometheus.listen_address is not present in gitlab.yml'))
 
@@ -228,9 +228,21 @@ module Gitlab
           end
 
           def internal_prometheus_listen_address_uri
-            if prometheus_listen_address.starts_with?('http')
+            if prometheus_listen_address.starts_with?('0.0.0.0')
+              # 0.0.0.0:9090
+              port = ':' + prometheus_listen_address.split(':').second
+              'http://localhost' + port
+
+            elsif prometheus_listen_address.starts_with?(':')
+              # :9090
+              'http://localhost' + prometheus_listen_address
+
+            elsif prometheus_listen_address.starts_with?('http')
+              # https://localhost:9090
               prometheus_listen_address
+
             else
+              # localhost:9090
               'http://' + prometheus_listen_address
             end
           end
