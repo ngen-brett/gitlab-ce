@@ -309,7 +309,7 @@ group :metrics do
   gem 'influxdb', '~> 0.2', require: false
 
   # Prometheus
-  gem 'prometheus-client-mmap', '~> 0.9.8'
+  gem 'prometheus-client-mmap', :git => "https://gitlab.com/gitlab-org/prometheus-client-mmap.git", :branch => "throw-errors-for-invalid-values"
   gem 'raindrops', '~> 0.18'
 end
 
