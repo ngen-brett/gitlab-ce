@@ -183,7 +183,7 @@ module Gitlab
           def prometheus_listen_address
             Gitlab.config.prometheus.listen_address.to_s if Gitlab.config.prometheus
           rescue Settingslogic::MissingSetting
-            log_error(_('prometheus.listen_address is not present in gitlab.yml'))
+            log_error(_('prometheus.listen_address is not present in config/gitlab.yml'))
 
             nil
           end
