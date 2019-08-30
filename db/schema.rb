@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_08_28_083843) do
+ActiveRecord::Schema.define(version: 2019_08_30_140240) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -1775,10 +1775,12 @@ ActiveRecord::Schema.define(version: 2019_08_28_083843) do
     t.integer "state_id", limit: 2
     t.string "service_desk_reply_to"
     t.integer "weight"
+    t.bigint "duplicated_to_id"
     t.index ["author_id"], name: "index_issues_on_author_id"
     t.index ["closed_by_id"], name: "index_issues_on_closed_by_id"
     t.index ["confidential"], name: "index_issues_on_confidential"
     t.index ["description"], name: "index_issues_on_description_trigram", opclass: :gin_trgm_ops, using: :gin
+    t.index ["duplicated_to_id"], name: "index_issues_on_duplicated_to_id"
     t.index ["milestone_id"], name: "index_issues_on_milestone_id"
     t.index ["moved_to_id"], name: "index_issues_on_moved_to_id", where: "(moved_to_id IS NOT NULL)"
     t.index ["project_id", "created_at", "id", "state"], name: "index_issues_on_project_id_and_created_at_and_id_and_state"
