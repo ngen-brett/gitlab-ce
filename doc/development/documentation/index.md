@@ -615,3 +615,4 @@ code review. For docs changes in merge requests, whenever a change to files unde
 is made, Danger Bot leaves a comment with further instructions about the documentation
 process. This is configured in the Dangerfile in the GitLab CE and EE repo under
 [/danger/documentation/](https://gitlab.com/gitlab-org/gitlab-ce/tree/master/danger/documentation).
+For more details, see the [Dangerbot guidelines](../dangerbot.md).
