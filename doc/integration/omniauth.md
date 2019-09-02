@@ -304,7 +304,7 @@ omniauth:
 You can add the `auto_sign_in_with_provider` setting to your 
 GitLab configuration to automatically redirect login requests
 to your OmniAuth provider for authentication, thus removing the need to click a button
-before actually signing in.
+before actually signing in. For example, when using the Azure integration, you would set the following configurations to enable auto sign in.
 
 For Omnibus package:
 
