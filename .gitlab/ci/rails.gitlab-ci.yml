@@ -1,18 +1,14 @@
-.only-schedules-master:
+.only-master:
   only:
     refs:
-      - schedules@gitlab-org/gitlab-ce
-      - schedules@gitlab-org/gitlab-ee
-      - master@gitlab-org/gitlab-ce
-      - master@gitlab-org/gitlab-ee
-      - master@gitlab/gitlabhq
-      - master@gitlab/gitlab-ee
+      - master
 
 .rake-exec:
   extends:
     - .default-tags
     - .default-retry
     - .default-cache
+    - .default-only
     - .default-before_script
   variables:
     SETUP_DB: "false"
@@ -24,8 +20,9 @@
     - .default-tags
     - .default-retry
     - .default-cache
+    - .default-only
     - .default-before_script
-    - .except-docs-qa
+    - .only-code-changes
   stage: test
   script:
     - JOB_NAME=( $CI_JOB_NAME )
@@ -77,9 +74,10 @@ setup-test-env:
     - .default-tags
     - .default-retry
     - .default-cache
+    - .default-only
     - .default-before_script
+    - .only-code-changes
     - .use-pg
-    - .except-docs
   stage: prepare
   script:
     - bundle exec ruby -Ispec -e 'require "spec_helper" ; TestEnv.init'
@@ -106,19 +104,19 @@ rspec system pg:
 rspec unit pg-10:
   extends:
     - .rspec-base-pg-10
-    - .only-schedules-master
+    - .only-master
   parallel: 20
 
 rspec integration pg-10:
   extends:
     - .rspec-base-pg-10
-    - .only-schedules-master
+    - .only-master
   parallel: 6
 
 rspec system pg-10:
   extends:
     - .rspec-base-pg-10
-    - .only-schedules-master
+    - .only-master
   parallel: 24
 
 rspec-fast-spec-helper:
@@ -128,9 +126,8 @@ rspec-fast-spec-helper:
 
 rspec quarantine pg:
   extends:
-    - .default-before_script
     - .rspec-base-pg
-    - .only-schedules-master
+    - .only-master
   script:
     - export NO_KNAPSACK=1 CACHE_CLASSES=true
     - scripts/gitaly-test-spawn
@@ -142,8 +139,9 @@ static-analysis:
     - .default-tags
     - .default-retry
     - .default-cache
+    - .default-only
     - .default-before_script
-    - .except-docs
+    - .only-code-changes
   dependencies: ["setup-test-env", "compile-assets", "compile-assets pull-cache"]
   variables:
     SETUP_DB: "false"
@@ -157,18 +155,20 @@ static-analysis:
     policy: pull-push
 
 downtime_check:
-  extends: .rake-exec
+  extends:
+    - .rake-exec
+    - .only-code-changes
   except:
     refs:
       - master
       - tags
       - /^[\d-]+-stable(-ee)?$/
-      - /(^docs[\/-].+|.+-docs$)/
-      - /(^qa[\/-].*|.*-qa$)/
   dependencies: ["setup-test-env"]
 
 ee_compat_check:
-  extends: .rake-exec
+  extends:
+    - .rake-exec
+    - .only-code-changes
   dependencies: []
   except:
     refs:
@@ -177,7 +177,6 @@ ee_compat_check:
       - branches@gitlab-org/gitlab-ee
       - branches@gitlab/gitlab-ee
       - /^[\d-]+-stable(-ee)?$/
-      - /(^docs[\/-].+|.+-docs$)/
       - /^security-/
   artifacts:
     name: "${CI_JOB_NAME}_${CI_COMIT_REF_NAME}_${CI_COMMIT_SHA}"
@@ -192,9 +191,10 @@ db:migrate:reset:
     - .default-tags
     - .default-retry
     - .default-cache
+    - .default-only
     - .default-before_script
     - .use-pg
-    - .except-docs-qa
+    - .only-code-changes
   dependencies: ["setup-test-env"]
   script:
     - bundle exec rake db:migrate:reset
@@ -204,9 +204,10 @@ db:check-schema:
     - .default-tags
     - .default-retry
     - .default-cache
+    - .default-only
     - .default-before_script
     - .use-pg
-    - .except-docs-qa
+    - .only-code-changes
   dependencies: ["setup-test-env"]
   script:
     - source scripts/schema_changed.sh
@@ -216,14 +217,15 @@ db:migrate-from-v11.11.0:
     - .default-tags
     - .default-retry
     - .default-cache
+    - .default-only
     - .default-before_script
     - .use-pg
-    - .except-docs-qa
+    - .only-code-changes
   dependencies: ["setup-test-env"]
   variables:
     SETUP_DB: "false"
   script:
-    - git fetch https://gitlab.com/gitlab-org/gitlab-ce.git v11.11.0
+    - git fetch https://gitlab.com/gitlab-org/gitlab-ee.git v11.11.0-ee
     - git checkout -f FETCH_HEAD
     - sed -i "s/gem 'oj', '~> 2.17.4'//" Gemfile
     - sed -i "s/gem 'bootsnap', '~> 1.0.0'/gem 'bootsnap'/" Gemfile
@@ -245,9 +247,10 @@ db:rollback:
     - .default-tags
     - .default-retry
     - .default-cache
+    - .default-only
     - .default-before_script
     - .use-pg
-    - .except-docs-qa
+    - .only-code-changes
   dependencies: ["setup-test-env"]
   script:
     - bundle exec rake db:migrate VERSION=20180101160629
@@ -258,9 +261,10 @@ gitlab:setup:
     - .default-tags
     - .default-retry
     - .default-cache
+    - .default-only
     - .default-before_script
     - .use-pg
-    - .except-docs-qa
+    - .only-code-changes
   dependencies: ["setup-test-env"]
   variables:
     SETUP_DB: "false"
@@ -284,8 +288,9 @@ coverage:
     - .default-tags
     - .default-retry
     - .default-cache
+    - .default-only
     - .default-before_script
-    - .except-docs-qa
+    - .only-code-changes
   cache:
     policy: pull
   variables:

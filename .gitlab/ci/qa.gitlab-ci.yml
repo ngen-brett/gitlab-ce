@@ -1,4 +1,5 @@
 .package-and-qa-base:
+  extends: .default-only
   image: ruby:2.6-alpine
   stage: qa
   needs: ["build-qa-image", "gitlab:assets:compile pull-cache"]
@@ -10,25 +11,23 @@
     - source scripts/utils.sh
     - install_gitlab_gem
     - ./scripts/trigger-build omnibus
-  only:
-    - branches@gitlab-org/gitlab-ce
-    - branches@gitlab-org/gitlab-ee
-  except:
-    - master
 
 package-and-qa-manual:
   extends:
     - .package-and-qa-base
-    - .except-docs-qa
+    - .only-code-changes
   when: manual
-  except:
-    - master
-    - /(^docs[\/-].+|.+-docs$)/
-    - /(^qa[\/-].*|.*-qa$)
 
 package-and-qa:
-  extends: .package-and-qa-base
-  allow_failure: true
+  extends:
+    - .package-and-qa-base
   only:
-    - /(^qa[\/-].*|.*-qa$)/@gitlab-org/gitlab-ce
-    - /(^qa[\/-].*|.*-qa$)/@gitlab-org/gitlab-ee
+    variables:
+      - $CI_PROJECT_PATH == "gitlab-org/gitlab-ce"
+      - $CI_PROJECT_PATH == "gitlab-org/gitlab-ee"
+    changes:
+      - qa/*
+  except:
+    refs:
+      - master
+  allow_failure: true
