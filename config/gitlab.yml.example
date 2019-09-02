@@ -422,6 +422,7 @@ production: &base
     # key: config/registry.key
     # path: shared/registry
     # issuer: gitlab-issuer
+    # notification_secret: '' # only set it when you use GEO feature without buit-in Registry
 
     # Add notification settings if you plan to use Geo Replication for the registry
     # notifications:
@@ -453,6 +454,7 @@ production: &base
     registry_replication:
       # enabled: true
       # primary_api_url: http://localhost:5000/ # internal address to the primary registry, will be used by GitLab to directly communicate with primary registry API
+      #
 
 
   #
