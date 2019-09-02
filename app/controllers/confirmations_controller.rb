@@ -5,7 +5,7 @@ class ConfirmationsController < Devise::ConfirmationsController
 
   def almost_there
     flash[:notice] = nil
-    render layout: "devise_empty"
+    render layout: 'devise_empty'
   end
 
   protected
