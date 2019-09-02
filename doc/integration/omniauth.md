@@ -299,9 +299,10 @@ omniauth:
   allow_bypass_two_factor: ['twitter', 'google_oauth2']
 ```
 
-## `auto_sign_in_with_provider`
+## Automatically sign in with provider
 
-You can add this setting to your GitLab configuration to automatically redirect you
+You can add the `auto_sign_in_with_provider` setting to your 
+GitLab configuration to automatically redirect login requests
 to your OmniAuth provider for authentication, thus removing the need to click a button
 before actually signing in.
 
