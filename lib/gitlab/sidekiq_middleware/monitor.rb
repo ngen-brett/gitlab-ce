@@ -4,7 +4,7 @@ module Gitlab
   module SidekiqMiddleware
     class Monitor
       def call(worker, job, queue)
-        Gitlab::SidekiqMonitor.instance.within_job(job['jid'], queue) do
+        Gitlab::SidekiqMonitor.instance.within_job(worker.class, job['jid'], queue) do
           yield
         end
       rescue Gitlab::SidekiqMonitor::CancelledError

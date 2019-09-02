@@ -15,9 +15,17 @@ module Gitlab
     CHECK_INTERVAL_SECONDS = (ENV['SIDEKIQ_MEMORY_KILLER_CHECK_INTERVAL_SECONDS'] || 3).to_s.to_i
     # Wait 30 seconds for running jobs to finish during graceful shutdown
     SHUTDOWN_WAIT = (ENV['SIDEKIQ_MEMORY_KILLER_SHUTDOWN_WAIT'] || 30).to_s.to_i
+    # Whitelist these jobs from RSS contribution
+    # todo: statistic the better value. Maybe staging server is a good test environment?
+    # The value 50 means: contribute 50K rss increase per second. This is estimated from: 15M RSS increase when import running for 300 seconds.
+    WHILTELIST_JOBS = {
+      'RepositoryImportWorker' => { 'rss_time_factor' => 50 },
+      'Gitlab::GithubImport::Stage::ImportRepositoryWorker' => { 'rss_time_factor' => 50 },
+      'Gitlab::GithubImport::Stage::FinishImportWorker' => { 'rss_time_factor' => 50 }
+    }.freeze
 
     attr_accessor :sidekiq_worker_pid
-    attr_reader :rss_balloon_started_time
+    attr_reader :rss_balloon_started_at
 
     def initialize
       super
@@ -27,10 +35,10 @@ module Gitlab
 
     private
 
-    attr_writer :rss_balloon_started_time
+    attr_writer :rss_balloon_started_at
 
     def reset_rss_balloon_started_time
-      self.rss_balloon_started_time = nil
+      self.rss_balloon_started_at = nil
     end
 
     def start_working
@@ -46,11 +54,6 @@ module Gitlab
       end
     rescue StandardError => e
       Sidekiq.logger.warn( e.message )
-      Sidekiq.logger.warn(
-        class: self.class.to_s,
-        action: 'stop',
-        message: 'Stopping SidekiqIndependentMemoryKiller Daemon'
-      )
     end
 
     def check_rss
@@ -61,31 +64,38 @@ module Gitlab
       )
 
       current_rss = get_rss
+      current_rss_exclude_whitelist = current_rss - whitelist_jobs_rss_contribution
+      Sidekiq.logger.info(
+        class: self.class.to_s,
+        action: 'check_rss',
+        message: "current_rss: #{current_rss},  current_rss_exclude_whitelist: #{current_rss_exclude_whitelist}"
+      )
 
       if HARD_LIMIT_MAX_RSS > 0 && current_rss > HARD_LIMIT_MAX_RSS
         hard_limit_kill(current_rss)
       elsif IDEAL_MAX_RSS > 0
-        check_balloon_limit_kill(current_rss)
+        check_balloon_limit_kill(current_rss_exclude_whitelist)
       end
     end
 
-    def check_balloon_limit_kill(current_rss)
-      if current_rss < IDEAL_MAX_RSS
+    def check_balloon_limit_kill(current_rss_exclude_whitelist)
+      if current_rss_exclude_whitelist < IDEAL_MAX_RSS
         reset_rss_balloon_started_time
         return
       end
 
       now = Time.now.to_i
-      if rss_balloon_started_time.nil?
-        self.rss_balloon_started_time = now
+      if rss_balloon_started_at.nil?
+        self.rss_balloon_started_at = now
       end
 
-      balloon_seconds = now - rss_balloon_started_time
+      balloon_seconds = now - rss_balloon_started_at
 
       if balloon_seconds < ALLOW_RSS_BALLOON_SECONDS
         Sidekiq.logger.warn(
           class: self.class.to_s,
-          message: "Sidekiq worker PID-#{sidekiq_worker_pid} current RSS #{current_rss}"\
+          message: "Sidekiq worker PID-#{sidekiq_worker_pid}"\
+          " current RSS exclude whitelist #{current_rss_exclude_whitelist}"\
           " exceeds IDEAL_MAX_RSS #{IDEAL_MAX_RSS}"\
           " but balloon_seconds #{balloon_seconds}"\
           " is shorter than ALLOW_RSS_BALLOON_SECONDS #{ALLOW_RSS_BALLOON_SECONDS}"
@@ -93,7 +103,8 @@ module Gitlab
       elsif balloon_seconds > ALLOW_RSS_BALLOON_SECONDS
         Sidekiq.logger.warn(
           class: self.class.to_s,
-          message: "Sidekiq worker PID-#{sidekiq_worker_pid} current RSS #{current_rss}"\
+          message: "Sidekiq worker PID-#{sidekiq_worker_pid}"\
+          " current RSS #{current_rss_exclude_whitelist}"\
           " exceeds IDEAL_MAX_RSS #{IDEAL_MAX_RSS}"\
           " and balloon_seconds #{balloon_seconds}"\
           " is longer than ALLOW_RSS_BALLOON_SECONDS #{ALLOW_RSS_BALLOON_SECONDS}"
@@ -114,7 +125,8 @@ module Gitlab
                " exceeds HARD_LIMIT_MAX_RSS #{HARD_LIMIT_MAX_RSS}"
         )
 
-        wait_and_signal(0, 'SIGTERM', 'Terminate immediately') # should we use SIGKILL?
+        # SIGKILL to kill process immediately to avoid Linux OOM
+        wait_and_signal(0, 'SIGKILL', 'Terminate immediately')
       end
     end
 
@@ -131,6 +143,36 @@ module Gitlab
 
       Sidekiq.logger.warn("sending Sidekiq worker PID-#{sidekiq_worker_pid} #{signal} (#{explanation})")
       Process.kill(signal, sidekiq_worker_pid)
+    end
+
+    def whitelist_jobs_rss_contribution
+      running_jobs = Gitlab::SidekiqMonitor.instance.jobs_running
+
+      debug_whitelist_job = {}
+      result = 0
+      running_jobs.each do |jid, job|
+        result += rss_contribution(job)
+        debug_whitelist_job[jid] = job if rss_contribution(job) > 0
+      end
+
+      Sidekiq.logger.info("running_jobs: #{running_jobs}")
+      Sidekiq.logger.info("debug_whitelist_job: #{debug_whitelist_job}")
+      Sidekiq.logger.info("whitelist_jobs_rss_contribution: #{result}")
+
+      result
+    end
+
+    def rss_contribution(job)
+      worker_class_name = job[:worker_class].name
+      return 0 if WHILTELIST_JOBS[worker_class_name].nil?
+
+      time_elapsed = Time.now.to_i - job[:started_at]
+      rss_time_factor = WHILTELIST_JOBS[worker_class_name]['rss_time_factor']
+
+      Sidekiq.logger.info("time_elapsed: #{time_elapsed}")
+      Sidekiq.logger.info("rss_time_factor: #{rss_time_factor}")
+
+      rss_time_factor * time_elapsed
     end
 
     def stop_working
