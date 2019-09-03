@@ -6,7 +6,26 @@ class AddMergeRequestsRequireCodeOwnerApprovalToProtectedBranches < ActiveRecord
   # Set this constant to true if this migration requires downtime.
   DOWNTIME = false
 
-  def change
-    add_column :protected_branches, :merge_requests_require_code_owner_approval, :boolean
+  disable_ddl_transaction!
+
+  def up
+    add_column_with_default(
+      :protected_branches,
+      :code_owner_approval_required,
+      :boolean,
+      default: false
+    )
+
+    add_concurrent_index(
+      :protected_branches,
+      [:project_id, :code_owner_approval_required],
+      name: "code_owner_approval_required",
+      where: "code_owner_approval_required = #{Gitlab::Database.true_value}")
+  end
+
+  def down
+    remove_concurrent_index(:protected_branches, name: "code_owner_approval_required")
+
+    remove_column(:protected_branches, :code_owner_approval_required)
   end
 end
