@@ -3377,13 +3377,7 @@ msgstr ""
 msgid "Could not add admins as members"
 msgstr ""
 
-msgid "Could not add admins as members to self-monitoring project. Errors: %{errors}"
-msgstr ""
-
 msgid "Could not add prometheus URL to whitelist"
-msgstr ""
-
-msgid "Could not add prometheus URL to whitelist, errors: %{errors}"
 msgstr ""
 
 msgid "Could not authorize chat nickname. Try again!"
@@ -3399,9 +3393,6 @@ msgid "Could not create Wiki Repository at this time. Please try again later."
 msgstr ""
 
 msgid "Could not create group"
-msgstr ""
-
-msgid "Could not create instance administration project. Errors: %{errors}"
 msgstr ""
 
 msgid "Could not create project"
@@ -3422,16 +3413,10 @@ msgstr ""
 msgid "Could not revoke personal access token %{personal_access_token_name}."
 msgstr ""
 
-msgid "Could not save instance administration project ID, errors: %{errors}"
-msgstr ""
-
 msgid "Could not save project ID"
 msgstr ""
 
 msgid "Could not save prometheus manual configuration"
-msgstr ""
-
-msgid "Could not save prometheus manual configuration for self-monitoring project. Errors: %{errors}"
 msgstr ""
 
 msgid "Coverage"
@@ -5352,9 +5337,6 @@ msgstr ""
 msgid "GitLab.com import"
 msgstr ""
 
-msgid "GitLab’s issue tracker"
-msgstr ""
-
 msgid "Gitaly"
 msgstr ""
 
@@ -6101,9 +6083,6 @@ msgstr ""
 msgid "Instance Statistics visibility"
 msgstr ""
 
-msgid "Instance administration project already exists"
-msgstr ""
-
 msgid "Instance administrators group already exists"
 msgstr ""
 
@@ -6258,6 +6237,9 @@ msgid "Issues with comments, merge requests with diffs and comments, labels, mil
 msgstr ""
 
 msgid "Issues, merge requests, pushes, and comments."
+msgstr ""
+
+msgid "It may take up to 30 minutes before the site is available after the first deployment."
 msgstr ""
 
 msgid "It must have a header row and at least two columns: the first column is the issue title and the second column is the issue description. The separator is automatically detected."
@@ -6602,9 +6584,6 @@ msgid "Learn how to %{link_start}contribute to the built-in templates%{link_end}
 msgstr ""
 
 msgid "Learn more"
-msgstr ""
-
-msgid "Learn more about %{issue_boards_url}, to keep track of issues in multiple lists, using labels, assignees, and milestones. If you’re missing something from issue boards, please create an issue on %{gitlab_issues_url}."
 msgstr ""
 
 msgid "Learn more about Auto DevOps"
@@ -7646,6 +7625,9 @@ msgstr ""
 msgid "Note: Consider asking your GitLab administrator to configure %{github_integration_link}, which will allow login via GitHub and allow importing repositories without generating a Personal Access Token."
 msgstr ""
 
+msgid "Note: the container registry is always visible when a project is public"
+msgstr ""
+
 msgid "NoteForm|Note"
 msgstr ""
 
@@ -8203,6 +8185,9 @@ msgstr ""
 msgid "Pipeline|Coverage"
 msgstr ""
 
+msgid "Pipeline|Detached merge request pipeline"
+msgstr ""
+
 msgid "Pipeline|Duration"
 msgstr ""
 
@@ -8210,6 +8195,12 @@ msgid "Pipeline|Existing branch name or tag"
 msgstr ""
 
 msgid "Pipeline|Key"
+msgstr ""
+
+msgid "Pipeline|Merge train pipeline"
+msgstr ""
+
+msgid "Pipeline|Merged result pipeline"
 msgstr ""
 
 msgid "Pipeline|Pipeline"
@@ -9199,7 +9190,7 @@ msgstr ""
 msgid "ProjectsNew|Want to house several dependent projects under the same namespace? %{link_start}Create a group.%{link_end}"
 msgstr ""
 
-msgid "Prometheus listen_address is not a valid URI"
+msgid "Prometheus listen_address in config/gitlab.yml is not a valid URI"
 msgstr ""
 
 msgid "PrometheusService|%{exporters} with %{metrics} were found"
@@ -11568,9 +11559,6 @@ msgstr ""
 msgid "The staging stage shows the time between merging the MR and deploying code to the production environment. The data will be automatically added once you deploy to production for the first time."
 msgstr ""
 
-msgid "The tabs below will be removed in a future version"
-msgstr ""
-
 msgid "The testing stage shows the time GitLab CI takes to run every pipeline for the related merge request. The data will automatically be added after your first pipeline finishes running."
 msgstr ""
 
@@ -11761,6 +11749,9 @@ msgid "This directory"
 msgstr ""
 
 msgid "This domain is not verified. You will need to verify ownership before access is enabled."
+msgstr ""
+
+msgid "This feature is in development. Please disable the `job_log_json` feature flag"
 msgstr ""
 
 msgid "This feature requires local storage to be enabled"
@@ -13611,6 +13602,9 @@ msgstr ""
 msgid "Your new personal access token has been created."
 msgstr ""
 
+msgid "Your pages are served under:"
+msgstr ""
+
 msgid "Your password reset token has expired."
 msgstr ""
 
@@ -13821,9 +13815,6 @@ msgid "is too long (maximum is 1000 entries)"
 msgstr ""
 
 msgid "issue"
-msgstr ""
-
-msgid "issue boards"
 msgstr ""
 
 msgid "it is stored externally"
@@ -14166,12 +14157,6 @@ msgid "project"
 msgstr ""
 
 msgid "project avatar"
-msgstr ""
-
-msgid "prometheus.enable is not present in gitlab.yml"
-msgstr ""
-
-msgid "prometheus.listen_address is not present in gitlab.yml"
 msgstr ""
 
 msgid "quick actions"
