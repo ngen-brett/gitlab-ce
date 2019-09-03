@@ -243,7 +243,8 @@ jsdoc:
   variables:
     SETUP_DB: "false"
   stage: post-test
-  dependencies: ["compile-assets", "compile-assets pull-cache"]
+  needs: ["compile-assets"]
+  dependencies: ["compile-assets"]
   script:
     - date
     - yarn run jsdoc || true  # ignore exit code
@@ -252,3 +253,32 @@ jsdoc:
     expire_in: 31d
     paths:
       - jsdoc/
+  only:
+    refs:
+      - master@gitlab-org/gitlab-ce
+      - master@gitlab-org/gitlab-ee
+
+jsdoc pull-cache:
+  extends:
+    - .default-tags
+    - .default-retry
+    - .default-cache
+    - .except-docs
+  variables:
+    SETUP_DB: "false"
+  stage: post-test
+  needs: ["compile-assets pull-cache"]
+  dependencies: ["compile-assets pull-cache"]
+  script:
+    - date
+    - yarn run jsdoc || true  # ignore exit code
+  artifacts:
+    name: jsdoc
+    expire_in: 31d
+    paths:
+      - jsdoc/
+  except:
+    refs:
+      - master@gitlab-org/gitlab-ce
+      - master@gitlab-org/gitlab-ee
+      - /(^docs[\/-].+|.+-docs$)/

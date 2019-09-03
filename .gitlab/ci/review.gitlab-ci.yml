@@ -184,6 +184,7 @@ parallel-spec-reports:
   image: ruby:2.6-alpine
   stage: post-test
   dependencies: ["review-qa-all"]
+  needs: ["review-qa-all"]
   variables:
     NEW_PARALLEL_SPECS_REPORT: qa/report-new.html
     BASE_ARTIFACT_URL: "${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/file/qa/"
