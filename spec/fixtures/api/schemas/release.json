@@ -13,6 +13,7 @@
     "author": {
       "oneOf": [{ "type": "null" }, { "$ref": "public_api/v4/user/basic.json" }]
     },
+    "commit_path": { "type": "string" },
     "assets": {
       "count": { "type": "integer" },
       "links": { "$ref": "release/links.json" },
