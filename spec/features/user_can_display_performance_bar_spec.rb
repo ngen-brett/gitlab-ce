@@ -3,6 +3,8 @@
 require 'spec_helper'
 
 describe 'User can display performance bar', :js do
+  include RailsHelpers
+
   shared_examples 'performance bar cannot be displayed' do
     it 'does not show the performance bar by default' do
       expect(page).not_to have_css('#js-peek')
@@ -37,7 +39,7 @@ describe 'User can display performance bar', :js do
 
   shared_examples 'performance bar is enabled by default in development' do
     before do
-      allow(Rails.env).to receive(:development?).and_return(true)
+      stub_rails_env('development')
     end
 
     it 'shows the performance bar by default' do

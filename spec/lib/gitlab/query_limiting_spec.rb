@@ -3,20 +3,22 @@
 require 'spec_helper'
 
 describe Gitlab::QueryLimiting do
+  include RailsHelpers
+
   describe '.enable?' do
     it 'returns true in a test environment' do
       expect(described_class.enable?).to eq(true)
     end
 
     it 'returns true in a development environment' do
-      allow(Rails.env).to receive(:development?).and_return(true)
+      stub_rails_env('development')
+      stub_rails_env('development')
 
       expect(described_class.enable?).to eq(true)
     end
 
     it 'returns false on GitLab.com' do
-      expect(Rails.env).to receive(:development?).and_return(false)
-      expect(Rails.env).to receive(:test?).and_return(false)
+      stub_rails_env('production')
       allow(Gitlab).to receive(:com?).and_return(true)
 
       expect(described_class.enable?).to eq(false)
@@ -24,8 +26,7 @@ describe Gitlab::QueryLimiting do
 
     it 'returns false in a non GitLab.com' do
       allow(Gitlab).to receive(:com?).and_return(false)
-      expect(Rails.env).to receive(:development?).and_return(false)
-      expect(Rails.env).to receive(:test?).and_return(false)
+      stub_rails_env('production')
 
       expect(described_class.enable?).to eq(false)
     end

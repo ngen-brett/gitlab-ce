@@ -3,6 +3,8 @@
 require 'spec_helper'
 
 describe 'Help Pages' do
+  include RailsHelpers
+
   describe 'Get the main help page' do
     shared_examples_for 'help page' do |prefix: ''|
       it 'prefixes links correctly' do
@@ -58,7 +60,7 @@ describe 'Help Pages' do
     before do
       stub_application_setting(version_check_enabled: true)
 
-      allow(Rails.env).to receive(:production?).and_return(true)
+      stub_rails_env('production')
       allow(VersionCheck).to receive(:url).and_return('/version-check-url')
 
       sign_in(create(:user))

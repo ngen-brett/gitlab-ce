@@ -3,6 +3,8 @@
 require 'spec_helper'
 
 describe CacheableAttributes do
+  include RailsHelpers
+
   let(:minimal_test_class) do
     Class.new do
       include ActiveModel::Model
@@ -131,7 +133,7 @@ describe CacheableAttributes do
 
       context 'in production environment' do
         before do
-          expect(Rails.env).to receive(:production?).and_return(true)
+          stub_rails_env('production')
         end
 
         it 'returns an uncached record and logs a warning' do
@@ -143,7 +145,7 @@ describe CacheableAttributes do
 
       context 'in other environments' do
         before do
-          expect(Rails.env).to receive(:production?).and_return(false)
+          stub_rails_env('development')
         end
 
         it 'returns an uncached record and logs a warning' do

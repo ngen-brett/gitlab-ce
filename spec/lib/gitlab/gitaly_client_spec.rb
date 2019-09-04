@@ -3,6 +3,8 @@ require 'spec_helper'
 # We stub Gitaly in `spec/support/gitaly.rb` for other tests. We don't want
 # those stubs while testing the GitalyClient itself.
 describe Gitlab::GitalyClient do
+  include RailsHelpers
+
   let(:sample_cert) { Rails.root.join('spec/fixtures/clusters/sample_cert.pem').to_s }
 
   before do
@@ -265,7 +267,7 @@ describe Gitlab::GitalyClient do
 
     context 'in production and when RequestStore is enabled', :request_store do
       before do
-        allow(Rails.env).to receive(:production?).and_return(true)
+        stub_rails_env('production')
       end
 
       context 'when the maximum number of calls is enforced by a feature flag' do
