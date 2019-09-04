@@ -301,7 +301,7 @@ omniauth:
 
 ## Automatically sign in with provider
 
-You can add the `auto_sign_in_with_provider` setting to your 
+You can add the `auto_sign_in_with_provider` setting to your
 GitLab configuration to automatically redirect login requests
 to your OmniAuth provider for authentication, thus removing the need to click a button
 before actually signing in.
