@@ -33,6 +33,7 @@ overview that shows snippets you created and allows you to explore all snippets.
 
 If you want to discover snippets that belong to a specific project, you can navigate
 to the Snippets page via the left side navigation on the project page.
+Project snippets are enabled by default but they can be disabled trough the [Project settings](project/settings/index.md#sharing-and-permissions).
 
 ## Snippet comments
 
