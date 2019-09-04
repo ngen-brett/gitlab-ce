@@ -63,12 +63,7 @@ Sidekiq.configure_server do |config|
 
     Gitlab::SidekiqMonitor.instance.start if enable_sidekiq_monitor
 
-    # See whether we can get the Sidekiq worker process id here
-    if enable_sidekiq_independent_memory_killer
-      pid = Process.pid
-      Gitlab::SidekiqIndependentMemoryKiller.instance.sidekiq_worker_pid = pid
-      Gitlab::SidekiqIndependentMemoryKiller.instance.start
-    end
+    Gitlab::SidekiqIndependentMemoryKiller.instance.start if enable_sidekiq_independent_memory_killer
   end
 
   if enable_reliable_fetch?
