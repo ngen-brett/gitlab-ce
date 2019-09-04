@@ -8,12 +8,12 @@ describe Gitlab::SidekiqMonitor do
   describe '#within_job' do
     it 'tracks thread' do
       blk = proc do
-        expect(monitor.jobs_thread['jid']).not_to be_nil
+        expect(monitor.jobs['jid'][:thread]).not_to be_nil
 
         "OK"
       end
 
-      expect(monitor.within_job('jid', 'queue', &blk)).to eq("OK")
+      expect(monitor.within_job('worker_class', 'jid', 'queue', &blk)).to eq("OK")
     end
 
     context 'when job is canceled' do
@@ -25,13 +25,13 @@ describe Gitlab::SidekiqMonitor do
 
       it 'does not execute a block' do
         expect do |blk|
-          monitor.within_job(jid, 'queue', &blk)
+          monitor.within_job('worker_class', jid, 'queue', &blk)
         rescue described_class::CancelledError
         end.not_to yield_control
       end
 
       it 'raises exception' do
-        expect { monitor.within_job(jid, 'queue') }.to raise_error(
+        expect { monitor.within_job('worker_class', jid, 'queue') }.to raise_error(
           described_class::CancelledError)
       end
     end
@@ -204,7 +204,7 @@ describe Gitlab::SidekiqMonitor do
         let(:thread) { Thread.new { sleep 1000 } }
 
         before do
-          monitor.jobs_thread[jid] = thread
+          monitor.jobs[jid] = { worker_class: 'worker_class', thread: thread, started_at: Time.now.to_i }
         end
 
         after do
