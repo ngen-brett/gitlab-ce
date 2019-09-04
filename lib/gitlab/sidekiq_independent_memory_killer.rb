@@ -29,6 +29,7 @@ module Gitlab
     def initialize
       super
 
+      @enabled = false
       reset_rss_balloon_started_time
     end
 
@@ -41,6 +42,8 @@ module Gitlab
     end
 
     def start_working
+      @enabled = true
+
       Sidekiq.logger.info(
         class: self.class.to_s,
         action: 'start',
@@ -53,6 +56,20 @@ module Gitlab
       end
     rescue StandardError => e
       Sidekiq.logger.warn( e.message )
+    end
+
+    def stop_working
+      Sidekiq.logger.info(
+        class: self.class.to_s,
+        action: 'stop',
+        message: 'Stopping SidekiqIndependentMemoryKiller Daemon'
+      )
+
+      @enabled = false
+    end
+
+    def enabled?
+      @enabled
     end
 
     def check_rss
@@ -176,14 +193,6 @@ module Gitlab
 
     def pid
       Process.pid
-    end
-
-    def stop_working
-      Sidekiq.logger.info(
-        class: self.class.to_s,
-        action: 'stop',
-        message: 'Stopping SidekiqIndependentMemoryKiller Daemon'
-      )
     end
   end
 end
