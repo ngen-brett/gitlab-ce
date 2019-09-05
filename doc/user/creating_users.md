@@ -11,7 +11,7 @@ You can create users:
 
 ## Create users on sign in page
 
-If you have [sign-up enabled](../user/admin_area/settings/sign_up_restrictions.md), users can create their own accounts using the **Register** tab on the sign in page.
+If you have [sign-up enabled](admin_area/settings/sign_up_restrictions.md), users can create their own accounts using the **Register** tab on the sign in page.
 
 ![Register Tab](img/register_tab.png)
 
@@ -32,5 +32,5 @@ You can also [create users through the API](../api/users.md) as an admin.
 
 Users will be:
 
-- Automatically created upon first login with the [LDAP integration](auth/ldap.md).
+- Automatically created upon first login with the [LDAP integration](../administration/auth/ldap.md).
 - Created when first logging in via an [OmniAuth provider](../integration/omniauth.md) if the `allow_single_sign_on` setting is present.
