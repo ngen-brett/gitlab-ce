@@ -106,7 +106,7 @@ export default class FileTemplateMediator {
     }
 
     this.templateSelectors.forEach(selector => {
-      if (selector.config.key === item.key) {
+      if (selector.config.name === this.getFilename()) {
         selector.show();
       } else {
         selector.hide();
