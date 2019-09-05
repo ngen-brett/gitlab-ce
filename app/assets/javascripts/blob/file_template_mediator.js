@@ -130,7 +130,6 @@ export default class FileTemplateMediator {
       .then(file => {
         this.showUndoMenu();
         this.setEditorContent(file);
-        this.setFilename(selector.config.name);
         selector.renderLoaded();
       })
       .catch(err => new Flash(`An error occurred while fetching the template: ${err}`));
@@ -208,7 +207,6 @@ export default class FileTemplateMediator {
 
   restoreFromCache() {
     this.setEditorContent(this.cachedContent);
-    this.setFilename(this.cachedFilename);
     this.setTemplateSelectorToggleText();
   }
 
@@ -230,10 +228,6 @@ export default class FileTemplateMediator {
 
   getFilename() {
     return this.$filenameInput.val();
-  }
-
-  setFilename(name) {
-    this.$filenameInput.val(name).trigger('change');
   }
 
   getSelected() {
