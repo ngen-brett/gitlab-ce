@@ -111,6 +111,7 @@ Rails.application.routes.draw do
       draw :jira_connect
       draw :username
       draw :trial_registration
+      draw :country
     end
 
     Gitlab.ee do
