@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_09_05_223900) do
+ActiveRecord::Schema.define(version: 2019_09_06_104404) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -221,6 +221,7 @@ ActiveRecord::Schema.define(version: 2019_09_05_223900) do
     t.integer "gitaly_timeout_medium", default: 30, null: false
     t.integer "gitaly_timeout_fast", default: 10, null: false
     t.boolean "mirror_available", default: true, null: false
+    t.integer "default_project_creation", default: 2, null: false
     t.boolean "password_authentication_enabled_for_web"
     t.boolean "password_authentication_enabled_for_git", default: true, null: false
     t.string "auto_devops_domain"
@@ -258,6 +259,7 @@ ActiveRecord::Schema.define(version: 2019_09_05_223900) do
     t.integer "first_day_of_week", default: 0, null: false
     t.boolean "elasticsearch_limit_indexing", default: false, null: false
     t.integer "default_project_creation", default: 2, null: false
+    t.string "geo_node_allowed_ips", default: "0.0.0.0/0, ::/0"
     t.string "lets_encrypt_notification_email"
     t.boolean "lets_encrypt_terms_of_service_accepted", default: false, null: false
     t.string "geo_node_allowed_ips", default: "0.0.0.0/0, ::/0"
@@ -3607,6 +3609,34 @@ ActiveRecord::Schema.define(version: 2019_09_05_223900) do
     t.index ["user_id", "project_id"], name: "index_users_star_projects_on_user_id_and_project_id", unique: true
   end
 
+  create_table "vulnerabilities", force: :cascade do |t|
+    t.bigint "milestone_id"
+    t.bigint "epic_id"
+    t.bigint "project_id", null: false
+    t.bigint "author_id", null: false
+    t.bigint "iid", null: false
+    t.bigint "updated_by_id"
+    t.bigint "last_edited_by_id"
+    t.date "start_date"
+    t.date "due_date"
+    t.datetime "last_edited_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "title", null: false
+    t.string "title_html", null: false
+    t.text "description"
+    t.text "description_html"
+    t.bigint "start_date_sourcing_milestone_id"
+    t.bigint "due_date_sourcing_milestone_id"
+    t.integer "state", limit: 2, default: 1, null: false
+    t.bigint "closed_by_id"
+    t.datetime "closed_at"
+    t.integer "severity", limit: 2, null: false
+    t.boolean "severity_overridden", default: false
+    t.integer "confidence", limit: 2, null: false
+    t.boolean "confidence_overridden", default: false
+  end
+
   create_table "vulnerability_feedback", id: :serial, force: :cascade do |t|
     t.datetime_with_timezone "created_at", null: false
     t.datetime_with_timezone "updated_at", null: false
@@ -3674,10 +3704,12 @@ ActiveRecord::Schema.define(version: 2019_09_05_223900) do
     t.string "name", null: false
     t.string "metadata_version", null: false
     t.text "raw_metadata", null: false
+    t.bigint "vulnerability_id"
     t.index ["primary_identifier_id"], name: "index_vulnerability_occurrences_on_primary_identifier_id"
     t.index ["project_id", "primary_identifier_id", "location_fingerprint", "scanner_id"], name: "index_vulnerability_occurrences_on_unique_keys", unique: true
     t.index ["scanner_id"], name: "index_vulnerability_occurrences_on_scanner_id"
     t.index ["uuid"], name: "index_vulnerability_occurrences_on_uuid", unique: true
+    t.index ["vulnerability_id"], name: "index_vulnerability_occurrences_on_vulnerability_id"
   end
 
   create_table "vulnerability_scanners", force: :cascade do |t|
@@ -4092,6 +4124,14 @@ ActiveRecord::Schema.define(version: 2019_09_05_223900) do
   add_foreign_key "users_ops_dashboard_projects", "projects", on_delete: :cascade
   add_foreign_key "users_ops_dashboard_projects", "users", on_delete: :cascade
   add_foreign_key "users_star_projects", "projects", name: "fk_22cd27ddfc", on_delete: :cascade
+  add_foreign_key "vulnerabilities", "epics", name: "fk_1d37cddf91", on_delete: :cascade
+  add_foreign_key "vulnerabilities", "milestones", column: "due_date_sourcing_milestone_id", name: "fk_7c5bb22a22", on_delete: :cascade
+  add_foreign_key "vulnerabilities", "milestones", column: "start_date_sourcing_milestone_id", name: "fk_88b4d546ef", on_delete: :cascade
+  add_foreign_key "vulnerabilities", "milestones", name: "fk_131d289c65", on_delete: :cascade
+  add_foreign_key "vulnerabilities", "users", column: "author_id", name: "fk_b1de915a15", on_delete: :cascade
+  add_foreign_key "vulnerabilities", "users", column: "closed_by_id", name: "fk_cf5c60acbf", on_delete: :cascade
+  add_foreign_key "vulnerabilities", "users", column: "last_edited_by_id", name: "fk_1302949740", on_delete: :cascade
+  add_foreign_key "vulnerabilities", "users", column: "updated_by_id", name: "fk_7ac31eacb9", on_delete: :cascade
   add_foreign_key "vulnerability_feedback", "ci_pipelines", column: "pipeline_id", on_delete: :nullify
   add_foreign_key "vulnerability_feedback", "issues", on_delete: :nullify
   add_foreign_key "vulnerability_feedback", "merge_requests", name: "fk_563ff1912e", on_delete: :nullify
@@ -4104,6 +4144,7 @@ ActiveRecord::Schema.define(version: 2019_09_05_223900) do
   add_foreign_key "vulnerability_occurrence_pipelines", "ci_pipelines", column: "pipeline_id", on_delete: :cascade
   add_foreign_key "vulnerability_occurrence_pipelines", "vulnerability_occurrences", column: "occurrence_id", on_delete: :cascade
   add_foreign_key "vulnerability_occurrences", "projects", on_delete: :cascade
+  add_foreign_key "vulnerability_occurrences", "vulnerabilities", name: "fk_97ffe77653", on_delete: :cascade
   add_foreign_key "vulnerability_occurrences", "vulnerability_identifiers", column: "primary_identifier_id", on_delete: :cascade
   add_foreign_key "vulnerability_occurrences", "vulnerability_scanners", column: "scanner_id", on_delete: :cascade
   add_foreign_key "vulnerability_scanners", "projects", on_delete: :cascade
