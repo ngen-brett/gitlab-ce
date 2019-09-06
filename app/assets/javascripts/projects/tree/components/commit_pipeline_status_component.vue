@@ -21,14 +21,6 @@ export default {
       type: String,
       required: true,
     },
-    /* This prop can be used to replace some of the `render_commit_status`
-      used across GitLab, this way we could use this vue component and add a
-      realtime status where it makes sense
-      realtime: {
-        type: Boolean,
-        required: false,
-        default: true,
-      }, */
   },
   data() {
     return {
@@ -95,7 +87,7 @@ export default {
         .catch(this.errorCallback);
     },
   },
-  destroy() {
+  beforeDestroy() {
     this.poll.stop();
   },
 };
