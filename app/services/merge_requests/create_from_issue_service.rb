@@ -52,8 +52,18 @@ module MergeRequests
     end
 
     def ref
-      return @ref if target_project.repository.branch_exists?(@ref)
+      return @ref if valid_ref?
 
+      default_branch
+    end
+
+    def valid_ref?
+      return false if repository.ambiguous_ref?(@ref)
+
+      repository.branch_exists?(@ref) || repository.tag_exists?(@ref)
+    end
+
+    def default_branch
       target_project.default_branch || 'master'
     end
 
@@ -67,8 +77,20 @@ module MergeRequests
         source_project_id: target_project.id,
         source_branch: branch_name,
         target_project_id: target_project.id,
-        target_branch: ref
+        target_branch: target_branch
       }
+    end
+
+    def target_branch
+      if !valid_ref? || repository.tag_exists?(@ref)
+        default_branch
+      else
+        @ref
+      end
+    end
+
+    def repository
+      target_project.repository
     end
 
     def success(merge_request)
