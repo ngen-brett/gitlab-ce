@@ -49,6 +49,7 @@ Configuring environments involves:
 
 1. Understanding how [pipelines](pipelines.md) work.
 1. Defining environments in your project's [`.gitlab-ci.yml`](yaml/README.md) file.
+1. Having your own deployment service set up.
 
 The rest of this section illustrates how to configure environments and deployments using
 an example scenario. It assumes you have already:
