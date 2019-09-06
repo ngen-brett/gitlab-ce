@@ -39,7 +39,9 @@ module Gitlab
       end
 
       def gitlab_helper
-        gitlab if respond_to?(:gitlab)
+        gitlab
+      rescue NoMethodError
+        nil
       end
 
       def release_automation?
