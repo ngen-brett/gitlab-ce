@@ -42,6 +42,32 @@ describe Gitlab::Danger::Helper do
     end
   end
 
+  describe '#release_automation?' do
+    context 'when gitlab helper is not available' do
+      it 'returns false' do
+        expect(helper.release_automation?).to be_falsey
+      end
+    end
+
+    context 'when gitlab helper is available' do
+      context "but the MR author isn't the RELEASE_TOOLS_BOT" do
+        let(:mr_author) { 'johnmarston' }
+
+        it 'returns false' do
+          expect(helper.release_automation?).to be_falsey
+        end
+      end
+
+      context 'and the MR author is the RELEASE_TOOLS_BOT' do
+        let(:mr_author) { described_class::RELEASE_TOOLS_BOT }
+
+        it 'returns true' do
+          expect(helper.release_automation?).to be_truthy
+        end
+      end
+    end
+  end
+
   describe '#all_changed_files' do
     subject { helper.all_changed_files }
 
