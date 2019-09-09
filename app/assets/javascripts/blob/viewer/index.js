@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import '~/behaviors/markdown/render_gfm';
 import Flash from '../../flash';
 import { handleLocationHash } from '../../lib/utils/common_utils';
 import axios from '../../lib/utils/axios_utils';
@@ -105,7 +106,7 @@ export default class BlobViewer {
 
   toggleCopyButtonState() {
     if (!this.copySourceBtn) return;
-
+    console.log('asserting');
     if (this.simpleViewer.getAttribute('data-loaded')) {
       this.copySourceBtn.setAttribute('title', __('Copy source to clipboard'));
       this.copySourceBtn.classList.remove('disabled');
@@ -152,7 +153,6 @@ export default class BlobViewer {
     this.activeViewer = newViewer;
 
     this.toggleCopyButtonState();
-
     BlobViewer.loadViewer(newViewer)
       .then(viewer => {
         $(viewer).renderGFM();
@@ -176,6 +176,7 @@ export default class BlobViewer {
     viewer.setAttribute('data-loading', 'true');
 
     return axios.get(url).then(({ data }) => {
+      console.log('setting');
       viewer.innerHTML = data.html;
       viewer.setAttribute('data-loaded', 'true');
 
