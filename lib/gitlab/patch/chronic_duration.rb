@@ -24,13 +24,11 @@ module Gitlab
 
           return 0 unless duration_units_list.include?(unit)
           case unit
-          when 'years';   31557600
           when 'months';  3600 * hours_per_day * days_per_month
           when 'weeks';   3600 * hours_per_day * days_per_week
           when 'days';    3600 * hours_per_day
-          when 'hours';   3600
-          when 'minutes'; 60
-          when 'seconds'; 1
+          else
+            super
           end
         end
 
