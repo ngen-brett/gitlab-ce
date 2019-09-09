@@ -2718,6 +2718,13 @@ ActiveRecord::Schema.define(version: 2019_09_10_000130) do
     t.index ["status"], name: "index_project_mirror_data_on_status"
   end
 
+  create_table "project_pages_metadata", id: false, force: :cascade do |t|
+    t.bigint "project_id", null: false
+    t.boolean "deployed", default: false, null: false
+    t.index ["deployed"], name: "index_project_pages_metadata_on_deployed"
+    t.index ["project_id"], name: "index_project_pages_metadata_on_project_id", unique: true
+  end
+
   create_table "project_repositories", force: :cascade do |t|
     t.integer "shard_id", null: false
     t.string "disk_path", null: false
@@ -4018,6 +4025,7 @@ ActiveRecord::Schema.define(version: 2019_09_10_000130) do
   add_foreign_key "project_incident_management_settings", "projects", on_delete: :cascade
   add_foreign_key "project_metrics_settings", "projects", on_delete: :cascade
   add_foreign_key "project_mirror_data", "projects", on_delete: :cascade
+  add_foreign_key "project_pages_metadata", "projects", on_delete: :cascade
   add_foreign_key "project_repositories", "projects", on_delete: :cascade
   add_foreign_key "project_repositories", "shards", on_delete: :restrict
   add_foreign_key "project_repository_states", "projects", on_delete: :cascade
