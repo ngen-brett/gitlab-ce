@@ -10,13 +10,29 @@ module Gitlab
     def parse(string)
       string = string.sub(/\A-/, '')
 
-      seconds = ChronicDuration.parse(string, default_unit: 'hours', **CUSTOM_DAY_AND_WEEK_LENGTH) rescue nil
+      seconds =
+        begin
+          ChronicDuration.parse(
+            string,
+            default_unit: 'hours',
+            **CUSTOM_DAY_AND_WEEK_LENGTH)
+        rescue
+          nil
+        end
+
       seconds *= -1 if seconds && Regexp.last_match
       seconds
     end
 
     def output(seconds)
-      ChronicDuration.output(seconds, format: :short, limit_to_hours: limit_to_hours_setting, weeks: true, **CUSTOM_DAY_AND_WEEK_LENGTH) rescue nil
+      ChronicDuration.output(
+        seconds,
+        format: :short,
+        limit_to_hours: limit_to_hours_setting,
+        weeks: true,
+        **CUSTOM_DAY_AND_WEEK_LENGTH)
+    rescue
+      nil
     end
 
     private
