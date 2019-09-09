@@ -134,6 +134,14 @@ review-stop:
   artifacts:
     paths: []
 
+review-cleanup-failed-deployment:
+  extends: review-stop
+  stage: prepare
+  when: on_success
+  allow_failure: true
+  script:
+    - delete_release
+
 .review-qa-base:
   extends:
     - .review-docker
