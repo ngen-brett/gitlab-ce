@@ -1319,7 +1319,7 @@ ActiveRecord::Schema.define(version: 2019_09_05_223900) do
     t.index ["action"], name: "index_events_on_action"
     t.index ["author_id", "project_id"], name: "index_events_on_author_id_and_project_id"
     t.index ["created_at", "author_id"], name: "analytics_index_events_on_created_at_and_author_id"
-    t.index ["group_id"], name: "index_events_on_group_id"
+    t.index ["group_id"], name: "index_events_on_group_id", where: "(group_id IS NOT NULL)"
     t.index ["project_id", "created_at"], name: "index_events_on_project_id_and_created_at"
     t.index ["project_id", "id"], name: "index_events_on_project_id_and_id"
     t.index ["target_type", "target_id"], name: "index_events_on_target_type_and_target_id"
@@ -3864,7 +3864,7 @@ ActiveRecord::Schema.define(version: 2019_09_05_223900) do
   add_foreign_key "epics", "users", column: "assignee_id", name: "fk_dccd3f98fc", on_delete: :nullify
   add_foreign_key "epics", "users", column: "author_id", name: "fk_3654b61b03", on_delete: :cascade
   add_foreign_key "epics", "users", column: "closed_by_id", name: "fk_aa5798e761", on_delete: :nullify
-  add_foreign_key "events", "namespaces", column: "group_id", on_delete: :cascade
+  add_foreign_key "events", "namespaces", column: "group_id", name: "fk_61fbf6ca48", on_delete: :cascade
   add_foreign_key "events", "projects", on_delete: :cascade
   add_foreign_key "events", "users", column: "author_id", name: "fk_edfd187b6f", on_delete: :cascade
   add_foreign_key "external_pull_requests", "projects", on_delete: :cascade
