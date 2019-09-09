@@ -99,6 +99,43 @@ export default class ProjectFindFile {
       .catch(() => flash(__('An error occurred while loading filenames')));
   }
 
+  showEmptyState() {
+    var emptyStateIllustrationSrc = "https://gitlab.com/gitlab-org/gitlab-svgs/raw/master/illustrations/profile-page/personal-projects.svg";
+    var emptyStateTitleText = "Oops, looks like there's no matching files";
+    var emptyStateDescText = "Try using a different search term to find the file you're looking for.";
+
+    var emptyStateDiv = document.createElement("div");
+    emptyStateDiv.className = "col-12 empty-state";
+
+    var svgContainer = document.createElement("div");
+    svgContainer.className = "svg-250 svg-content";
+
+    var textContent = document.createElement("div");
+    textContent.classList.add("text-content");
+
+    var textContentTitle = document.createElement("h4");
+    textContentTitle.classList.add("text-center");
+
+    var textContentDesc = document.createElement("p");
+    textContentDesc.classList.add("text-secondary");
+
+    textContentTitle.innerHTML = emptyStateTitleText;
+    textContentDesc.innerHTML = emptyStateDescText;
+
+    textContent.appendChild(textContentTitle);
+    textContent.appendChild(textContentDesc);
+
+    var svg = document.createElement("img");
+    svg.src = emptyStateIllustrationSrc;
+
+    svgContainer.appendChild(svg);
+
+    emptyStateDiv.appendChild(svgContainer);
+    emptyStateDiv.appendChild(textContent);
+
+    this.element.find('.tree-table > tbody').append(emptyStateDiv);
+  }
+
   // render result
   renderList(filePaths, searchText) {
     var blobItemUrl, filePath, html, i, len, matches, results;
@@ -117,7 +154,12 @@ export default class ProjectFindFile {
       html = ProjectFindFile.makeHtml(filePath, matches, blobItemUrl);
       results.push(this.element.find('.tree-table > tbody').append(html));
     }
-    return results;
+
+    if (results.length) {
+      return results;
+    } else {
+      return this.showEmptyState()
+    }
   }
 
   // make tbody row html
