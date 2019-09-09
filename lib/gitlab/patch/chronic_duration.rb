@@ -65,7 +65,7 @@ module Gitlab
 
           minute = 60
           hour = 60 * minute
-          # Patch, TODO: maybe replace with the call of the method above?
+          # Patch
           day = hours_per_day * hour
           month = days_per_month * day # why it wasn't patched already since we re-defined days_per_week?
           # End patch
@@ -100,10 +100,12 @@ module Gitlab
                       end
                     end
                   else
-                    if days >= 30 # TODO: do we need to replace `30` here?
-                      months = (days / 30).to_i
-                      days = (days % 30).to_i
+                    # Patch `30` with days_per_month which could not always be `30`
+                    if days >= days_per_month
+                      months = (days / days_per_month).to_i
+                      days = (days % days_per_month).to_i
                     end
+                    # End patch
                   end
                 end
               end
