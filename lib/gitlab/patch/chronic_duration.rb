@@ -28,7 +28,7 @@ module Gitlab
           when 'weeks';   3600 * hours_per_day * days_per_week
           when 'days';    3600 * hours_per_day
           else
-            super
+            super(unit)
           end
         end
 
