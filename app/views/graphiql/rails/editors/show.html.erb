@@ -3,7 +3,8 @@
   <head>
     <title>GraphiQL</title>
     <%= stylesheet_link_tag("graphiql/rails/application") %>
-    <%= javascript_include_tag("graphiql/rails/application") %>
+    <%# TODO: This file was included to fix a CSP failure. Please remove when https://github.com/rmosolgo/graphiql-rails/pull/71 will be released %>
+    <%= javascript_include_tag("graphiql/rails/application", nonce: true) %>
   </head>
   <body>
     <div id="graphiql-container">
