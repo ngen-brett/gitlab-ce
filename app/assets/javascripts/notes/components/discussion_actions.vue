@@ -35,6 +35,11 @@ export default {
       required: true,
     },
   },
+  computed: {
+    userCanResolveDiscussion() {
+      return this.discussion.notes.every(note => note.current_user.can_resolve);
+    },
+  },
 };
 </script>
 
@@ -46,7 +51,7 @@ export default {
       @onClick="$emit('showReplyForm')"
     />
 
-    <div class="btn-group discussion-actions" role="group">
+    <div v-if="userCanResolveDiscussion" class="btn-group discussion-actions" role="group">
       <div class="btn-group">
         <resolve-discussion-button
           v-if="discussion.resolvable"
