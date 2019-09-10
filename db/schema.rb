@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_09_05_223900) do
+ActiveRecord::Schema.define(version: 2019_09_10_114843) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_trgm"
@@ -2288,7 +2288,7 @@ ActiveRecord::Schema.define(version: 2019_09_05_223900) do
     t.index ["runners_token_encrypted"], name: "index_namespaces_on_runners_token_encrypted", unique: true
     t.index ["shared_runners_minutes_limit", "extra_shared_runners_minutes_limit"], name: "index_namespaces_on_shared_and_extra_runners_minutes_limit"
     t.index ["trial_ends_on"], name: "index_namespaces_on_trial_ends_on", where: "(trial_ends_on IS NOT NULL)"
-    t.index ["type"], name: "index_namespaces_on_type"
+    t.index ["type"], name: "index_namespaces_on_type_partial", where: "(type IS NOT NULL)"
   end
 
   create_table "note_diff_files", id: :serial, force: :cascade do |t|
