@@ -51,7 +51,7 @@ will help you to quickly create a deployment:
    select a deployment strategy and save your changes.
 1. On the same page, in the Variables section, add a variable named `KUBE_INGRESS_BASE_DOMAIN`
    with the value of the Ingress endpoint you have copied in the previous step. Leave the type
-   to "Variable".
+   as "Variable".
 1. Navigate to your project's **CI/CD > Pipelines** page, and run a pipeline on any branch.
 1. When the pipeline has run successfully, graphs will be available on the **Operations > Metrics** page.
 
