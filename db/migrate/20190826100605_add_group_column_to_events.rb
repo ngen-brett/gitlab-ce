@@ -9,8 +9,8 @@ class AddGroupColumnToEvents < ActiveRecord::Migration[5.2]
 
   def up
     add_column(:events, :group_id, :bigint) unless column_exists?(:events, :group_id)
-    add_concurrent_foreign_key(:events, :namespaces, column: :group_id, on_delete: :cascade)
     add_concurrent_index(:events, :group_id)
+    add_concurrent_foreign_key(:events, :namespaces, column: :group_id, on_delete: :cascade)
   end
 
   def down
