@@ -14,16 +14,17 @@ export default class ProtectedBranchCreate {
     this.currentProjectUserDefaults = {};
     this.buildDropdowns();
     this.$branchInput = this.$form.find('input[name="protected_branch[name]"]');
+    this.$toggleButton = this.$form.find('.js-project-feature-toggle');
     this.bindEvents();
   }
 
   bindEvents() {
-    this.$form.find('.js-project-feature-toggle').on('click', this.onToggleButtonClick.bind(this));
+    this.$toggleButton.on('click', this.onToggleButtonClick.bind(this));
     this.$form.on('submit', this.onFormSubmit.bind(this));
   }
 
   onToggleButtonClick() {
-    const toggleButton = this.$form.find('.js-project-feature-toggle');
+    const toggleButton = this.$toggleButton;
     toggleButton.toggleClass('is-checked');
   }
 

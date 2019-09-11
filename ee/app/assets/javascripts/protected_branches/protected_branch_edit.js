@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import _ from 'underscore';
 import axios from '~/lib/utils/axios_utils';
 import Flash from '~/flash';
@@ -13,6 +12,7 @@ export default class ProtectedBranchEdit {
     this.$wrap = options.$wrap;
     this.$allowedToMergeDropdown = this.$wrap.find('.js-allowed-to-merge');
     this.$allowedToPushDropdown = this.$wrap.find('.js-allowed-to-push');
+    this.$toggleButton = this.$wrap.find('.js-project-feature-toggle');
 
     this.$wraps[ACCESS_LEVELS.MERGE] = this.$allowedToMergeDropdown.closest(
       `.${ACCESS_LEVELS.MERGE}-container`,
@@ -26,17 +26,15 @@ export default class ProtectedBranchEdit {
   }
 
   bindEvents() {
-    this.$wrap.find('.js-project-feature-toggle').on('click', this.onToggleButtonClick.bind(this));
+    this.$toggleButton.on('click', this.onToggleButtonClick.bind(this));
   }
 
   onToggleButtonClick() {
-    const toggleButton = this.$wrap.find('.js-project-feature-toggle');
-
-    toggleButton.toggleClass('is-checked');
-    toggleButton.prop('disabled', true);
+    this.$toggleButton.toggleClass('is-checked');
+    this.$toggleButton.prop('disabled', true);
 
     const formData = {
-      code_owner_approval_required: toggleButton.hasClass('is-checked'),
+      code_owner_approval_required: this.$toggleButton.hasClass('is-checked'),
     };
 
     this.updateCodeOwnerApproval(formData);
