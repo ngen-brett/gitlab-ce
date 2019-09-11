@@ -41,7 +41,7 @@ Once you have a connected Kubernetes cluster with Helm installed, deploying a ma
 #### Getting metrics to display on the Metrics Dashboard
 
 After completing the steps above, you will also need deployments in order to view the
-**Operations > Metrics** page. Setting up [Auto DevOps](../../topics/autodevops/index.md)
+**Operations > Metrics** page. Setting up [Auto DevOps](../../../topics/autodevops/index.md)
 will help you to quickly create a deployment:
 
 1. Navigate to your project's **Operations > Kubernetes** page, and ensure that,
