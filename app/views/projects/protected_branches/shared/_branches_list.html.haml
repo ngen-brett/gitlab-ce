@@ -23,14 +23,14 @@
 =======
           %th
             = (s_("ProtectedBranch|Protected branch (%{protected_branches_count})") % { protected_branches_count: @protected_branches_count }).html_safe
-          %th 
+          %th
             = s_("ProtectedBranch|Last commit")
-          %th 
+          %th
             = s_("ProtectedBranch|Allowed to merge")
-          %th 
+          %th
             = s_("ProtectedBranch|Allowed to push")
           - if @project.merge_requests_require_code_owner_approval
-            %th 
+            %th
               = s_("ProtectedBranch|Code owner approval")
 >>>>>>> 6dc64ee911f... Add translation & consolidate bindEvents methods
           - if can_admin_project
