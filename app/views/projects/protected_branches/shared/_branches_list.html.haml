@@ -1,9 +1,9 @@
 .protected-branches-list.js-protected-branches-list.qa-protected-branches-list
   - if @protected_branches.empty?
     .card-header.bg-white
-      Protected branch (#{@protected_branches_count})
+      = (s_("ProtectedBranch|Protected branch (%{protected_branches_count})") % { protected_branches_count: @protected_branches_count }).html_safe
     %p.settings-message.text-center
-      There are currently no protected branches, protect a branch with the form above.
+      = s_("ProtectedBranch|There are currently no protected branches, protect a branch with the form above.")
   - else
     %table.table.table-bordered
       %colgroup
@@ -15,10 +15,24 @@
           %col
       %thead
         %tr
+<<<<<<< HEAD
           %th Protected branch (#{@protected_branches_count})
           %th Last commit
           %th Allowed to merge
           %th Allowed to push
+=======
+          %th
+            = (s_("ProtectedBranch|Protected branch (%{protected_branches_count})") % { protected_branches_count: @protected_branches_count }).html_safe
+          %th 
+            = s_("ProtectedBranch|Last commit")
+          %th 
+            = s_("ProtectedBranch|Allowed to merge")
+          %th 
+            = s_("ProtectedBranch|Allowed to push")
+          - if @project.merge_requests_require_code_owner_approval
+            %th 
+              = s_("ProtectedBranch|Code owner approval")
+>>>>>>> 6dc64ee911f... Add translation & consolidate bindEvents methods
           - if can_admin_project
             %th
       %tbody
