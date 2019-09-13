@@ -430,7 +430,7 @@ class Project < ApplicationRecord
   end
 
   scope :with_pages_deployed, -> do
-    where('EXISTS (?)', ProjectPagesMetadatum.project_scoped.where(deployed: true).select(1))
+    where('EXISTS (?)', ProjectPagesMetadatum.project_scoped.deployed.select(1))
   end
 
   enum auto_cancel_pending_pipelines: { disabled: 0, enabled: 1 }

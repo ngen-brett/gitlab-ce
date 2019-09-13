@@ -8,6 +8,7 @@ class ProjectPagesMetadatum < ApplicationRecord
   belongs_to :project, inverse_of: :project_pages_metadatum
 
   scope :project_scoped, -> { where('projects.id=project_pages_metadata.project_id') }
+  scope :deployed, -> { where(deployed: true) }
 
   def self.available?
     @available ||=
