@@ -24,6 +24,7 @@
           = s_("ProtectedBranch|Allowed to push:")
         .col-md-10
           = yield :push_access_levels
+<<<<<<< HEAD
 
       - if @project.merge_requests_require_code_owner_approval
         .form-group.row
@@ -51,5 +52,8 @@
 =======
               = s_("ProtectedBranch|Pushes that change filenames matched by the CODEOWNERS file will be rejected")
 >>>>>>> cd182ca57e5... Add views of code owner approval
+=======
+      = render_if_exists 'shared/projects/code_owner_approval_form'
+>>>>>>> a10b774e10a... Move haml files to EE render partials
     .card-footer
       = f.submit s_('ProtectedBranch|Protect'), class: 'btn-success btn', disabled: true

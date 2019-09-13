@@ -31,10 +31,16 @@
             = s_("ProtectedBranch|Allowed to merge")
           %th
             = s_("ProtectedBranch|Allowed to push")
+<<<<<<< HEAD
           - if @project.merge_requests_require_code_owner_approval
             %th
               = s_("ProtectedBranch|Code owner approval")
 >>>>>>> f6332dc1f9a... Add API endpoint for updating protected branch
+=======
+
+          = render_if_exists 'shared/projects/code_owner_approval_table_head'
+
+>>>>>>> a10b774e10a... Move haml files to EE render partials
           - if can_admin_project
             %th
       %tbody
