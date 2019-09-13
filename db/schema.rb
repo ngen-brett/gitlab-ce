@@ -2721,7 +2721,7 @@ ActiveRecord::Schema.define(version: 2019_09_10_000130) do
   create_table "project_pages_metadata", id: false, force: :cascade do |t|
     t.bigint "project_id", null: false
     t.boolean "deployed", default: false, null: false
-    t.index ["deployed"], name: "index_project_pages_metadata_on_deployed"
+    t.index ["project_id", "deployed"], name: "index_project_pages_metadata_on_project_id_and_deployed_is_true", where: "(deployed = true)"
     t.index ["project_id"], name: "index_project_pages_metadata_on_project_id", unique: true
   end
 
