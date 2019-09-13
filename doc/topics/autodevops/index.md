@@ -760,9 +760,8 @@ the secret file and source it prior to running `$COMMAND`:
 
 NOTE: **Note:**
 When `AUTO_DEVOPS_BUILD_IMAGE_FORWARDED_CI_VARIABLES` is set, Auto DevOps
-uses [Docker BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/)
-to enable the `--secret` flag. Docker BuildKit is still experimental, and not compatible
-with every kind of build.
+enables the experimental [Docker BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/)
+feature to use the `--secret` flag.
 
 ### Custom Helm Chart
 
