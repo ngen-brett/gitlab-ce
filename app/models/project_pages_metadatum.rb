@@ -11,12 +11,16 @@ class ProjectPagesMetadatum < ApplicationRecord
   scope :deployed, -> { where(deployed: true) }
 
   def self.available?
-    @available ||=
+    return true unless Rails.env.test?
+
+    Gitlab::SafeRequestStore.fetch(:project_pages_metadatum_available_flag) do
       ActiveRecord::Migrator.current_version >= MINIMUM_SCHEMA_VERSION
+    end
   end
 
+  # Flushes cached information about schema
   def self.reset_column_information
-    @available = nil
+    Gitlab::SafeRequestStore[:project_pages_metadatum_available_flag] = nil
     super
   end
 end
