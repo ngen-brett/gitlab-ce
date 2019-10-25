@@ -158,6 +158,31 @@ using environment variables.
 | `DS_RUN_ANALYZER_TIMEOUT`               | Time limit when running an analyzer. Timeouts are parsed using Go's [`ParseDuration`](https://golang.org/pkg/time/#ParseDuration). Valid time units are `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. For example, `300ms`, `1.5h`, or `2h45m`. | |
 | `PIP_INDEX_URL`                         | Base URL of Python Package Index (default `https://pypi.org/simple`). | |
 | `PIP_EXTRA_INDEX_URL`                   | Array of [extra URLs](https://pip.pypa.io/en/stable/reference/pip_install/#cmdoption-extra-index-url) of package indexes to use in addition to `PIP_INDEX_URL`. Comma separated. | |
+| `MAVEN_CLI_OPTS`                        | List of command line arguments that will be passed to the maven analyzer during the project's build phase (see example for [using private repos](#using-private-maven-repos)). | `MAVEN_CLI_OPTS="-X -C"` |
+
+### Using private maven repos
+
+If you have a private Apache Maven repository which requires login credentials, you can use the `MAVEN_CLI_OPTS` environment variable to pass variables specified in settings to maven (e.g. username, password, etc.). You can set these variables under your project’s settings so that you don't have to expose your private data in the ci template (i.e. .gitlab-ci.yml).
+
+For example, if you have a settings file in your project source (`mysettings.xml`) that looks like this:
+```
+<settings>
+    ...
+    <servers>
+        <server>
+            <id>private_server</id>
+            <username>${private.username}</username>
+            <password>${private.password}</password>
+        </server>
+    </servers>
+</settings>
+```
+
+You can set the variables under your project's settings as follows.
+
+| Type      | Key               | Value                                                                    |
+| ----------| ----------------- | ------------------------------------------------------------------------ |
+| Variable  | `MAVEN_CLI_OPTS`  | "--settings mysettings.xml -Dprivate.username=foo -Dprivate.password=bar |
 
 ## Interacting with the vulnerabilities
 
