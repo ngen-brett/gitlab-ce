@@ -1,5 +1,5 @@
 ---
 title: Add maven cli opts flag to maven security analyzer (part of dependency scanning)
-merge_request:
+merge_request: 32990
 author:
 type: changed
